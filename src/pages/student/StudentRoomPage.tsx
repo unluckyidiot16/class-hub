@@ -68,7 +68,7 @@ export function StudentRoomPage() {
     const { roomId } = useParams<{ roomId: string }>();
     const location = useLocation();
     const state = (location.state || {}) as LocationState;
-
+    
     const [room, setRoom] = useState<RoomRow | null>(null);
     const [loadingRoom, setLoadingRoom] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -94,7 +94,21 @@ export function StudentRoomPage() {
     // 메시지
     const [messages, setMessages] = useState<RoomMessageRow[]>([]);
 
-    const nickname = state.nickname ?? "학생";
+    const [nickname] = useState(() => {
+        if (state.nickname) return state.nickname;
+
+        try {
+            if (roomId && typeof window !== "undefined") {
+                const storageKey = `classhub:room:${roomId}:nickname`;
+                const saved = window.localStorage.getItem(storageKey);
+                if (saved) return saved;
+            }
+        } catch {
+            // ignore
+        }
+
+        return "학생";
+    });
 
     // 학생 식별 키 (방마다 로컬스토리지에 저장)
     const [studentKey] = useState(() => {
@@ -115,6 +129,7 @@ export function StudentRoomPage() {
         return makeRandomKey();
     });
 
+    
     // 1) 방 기본 정보 로드
     useEffect(() => {
         if (!roomId) return;
@@ -262,6 +277,49 @@ export function StudentRoomPage() {
             window.clearInterval(timer);
         };
     }, [roomId, lastQuestionId]);
+
+    // 2-3) 현재 문제에 대한 기존 답안 여부 체크
+    useEffect(() => {
+        if (!session?.id || !currentQuestion?.id || !studentKey) return;
+
+        let cancelled = false;
+
+        const checkAlreadyAnswered = async () => {
+            const { data, error } = await supabase
+                .from("quiz_answers")
+                .select("selected_index")
+                .eq("session_id", session.id)
+                .eq("question_id", currentQuestion.id)
+                .eq("student_key", studentKey)
+                .order("created_at", { ascending: true }) // 여러 개 있다면 가장 처음 것
+                .limit(1);
+
+            if (cancelled) return;
+
+            if (error) {
+                console.error("[StudentRoom] load existing answer error", error);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                setHasAnswered(true);
+                setSelectedIndex(data[0].selected_index);
+                setSubmitMessage("이미 이 문제에 답을 제출했습니다.");
+            } else {
+                // 새 문제로 넘어왔을 때 상태 초기화
+                setHasAnswered(false);
+                setSelectedIndex(null);
+                setSubmitMessage(null);
+            }
+        };
+
+        void checkAlreadyAnswered();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [session?.id, currentQuestion?.id, studentKey]);
+
 
     // 3) 선생님 메시지 구독 (초기 조회 + Realtime)
     useEffect(() => {

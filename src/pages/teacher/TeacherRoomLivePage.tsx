@@ -48,6 +48,8 @@ type QuizSessionRow = {
 type StudentSummary = {
     student_key: string;
     nickname: string | null;
+    answersCount: number;
+    lastAnsweredAt: string | null;
 };
 
 type MessageTargetType = "all" | "student";
@@ -88,10 +90,17 @@ export function TeacherRoomLivePage() {
     // 학생 목록 + 메시지 상태
     const [students, setStudents] = useState<StudentSummary[]>([]);
     const [messages, setMessages] = useState<RoomMessageRow[]>([]);
-    const [targetStudentKey, setTargetStudentKey] = useState<"all" | string>("all");
     const [messageBody, setMessageBody] = useState("");
     const [messageLink, setMessageLink] = useState("");
     const [sendingMessage, setSendingMessage] = useState(false);
+
+    // 학생 상태 모달 + 개인 메시지용 상태
+    const [showStudentStatusModal, setShowStudentStatusModal] = useState(false);
+    const [selectedStudentForMessage, setSelectedStudentForMessage] =
+        useState<StudentSummary | null>(null);
+    const [personalMessageBody, setPersonalMessageBody] = useState("");
+    const [personalMessageLink, setPersonalMessageLink] = useState("");
+    const [sendingPersonalMessage, setSendingPersonalMessage] = useState(false);
 
     // origin 한 번만 세팅
     useEffect(() => {
@@ -236,18 +245,43 @@ export function TeacherRoomLivePage() {
             }
 
             const map = new Map<string, StudentSummary>();
+
             for (const row of data ?? []) {
                 const key = row.student_key as string;
                 if (!key) continue;
-                if (!map.has(key)) {
+
+                const createdAt = (row.created_at as string | null) ?? null;
+                const nickname = (row.nickname as string | null) ?? null;
+
+                const existing = map.get(key);
+                if (!existing) {
                     map.set(key, {
                         student_key: key,
-                        nickname:
-                            (row.nickname as string | null) ?? null,
+                        nickname,
+                        answersCount: 1,
+                        lastAnsweredAt: createdAt,
                     });
+                } else {
+                    existing.answersCount += 1;
+                    if (
+                        createdAt &&
+                        (!existing.lastAnsweredAt ||
+                            createdAt > existing.lastAnsweredAt)
+                    ) {
+                        existing.lastAnsweredAt = createdAt;
+                    }
                 }
             }
-            setStudents(Array.from(map.values()));
+
+            const list = Array.from(map.values()).sort((a, b) => {
+                // 최근 답변 순으로 정렬 (없으면 뒤로)
+                if (!a.lastAnsweredAt && !b.lastAnsweredAt) return 0;
+                if (!a.lastAnsweredAt) return 1;
+                if (!b.lastAnsweredAt) return -1;
+                return a.lastAnsweredAt.localeCompare(b.lastAnsweredAt) * -1;
+            });
+
+            setStudents(list);
         };
 
         void loadStudents();
@@ -426,7 +460,7 @@ export function TeacherRoomLivePage() {
         }
     };
 
-    // ✅ 학생에게 메시지/링크 보내기
+    // ✅ 전체 학생에게 메시지/링크 보내기
     const handleSendMessage = async (e?: any) => {
         if (e) e.preventDefault();
         if (!room) return;
@@ -439,27 +473,17 @@ export function TeacherRoomLivePage() {
             return;
         }
 
-        const isAll = targetStudentKey === "all";
-
         setSendingMessage(true);
         setErrorMsg(null);
 
         try {
-            const targetNick = !isAll
-                ? students.find(
-                (s) => s.student_key === targetStudentKey
-            )?.nickname ?? null
-                : null;
-
             const payload = {
                 room_id: room.id,
                 session_id: session?.id ?? null,
                 sender_id: sessionAuth?.user.id ?? null,
-                target_type: (isAll
-                    ? "all"
-                    : "student") as MessageTargetType,
-                target_student_key: isAll ? null : targetStudentKey,
-                target_nickname: targetNick,
+                target_type: "all" as MessageTargetType,
+                target_student_key: null,
+                target_nickname: null,
                 body: trimmedBody || null,
                 link_url: trimmedLink || null,
             };
@@ -486,6 +510,70 @@ export function TeacherRoomLivePage() {
             // setMessageLink("");
         } finally {
             setSendingMessage(false);
+        }
+    };
+
+    // ✅ 학생 상태 모달 열기
+    const handleOpenStudentStatusModal = () => {
+        if (students.length > 0) {
+            setSelectedStudentForMessage(students[0]);
+        } else {
+            setSelectedStudentForMessage(null);
+        }
+        setShowStudentStatusModal(true);
+    };
+
+    // ✅ 개별 학생에게 메시지 보내기
+    const handleSendPersonalMessage = async (e?: any) => {
+        if (e) e.preventDefault();
+        if (!room || !selectedStudentForMessage) return;
+
+        const trimmedBody = personalMessageBody.trim();
+        const trimmedLink = personalMessageLink.trim();
+
+        if (!trimmedBody && !trimmedLink) {
+            setErrorMsg("보낼 내용이나 링크를 입력해주세요.");
+            return;
+        }
+
+        setSendingPersonalMessage(true);
+        setErrorMsg(null);
+
+        try {
+            const payload = {
+                room_id: room.id,
+                session_id: session?.id ?? null,
+                sender_id: sessionAuth?.user.id ?? null,
+                target_type: "student" as MessageTargetType,
+                target_student_key: selectedStudentForMessage.student_key,
+                target_nickname: selectedStudentForMessage.nickname,
+                body: trimmedBody || null,
+                link_url: trimmedLink || null,
+            };
+
+            const { data, error } = await supabase
+                .from("room_messages")
+                .insert(payload)
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error(
+                    "[TeacherRoomLive] send personal message error",
+                    error
+                );
+                setErrorMsg("개인 메시지를 보내는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            const newMsg = data as RoomMessageRow;
+            setMessages((prev) => [newMsg, ...prev].slice(0, 50));
+
+            // 입력창 초기화
+            setPersonalMessageBody("");
+            setPersonalMessageLink("");
+        } finally {
+            setSendingPersonalMessage(false);
         }
     };
 
@@ -654,8 +742,7 @@ export function TeacherRoomLivePage() {
                                         style={{
                                             flex: 1,
                                             fontSize: "0.8rem",
-                                            padding:
-                                                "0.25rem 0.4rem",
+                                            padding: "0.25rem 0.4rem",
                                         }}
                                         onFocus={(e) =>
                                             e.target.select()
@@ -698,9 +785,7 @@ export function TeacherRoomLivePage() {
                                     <button
                                         type="button"
                                         className="secondary-btn"
-                                        onClick={
-                                            handleOpenQrWindow
-                                        }
+                                        onClick={handleOpenQrWindow}
                                     >
                                         QR 새 창 열기
                                     </button>
@@ -719,8 +804,7 @@ export function TeacherRoomLivePage() {
                         {!studentJoinUrl && (
                             <hr
                                 style={{
-                                    borderColor:
-                                        "var(--border-subtle)",
+                                    borderColor: "var(--border-subtle)",
                                     margin: "0.75rem 0",
                                 }}
                             />
@@ -731,8 +815,7 @@ export function TeacherRoomLivePage() {
                                 <p>
                                     현재 세션 상태:{" "}
                                     <strong>
-                                        {session.status ===
-                                        "running"
+                                        {session.status === "running"
                                             ? "진행 중"
                                             : "종료됨"}
                                     </strong>
@@ -759,8 +842,7 @@ export function TeacherRoomLivePage() {
                                             className="secondary-btn"
                                             disabled={
                                                 saving ||
-                                                session
-                                                    .current_index <=
+                                                session.current_index <=
                                                 0
                                             }
                                             onClick={() =>
@@ -776,8 +858,7 @@ export function TeacherRoomLivePage() {
                                             className="secondary-btn"
                                             disabled={
                                                 saving ||
-                                                session
-                                                    .current_index >=
+                                                session.current_index >=
                                                 totalCount - 1
                                             }
                                             onClick={() =>
@@ -846,46 +927,54 @@ export function TeacherRoomLivePage() {
 
                     {/* 학생 메시지 / 링크 카드 */}
                     <div className="card">
-                        <h2>학생 메시지 / 링크 보내기</h2>
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <h2 style={{ marginBottom: 0 }}>
+                                학생 메시지 / 링크 보내기
+                            </h2>
+                            <button
+                                type="button"
+                                className="secondary-btn"
+                                onClick={handleOpenStudentStatusModal}
+                            >
+                                학생 상태 보기
+                            </button>
+                        </div>
+
                         <form
                             onSubmit={handleSendMessage}
                             style={{
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: "0.5rem",
+                                marginTop: "0.5rem",
                             }}
                         >
                             <label className="form-field">
                                 <span>대상</span>
-                                <select
-                                    value={targetStudentKey}
-                                    onChange={(e) =>
-                                        setTargetStudentKey(
-                                            e.target
-                                                .value as
-                                                | "all"
-                                                | string
-                                        )
-                                    }
-                                >
-                                    <option value="all">
-                                        전체 학생에게 보내기
-                                    </option>
-                                    {students.map((s) => (
-                                        <option
-                                            key={s.student_key}
-                                            value={s.student_key}
-                                        >
-                                            {s.nickname ??
-                                                "이름 없음"}{" "}
-                                            (
-                                            {s.student_key.slice(
-                                                -4
-                                            )}
-                                            )
-                                        </option>
-                                    ))}
-                                </select>
+                                <div style={{ fontSize: "0.9rem" }}>
+                                    전체 학생에게 보내기
+                                    <div
+                                        className="hint"
+                                        style={{
+                                            fontSize: "0.8rem",
+                                            marginTop: "0.15rem",
+                                        }}
+                                    >
+                                        개별 학생에게는 위의{" "}
+                                        <strong>
+                                            학생 상태 보기
+                                        </strong>{" "}
+                                        버튼을 눌러 모달에서 선택 후 메시지를
+                                        보낼 수 있습니다.
+                                    </div>
+                                </div>
                             </label>
 
                             <label className="form-field">
@@ -932,8 +1021,7 @@ export function TeacherRoomLivePage() {
                                 <h3
                                     style={{
                                         fontSize: "0.9rem",
-                                        marginBottom:
-                                            "0.35rem",
+                                        marginBottom: "0.35rem",
                                     }}
                                 >
                                     최근 보낸 메시지
@@ -944,8 +1032,7 @@ export function TeacherRoomLivePage() {
                                         padding: 0,
                                         margin: 0,
                                         display: "flex",
-                                        flexDirection:
-                                            "column",
+                                        flexDirection: "column",
                                         gap: "0.25rem",
                                     }}
                                 >
@@ -955,18 +1042,15 @@ export function TeacherRoomLivePage() {
                                             <li
                                                 key={m.id}
                                                 style={{
-                                                    fontSize:
-                                                        "0.85rem",
+                                                    fontSize: "0.85rem",
                                                     borderTop:
                                                         "1px solid var(--border-subtle)",
-                                                    paddingTop:
-                                                        "0.25rem",
+                                                    paddingTop: "0.25rem",
                                                 }}
                                             >
                                                 <div
                                                     style={{
-                                                        display:
-                                                            "flex",
+                                                        display: "flex",
                                                         justifyContent:
                                                             "space-between",
                                                         gap: "0.5rem",
@@ -997,24 +1081,17 @@ export function TeacherRoomLivePage() {
                                                     </span>
                                                 </div>
                                                 {m.body && (
-                                                    <div>
-                                                        {
-                                                            m.body
-                                                        }
-                                                    </div>
+                                                    <div>{m.body}</div>
                                                 )}
                                                 {m.link_url && (
                                                     <div
                                                         style={{
-                                                            fontSize:
-                                                                "0.8rem",
+                                                            fontSize: "0.8rem",
                                                             color: "var(--accent)",
                                                         }}
                                                     >
                                                         링크:{" "}
-                                                        {
-                                                            m.link_url
-                                                        }
+                                                        {m.link_url}
                                                     </div>
                                                 )}
                                             </li>
@@ -1056,57 +1133,52 @@ export function TeacherRoomLivePage() {
                                     }}
                                 >
                                     <strong>
-                                        Q{currentNumber} /{" "}
-                                        {totalCount}
+                                        Q{currentNumber} / {totalCount}
                                     </strong>
                                 </p>
                                 <p
                                     style={{
-                                        whiteSpace:
-                                            "pre-wrap",
-                                        marginBottom:
-                                            "0.75rem",
+                                        whiteSpace: "pre-wrap",
+                                        marginBottom: "0.75rem",
                                     }}
                                 >
                                     {currentQuestion.prompt}
                                 </p>
 
                                 <ul className="feature-list">
-                                    {(currentQuestion.options ??
-                                        []
-                                    ).map((opt, idx) => (
-                                        <li key={idx}>
-                                            <strong>
-                                                {String.fromCharCode(
-                                                    65 +
-                                                    idx
-                                                )}
-                                                .
-                                            </strong>{" "}
-                                            <span>{opt}</span>
-                                            {currentQuestion.answer_index ===
-                                                idx && (
-                                                    <span
-                                                        style={{
-                                                            marginLeft:
-                                                                "0.4rem",
-                                                            fontSize:
-                                                                "0.8rem",
-                                                            color: "var(--accent)",
-                                                        }}
-                                                    >
-                                                    (정답)
-                                                </span>
-                                                )}
-                                        </li>
-                                    ))}
+                                    {(currentQuestion.options ?? []).map(
+                                        (opt, idx) => (
+                                            <li key={idx}>
+                                                <strong>
+                                                    {String.fromCharCode(
+                                                        65 + idx
+                                                    )}
+                                                    .
+                                                </strong>{" "}
+                                                <span>{opt}</span>
+                                                {currentQuestion.answer_index ===
+                                                    idx && (
+                                                        <span
+                                                            style={{
+                                                                marginLeft:
+                                                                    "0.4rem",
+                                                                fontSize:
+                                                                    "0.8rem",
+                                                                color: "var(--accent)",
+                                                            }}
+                                                        >
+                                                        (정답)
+                                                    </span>
+                                                    )}
+                                            </li>
+                                        )
+                                    )}
                                 </ul>
 
                                 <p
                                     className="hint"
                                     style={{
-                                        marginTop:
-                                            "0.75rem",
+                                        marginTop: "0.75rem",
                                     }}
                                 >
                                     지금은 학생 화면에서 개별 정답
@@ -1127,8 +1199,7 @@ export function TeacherRoomLivePage() {
                                     sessionId={session.id}
                                     questionId={currentQuestion.id}
                                     options={
-                                        currentQuestion.options ??
-                                        []
+                                        currentQuestion.options ?? []
                                     }
                                     correctIndex={
                                         currentQuestion.answer_index ??
@@ -1146,6 +1217,294 @@ export function TeacherRoomLivePage() {
                         sessionId={session.id}
                         questions={questions}
                     />
+                </div>
+            )}
+
+            {/* 학생 상태 + 개별 메시지 모달 */}
+            {showStudentStatusModal && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        background: "rgba(15, 23, 42, 0.75)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 1001,
+                        padding: "1rem",
+                    }}
+                >
+                    <div
+                        className="card"
+                        style={{
+                            maxWidth: "860px",
+                            width: "100%",
+                            maxHeight: "80vh",
+                            overflow: "auto",
+                            background: "rgba(15, 23, 42, 0.98)",
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <h2 style={{ marginBottom: 0 }}>
+                                학생 상태 & 개인 메시지
+                            </h2>
+                            <button
+                                type="button"
+                                className="secondary-btn"
+                                onClick={() =>
+                                    setShowStudentStatusModal(false)
+                                }
+                            >
+                                닫기
+                            </button>
+                        </div>
+
+                        <p
+                            className="hint"
+                            style={{ marginTop: "0.4rem" }}
+                        >
+                            좌측에서 학생을 선택하면, 우측에서 해당 학생에게만
+                            보내는 메시지를 작성할 수 있습니다.
+                        </p>
+
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                    "minmax(0, 1.1fr) minmax(0, 1.4fr)",
+                                gap: "1rem",
+                                marginTop: "0.75rem",
+                            }}
+                        >
+                            {/* 왼쪽: 학생 리스트 */}
+                            <div>
+                                <h3
+                                    style={{
+                                        fontSize: "0.95rem",
+                                        marginBottom:
+                                            "0.4rem",
+                                    }}
+                                >
+                                    학생 목록
+                                </h3>
+                                {students.length === 0 ? (
+                                    <p className="hint">
+                                        아직 이 세션에서 답안을 제출한
+                                        학생이 없습니다.
+                                    </p>
+                                ) : (
+                                    <ul
+                                        style={{
+                                            listStyle: "none",
+                                            padding: 0,
+                                            margin: 0,
+                                            display: "flex",
+                                            flexDirection:
+                                                "column",
+                                            gap: "0.25rem",
+                                        }}
+                                    >
+                                        {students.map((s) => {
+                                            const isSelected =
+                                                selectedStudentForMessage?.student_key ===
+                                                s.student_key;
+
+                                            return (
+                                                <li
+                                                    key={
+                                                        s.student_key
+                                                    }
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            setSelectedStudentForMessage(
+                                                                s
+                                                            )
+                                                        }
+                                                        style={{
+                                                            width: "100%",
+                                                            textAlign:
+                                                                "left",
+                                                            padding:
+                                                                "0.35rem 0.5rem",
+                                                            borderRadius:
+                                                                "0.4rem",
+                                                            border:
+                                                                isSelected
+                                                                    ? "1px solid var(--accent)"
+                                                                    : "1px solid var(--border-subtle)",
+                                                            background:
+                                                                isSelected
+                                                                    ? "rgba(56, 189, 248, 0.12)"
+                                                                    : "rgba(15, 23, 42, 0.9)",
+                                                            cursor: "pointer",
+                                                            fontSize:
+                                                                "0.85rem",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                display:
+                                                                    "flex",
+                                                                justifyContent:
+                                                                    "space-between",
+                                                                alignItems:
+                                                                    "center",
+                                                                gap: "0.5rem",
+                                                            }}
+                                                        >
+                                                            <span>
+                                                                <strong>
+                                                                    {s.nickname ??
+                                                                        "이름 없음"}
+                                                                </strong>{" "}
+                                                                (
+                                                                {s.student_key.slice(
+                                                                    -4
+                                                                )}
+                                                                )
+                                                            </span>
+                                                            <span
+                                                                style={{
+                                                                    fontSize:
+                                                                        "0.75rem",
+                                                                    color: "var(--text-sub)",
+                                                                }}
+                                                            >
+                                                                {
+                                                                    s.answersCount
+                                                                }
+                                                                문항{" "}
+                                                                /{" "}
+                                                                {s.lastAnsweredAt
+                                                                    ? new Date(
+                                                                        s.lastAnsweredAt
+                                                                    ).toLocaleTimeString(
+                                                                        undefined,
+                                                                        {
+                                                                            hour: "2-digit",
+                                                                            minute:
+                                                                                "2-digit",
+                                                                        }
+                                                                    )
+                                                                    : "-"}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </div>
+
+                            {/* 오른쪽: 선택된 학생에게 개인 메시지 */}
+                            <div>
+                                <h3
+                                    style={{
+                                        fontSize: "0.95rem",
+                                        marginBottom:
+                                            "0.4rem",
+                                    }}
+                                >
+                                    개인 메시지 보내기
+                                </h3>
+
+                                {!selectedStudentForMessage ? (
+                                    <p className="hint">
+                                        왼쪽 목록에서 학생을 선택하면,
+                                        이곳에서 개인 메시지를 작성할 수
+                                        있습니다.
+                                    </p>
+                                ) : (
+                                    <form
+                                        onSubmit={
+                                            handleSendPersonalMessage
+                                        }
+                                        style={{
+                                            display: "flex",
+                                            flexDirection:
+                                                "column",
+                                            gap: "0.5rem",
+                                        }}
+                                    >
+                                        <div className="form-field">
+                                            <span>대상 학생</span>
+                                            <div
+                                                style={{
+                                                    fontSize:
+                                                        "0.9rem",
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                {selectedStudentForMessage.nickname ??
+                                                    "이름 없음"}{" "}
+                                                (
+                                                {selectedStudentForMessage.student_key.slice(
+                                                    -4
+                                                )}
+                                                )
+                                            </div>
+                                        </div>
+
+                                        <label className="form-field">
+                                            <span>메시지 내용</span>
+                                            <textarea
+                                                rows={3}
+                                                value={
+                                                    personalMessageBody
+                                                }
+                                                onChange={(e) =>
+                                                    setPersonalMessageBody(
+                                                        e.target
+                                                            .value
+                                                    )
+                                                }
+                                                placeholder="예: 잠시 후 새 방 코드로 이동해주세요."
+                                            />
+                                        </label>
+
+                                        <label className="form-field">
+                                            <span>링크 (선택)</span>
+                                            <input
+                                                type="url"
+                                                value={
+                                                    personalMessageLink
+                                                }
+                                                onChange={(e) =>
+                                                    setPersonalMessageLink(
+                                                        e.target
+                                                            .value
+                                                    )
+                                                }
+                                                placeholder="예: https://... 또는 /student?code=..."
+                                            />
+                                        </label>
+
+                                        <button
+                                            type="submit"
+                                            className="primary-btn"
+                                            disabled={
+                                                sendingPersonalMessage
+                                            }
+                                        >
+                                            {sendingPersonalMessage
+                                                ? "보내는 중..."
+                                                : "이 학생에게만 보내기"}
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 

@@ -64,6 +64,15 @@ export function StudentJoinPage() {
                 return;
             }
 
+            try {
+                if (typeof window !== "undefined") {
+                    const storageKey = `classhub:room:${room.id}:nickname`;
+                    window.localStorage.setItem(storageKey, nick);
+                }
+            } catch {
+                // ignore
+            }
+            
             // 간단히 state로 정보 전달
             navigate(`/student/room/${room.id}`, {
                 state: {
