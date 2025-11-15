@@ -1,5 +1,6 @@
 // src/pages/teacher/TeacherHomePage.tsx
-import { FormEvent, useEffect, useState } from "react";
+import type { FormEvent } from "react"; 
+import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
 

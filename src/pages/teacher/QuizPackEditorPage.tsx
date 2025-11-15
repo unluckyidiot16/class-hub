@@ -1,6 +1,7 @@
 // src/pages/teacher/QuizPackEditorPage.tsx
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
 import { downloadQuizPackJson } from "../../utils/quizPackExport";
@@ -37,9 +38,8 @@ function emptyOptions(): string[] {
 
 export function QuizPackEditorPage() {
     const { packId } = useParams<{ packId: string }>();
-    const navigate = useNavigate();
 
-    const [session, setSession] = useState<Session | null>(null);
+    const [, setSession] = useState<Session | null>(null);
     const [pack, setPack] = useState<QuizPackRow | null>(null);
     const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
     const [loading, setLoading] = useState(true);

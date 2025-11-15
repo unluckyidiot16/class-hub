@@ -1,5 +1,6 @@
 // src/pages/teacher/TeacherClassRoomsPage.tsx
-import { useEffect, useState, FormEvent, useMemo } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
@@ -63,14 +64,6 @@ export function TeacherClassRoomsPage() {
     const [roomTitle, setRoomTitle] = useState("");
     const [roomGameKey, setRoomGameKey] = useState("quiz-only");
     const [saving, setSaving] = useState(false);
-
-    const packTitleById = useMemo(() => {
-        const map = new Map<string, string>();
-        for (const p of packs) {
-            map.set(p.id, p.title);
-        }
-        return map;
-    }, [packs]);
 
     useEffect(() => {
         if (!classId) return;
@@ -370,9 +363,6 @@ export function TeacherClassRoomsPage() {
                     ) : (
                         <ul className="feature-list" style={{ marginTop: "0.75rem" }}>
                             {rooms.map((room) => {
-                                const packTitle = room.quiz_pack_id
-                                    ? packTitleById.get(room.quiz_pack_id) ?? "(삭제된 퀴즈팩)"
-                                    : "(연결된 퀴즈팩 없음)";
                                 return (
                                     <li
                                         key={room.id}

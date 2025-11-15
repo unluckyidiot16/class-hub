@@ -1,5 +1,5 @@
 // src/layouts/MainLayout.tsx
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export function MainLayout({ children }: PropsWithChildren) {

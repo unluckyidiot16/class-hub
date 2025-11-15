@@ -1,11 +1,6 @@
 // src/pages/teacher/QuizPackListPage.tsx
-import {
-    FormEvent,
-    useEffect,
-    useRef,
-    useState,
-    ChangeEvent,
-} from "react";
+import type { FormEvent, ChangeEvent } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
