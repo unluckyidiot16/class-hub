@@ -1,0 +1,159 @@
+.question-stats-panel {
+    border-left: 1px solid #e5e7eb;
+    padding: 12px 16px;
+    min-width: 260px;
+    max-width: 340px;
+    font-size: 0.9rem;
+}
+
+.qsp-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.qsp-summary {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.qsp-dot {
+    opacity: 0.5;
+}
+
+.qsp-sub {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.qsp-error {
+    font-size: 0.8rem;
+    color: #b91c1c;
+    margin-bottom: 8px;
+}
+
+.qsp-choice-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.qsp-choice {
+    font-size: 0.85rem;
+}
+
+.qsp-choice-correct .qsp-choice-header {
+    font-weight: 600;
+    color: #047857;
+}
+
+.qsp-choice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 2px;
+}
+
+.qsp-choice-label {
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.qsp-choice-text {
+    flex: 1;
+    margin: 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.qsp-choice-rate {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+}
+
+.qsp-bar-bg {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    overflow: hidden;
+}
+
+.qsp-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: #60a5fa;
+    transition: width 0.3s ease;
+}
+
+.session-summary-panel {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.ssp-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.ssp-sub {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.ssp-error {
+    font-size: 0.8rem;
+    color: #f87171;
+    margin-bottom: 8px;
+}
+
+.ssp-table-wrapper {
+    max-height: 260px; /* 문항 많을 경우 스크롤 */
+    overflow: auto;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.ssp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.ssp-table thead {
+    background: rgba(15, 23, 42, 0.8);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.ssp-table th,
+.ssp-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(30, 64, 175, 0.3);
+    text-align: left;
+}
+
+.ssp-table tbody tr:nth-child(even) {
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.ssp-table tbody tr:nth-child(odd) {
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.ssp-question-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

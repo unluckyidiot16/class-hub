@@ -1,0 +1,1233 @@
+// src/pages/teacher/TeacherRoomLivePage.tsx
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "../../lib/supabaseClient";
+import { QuestionStatsPanel } from "../../components/QuestionStatsPanel";
+import { SessionSummaryPanel } from "../../components/SessionSummaryPanel";
+
+type RoomRow = {
+    id: string;
+    teacher_id: string;
+    class_id: string | null;
+    code: string;
+    title: string;
+    game_key: string;
+    status: string;
+    quiz_pack_id: string | null;
+    created_at: string;
+};
+
+type QuizPackRow = {
+    id: string;
+    owner_id: string;
+    title: string;
+    subject: string | null;
+    grade: string | null;
+};
+
+type QuizQuestionRow = {
+    id: string;
+    pack_id: string;
+    index_in_pack: number;
+    prompt: string;
+    options: string[] | null;
+    answer_index: number | null;
+};
+
+type QuizSessionRow = {
+    id: string;
+    room_id: string;
+    pack_id: string;
+    status: string;
+    current_index: number;
+    created_at: string;
+    ended_at: string | null;
+};
+
+type StudentSummary = {
+    student_key: string;
+    nickname: string | null;
+};
+
+type MessageTargetType = "all" | "student";
+
+type RoomMessageRow = {
+    id: string;
+    room_id: string;
+    session_id: string | null;
+    sender_id: string | null;
+    target_type: MessageTargetType;
+    target_student_key: string | null;
+    target_nickname: string | null;
+    body: string | null;
+    link_url: string | null;
+    created_at: string;
+};
+
+export function TeacherRoomLivePage() {
+    const { roomId } = useParams<{ roomId: string }>();
+    const navigate = useNavigate();
+
+    const [sessionAuth, setSessionAuth] = useState<Session | null>(null);
+
+    const [room, setRoom] = useState<RoomRow | null>(null);
+    const [pack, setPack] = useState<QuizPackRow | null>(null);
+    const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
+    const [session, setSession] = useState<QuizSessionRow | null>(null);
+
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+
+    // ✅ 브라우저 origin + QR 모달/복사 상태
+    const [appOrigin, setAppOrigin] = useState<string>("");
+    const [showQrModal, setShowQrModal] = useState(false);
+    const [copyMsg, setCopyMsg] = useState<string | null>(null);
+
+    // 학생 목록 + 메시지 상태
+    const [students, setStudents] = useState<StudentSummary[]>([]);
+    const [messages, setMessages] = useState<RoomMessageRow[]>([]);
+    const [targetStudentKey, setTargetStudentKey] = useState<"all" | string>("all");
+    const [messageBody, setMessageBody] = useState("");
+    const [messageLink, setMessageLink] = useState("");
+    const [sendingMessage, setSendingMessage] = useState(false);
+
+    // origin 한 번만 세팅
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setAppOrigin(window.location.origin);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!roomId) return;
+
+        const init = async () => {
+            setLoading(true);
+            setErrorMsg(null);
+
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+                console.error("[TeacherRoomLive] getSession error", error);
+                setErrorMsg("세션을 불러오는 중 오류가 발생했습니다.");
+                setLoading(false);
+                return;
+            }
+            if (!data.session) {
+                setErrorMsg("로그인이 필요합니다.");
+                setLoading(false);
+                return;
+            }
+
+            setSessionAuth(data.session);
+
+            // 1) 방 정보
+            const { data: roomRow, error: roomErr } = await supabase
+                .from("rooms")
+                .select("*")
+                .eq("id", roomId)
+                .single();
+
+            if (roomErr) {
+                console.error("[TeacherRoomLive] load room error", roomErr);
+                setErrorMsg("이 방 정보를 불러올 수 없습니다.");
+                setLoading(false);
+                return;
+            }
+
+            const roomData = roomRow as RoomRow;
+            setRoom(roomData);
+
+            if (!roomData.quiz_pack_id) {
+                setLoading(false);
+                setErrorMsg(
+                    "이 방에는 아직 퀴즈팩이 연결되어 있지 않습니다. 방 관리 화면에서 먼저 퀴즈팩을 선택해주세요."
+                );
+                return;
+            }
+
+            // 2) 퀴즈팩 + 문항
+            const { data: packRow, error: packErr } = await supabase
+                .from("quiz_packs")
+                .select("*")
+                .eq("id", roomData.quiz_pack_id)
+                .single();
+
+            if (packErr) {
+                console.error("[TeacherRoomLive] load pack error", packErr);
+                setErrorMsg(
+                    "연결된 퀴즈팩을 불러오는 중 오류가 발생했습니다."
+                );
+                setLoading(false);
+                return;
+            }
+
+            setPack(packRow as QuizPackRow);
+
+            const { data: qRows, error: qErr } = await supabase
+                .from("quiz_questions")
+                .select(
+                    "id, pack_id, index_in_pack, prompt, options, answer_index"
+                )
+                .eq("pack_id", roomData.quiz_pack_id)
+                .order("index_in_pack", { ascending: true });
+
+            if (qErr) {
+                console.error("[TeacherRoomLive] load questions error", qErr);
+                setErrorMsg("퀴즈 문항을 불러오는 중 오류가 발생했습니다.");
+                setLoading(false);
+                return;
+            }
+
+            const normalized = (qRows ?? []).map((q: any) => ({
+                ...q,
+                options: (q.options ?? null) as string[] | null,
+                answer_index:
+                    typeof q.answer_index === "number"
+                        ? q.answer_index
+                        : null,
+            })) as QuizQuestionRow[];
+            setQuestions(normalized);
+
+            // 3) 최근 세션
+            const { data: sRow, error: sErr } = await supabase
+                .from("quiz_sessions")
+                .select("*")
+                .eq("room_id", roomId)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (!sErr && sRow) {
+                setSession(sRow as QuizSessionRow);
+            }
+
+            setLoading(false);
+        };
+
+        void init();
+    }, [roomId]);
+
+    // 현재 방/세션 기준 학생 목록 불러오기 (답안에 등장한 학생)
+    useEffect(() => {
+        if (!room?.id || !session?.id) {
+            setStudents([]);
+            return;
+        }
+
+        const loadStudents = async () => {
+            const { data, error } = await supabase
+                .from("quiz_answers")
+                .select("student_key, nickname, created_at")
+                .eq("room_id", room.id)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                console.error("[TeacherRoomLive] load students error", error);
+                return;
+            }
+
+            const map = new Map<string, StudentSummary>();
+            for (const row of data ?? []) {
+                const key = row.student_key as string;
+                if (!key) continue;
+                if (!map.has(key)) {
+                    map.set(key, {
+                        student_key: key,
+                        nickname:
+                            (row.nickname as string | null) ?? null,
+                    });
+                }
+            }
+            setStudents(Array.from(map.values()));
+        };
+
+        void loadStudents();
+    }, [room?.id, session?.id]);
+
+    // 방 기준 최근 메시지 불러오기
+    useEffect(() => {
+        if (!room?.id) {
+            setMessages([]);
+            return;
+        }
+
+        const loadMessages = async () => {
+            const { data, error } = await supabase
+                .from("room_messages")
+                .select(
+                    "id, room_id, session_id, sender_id, target_type, target_student_key, target_nickname, body, link_url, created_at"
+                )
+                .eq("room_id", room.id)
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+            if (error) {
+                console.error("[TeacherRoomLive] load messages error", error);
+                return;
+            }
+
+            setMessages((data ?? []) as RoomMessageRow[]);
+        };
+
+        void loadMessages();
+    }, [room?.id, session?.id]);
+
+    // ✅ 학생 접속용 URL (QR/링크 공유용)
+    // → /student?code= 로 방 코드 읽어서 닉네임 입력 → 입장 처리
+    const studentJoinUrl =
+        appOrigin && room
+            ? `${appOrigin}/student?code=${encodeURIComponent(room.code)}`
+            : "";
+
+    const qrImageUrl = studentJoinUrl
+        ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
+            studentJoinUrl
+        )}`
+        : "";
+
+    const currentQuestion =
+        session &&
+        session.status === "running" &&
+        questions.length > 0
+            ? questions.find(
+            (q) => q.index_in_pack === session.current_index
+        ) ?? null
+            : null;
+
+    const totalCount = questions.length;
+    const currentNumber =
+        session && currentQuestion
+            ? session.current_index + 1
+            : session && totalCount > 0
+                ? session.current_index + 1
+                : 0;
+
+    const handleStartSession = async () => {
+        if (!room || !pack) return;
+        if (questions.length === 0) {
+            setErrorMsg("이 퀴즈팩에는 아직 문항이 없습니다.");
+            return;
+        }
+
+        setSaving(true);
+        setErrorMsg(null);
+
+        try {
+            const { data, error } = await supabase
+                .from("quiz_sessions")
+                .insert({
+                    room_id: room.id,
+                    pack_id: pack.id,
+                    status: "running",
+                    current_index: 0,
+                })
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error(
+                    "[TeacherRoomLive] start session error",
+                    error
+                );
+                setErrorMsg("퀴즈 세션을 시작하는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            setSession(data as QuizSessionRow);
+
+            // 방 상태도 live로 업데이트
+            await supabase
+                .from("rooms")
+                .update({ status: "live" })
+                .eq("id", room.id);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleMoveQuestion = async (delta: number) => {
+        if (!session || !room) return;
+        if (questions.length === 0) return;
+
+        const nextIndex = Math.max(
+            0,
+            Math.min(totalCount - 1, session.current_index + delta)
+        );
+
+        setSaving(true);
+        setErrorMsg(null);
+
+        try {
+            const { data, error } = await supabase
+                .from("quiz_sessions")
+                .update({ current_index: nextIndex })
+                .eq("id", session.id)
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error(
+                    "[TeacherRoomLive] move question error",
+                    error
+                );
+                setErrorMsg("문제를 변경하는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            setSession(data as QuizSessionRow);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleEndSession = async () => {
+        if (!session || !room) return;
+
+        const ok = window.confirm("이 퀴즈 세션을 종료할까요?");
+        if (!ok) return;
+
+        setSaving(true);
+        setErrorMsg(null);
+
+        try {
+            const { data, error } = await supabase
+                .from("quiz_sessions")
+                .update({
+                    status: "ended",
+                    ended_at: new Date().toISOString(),
+                })
+                .eq("id", session.id)
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error("[TeacherRoomLive] end session error", error);
+                setErrorMsg("세션을 종료하는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            setSession(data as QuizSessionRow);
+
+            await supabase
+                .from("rooms")
+                .update({ status: "waiting" })
+                .eq("id", room.id);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // ✅ 학생에게 메시지/링크 보내기
+    const handleSendMessage = async (e?: any) => {
+        if (e) e.preventDefault();
+        if (!room) return;
+
+        const trimmedBody = messageBody.trim();
+        const trimmedLink = messageLink.trim();
+
+        if (!trimmedBody && !trimmedLink) {
+            setErrorMsg("보낼 내용이나 링크를 입력해주세요.");
+            return;
+        }
+
+        const isAll = targetStudentKey === "all";
+
+        setSendingMessage(true);
+        setErrorMsg(null);
+
+        try {
+            const targetNick = !isAll
+                ? students.find(
+                (s) => s.student_key === targetStudentKey
+            )?.nickname ?? null
+                : null;
+
+            const payload = {
+                room_id: room.id,
+                session_id: session?.id ?? null,
+                sender_id: sessionAuth?.user.id ?? null,
+                target_type: (isAll
+                    ? "all"
+                    : "student") as MessageTargetType,
+                target_student_key: isAll ? null : targetStudentKey,
+                target_nickname: targetNick,
+                body: trimmedBody || null,
+                link_url: trimmedLink || null,
+            };
+
+            const { data, error } = await supabase
+                .from("room_messages")
+                .insert(payload)
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error(
+                    "[TeacherRoomLive] send message error",
+                    error
+                );
+                setErrorMsg("메시지를 보내는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            const newMsg = data as RoomMessageRow;
+            setMessages((prev) => [newMsg, ...prev].slice(0, 50));
+            setMessageBody("");
+            // 링크는 연속 사용 가능하게 그대로 두고 싶으면 주석 유지
+            // setMessageLink("");
+        } finally {
+            setSendingMessage(false);
+        }
+    };
+
+    // ✅ 학생 링크 복사
+    const handleCopyStudentLink = async () => {
+        if (!studentJoinUrl) return;
+        try {
+            await navigator.clipboard.writeText(studentJoinUrl);
+            setCopyMsg("링크가 복사되었습니다.");
+            setTimeout(() => setCopyMsg(null), 2000);
+        } catch (err) {
+            console.error("[TeacherRoomLive] copy link error", err);
+            setErrorMsg(
+                "링크를 복사하는 중 문제가 발생했습니다. 직접 선택해서 복사해주세요."
+            );
+        }
+    };
+
+    // ✅ QR 모달 열기
+    const handleOpenQrModal = () => {
+        if (!studentJoinUrl) return;
+        setShowQrModal(true);
+    };
+
+    // ✅ QR만 새 창으로 열기 (빔프로젝터용)
+    const handleOpenQrWindow = () => {
+        if (!studentJoinUrl) return;
+        const url = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(
+            studentJoinUrl
+        )}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
+
+    if (!roomId) {
+        return (
+            <section className="page teacher-home">
+                <h1>라이브 퀴즈</h1>
+                <p className="page-desc">잘못된 경로입니다.</p>
+            </section>
+        );
+    }
+
+    if (loading) {
+        return (
+            <section className="page teacher-home">
+                <h1>라이브 퀴즈</h1>
+                <p className="page-desc">데이터를 불러오는 중입니다...</p>
+            </section>
+        );
+    }
+
+    if (!room || !pack) {
+        return (
+            <section className="page teacher-home">
+                <h1>라이브 퀴즈</h1>
+                <p className="page-desc">
+                    {errorMsg ??
+                        "방 또는 퀴즈팩 정보를 불러올 수 없습니다. 다시 시도하거나 방 관리 화면을 확인해주세요."}
+                </p>
+                <p>
+                    <Link
+                        to={`/teacher/classes/${room?.class_id ?? ""}/rooms`}
+                        className="secondary-btn"
+                    >
+                        ← 방 관리로 돌아가기
+                    </Link>
+                </p>
+            </section>
+        );
+    }
+
+    return (
+        <section className="page teacher-home">
+            <h1>라이브 퀴즈 컨트롤</h1>
+            <p className="page-desc">
+                <strong>{room.title}</strong> (코드: {room.code}) 방에서{" "}
+                <strong>{pack.title}</strong> 퀴즈팩을 사용해 실시간 퀴즈를
+                진행합니다.
+            </p>
+
+            <p style={{ fontSize: "0.9rem", marginBottom: "0.75rem" }}>
+                <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={() =>
+                        navigate(`/teacher/classes/${room.class_id}/rooms`)
+                    }
+                >
+                    ← 방 관리로 돌아가기
+                </button>
+            </p>
+
+            {errorMsg && (
+                <p
+                    className="form-message"
+                    style={{ color: "var(--danger)" }}
+                >
+                    {errorMsg}
+                </p>
+            )}
+
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                        "minmax(260px, 280px) minmax(0, 1fr)",
+                    gap: "1rem",
+                    alignItems: "flex-start",
+                }}
+            >
+                {/* 왼쪽: 세션 상태 + 학생 접속 링크/QR + 메시지 */}
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                    }}
+                >
+                    <div className="card">
+                        <h2>세션 상태</h2>
+                        <p>
+                            <strong>방 코드:</strong> {room.code}
+                        </p>
+                        <p>
+                            <strong>퀴즈팩:</strong> {pack.title}
+                        </p>
+                        <p className="hint">
+                            학생은 학생 모드 / 방 코드 화면에서 이 방
+                            코드({room.code})를 입력하면 현재 진행 중인
+                            문제를 볼 수 있습니다.
+                        </p>
+
+                        {/* ✅ 학생 접속 링크 / QR */}
+                        {studentJoinUrl && (
+                            <div style={{ marginTop: "0.75rem" }}>
+                                <h3
+                                    style={{
+                                        fontSize: "0.95rem",
+                                        marginBottom: "0.25rem",
+                                    }}
+                                >
+                                    학생 접속 링크 / QR
+                                </h3>
+                                <p
+                                    className="hint"
+                                    style={{
+                                        marginBottom: "0.25rem",
+                                    }}
+                                >
+                                    이 링크를 공유하거나, 아래 버튼으로
+                                    QR 코드를 띄워 학생들이 바로 접속하도록
+                                    안내하세요.
+                                </p>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: "0.5rem",
+                                        alignItems: "center",
+                                        marginBottom: "0.5rem",
+                                    }}
+                                >
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={studentJoinUrl}
+                                        style={{
+                                            flex: 1,
+                                            fontSize: "0.8rem",
+                                            padding:
+                                                "0.25rem 0.4rem",
+                                        }}
+                                        onFocus={(e) =>
+                                            e.target.select()
+                                        }
+                                    />
+                                    <button
+                                        type="button"
+                                        className="secondary-btn"
+                                        onClick={
+                                            handleCopyStudentLink
+                                        }
+                                    >
+                                        링크 복사
+                                    </button>
+                                </div>
+                                {copyMsg && (
+                                    <p
+                                        className="hint"
+                                        style={{
+                                            marginBottom: "0.5rem",
+                                        }}
+                                    >
+                                        {copyMsg}
+                                    </p>
+                                )}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: "0.5rem",
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        className="secondary-btn"
+                                        onClick={handleOpenQrModal}
+                                    >
+                                        QR 모달 열기
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="secondary-btn"
+                                        onClick={
+                                            handleOpenQrWindow
+                                        }
+                                    >
+                                        QR 새 창 열기
+                                    </button>
+                                </div>
+
+                                <hr
+                                    style={{
+                                        borderColor:
+                                            "var(--border-subtle)",
+                                        margin: "0.75rem 0",
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {!studentJoinUrl && (
+                            <hr
+                                style={{
+                                    borderColor:
+                                        "var(--border-subtle)",
+                                    margin: "0.75rem 0",
+                                }}
+                            />
+                        )}
+
+                        {session ? (
+                            <>
+                                <p>
+                                    현재 세션 상태:{" "}
+                                    <strong>
+                                        {session.status ===
+                                        "running"
+                                            ? "진행 중"
+                                            : "종료됨"}
+                                    </strong>
+                                </p>
+                                <p>
+                                    문제 진행:{" "}
+                                    <strong>
+                                        {currentNumber} /{" "}
+                                        {totalCount || 0}
+                                    </strong>
+                                </p>
+
+                                {session.status === "running" ? (
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            gap: "0.5rem",
+                                            marginTop: "0.75rem",
+                                            flexWrap: "wrap",
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="secondary-btn"
+                                            disabled={
+                                                saving ||
+                                                session
+                                                    .current_index <=
+                                                0
+                                            }
+                                            onClick={() =>
+                                                handleMoveQuestion(
+                                                    -1
+                                                )
+                                            }
+                                        >
+                                            이전 문제
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="secondary-btn"
+                                            disabled={
+                                                saving ||
+                                                session
+                                                    .current_index >=
+                                                totalCount - 1
+                                            }
+                                            onClick={() =>
+                                                handleMoveQuestion(
+                                                    1
+                                                )
+                                            }
+                                        >
+                                            다음 문제
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="secondary-btn"
+                                            disabled={saving}
+                                            onClick={handleEndSession}
+                                        >
+                                            세션 종료
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="primary-btn"
+                                        disabled={saving}
+                                        onClick={handleStartSession}
+                                        style={{
+                                            marginTop: "0.75rem",
+                                        }}
+                                    >
+                                        새 세션 다시 시작
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <p>
+                                    현재 이 방에서 진행 중인 세션이
+                                    없습니다.
+                                </p>
+                                <button
+                                    type="button"
+                                    className="primary-btn"
+                                    disabled={
+                                        saving || totalCount === 0
+                                    }
+                                    onClick={handleStartSession}
+                                    style={{ marginTop: "0.75rem" }}
+                                >
+                                    새 퀴즈 세션 시작
+                                </button>
+                                {totalCount === 0 && (
+                                    <p
+                                        className="hint"
+                                        style={{
+                                            marginTop: "0.5rem",
+                                        }}
+                                    >
+                                        이 퀴즈팩에는 아직 문항이
+                                        없습니다. 퀴즈팩 에디터에서
+                                        문제를 먼저 추가해주세요.
+                                    </p>
+                                )}
+                            </>
+                        )}
+                    </div>
+
+                    {/* 학생 메시지 / 링크 카드 */}
+                    <div className="card">
+                        <h2>학생 메시지 / 링크 보내기</h2>
+                        <form
+                            onSubmit={handleSendMessage}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <label className="form-field">
+                                <span>대상</span>
+                                <select
+                                    value={targetStudentKey}
+                                    onChange={(e) =>
+                                        setTargetStudentKey(
+                                            e.target
+                                                .value as
+                                                | "all"
+                                                | string
+                                        )
+                                    }
+                                >
+                                    <option value="all">
+                                        전체 학생에게 보내기
+                                    </option>
+                                    {students.map((s) => (
+                                        <option
+                                            key={s.student_key}
+                                            value={s.student_key}
+                                        >
+                                            {s.nickname ??
+                                                "이름 없음"}{" "}
+                                            (
+                                            {s.student_key.slice(
+                                                -4
+                                            )}
+                                            )
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label className="form-field">
+                                <span>메시지 내용</span>
+                                <textarea
+                                    rows={2}
+                                    value={messageBody}
+                                    onChange={(e) =>
+                                        setMessageBody(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="예: 잠시 후 새 방으로 이동합니다."
+                                />
+                            </label>
+
+                            <label className="form-field">
+                                <span>링크 (선택)</span>
+                                <input
+                                    type="url"
+                                    value={messageLink}
+                                    onChange={(e) =>
+                                        setMessageLink(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="예: https://... 또는 /student?code=..."
+                                />
+                            </label>
+
+                            <button
+                                type="submit"
+                                className="primary-btn"
+                                disabled={sendingMessage}
+                            >
+                                {sendingMessage
+                                    ? "보내는 중..."
+                                    : "학생에게 보내기"}
+                            </button>
+                        </form>
+
+                        {messages.length > 0 && (
+                            <div style={{ marginTop: "0.75rem" }}>
+                                <h3
+                                    style={{
+                                        fontSize: "0.9rem",
+                                        marginBottom:
+                                            "0.35rem",
+                                    }}
+                                >
+                                    최근 보낸 메시지
+                                </h3>
+                                <ul
+                                    style={{
+                                        listStyle: "none",
+                                        padding: 0,
+                                        margin: 0,
+                                        display: "flex",
+                                        flexDirection:
+                                            "column",
+                                        gap: "0.25rem",
+                                    }}
+                                >
+                                    {messages
+                                        .slice(0, 5)
+                                        .map((m) => (
+                                            <li
+                                                key={m.id}
+                                                style={{
+                                                    fontSize:
+                                                        "0.85rem",
+                                                    borderTop:
+                                                        "1px solid var(--border-subtle)",
+                                                    paddingTop:
+                                                        "0.25rem",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display:
+                                                            "flex",
+                                                        justifyContent:
+                                                            "space-between",
+                                                        gap: "0.5rem",
+                                                    }}
+                                                >
+                                                    <span>
+                                                        {m.target_type ===
+                                                        "all"
+                                                            ? "전체"
+                                                            : m.target_nickname ??
+                                                            "개인"}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            color: "var(--text-sub)",
+                                                        }}
+                                                    >
+                                                        {new Date(
+                                                            m.created_at
+                                                        ).toLocaleTimeString(
+                                                            [],
+                                                            {
+                                                                hour: "2-digit",
+                                                                minute:
+                                                                    "2-digit",
+                                                            }
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {m.body && (
+                                                    <div>
+                                                        {
+                                                            m.body
+                                                        }
+                                                    </div>
+                                                )}
+                                                {m.link_url && (
+                                                    <div
+                                                        style={{
+                                                            fontSize:
+                                                                "0.8rem",
+                                                            color: "var(--accent)",
+                                                        }}
+                                                    >
+                                                        링크:{" "}
+                                                        {
+                                                            m.link_url
+                                                        }
+                                                    </div>
+                                                )}
+                                            </li>
+                                        ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* 오른쪽: 현재 문제 미리보기 + 통계 */}
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                    }}
+                >
+                    <div className="card">
+                        <h2>현재 문제 (학생 화면 미리보기)</h2>
+
+                        {!session || session.status !== "running" ? (
+                            <p>
+                                진행 중인 세션이 없습니다. 왼쪽에서
+                                세션을 시작해주세요.
+                            </p>
+                        ) : !currentQuestion ? (
+                            <p>
+                                현재 인덱스에 해당하는 문항을 찾을 수
+                                없습니다. (문항 삭제 후 재정렬이 필요할
+                                수 있습니다)
+                            </p>
+                        ) : (
+                            <>
+                                <p
+                                    style={{
+                                        marginBottom: "0.5rem",
+                                        fontSize: "0.9rem",
+                                    }}
+                                >
+                                    <strong>
+                                        Q{currentNumber} /{" "}
+                                        {totalCount}
+                                    </strong>
+                                </p>
+                                <p
+                                    style={{
+                                        whiteSpace:
+                                            "pre-wrap",
+                                        marginBottom:
+                                            "0.75rem",
+                                    }}
+                                >
+                                    {currentQuestion.prompt}
+                                </p>
+
+                                <ul className="feature-list">
+                                    {(currentQuestion.options ??
+                                        []
+                                    ).map((opt, idx) => (
+                                        <li key={idx}>
+                                            <strong>
+                                                {String.fromCharCode(
+                                                    65 +
+                                                    idx
+                                                )}
+                                                .
+                                            </strong>{" "}
+                                            <span>{opt}</span>
+                                            {currentQuestion.answer_index ===
+                                                idx && (
+                                                    <span
+                                                        style={{
+                                                            marginLeft:
+                                                                "0.4rem",
+                                                            fontSize:
+                                                                "0.8rem",
+                                                            color: "var(--accent)",
+                                                        }}
+                                                    >
+                                                    (정답)
+                                                </span>
+                                                )}
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                <p
+                                    className="hint"
+                                    style={{
+                                        marginTop:
+                                            "0.75rem",
+                                    }}
+                                >
+                                    지금은 학생 화면에서 개별 정답
+                                    여부를 보여주지 않고, 교사가 답을
+                                    공개하거나 설명하는 방식으로
+                                    사용하는 단계입니다. (나중에
+                                    정답 공개/리더보드도 붙일 수 있음)
+                                </p>
+                            </>
+                        )}
+                    </div>
+
+                    {session &&
+                        session.status === "running" &&
+                        currentQuestion && (
+                            <div className="card">
+                                <QuestionStatsPanel
+                                    sessionId={session.id}
+                                    questionId={currentQuestion.id}
+                                    options={
+                                        currentQuestion.options ??
+                                        []
+                                    }
+                                    correctIndex={
+                                        currentQuestion.answer_index ??
+                                        -1
+                                    }
+                                />
+                            </div>
+                        )}
+                </div>
+            </div>
+
+            {session && (
+                <div className="card" style={{ marginTop: "1rem" }}>
+                    <SessionSummaryPanel
+                        sessionId={session.id}
+                        questions={questions}
+                    />
+                </div>
+            )}
+
+            {/* ✅ QR 모달 (전체 화면 오버레이) */}
+            {showQrModal && studentJoinUrl && qrImageUrl && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 1000,
+                    }}
+                >
+                    <div
+                        className="card"
+                        style={{
+                            maxWidth: "420px",
+                            width: "90%",
+                            background: "var(--surface, #fff)",
+                            padding: "1.25rem",
+                        }}
+                    >
+                        <h2
+                            style={{
+                                marginTop: 0,
+                                marginBottom: "0.75rem",
+                            }}
+                        >
+                            학생 접속 QR
+                        </h2>
+                        <p
+                            className="hint"
+                            style={{ marginBottom: "0.75rem" }}
+                        >
+                            수업 화면에 이 QR을 띄우고, 학생들이
+                            카메라로 스캔해서 바로 입장하도록 안내하세요.
+                        </p>
+                        <div
+                            style={{
+                                textAlign: "center",
+                                marginBottom: "0.75rem",
+                            }}
+                        >
+                            <img
+                                src={qrImageUrl}
+                                alt="학생 접속 QR 코드"
+                                style={{
+                                    maxWidth: "100%",
+                                    height: "auto",
+                                }}
+                            />
+                        </div>
+                        <p
+                            style={{
+                                fontSize: "0.8rem",
+                                wordBreak: "break-all",
+                                marginBottom: "0.75rem",
+                            }}
+                        >
+                            {studentJoinUrl}
+                        </p>
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <button
+                                type="button"
+                                className="secondary-btn"
+                                onClick={handleCopyStudentLink}
+                            >
+                                링크 복사
+                            </button>
+                            <button
+                                type="button"
+                                className="primary-btn"
+                                onClick={() => setShowQrModal(false)}
+                            >
+                                닫기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </section>
+    );
+}
