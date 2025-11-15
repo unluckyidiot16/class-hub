@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { usePresence } from "../../hooks/usePresence";
+
 
 type RoomRow = {
     id: string;
@@ -68,7 +70,7 @@ export function StudentRoomPage() {
     const { roomId } = useParams<{ roomId: string }>();
     const location = useLocation();
     const state = (location.state || {}) as LocationState;
-    
+
     const [room, setRoom] = useState<RoomRow | null>(null);
     const [loadingRoom, setLoadingRoom] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -93,6 +95,7 @@ export function StudentRoomPage() {
 
     // 메시지
     const [messages, setMessages] = useState<RoomMessageRow[]>([]);
+    const [showAllMessages, setShowAllMessages] = useState(false);
 
     const [nickname] = useState(() => {
         if (state.nickname) return state.nickname;
@@ -129,7 +132,14 @@ export function StudentRoomPage() {
         return makeRandomKey();
     });
 
-    
+    const roomCodeForPresence =
+        room?.code ?? state.roomCode ?? roomId ?? "";
+
+    usePresence(roomCodeForPresence, "student", {
+        studentId: studentKey,
+        nickname,
+    });
+
     // 1) 방 기본 정보 로드
     useEffect(() => {
         if (!roomId) return;
@@ -320,7 +330,6 @@ export function StudentRoomPage() {
         };
     }, [session?.id, currentQuestion?.id, studentKey]);
 
-
     // 3) 선생님 메시지 구독 (초기 조회 + Realtime)
     useEffect(() => {
         if (!roomId || !studentKey) return;
@@ -472,6 +481,9 @@ export function StudentRoomPage() {
         questionCount &&
         questionCount > 0;
 
+    const lastMessage =
+        messages.length > 0 ? messages[messages.length - 1] : null;
+
     return (
         <section className="page student-join">
             <h1>수업 방에 입장했습니다 🎉</h1>
@@ -537,8 +549,7 @@ export function StudentRoomPage() {
                                 style={{
                                     width: `${Math.min(
                                         100,
-                                        ((session!.current_index +
-                                                1) /
+                                        ((session!.current_index + 1) /
                                             questionCount) *
                                         100
                                     ).toFixed(1)}%`,
@@ -686,79 +697,206 @@ export function StudentRoomPage() {
                 )}
             </div>
 
-            {/* 선생님 알림 카드 */}
-            {messages.length > 0 && (
+            {/* 선생님 알림 카드: 기본은 마지막 메시지 1개만, 버튼으로 전체 보기 */}
+            {lastMessage && (
                 <div
                     className="card"
                     style={{ maxWidth: 720, margin: "1rem auto 0" }}
                 >
                     <h2>선생님 알림</h2>
-                    <ul
-                        style={{
-                            listStyle: "none",
-                            padding: 0,
-                            margin: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "0.4rem",
-                        }}
-                    >
-                        {messages.slice(-5).map((m) => (
-                            <li
-                                key={m.id}
+
+                    {!showAllMessages ? (
+                        <>
+                            <ul
                                 style={{
-                                    paddingTop: "0.25rem",
-                                    borderTop:
-                                        "1px solid var(--border-subtle)",
-                                    fontSize: "0.9rem",
+                                    listStyle: "none",
+                                    padding: 0,
+                                    margin: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.4rem",
                                 }}
                             >
-                                <div
+                                <li
+                                    key={lastMessage.id}
                                     style={{
-                                        display: "flex",
-                                        justifyContent:
-                                            "space-between",
-                                        gap: "0.5rem",
-                                        marginBottom: "0.15rem",
+                                        paddingTop: "0.25rem",
+                                        borderTop:
+                                            "1px solid var(--border-subtle)",
+                                        fontSize: "0.9rem",
                                     }}
                                 >
-                                    <span>
-                                        {m.target_type === "all"
-                                            ? "전체 알림"
-                                            : "개인 알림"}
-                                    </span>
-                                    <span
+                                    <div
                                         style={{
-                                            fontSize: "0.8rem",
-                                            color: "var(--text-sub)",
+                                            display: "flex",
+                                            justifyContent:
+                                                "space-between",
+                                            gap: "0.5rem",
+                                            marginBottom: "0.15rem",
                                         }}
                                     >
-                                        {formatTime(m.created_at)}
-                                    </span>
-                                </div>
-                                {m.body && <div>{m.body}</div>}
-                                {m.link_url && (
+                                        <span>
+                                            {lastMessage.target_type ===
+                                            "all"
+                                                ? "전체 알림"
+                                                : "개인 알림"}
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontSize: "0.8rem",
+                                                color: "var(--text-sub)",
+                                            }}
+                                        >
+                                            {formatTime(
+                                                lastMessage.created_at
+                                            )}
+                                        </span>
+                                    </div>
+                                    {lastMessage.body && (
+                                        <div>{lastMessage.body}</div>
+                                    )}
+                                    {lastMessage.link_url && (
+                                        <button
+                                            type="button"
+                                            className="secondary-btn"
+                                            onClick={() => {
+                                                window.location.href =
+                                                    lastMessage.link_url!;
+                                            }}
+                                            style={{
+                                                marginTop: "0.25rem",
+                                                fontSize: "0.8rem",
+                                                padding:
+                                                    "0.25rem 0.5rem",
+                                            }}
+                                        >
+                                            링크 열기
+                                        </button>
+                                    )}
+                                </li>
+                            </ul>
+
+                            {messages.length > 1 && (
+                                <div
+                                    style={{
+                                        marginTop: "0.5rem",
+                                        textAlign: "right",
+                                    }}
+                                >
                                     <button
                                         type="button"
                                         className="secondary-btn"
-                                        onClick={() => {
-                                            // 동일 탭에서 이동
-                                            window.location.href =
-                                                m.link_url!;
-                                        }}
                                         style={{
-                                            marginTop: "0.25rem",
                                             fontSize: "0.8rem",
                                             padding:
                                                 "0.25rem 0.5rem",
                                         }}
+                                        onClick={() =>
+                                            setShowAllMessages(true)
+                                        }
                                     >
-                                        링크 열기
+                                        모든 알림 보기 (
+                                        {messages.length})
                                     </button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <ul
+                                style={{
+                                    listStyle: "none",
+                                    padding: 0,
+                                    margin: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.4rem",
+                                }}
+                            >
+                                {messages.map((m) => (
+                                    <li
+                                        key={m.id}
+                                        style={{
+                                            paddingTop: "0.25rem",
+                                            borderTop:
+                                                "1px solid var(--border-subtle)",
+                                            fontSize: "0.9rem",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent:
+                                                    "space-between",
+                                                gap: "0.5rem",
+                                                marginBottom:
+                                                    "0.15rem",
+                                            }}
+                                        >
+                                            <span>
+                                                {m.target_type ===
+                                                "all"
+                                                    ? "전체 알림"
+                                                    : "개인 알림"}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    color: "var(--text-sub)",
+                                                }}
+                                            >
+                                                {formatTime(
+                                                    m.created_at
+                                                )}
+                                            </span>
+                                        </div>
+                                        {m.body && <div>{m.body}</div>}
+                                        {m.link_url && (
+                                            <button
+                                                type="button"
+                                                className="secondary-btn"
+                                                onClick={() => {
+                                                    window.location.href =
+                                                        m.link_url!;
+                                                }}
+                                                style={{
+                                                    marginTop:
+                                                        "0.25rem",
+                                                    fontSize: "0.8rem",
+                                                    padding:
+                                                        "0.25rem 0.5rem",
+                                                }}
+                                            >
+                                                링크 열기
+                                            </button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div
+                                style={{
+                                    marginTop: "0.5rem",
+                                    textAlign: "right",
+                                }}
+                            >
+                                <button
+                                    type="button"
+                                    className="secondary-btn"
+                                    style={{
+                                        fontSize: "0.8rem",
+                                        padding:
+                                            "0.25rem 0.5rem",
+                                    }}
+                                    onClick={() =>
+                                        setShowAllMessages(false)
+                                    }
+                                >
+                                    최근 알림만 보기
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
         </section>

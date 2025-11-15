@@ -5,6 +5,8 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
 import { QuestionStatsPanel } from "../../components/QuestionStatsPanel";
 import { SessionSummaryPanel } from "../../components/SessionSummaryPanel";
+import { usePresence } from "../../hooks/usePresence";
+import PresenceSidebar from "../../components/PresenceSidebar";
 
 type RoomRow = {
     id: string;
@@ -86,6 +88,11 @@ export function TeacherRoomLivePage() {
     const [appBaseUrl, setAppBaseUrl] = useState<string>("");
     const [showQrModal, setShowQrModal] = useState(false);
     const [copyMsg, setCopyMsg] = useState<string | null>(null);
+
+    const roomCodeForPresence = room?.code ?? "";
+
+    const { members: presenceMembers, unfocused: presenceUnfocused } =
+        usePresence(roomCodeForPresence, "teacher");
 
     // 학생 목록 + 메시지 상태
     const [students, setStudents] = useState<StudentSummary[]>([]);
@@ -647,6 +654,16 @@ export function TeacherRoomLivePage() {
 
     return (
         <section className="page teacher-home">
+            {room && (
+                <PresenceSidebar
+                    members={presenceMembers}
+                    unfocused={presenceUnfocused}
+                    // 위치는 필요하면 조절 가능 (기본값 써도 됨)
+                    top={84}
+                    right={16}
+                    width={260}
+                />
+            )}
             <h1>라이브 퀴즈 컨트롤</h1>
             <p className="page-desc">
                 <strong>{room.title}</strong> (코드: {room.code}) 방에서{" "}
