@@ -3,6 +3,8 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
+import { Link } from "react-router-dom";
+
 
 type Profile = {
     id: string;
@@ -454,17 +456,17 @@ export function TeacherHomePage() {
                                         <strong>{cls.name}</strong>
                                         {cls.grade && (
                                             <span style={{ marginLeft: "0.4rem", color: "var(--text-sub)" }}>
-                            ({cls.grade})
-                                    </span>
+                    ({cls.grade})
+                </span>
                                         )}
                                     </div>
-                                    <a
-                                        href={`/teacher/classes/${cls.id}/rooms`}
+                                    <Link
+                                        to={`/teacher/classes/${cls.id}/rooms`}
                                         className="secondary-btn"
                                         style={{ marginRight: "0.25rem" }}
                                     >
                                         방 관리
-                                    </a>
+                                    </Link>
                                     <button
                                         type="button"
                                         className="secondary-btn"
@@ -474,6 +476,7 @@ export function TeacherHomePage() {
                                     </button>
                                 </li>
                             ))}
+
 
                         </ul>
                     )}
@@ -488,9 +491,10 @@ export function TeacherHomePage() {
                         나중에 여러 반/방에서 재사용할 수 있습니다.
                     </p>
                     <p>
-                        <a href="/teacher/quiz-packs" className="primary-btn">
+                        <Link to="/teacher/quiz-packs" className="primary-btn full-width">
                             퀴즈팩 목록 열기
-                        </a>
+                        </Link>
+
                     </p>
                 </div>
 

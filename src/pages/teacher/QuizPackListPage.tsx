@@ -309,12 +309,20 @@ export function QuizPackListPage() {
     };
 
     // 학생 개인 연습 링크 복사
+    // 학생 개인 연습 링크 복사
     const handleCopyPlayLink = async (pack: QuizPackRow) => {
         setErrorMsg(null);
         setInfoMsg(null);
 
         try {
-            const url = `${window.location.origin}/student/play/${pack.id}`;
+            const origin = window.location.origin;
+            const base = import.meta.env.BASE_URL || "/"; // 예: "/class-hub/" 또는 "/"
+            const normalizedBase = base.startsWith("/") ? base : `/${base}`;
+            const trimmedBase = normalizedBase.replace(/\/$/, ""); // "/class-hub" 또는 ""
+
+            // HashRouter 기준: .../class-hub/#/student/play/:id
+            const url = `${origin}${trimmedBase}/#/student/play/${pack.id}`;
+
             await navigator.clipboard.writeText(url);
             setInfoMsg("연습/숙제용 학생 링크를 클립보드에 복사했습니다.");
         } catch (err) {
@@ -324,6 +332,7 @@ export function QuizPackListPage() {
             );
         }
     };
+
 
     if (loading) {
         return (

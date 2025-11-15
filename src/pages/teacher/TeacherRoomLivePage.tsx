@@ -81,7 +81,7 @@ export function TeacherRoomLivePage() {
     const [saving, setSaving] = useState(false);
 
     // ✅ 브라우저 origin + QR 모달/복사 상태
-    const [appOrigin, setAppOrigin] = useState<string>("");
+    const [appBaseUrl, setAppBaseUrl] = useState<string>("");
     const [showQrModal, setShowQrModal] = useState(false);
     const [copyMsg, setCopyMsg] = useState<string | null>(null);
 
@@ -96,7 +96,14 @@ export function TeacherRoomLivePage() {
     // origin 한 번만 세팅
     useEffect(() => {
         if (typeof window !== "undefined") {
-            setAppOrigin(window.location.origin);
+            const origin = window.location.origin;
+            const base = import.meta.env.BASE_URL || "/"; // 예: "/class-hub/" 또는 "/"
+
+            // 앞뒤 슬래시 정리
+            const normalizedBase = base.startsWith("/") ? base : `/${base}`;
+            const trimmedBase = normalizedBase.replace(/\/$/, ""); // "/class-hub" 또는 ""
+
+            setAppBaseUrl(`${origin}${trimmedBase}`);
         }
     }, []);
 
@@ -277,8 +284,8 @@ export function TeacherRoomLivePage() {
     // ✅ 학생 접속용 URL (QR/링크 공유용)
     // → /student?code= 로 방 코드 읽어서 닉네임 입력 → 입장 처리
     const studentJoinUrl =
-        appOrigin && room
-            ? `${appOrigin}/student?code=${encodeURIComponent(room.code)}`
+        appBaseUrl && room
+            ? `${appBaseUrl}/#/student?code=${encodeURIComponent(room.code)}`
             : "";
 
     const qrImageUrl = studentJoinUrl
