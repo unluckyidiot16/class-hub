@@ -8,10 +8,7 @@ import { StudentJoinPage } from "./pages/student/StudentJoinPage";
 import { StudentRoomPage } from "./pages/student/StudentRoomPage";
 import { QuizPackListPage } from "./pages/teacher/QuizPackListPage";
 import { QuizPackEditorPage } from "./pages/teacher/QuizPackEditorPage";
-
-// ▼ 새로 추가
 import { TeacherRoomLivePage } from "./pages/teacher/TeacherRoomLivePage";
-
 import { StudentPlayPackPage } from "./pages/student/StudentPlayPackPage";
 
 
