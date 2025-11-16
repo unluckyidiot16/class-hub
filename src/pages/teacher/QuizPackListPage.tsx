@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
+import { importQuizPackJson } from "../../utils/quizPackImport";
 
 import {
     downloadQuizPackJson,
@@ -212,75 +213,27 @@ export function QuizPackListPage() {
         setInfoMsg(null);
 
         try {
-            const text = await file.text();
-            let raw: any;
-            try {
-                raw = JSON.parse(text);
-            } catch {
-                throw new Error("JSON 형식이 올바르지 않습니다.");
-            }
+            // 1) JSON 파싱 + 포맷 판별(QDD 배열 / v1) + DB insert 전부 여기서 처리
+            const newPackId = await importQuizPackJson(file, session.user.id);
 
-            if (raw.type !== "quizpack" || raw.version !== "v1") {
-                throw new Error("지원하지 않는 퀴즈팩 JSON입니다.");
-            }
-            if (!raw.pack || !Array.isArray(raw.questions)) {
-                throw new Error("pack 또는 questions 필드가 없습니다.");
-            }
-
-            const meta = raw.pack as any;
-            const qs = raw.questions as any[];
-
-            const { data: newPackRow, error: packErr } = await supabase
+            // 2) 방금 생성된 pack 한 번 더 읽어서 state에 추가
+            const { data: packRow, error } = await supabase
                 .from("quiz_packs")
-                .insert({
-                    owner_id: session.user.id,
-                    title: meta.title || "제목 없는 퀴즈팩",
-                    subject: meta.subject ?? null,
-                    grade: meta.grade ?? null,
-                    description: meta.description ?? null,
-                })
                 .select("*")
+                .eq("id", newPackId)
                 .single();
 
-            if (packErr || !newPackRow) {
+            if (error || !packRow) {
                 console.error(
-                    "[QuizPackList] import pack insert error",
-                    packErr
+                    "[QuizPackList] load imported pack error",
+                    error
                 );
-                throw new Error("퀴즈팩 생성 중 오류가 발생했습니다.");
+                throw new Error(
+                    "퀴즈팩 생성 후 정보를 불러오지 못했습니다."
+                );
             }
 
-            const newPackId = (newPackRow as any).id as string;
-
-            const questionRows = qs.map((q, idx) => ({
-                pack_id: newPackId,
-                index_in_pack:
-                    typeof q.index === "number" ? q.index : idx,
-                prompt: String(q.prompt ?? ""),
-                options: Array.isArray(q.options)
-                    ? q.options.map((x: any) => String(x))
-                    : [],
-                answer_index:
-                    typeof q.answerIndex === "number" ? q.answerIndex : 0,
-                difficulty:
-                    typeof q.difficulty === "number" ? q.difficulty : null,
-                tags: Array.isArray(q.tags) ? q.tags : null,
-            }));
-
-            if (questionRows.length > 0) {
-                const { error: qErr } = await supabase
-                    .from("quiz_questions")
-                    .insert(questionRows);
-                if (qErr) {
-                    console.error(
-                        "[QuizPackList] import questions insert error",
-                        qErr
-                    );
-                    throw new Error("문항 생성 중 오류가 발생했습니다.");
-                }
-            }
-
-            setPacks((prev) => [...prev, newPackRow as QuizPackRow]);
+            setPacks((prev) => [...prev, packRow as QuizPackRow]);
             setInfoMsg("퀴즈팩을 JSON에서 가져왔습니다.");
         } catch (err: any) {
             console.error("[QuizPackList] import error", err);
@@ -289,7 +242,10 @@ export function QuizPackListPage() {
             );
         } finally {
             setImporting(false);
-            if (e.target) e.target.value = "";
+            if (e.target) {
+                // 같은 파일 다시 선택해도 onChange가 동작하도록 리셋
+                e.target.value = "";
+            }
         }
     };
 
