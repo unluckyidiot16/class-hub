@@ -195,6 +195,25 @@ export function QuizPackListPage() {
         );
     };
 
+    // QDD 게임으로 열기
+    const handleOpenQdd = (pack: QuizPackRow) => {
+        // QDD는 GitHub Pages의 /assets-common/QuizDiceDefense/QDD.html 에 있다고 가정
+        const origin = window.location.origin;
+        const qddBaseUrl = `${origin}/assets-common/QuizDiceDefense/QDD.html`;
+
+        // QDD.html에서 ?pack=파일명 → QuizPack/{파일명}.json 으로 읽도록 설정했음
+        const packSlug = (pack.title || "").trim();
+
+        if (!packSlug) {
+            window.alert("QDD로 연결하려면 퀴즈팩 제목을 먼저 설정해주세요.");
+            return;
+        }
+
+        const url = `${qddBaseUrl}?pack=${encodeURIComponent(packSlug)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
+
+
     // JSON 가져오기
     const handleClickImport = () => {
         setErrorMsg(null);
@@ -513,11 +532,21 @@ export function QuizPackListPage() {
                                         type="button"
                                         className="secondary-btn"
                                         onClick={() =>
+                                            handleOpenQdd(pack)
+                                        }
+                                    >
+                                        QDD 게임
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="secondary-btn"
+                                        onClick={() =>
                                             handleExportPack(pack)
                                         }
                                     >
                                         JSON
                                     </button>
+
                                     <button
                                         type="button"
                                         className="secondary-btn"
