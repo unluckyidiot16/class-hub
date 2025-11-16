@@ -5,6 +5,10 @@ import { useNavigate, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
+import {
+    downloadQuizPackJson,
+    type QuizQuestionRow,
+} from "../../utils/quizPackExport";
 
 type QuizPackRow = {
     id: string;
@@ -35,6 +39,9 @@ export function QuizPackListPage() {
     // JSON import 상태
     const [importing, setImporting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // 통계 모달 대상
+    const [statsTarget, setStatsTarget] = useState<QuizPackRow | null>(null);
 
     useEffect(() => {
         const init = async () => {
@@ -152,7 +159,7 @@ export function QuizPackListPage() {
         setPacks((prev) => prev.filter((p) => p.id !== id));
     };
 
-    // JSON 내보내기
+    // JSON 내보내기 (공용 유틸 사용)
     const handleExportPack = async (pack: QuizPackRow) => {
         setErrorMsg(null);
         setInfoMsg(null);
@@ -171,59 +178,20 @@ export function QuizPackListPage() {
             return;
         }
 
-        const questions = (qRows ?? []) as any[];
+        const questions = (qRows ?? []) as QuizQuestionRow[];
 
-        const json: QuizPackJsonV1 = {
-            type: "quizpack",
-            version: "v1",
-            pack: {
+        // 여기서 quizPackExport.ts의 포맷을 그대로 사용
+        downloadQuizPackJson(
+            {
                 id: pack.id,
+                owner_id: pack.owner_id,
                 title: pack.title,
                 subject: pack.subject,
                 grade: pack.grade,
                 description: pack.description,
             },
-            questions: questions.map((q, idx) => ({
-                id: q.id,
-                index:
-                    typeof q.index_in_pack === "number"
-                        ? q.index_in_pack
-                        : idx,
-                prompt: String(q.prompt ?? ""),
-                options: Array.isArray(q.options)
-                    ? q.options.map((x: any) => String(x))
-                    : [],
-                answerIndex:
-                    typeof q.answer_index === "number" ? q.answer_index : 0,
-                difficulty:
-                    typeof q.difficulty === "number" ? q.difficulty : null,
-                tags: Array.isArray(q.tags)
-                    ? q.tags.map((t: any) => String(t))
-                    : null,
-                // explanation, type 등은 지금 DB에 없으니 생략
-            })),
-        };
-
-
-        const blob = new Blob([JSON.stringify(json, null, 2)], {
-            type: "application/json",
-        });
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-
-        const safeTitle =
-            pack.title.replace(/[^\w가-힣\-]+/g, "_").slice(0, 40) ||
-            "quizpack";
-        const today = new Date().toISOString().slice(0, 10);
-
-        a.href = url;
-        a.download = `${safeTitle}.${today}.quizpack.json`;
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+            questions
+        );
     };
 
     // JSON 가져오기
@@ -269,6 +237,7 @@ export function QuizPackListPage() {
                     title: meta.title || "제목 없는 퀴즈팩",
                     subject: meta.subject ?? null,
                     grade: meta.grade ?? null,
+                    description: meta.description ?? null,
                 })
                 .select("*")
                 .single();
@@ -293,6 +262,9 @@ export function QuizPackListPage() {
                     : [],
                 answer_index:
                     typeof q.answerIndex === "number" ? q.answerIndex : 0,
+                difficulty:
+                    typeof q.difficulty === "number" ? q.difficulty : null,
+                tags: Array.isArray(q.tags) ? q.tags : null,
             }));
 
             if (questionRows.length > 0) {
@@ -322,7 +294,6 @@ export function QuizPackListPage() {
     };
 
     // 학생 개인 연습 링크 복사
-    // 학생 개인 연습 링크 복사
     const handleCopyPlayLink = async (pack: QuizPackRow) => {
         setErrorMsg(null);
         setInfoMsg(null);
@@ -346,12 +317,13 @@ export function QuizPackListPage() {
         }
     };
 
-
     if (loading) {
         return (
             <section className="page teacher-home">
                 <h1>퀴즈팩 관리</h1>
-                <p className="page-desc">퀴즈팩 정보를 불러오는 중입니다...</p>
+                <p className="page-desc">
+                    퀴즈팩 정보를 불러오는 중입니다...
+                </p>
             </section>
         );
     }
@@ -473,7 +445,7 @@ export function QuizPackListPage() {
                     )}
                 </div>
 
-                {/* 퀴즈팩 목록 + JSON Import/Export */}
+                {/* 퀴즈팩 목록 + JSON Import/Export + 통계 */}
                 <div
                     className="card"
                     style={{ flex: "2 1 320px", minWidth: "320px" }}
@@ -567,6 +539,15 @@ export function QuizPackListPage() {
                                         type="button"
                                         className="secondary-btn"
                                         onClick={() =>
+                                            setStatsTarget(pack)
+                                        }
+                                    >
+                                        통계
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="secondary-btn"
+                                        onClick={() =>
                                             handleCopyPlayLink(pack)
                                         }
                                     >
@@ -596,6 +577,373 @@ export function QuizPackListPage() {
                     )}
                 </div>
             </div>
+
+            {statsTarget && (
+                <QuizPackStatsModal
+                    pack={statsTarget}
+                    onClose={() => setStatsTarget(null)}
+                />
+            )}
         </section>
+    );
+}
+
+/**
+ * 퀴즈팩 통계 모달
+ * - 현재는 문항 구성 통계(난이도 분포, 태그 분포) 위주
+ * - 나중에 quiz_answers 정답률/응답 시간 등 추가 가능
+ */
+type QuizPackStatsModalProps = {
+    pack: QuizPackRow;
+    onClose: () => void;
+};
+
+function QuizPackStatsModal({ pack, onClose }: QuizPackStatsModalProps) {
+    const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [questions, setQuestions] = useState<
+        {
+            id: string;
+            index_in_pack: number;
+            prompt: string;
+            difficulty: number | null;
+            tags: string[] | null;
+        }[]
+    >([]);
+
+    useEffect(() => {
+        const load = async () => {
+            setLoading(true);
+            setErrorMsg(null);
+
+            const { data, error } = await supabase
+                .from("quiz_questions")
+                .select("id, index_in_pack, prompt, difficulty, tags")
+                .eq("pack_id", pack.id)
+                .order("index_in_pack", { ascending: true });
+
+            if (error) {
+                console.error("[QuizPackStatsModal] load error", error);
+                setErrorMsg("퀴즈팩 통계를 불러오는 중 오류가 발생했습니다.");
+                setLoading(false);
+                return;
+            }
+
+            setQuestions(
+                (data ?? []) as {
+                    id: string;
+                    index_in_pack: number;
+                    prompt: string;
+                    difficulty: number | null;
+                    tags: string[] | null;
+                }[]
+            );
+            setLoading(false);
+        };
+
+        void load();
+    }, [pack.id]);
+
+    // 난이도 분포 계산
+    const difficultyCounts: Record<string, number> = {};
+    questions.forEach((q) => {
+        const key =
+            typeof q.difficulty === "number" && q.difficulty > 0
+                ? String(q.difficulty)
+                : "미지정";
+        difficultyCounts[key] = (difficultyCounts[key] ?? 0) + 1;
+    });
+
+    // 태그 분포 계산
+    const tagCounts: Record<string, number> = {};
+    questions.forEach((q) => {
+        if (!Array.isArray(q.tags)) return;
+        q.tags.forEach((t) => {
+            const tag = t.trim();
+            if (!tag) return;
+            tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+        });
+    });
+
+    const totalQuestions = questions.length;
+
+    return (
+        <div className="modal-backdrop">
+            <div
+                className="modal"
+                style={{ maxWidth: "720px", width: "100%" }}
+            >
+                <h2>퀴즈팩 통계</h2>
+                <p className="page-desc">
+                    <strong>{pack.title}</strong>{" "}
+                    {pack.subject && `(${pack.subject})`}{" "}
+                    {pack.grade && `· ${pack.grade}`}
+                </p>
+
+                {loading ? (
+                    <p>통계를 불러오는 중입니다...</p>
+                ) : errorMsg ? (
+                    <p
+                        className="form-message"
+                        style={{ color: "var(--danger)" }}
+                    >
+                        {errorMsg}
+                    </p>
+                ) : (
+                    <>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "1.5rem",
+                                marginBottom: "1rem",
+                            }}
+                        >
+                            <div>
+                                <h3 style={{ marginBottom: "0.4rem" }}>
+                                    기본 정보
+                                </h3>
+                                <ul
+                                    style={{
+                                        fontSize: "0.9rem",
+                                        paddingLeft: "1.1rem",
+                                    }}
+                                >
+                                    <li>문항 수: {totalQuestions}개</li>
+                                    <li>
+                                        난이도 지정 문항:{" "}
+                                        {Object.keys(difficultyCounts)
+                                            .filter((k) => k !== "미지정")
+                                            .reduce(
+                                                (sum, k) =>
+                                                    sum +
+                                                    (difficultyCounts[k] ?? 0),
+                                                0
+                                            )}{" "}
+                                        개
+                                    </li>
+                                    <li>
+                                        태그 사용 개수:{" "}
+                                        {Object.keys(tagCounts).length}개
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h3 style={{ marginBottom: "0.4rem" }}>
+                                    난이도 분포
+                                </h3>
+                                {Object.keys(difficultyCounts).length === 0 ? (
+                                    <p
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            color: "var(--text-sub)",
+                                        }}
+                                    >
+                                        난이도 정보가 없습니다.
+                                    </p>
+                                ) : (
+                                    <ul
+                                        style={{
+                                            fontSize: "0.9rem",
+                                            paddingLeft: "1.1rem",
+                                        }}
+                                    >
+                                        {Object.entries(difficultyCounts)
+                                            .sort(([a], [b]) => {
+                                                if (a === "미지정") return 1;
+                                                if (b === "미지정") return -1;
+                                                return Number(a) - Number(b);
+                                            })
+                                            .map(([d, c]) => (
+                                                <li key={d}>
+                                                    난이도 {d}: {c}개
+                                                </li>
+                                            ))}
+                                    </ul>
+                                )}
+                            </div>
+
+                            <div>
+                                <h3 style={{ marginBottom: "0.4rem" }}>
+                                    태그 상위 목록
+                                </h3>
+                                {Object.keys(tagCounts).length === 0 ? (
+                                    <p
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            color: "var(--text-sub)",
+                                        }}
+                                    >
+                                        태그가 지정된 문항이 없습니다.
+                                    </p>
+                                ) : (
+                                    <ul
+                                        style={{
+                                            fontSize: "0.9rem",
+                                            paddingLeft: "1.1rem",
+                                        }}
+                                    >
+                                        {Object.entries(tagCounts)
+                                            .sort((a, b) => b[1] - a[1])
+                                            .slice(0, 10)
+                                            .map(([tag, c]) => (
+                                                <li key={tag}>
+                                                    {tag}: {c}개
+                                                </li>
+                                            ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+
+                        <h3 style={{ marginBottom: "0.4rem" }}>
+                            문항 목록 (요약)
+                        </h3>
+                        {questions.length === 0 ? (
+                            <p
+                                style={{
+                                    fontSize: "0.85rem",
+                                    color: "var(--text-sub)",
+                                }}
+                            >
+                                아직 이 퀴즈팩에는 문항이 없습니다.
+                            </p>
+                        ) : (
+                            <div
+                                style={{
+                                    maxHeight: "260px",
+                                    overflowY: "auto",
+                                    border: "1px solid var(--border-subtle)",
+                                    borderRadius: "8px",
+                                    padding: "0.5rem",
+                                    fontSize: "0.85rem",
+                                }}
+                            >
+                                <table
+                                    style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse",
+                                    }}
+                                >
+                                    <thead>
+                                    <tr>
+                                        <th
+                                            style={{
+                                                textAlign: "left",
+                                                padding: "0.25rem",
+                                                borderBottom:
+                                                    "1px solid var(--border-subtle)",
+                                                width: "3rem",
+                                            }}
+                                        >
+                                            #
+                                        </th>
+                                        <th
+                                            style={{
+                                                textAlign: "left",
+                                                padding: "0.25rem",
+                                                borderBottom:
+                                                    "1px solid var(--border-subtle)",
+                                            }}
+                                        >
+                                            지문
+                                        </th>
+                                        <th
+                                            style={{
+                                                textAlign: "left",
+                                                padding: "0.25rem",
+                                                borderBottom:
+                                                    "1px solid var(--border-subtle)",
+                                                width: "4rem",
+                                            }}
+                                        >
+                                            난이도
+                                        </th>
+                                        <th
+                                            style={{
+                                                textAlign: "left",
+                                                padding: "0.25rem",
+                                                borderBottom:
+                                                    "1px solid var(--border-subtle)",
+                                                width: "8rem",
+                                            }}
+                                        >
+                                            태그
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {questions.map((q) => (
+                                        <tr key={q.id}>
+                                            <td
+                                                style={{
+                                                    padding: "0.25rem",
+                                                    verticalAlign: "top",
+                                                }}
+                                            >
+                                                {q.index_in_pack + 1}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: "0.25rem",
+                                                    verticalAlign: "top",
+                                                }}
+                                            >
+                                                {q.prompt.length > 80
+                                                    ? q.prompt.slice(
+                                                    0,
+                                                    80
+                                                ) + "..."
+                                                    : q.prompt}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: "0.25rem",
+                                                    verticalAlign: "top",
+                                                }}
+                                            >
+                                                {typeof q.difficulty ===
+                                                "number" &&
+                                                q.difficulty > 0
+                                                    ? q.difficulty
+                                                    : "-"}
+                                            </td>
+                                            <td
+                                                style={{
+                                                    padding: "0.25rem",
+                                                    verticalAlign: "top",
+                                                }}
+                                            >
+                                                {Array.isArray(q.tags) &&
+                                                q.tags.length > 0
+                                                    ? q.tags.join(", ")
+                                                    : "-"}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                <div
+                    style={{
+                        marginTop: "1rem",
+                        textAlign: "right",
+                    }}
+                >
+                    <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={onClose}
+                    >
+                        닫기
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }
