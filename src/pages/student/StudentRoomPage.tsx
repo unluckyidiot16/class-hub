@@ -521,7 +521,15 @@ export function StudentRoomPage() {
         return (
             <section
                 className="page student-join"
-                style={{ maxWidth: isQddRoom ? 1200 : undefined }}
+                style={
+                isQddRoom
+                    ? {
+                    // Chromebook(1366px)에서 가로폭 대부분 사용
+                        maxWidth: "100%",
+                        paddingInline: "1.5rem",
+                    }
+                    : undefined
+            }
             >
                 <h1>방 입장</h1>
                 <p className="page-desc">잘못된 경로입니다.</p>
@@ -657,7 +665,7 @@ export function StudentRoomPage() {
             <div
                 className="card"
                 style={{
-                    maxWidth: isQddRoom ? 1120 : 720,
+                    maxWidth: isQddRoom ? 1180 : 720,
                     margin: "0 auto",
                 }}
             >
@@ -707,9 +715,10 @@ export function StudentRoomPage() {
                             style={{
                                 position: "relative",
                                 width: "100%",
-                                // 카드 전체 폭을 쓰는 PC 레이아웃
-                                // (모바일에서는 카드 자체가 줄어들면서 함께 축소)
-                                aspectRatio: "16 / 9",
+                                // Chromebook(1366x768) 기준:
+                                // 가로 1180px일 때 16:9 비율 높이 ≈ 660px
+                                // → 최대 680px, 동시에 화면 높이의 85% 안으로 제한
+                                height: "min(85vh, 680px)",
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
