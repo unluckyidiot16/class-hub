@@ -262,21 +262,20 @@ export function TeacherClassRoomsPage() {
 
     // 학생용 링크 (StudentPlay) 복사
     // QDD 전용 방(game_key="qdd")인 경우에는 StudentPlay에서 바로 QDD로 리다이렉트됩니다.
+    // 학생용 링크 복사
+    // → 항상 StudentRoomPage(/student/rooms/:roomId)로 보내고,
+    //    방의 game_key에 따라 학생 쪽에서 퀴즈/게임을 분기 처리하는 구조로 전환한다.
     const handleCopyStudentLink = async (room: RoomRow) => {
-        if (!room.quiz_pack_id) {
-            window.alert("먼저 이 방에 퀴즈팩을 연결해주세요.");
-            return;
-        }
+    
         try {
             const origin = window.location.origin;
             const base = import.meta.env.BASE_URL || "/";
             const normalizedBase = base.startsWith("/") ? base : `/${base}`;
             const trimmedBase = normalizedBase.replace(/\/$/, "");
 
-            // HashRouter 기준: .../#/student/play/:packId?roomId=...&gameKey=...
-            const url = `${origin}${trimmedBase}/#/student/play/${room.quiz_pack_id}?roomId=${encodeURIComponent(
-                room.id
-            )}&gameKey=${encodeURIComponent(room.game_key)}`;
+            // HashRouter 기준:
+            //   .../#/student/rooms/:roomId
+            const url = `${origin}${trimmedBase}/#/student/rooms/${room.id}`;
 
             await navigator.clipboard.writeText(url);
             window.alert("학생용 링크를 클립보드에 복사했습니다.");
