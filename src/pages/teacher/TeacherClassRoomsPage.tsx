@@ -123,7 +123,9 @@ export function TeacherClassRoomsPage() {
                 const { data: packRows, error: packErr } = await supabase
                     .from("quiz_packs")
                     .select("id, owner_id, title, subject, grade")
+                    .eq("owner_id", data.session.user.id) // ✅ 현재 교사의 퀴즈팩만
                     .order("created_at", { ascending: true });
+
 
                 if (packErr) {
                     console.error("[TeacherClassRooms] load packs error", packErr);

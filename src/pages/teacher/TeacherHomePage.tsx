@@ -21,6 +21,17 @@ type ClassRow = {
     created_at: string;
 };
 
+type QuizPackRow = {
+    id: string;
+    owner_id: string;
+    title: string;
+    subject: string | null;
+    grade: string | null;
+    description?: string | null;
+    created_at: string;
+};
+
+
 export function TeacherHomePage() {
     const [session, setSession] = useState<Session | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -34,10 +45,18 @@ export function TeacherHomePage() {
     const [authError, setAuthError] = useState<string | null>(null);
 
     // 클래스 생성 폼 상태
-    const [className, setClassName] = useState("");
-    const [classGrade, setClassGrade] = useState("");
     const [classSaving, setClassSaving] = useState(false);
     const [classesError, setClassesError] = useState<string | null>(null);
+
+    const [quizPacks, setQuizPacks] = useState<QuizPackRow[]>([]);
+    const [quizPackSaving, setQuizPackSaving] = useState(false);
+    const [quizPacksError, setQuizPacksError] = useState<string | null>(null);
+
+// 모달 표시 상태
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+    const [showCreatePackModal, setShowCreatePackModal] = useState(false);
+
 
     // =========================
     // 초기 세션 체크
@@ -90,32 +109,62 @@ export function TeacherHomePage() {
         return data as Profile;
     };
 
+    // =========================
+// 프로필 생성/조회 + 클래스 / 퀴즈팩 로드
+// =========================
     const loadProfileAndClasses = async (user: User) => {
         setLoading(true);
         setClassesError(null);
+        setQuizPacksError(null);
 
         try {
             const prof = await ensureProfile(user);
             setProfile(prof);
 
-            const { data: classRows, error: classError } = await supabase
-                .from("classes")
-                .select("*")
-                .order("created_at", { ascending: true });
+            // 클래스 + 최근 퀴즈팩 5개를 동시에 로드
+            const [
+                { data: classRows, error: classError },
+                { data: packRows, error: packError },
+            ] = await Promise.all([
+                supabase
+                    .from("classes")
+                    .select("*")
+                    .eq("teacher_id", prof.id) // ✅ 해당 교사의 반만
+                    .order("created_at", { ascending: true }),
+                supabase
+                    .from("quiz_packs")
+                    .select("*")
+                    .eq("owner_id", prof.id) // ✅ 해당 교사의 퀴즈팩만
+                    .order("created_at", { ascending: false })
+                    .limit(5),
+            ]);
 
+            // 반 목록 처리
             if (classError) {
                 console.error("[TeacherHome] load classes error", classError);
-                throw classError;
+                setClassesError("프로필/반 정보를 불러오는 중 오류가 발생했습니다.");
+                setClasses([]);
+            } else {
+                setClasses((classRows ?? []) as ClassRow[]);
             }
 
-            setClasses((classRows ?? []) as ClassRow[]);
+            // 퀴즈팩 목록 처리
+            if (packError) {
+                console.error("[TeacherHome] load quiz_packs error", packError);
+                setQuizPacksError("퀴즈팩 정보를 불러오는 중 오류가 발생했습니다.");
+                setQuizPacks([]);
+            } else {
+                setQuizPacks((packRows ?? []) as QuizPackRow[]);
+            }
         } catch (err) {
             console.error(err);
             setClassesError("프로필/반 정보를 불러오는 중 오류가 발생했습니다.");
+            setQuizPacksError("퀴즈팩 정보를 불러오는 중 오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }
     };
+
 
     // =========================
     // 로그인 / 회원가입 처리
@@ -202,16 +251,18 @@ export function TeacherHomePage() {
     // =========================
     // 클래스 생성 / 삭제
     // =========================
-    const handleCreateClass = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!profile) return;
+    const handleCreateClass = async (
+        name: string,
+        grade: string
+    ): Promise<ClassRow | null> => {
+        if (!profile) return null;
 
-        const name = className.trim();
-        const grade = classGrade.trim();
+        const trimmedName = name.trim();
+        const trimmedGrade = grade.trim();
 
-        if (!name) {
+        if (!trimmedName) {
             setClassesError("반 이름을 입력해주세요.");
-            return;
+            return null;
         }
 
         setClassSaving(true);
@@ -221,8 +272,8 @@ export function TeacherHomePage() {
             const { data, error } = await supabase
                 .from("classes")
                 .insert({
-                    name,
-                    grade: grade || null,
+                    name: trimmedName,
+                    grade: trimmedGrade || null,
                     teacher_id: profile.id,
                 })
                 .select("*")
@@ -231,12 +282,12 @@ export function TeacherHomePage() {
             if (error) {
                 console.error("[TeacherHome] create class error", error);
                 setClassesError(error.message);
-                return;
+                return null;
             }
 
-            setClasses((prev) => [...prev, data as ClassRow]);
-            setClassName("");
-            setClassGrade("");
+            const created = data as ClassRow;
+            setClasses((prev) => [...prev, created]);
+            return created;
         } finally {
             setClassSaving(false);
         }
@@ -258,6 +309,55 @@ export function TeacherHomePage() {
 
         setClasses((prev) => prev.filter((c) => c.id !== id));
     };
+
+    const handleCreateQuizPack = async (
+        title: string,
+        subject: string,
+        grade: string
+    ): Promise<QuizPackRow | null> => {
+        if (!profile) return null;
+
+        const t = title.trim();
+        const s = subject.trim();
+        const g = grade.trim();
+
+        if (!t) {
+            setQuizPacksError("퀴즈팩 제목을 입력해주세요.");
+            return null;
+        }
+
+        setQuizPackSaving(true);
+        setQuizPacksError(null);
+
+        try {
+            const { data, error } = await supabase
+                .from("quiz_packs")
+                .insert({
+                    owner_id: profile.id,
+                    title: t,
+                    subject: s || null,
+                    grade: g || null,
+                })
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error("[TeacherHome] create quiz_pack error", error);
+                setQuizPacksError(error.message);
+                return null;
+            }
+
+            const created = data as QuizPackRow;
+
+            // 최근 5개 리스트 갱신
+            setQuizPacks((prev) => [created, ...prev].slice(0, 5));
+
+            return created;
+        } finally {
+            setQuizPackSaving(false);
+        }
+    };
+
 
     // =========================
     // 렌더링
@@ -350,12 +450,12 @@ export function TeacherHomePage() {
     }
 
     // 로그인 된 상태 → 프로필 + 반 목록
+    // 로그인 된 상태 → 프로필 + 반/퀴즈팩/반 목록
     return (
         <section className="page teacher-home">
             <h1>교사 대시보드</h1>
             <p className="page-desc">
-                반을 만들고, 나중에 이 반 아래에 방과 퀴즈팩, 실시간 수업을 연결하게
-                됩니다.
+                반을 만들고, 나중에 이 반 아래에 방과 퀴즈팩, 실시간 수업을 연결하게 됩니다.
             </p>
 
             <div
@@ -366,10 +466,15 @@ export function TeacherHomePage() {
                     alignItems: "flex-start",
                 }}
             >
-                {/* 프로필 / 계정 정보 카드 */}
+                {/* A-1: 내 계정 카드 */}
                 <div className="card" style={{ minWidth: "260px", flex: "1 1 260px" }}>
                     <h2>내 계정</h2>
-                    <p>
+                    <p className="hint">
+                        로그인한 교사 계정을 확인하고, 자세한 정보는 &quot;내 정보 보기&quot;에서
+                        볼 수 있습니다.
+                    </p>
+
+                    <p style={{ marginTop: "0.75rem" }}>
                         <strong>이메일:</strong>{" "}
                         <span>{session.user.email ?? "(이메일 없음)"}</span>
                     </p>
@@ -377,80 +482,142 @@ export function TeacherHomePage() {
                         <strong>표시 이름:</strong>{" "}
                         <span>{profile?.display_name ?? session.user.email}</span>
                     </p>
-                    <p className="hint">
-                        표시 이름은 나중에 프로필 편집 기능에서 따로 수정할 수 있도록
-                        확장할 수 있습니다.
-                    </p>
 
-                    <button
-                        type="button"
-                        className="secondary-btn"
-                        style={{ marginTop: "0.75rem" }}
-                        onClick={handleLogout}
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            marginTop: "0.75rem",
+                        }}
                     >
-                        로그아웃
-                    </button>
+                        <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => setShowProfileModal(true)}
+                        >
+                            내 정보 보기
+                        </button>
+                        <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={handleLogout}
+                        >
+                            로그아웃
+                        </button>
+                    </div>
                 </div>
 
-                {/* ... 퀴즈팩 */}
-
-                <div className="card" style={{ marginTop: "1rem" }}>
+                {/* A-3: 퀴즈팩 요약 카드 */}
+                <div className="card" style={{ minWidth: "280px", flex: "1 1 280px" }}>
                     <h2>퀴즈팩 관리</h2>
                     <p className="page-desc">
-                        자주 사용하는 문제 묶음을 &quot;퀴즈팩&quot;으로 만들어두고,
-                        나중에 여러 반/방에서 재사용할 수 있습니다.
+                        자주 사용하는 문제 묶음을 &quot;퀴즈팩&quot;으로 만들어두고, 여러 반에서
+                        재사용할 수 있습니다.
                     </p>
-                    <p>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginTop: "0.75rem",
+                        }}
+                    >
+                        <p className="hint">
+                            최근 <strong>{quizPacks.length}</strong>개 퀴즈팩을 불러왔습니다.
+                        </p>
+                        <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => setShowCreatePackModal(true)}
+                        >
+                            새 퀴즈팩
+                        </button>
+                    </div>
+
+                    {quizPacksError && (
+                        <p className="form-message" style={{ color: "var(--danger)" }}>
+                            {quizPacksError}
+                        </p>
+                    )}
+
+                    {quizPacks.length === 0 ? (
+                        <p style={{ marginTop: "0.75rem" }} className="hint">
+                            아직 만든 퀴즈팩이 없습니다. &quot;새 퀴즈팩&quot; 버튼을 눌러 첫
+                            퀴즈팩을 만들어 보세요.
+                        </p>
+                    ) : (
+                        <ul
+                            style={{
+                                marginTop: "0.75rem",
+                                padding: 0,
+                                listStyle: "none",
+                                fontSize: "0.9rem",
+                            }}
+                        >
+                            {quizPacks.map((pack) => (
+                                <li
+                                    key={pack.id}
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        padding: "0.25rem 0",
+                                    }}
+                                >
+                                <span>
+                                    {pack.title}
+                                    {pack.subject && (
+                                        <span
+                                            style={{
+                                                color: "var(--text-sub)",
+                                                marginLeft: 4,
+                                            }}
+                                        >
+                                            · {pack.subject}
+                                        </span>
+                                    )}
+                                </span>
+                                    {pack.grade && (
+                                        <span style={{ color: "var(--text-sub)" }}>
+                                        {pack.grade}
+                                    </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <div style={{ marginTop: "0.75rem" }}>
                         <Link to="/teacher/quiz-packs" className="primary-btn full-width">
                             퀴즈팩 목록 열기
                         </Link>
-
-                    </p>
+                    </div>
                 </div>
-                
-                {/* 반 목록 + 생성 카드 */}
-                <div
-                    className="card"
-                    style={{ minWidth: "320px", flex: "2 1 320px" }}
-                >
-                    <h2>내 반 목록</h2>
-                    <p className="hint">
-                        예: &quot;5-1&quot;, &quot;5-2&quot;, &quot;6-1 방과후반&quot; 등으로
-                        만들어두고, 이후 각 반 안에 수업용 방/퀴즈팩을 연결할 수 있습니다.
-                    </p>
 
-                    <form
-                        onSubmit={handleCreateClass}
-                        style={{ marginTop: "0.75rem", marginBottom: "0.75rem" }}
+                {/* A-2: 반 목록 카드 */}
+                <div className="card" style={{ minWidth: "320px", flex: "1 1 320px" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
                     >
-                        <div className="form-field">
-                            <span>반 이름</span>
-                            <input
-                                type="text"
-                                placeholder="예: 5-1, 6-2, 5-1 방과후"
-                                value={className}
-                                onChange={(e) => setClassName(e.target.value)}
-                            />
+                        <div>
+                            <h2>내 반 목록</h2>
+                            <p className="hint">
+                                예: &quot;5-1&quot;, &quot;5-2&quot;, &quot;6-1 방과후반&quot; 등으로
+                                만들어두고, 이후 각 반 안에 수업용 방/퀴즈팩을 연결할 수 있습니다.
+                            </p>
                         </div>
-
-                        <div className="form-field">
-                            <span>학년/설명 (선택)</span>
-                            <input
-                                type="text"
-                                placeholder="예: 5, 6, 방과후반 등"
-                                value={classGrade}
-                                onChange={(e) => setClassGrade(e.target.value)}
-                            />
-                        </div>
-
                         <button
-                            type="submit"
-                            className="primary-btn full-width"
-                            disabled={classSaving}
+                            type="button"
+                            className="primary-btn"
+                            onClick={() => setShowCreateClassModal(true)}
                         >
-                            {classSaving ? "저장 중..." : "새 반 추가"}
+                            + 새 반
                         </button>
-                    </form>
+                    </div>
 
                     {classesError && (
                         <p className="form-message" style={{ color: "var(--danger)" }}>
@@ -458,22 +625,42 @@ export function TeacherHomePage() {
                         </p>
                     )}
 
-                    <hr style={{ borderColor: "var(--border-subtle)", margin: "0.75rem 0" }} />
+                    <hr
+                        style={{
+                            borderColor: "var(--border-subtle)",
+                            margin: "0.75rem 0",
+                        }}
+                    />
 
                     {loading ? (
                         <p>반 목록을 불러오는 중입니다...</p>
                     ) : classes.length === 0 ? (
-                        <p>아직 등록된 반이 없습니다. 위 폼에서 첫 번째 반을 추가해보세요.</p>
+                        <p>
+                            아직 등록된 반이 없습니다. &quot;새 반&quot; 버튼을 눌러 첫 반을
+                            추가해보세요.
+                        </p>
                     ) : (
                         <ul className="feature-list">
                             {classes.map((cls) => (
-                                <li key={cls.id} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <li
+                                    key={cls.id}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.5rem",
+                                    }}
+                                >
                                     <div style={{ flex: 1 }}>
                                         <strong>{cls.name}</strong>
                                         {cls.grade && (
-                                            <span style={{ marginLeft: "0.4rem", color: "var(--text-sub)" }}>
-                    ({cls.grade})
-                </span>
+                                            <span
+                                                style={{
+                                                    marginLeft: "0.4rem",
+                                                    color: "var(--text-sub)",
+                                                }}
+                                            >
+                                            ({cls.grade})
+                                        </span>
                                         )}
                                     </div>
                                     <Link
@@ -492,15 +679,260 @@ export function TeacherHomePage() {
                                     </button>
                                 </li>
                             ))}
-
-
                         </ul>
                     )}
                 </div>
-
-                
-
             </div>
+
+            {/* 모달들 */}
+            {showProfileModal && profile && (
+                <ProfileModal
+                    profile={profile}
+                    onClose={() => setShowProfileModal(false)}
+                />
+            )}
+
+            {showCreateClassModal && (
+                <CreateClassModal
+                    saving={classSaving}
+                    onClose={() => setShowCreateClassModal(false)}
+                    onSubmit={handleCreateClass}
+                />
+            )}
+
+            {showCreatePackModal && (
+                <CreateQuizPackModal
+                    saving={quizPackSaving}
+                    onClose={() => setShowCreatePackModal(false)}
+                    onSubmit={handleCreateQuizPack}
+                />
+            )}
         </section>
+    );
+}
+
+
+type ProfileModalProps = {
+    profile: Profile;
+    onClose: () => void;
+};
+
+function ProfileModal({ profile, onClose }: ProfileModalProps) {
+    return (
+        <div className="modal-backdrop">
+            <div className="modal-card">
+                <h3>내 정보</h3>
+                <p className="text-sm text-dim">
+                    로그인한 교사 계정 정보를 확인할 수 있습니다.
+                </p>
+
+                <dl className="mt-4 space-y-2">
+                    <div>
+                        <dt className="label">표시 이름</dt>
+                        <dd>{profile.display_name ?? "-"}</dd>
+                    </div>
+                    <div>
+                        <dt className="label">역할</dt>
+                        <dd>{profile.role ?? "teacher"}</dd>
+                    </div>
+                    <div>
+                        <dt className="label">가입일</dt>
+                        <dd>{profile.created_at?.slice(0, 10) ?? "-"}</dd>
+                    </div>
+                </dl>
+
+                <div className="mt-6 flex justify-end gap-2">
+                    <button
+                        className="secondary-btn"
+                        type="button"
+                        onClick={onClose}
+                    >
+                        닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+type CreateClassModalProps = {
+    saving: boolean;
+    onClose: () => void;
+    onSubmit: (name: string, grade: string) => Promise<ClassRow | null>;
+};
+
+function CreateClassModal({
+                              saving,
+                              onClose,
+                              onSubmit,
+                          }: CreateClassModalProps) {
+    const [name, setName] = useState("");
+    const [grade, setGrade] = useState("");
+    const [localError, setLocalError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        setLocalError(null);
+
+        if (!name.trim()) {
+            setLocalError("반 이름을 입력해주세요.");
+            return;
+        }
+
+        const created = await onSubmit(name, grade);
+        if (created) {
+            onClose();
+        }
+    };
+
+    return (
+        <div className="modal-backdrop">
+            <form className="modal-card" onSubmit={handleSubmit}>
+                <h3>새 반 만들기</h3>
+                <p className="text-sm text-dim">
+                    예: &quot;5-1&quot;, &quot;6-2&quot;, &quot;5-1 방과후&quot; 등으로
+                    입력하세요.
+                </p>
+
+                <label className="form-field" style={{ marginTop: "0.75rem" }}>
+                    <span>반 이름</span>
+                    <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="예: 5-1, 6-2 등"
+                    />
+                </label>
+
+                <label className="form-field" style={{ marginTop: "0.5rem" }}>
+                    <span>학년/설명 (선택)</span>
+                    <input
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        placeholder="예: 5, 6, 방과후반 등"
+                    />
+                </label>
+
+                {localError && (
+                    <p className="form-message" style={{ color: "var(--danger)" }}>
+                        {localError}
+                    </p>
+                )}
+
+                <div className="mt-6 flex justify-end gap-2">
+                    <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={onClose}
+                        disabled={saving}
+                    >
+                        취소
+                    </button>
+                    <button
+                        type="submit"
+                        className="primary-btn"
+                        disabled={saving}
+                    >
+                        {saving ? "저장 중..." : "반 생성"}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+}
+
+type CreateQuizPackModalProps = {
+    saving: boolean;
+    onClose: () => void;
+    onSubmit: (
+        title: string,
+        subject: string,
+        grade: string
+    ) => Promise<QuizPackRow | null>;
+};
+
+function CreateQuizPackModal({
+                                 saving,
+                                 onClose,
+                                 onSubmit,
+                             }: CreateQuizPackModalProps) {
+    const [title, setTitle] = useState("");
+    const [subject, setSubject] = useState("");
+    const [grade, setGrade] = useState("");
+    const [localError, setLocalError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        setLocalError(null);
+
+        if (!title.trim()) {
+            setLocalError("퀴즈팩 제목을 입력해주세요.");
+            return;
+        }
+
+        const created = await onSubmit(title, subject, grade);
+        if (created) {
+            onClose();
+        }
+    };
+
+    return (
+        <div className="modal-backdrop">
+            <form className="modal-card" onSubmit={handleSubmit}>
+                <h3>새 퀴즈팩 만들기</h3>
+                <p className="text-sm text-dim">
+                    예: &quot;5학년 수학 1단원&quot;, &quot;5학년 영어 광고문 읽기&quot; 등
+                </p>
+
+                <label className="form-field" style={{ marginTop: "0.75rem" }}>
+                    <span>제목</span>
+                    <input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                </label>
+
+                <label className="form-field" style={{ marginTop: "0.5rem" }}>
+                    <span>과목 (선택)</span>
+                    <input
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="예: 수학, 영어, 통합 등"
+                    />
+                </label>
+
+                <label className="form-field" style={{ marginTop: "0.5rem" }}>
+                    <span>학년/설명 (선택)</span>
+                    <input
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        placeholder="예: 5, 5-6군 등"
+                    />
+                </label>
+
+                {localError && (
+                    <p className="form-message" style={{ color: "var(--danger)" }}>
+                        {localError}
+                    </p>
+                )}
+
+                <div className="mt-6 flex justify-end gap-2">
+                    <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={onClose}
+                        disabled={saving}
+                    >
+                        취소
+                    </button>
+                    <button
+                        type="submit"
+                        className="primary-btn"
+                        disabled={saving}
+                    >
+                        {saving ? "저장 중..." : "퀴즈팩 생성"}
+                    </button>
+                </div>
+            </form>
+        </div>
     );
 }
