@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { usePresence } from "../../hooks/usePresence";
+import type { QuizPackRow } from "./StudentPlayPackPage";
+import { GAME_REGISTRY } from "../../games/gameRegistry";
 
 
 type RoomRow = {
@@ -75,6 +77,8 @@ export function StudentRoomPage() {
     const [loadingRoom, setLoadingRoom] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    const [pack, setPack] = useState<QuizPackRow | null>(null);
+    
     // 세션 & 현재 문제
     const [session, setSession] = useState<QuizSessionRow | null>(null);
     const [currentQuestion, setCurrentQuestion] =
@@ -172,6 +176,39 @@ export function StudentRoomPage() {
         void loadRoom();
     }, [roomId]);
 
+    // 1-1) 퀴즈팩 정보 로드 (게임/퀴즈 공통)
+    useEffect(() => {
+        if (!room?.quiz_pack_id) {
+            setPack(null);
+            return;
+        }
+        
+        let cancelled = false;
+        const fetchPack = async () => {
+            const { data, error } = await supabase
+                .from("quiz_packs")
+                .select("id, owner_id, title, subject, grade")
+                .eq("id", room.quiz_pack_id)
+                .single();
+            
+            if (cancelled) return;
+            
+            if (error) {
+                console.error("[StudentRoom] load pack error", error);
+                setPack(null);
+                return;
+            }
+            
+            setPack(data as QuizPackRow);
+        };
+        
+        void fetchPack();         
+        return () => {
+            cancelled = true;
+        };
+        }, [room?.quiz_pack_id]);
+    
+    
     // 1-2) 전체 문항 수 로드 (진행도 바용)
     useEffect(() => {
         if (!room?.quiz_pack_id) {
@@ -480,6 +517,16 @@ export function StudentRoomPage() {
         room.game_key === "qdd" ||
         state.gameKey === "qdd";
 
+    // QDD iframe URL (게임 방 + 퀴즈팩이 로드된 경우에만)
+    const qddSpec = GAME_REGISTRY["qdd"];
+    const qddUrl =
+            isQddRoom && pack && qddSpec.mode === "iframe"
+                ? qddSpec.buildUrl({
+                        pack,
+                        roomId: room.id,
+                }) 
+                : null;
+    
     const showProgress =
         session &&
         session.status === "running" &&
@@ -609,36 +656,57 @@ export function StudentRoomPage() {
                 <h2>{isQddRoom ? "현재 게임" : "현재 문제"}</h2>
 
                 {isQddRoom ? (
-                    <>
-                        <p
-                            style={{
-                                fontSize: "0.9rem",
-                                marginBottom: "0.5rem",
-                                color: "var(--text-sub)",
-                            }}
-                        >
-                            이 방은{" "}
-                            <strong>퀴즈 다이스 디펜스(QDD)</strong> 게임용 방입니다.
+                    !pack ? (
+                        <p>
+                            이 방의 퀴즈팩 정보를 불러오지 못했습니다. 잠시 후
+                            다시 시도해 주세요.
                         </p>
-                        <p
-                            style={{
-                                fontSize: "0.9rem",
-                                marginBottom: "0.5rem",
-                            }}
-                        >
-                            선생님이 게임을 시작하면 지정된 게임 화면에서 플레이하게
-                            됩니다.
-                            <br />
-                            <span
+                    ) : !session || session.status !== "running" || !qddUrl ? (
+                        <>
+                            <p
                                 style={{
-                                    fontSize: "0.8rem",
+                                    fontSize: "0.9rem",
+                                    marginBottom: "0.5rem",
                                     color: "var(--text-sub)",
                                 }}
                             >
-                    (추후 이 위치에 게임 화면이 직접 임베드될 예정입니다)
-                </span>
-                        </p>
-                    </>
+                                이 방은{" "}
+                                <strong>퀴즈 다이스 디펜스(QDD)</strong>{" "}
+                                게임용 방입니다.
+                            </p>
+                            <p
+                                style={{ 
+                                    fontSize: "0.9rem",
+                                    marginBottom: "0.5rem",
+                                }}
+                            >
+                                선생님이 게임을 시작하면 지정된 게임
+                                화면에서 플레이하게 됩니다.
+                                <br />
+                                <span
+                                    style={{
+                                        fontSize: "0.8rem",
+                                        color: "var(--text-sub)",
+                                    }}
+                                >
+                                    (게임이 시작되면 이 위치에 QDD 게임
+                                    화면이 표시됩니다)
+                                </span>
+                            </p>
+                        </>
+                    ) : (
+                        <iframe
+                            title="퀴즈 다이스 디펜스(QDD)"
+                            src={qddUrl}
+                            style={{
+                                width: "100%",
+                                height: 600,
+                                border: "none",
+                                borderRadius: 12,
+                            }}
+                            allowFullScreen
+                        />
+                    )
                 ) : !session || session.status === "ended" ? (
                     <p>
                         현재 진행 중인 퀴즈 세션이 없습니다. 선생님이 수업을
