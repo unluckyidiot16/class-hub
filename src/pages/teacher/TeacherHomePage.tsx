@@ -392,6 +392,22 @@ export function TeacherHomePage() {
                     </button>
                 </div>
 
+                {/* ... 퀴즈팩 */}
+
+                <div className="card" style={{ marginTop: "1rem" }}>
+                    <h2>퀴즈팩 관리</h2>
+                    <p className="page-desc">
+                        자주 사용하는 문제 묶음을 &quot;퀴즈팩&quot;으로 만들어두고,
+                        나중에 여러 반/방에서 재사용할 수 있습니다.
+                    </p>
+                    <p>
+                        <Link to="/teacher/quiz-packs" className="primary-btn full-width">
+                            퀴즈팩 목록 열기
+                        </Link>
+
+                    </p>
+                </div>
+                
                 {/* 반 목록 + 생성 카드 */}
                 <div
                     className="card"
@@ -482,21 +498,7 @@ export function TeacherHomePage() {
                     )}
                 </div>
 
-                {/* ... 퀴즈팩 */}
-
-                <div className="card" style={{ marginTop: "1rem" }}>
-                    <h2>퀴즈팩 관리</h2>
-                    <p className="page-desc">
-                        자주 사용하는 문제 묶음을 &quot;퀴즈팩&quot;으로 만들어두고,
-                        나중에 여러 반/방에서 재사용할 수 있습니다.
-                    </p>
-                    <p>
-                        <Link to="/teacher/quiz-packs" className="primary-btn full-width">
-                            퀴즈팩 목록 열기
-                        </Link>
-
-                    </p>
-                </div>
+                
 
             </div>
         </section>
