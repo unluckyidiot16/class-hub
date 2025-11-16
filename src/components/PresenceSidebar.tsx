@@ -1,5 +1,5 @@
 // src/components/PresenceSidebar.tsx
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { PresencePayload } from "../hooks/usePresence";
 
 type Props = {
