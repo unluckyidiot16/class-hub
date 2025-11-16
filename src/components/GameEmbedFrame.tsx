@@ -1,46 +1,51 @@
 // src/components/GameEmbedFrame.tsx
-import React, { useEffect, useRef } from "react";
-import { getGameDefinition } from "../games/gameRegistry";
-import { useGameHostBridge } from "../hooks/useGameHostBridge";
+import { useRef } from "react";
 
 type Props = {
     gameId: string;
     gameSessionId: string;
     roomId: string;
-    quizpackJson: any;     // 이미 ClassHub에서 로드된 퀴즈팩
-    studentId: string;     // 현재 학생 식별자
+    quizpackJson: unknown;
+    studentId: string;
 };
 
-export const GameEmbedFrame: React.FC<Props> = ({
-                                                    gameId,
-                                                    gameSessionId,
-                                                    roomId,
-                                                    quizpackJson,
-                                                    studentId,
-                                                }) => {
+export function GameEmbedFrame(props: Props) {
+    const { gameId, gameSessionId, roomId, studentId } = props;
+
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-    useGameHostBridge({
-        iframeRef,
-        gameId,
-        gameSessionId,
-        roomId,
-        quizpackJson,
-        studentId,
-    });
+    // 아직 실제 게임 전송/브리지는 구현 안 했으므로 디버그 로그만 남김
+    if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug("[GameEmbedFrame stub]", {
+            gameId,
+            gameSessionId,
+            roomId,
+            studentId,
+        });
+    }
 
-    const def = getGameDefinition(gameId);
-    if (!def) return <div>알 수 없는 게임 ID: {gameId}</div>;
-
-    // mode=embed, session, gameId를 쿼리로 전달
-    const src = `${def.url}?mode=embed&session=${gameSessionId}&game=${gameId}`;
-
+    // TODO: 실제 gameRegistry / useGameHostBridge 연동은 나중에 구현
     return (
-        <iframe
-            ref={iframeRef}
-            src={src}
-            style={{ width: "100%", height: "100%", border: "none" }}
-            allow="fullscreen"
-        />
+        <div
+            style={{
+                width: "100%",
+                height: 400,
+                border: "1px dashed #ccc",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                color: "#666",
+            }}
+        >
+            GameEmbedFrame placeholder (gameId: {gameId})
+            <iframe
+                ref={iframeRef}
+                style={{ display: "none" }}
+                title="game-placeholder"
+            />
+        </div>
     );
-};
+}

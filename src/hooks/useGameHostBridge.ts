@@ -1,6 +1,6 @@
 // src/hooks/useGameHostBridge.ts
 import { useEffect } from "react";
-import { logGameEvent } from "../api/gameSessions";
+import { logGameEvent } from "../../api/gameSessions";
 
 type HostBridgeParams = {
     iframeRef: React.RefObject<HTMLIFrameElement>;

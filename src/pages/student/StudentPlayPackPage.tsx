@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
-type QuizPackRow = {
+export type QuizPackRow = {
     id: string;
     owner_id: string;
     title: string;
@@ -11,7 +11,7 @@ type QuizPackRow = {
     grade: string | null;
 };
 
-type QuizQuestionRow = {
+export type QuizQuestionRow = {
     id: string;
     pack_id: string;
     index_in_pack: number;

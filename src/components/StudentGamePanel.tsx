@@ -1,7 +1,10 @@
-// src/pages/student/components/StudentGamePanel.tsx
-import React from "react";
-import type { QuizQuestionRow, QuizPackRow } from "../StudentPlayPackPage";
-import { GAME_REGISTRY, GameKey } from "../../../games/gameRegistry";
+// src/components/StudentGamePanel.tsx
+
+import type {
+    QuizPackRow,
+    QuizQuestionRow,
+} from "../pages/student/StudentPlayPackPage";
+import { GAME_REGISTRY, type GameKey } from "../games/gameRegistry";
 
 type SessionRow = {
     id: string;
@@ -43,19 +46,14 @@ export function StudentGamePanel(props: Props) {
     } = props;
 
     const spec = GAME_REGISTRY[gameKey] ?? GAME_REGISTRY["quiz-only"];
-
-    // 공통 타이틀
     const title = spec.mode === "builtin-quiz" ? "현재 문제" : "현재 게임";
 
     return (
-        <div
-            className="card"
-            style={{ maxWidth: 720, margin: "0 auto" }}
-        >
+        <div className="card" style={{ maxWidth: 720, margin: "0 auto" }}>
             <h2>{title}</h2>
 
             {spec.mode === "builtin-quiz" ? (
-                // === 기존 퀴즈 UI 그대로 ===
+                // === 기본 퀴즈 모드 ===
                 !session || session.status === "ended" ? (
                     <p>
                         현재 진행 중인 퀴즈 세션이 없습니다. 선생님이 수업을
@@ -65,42 +63,39 @@ export function StudentGamePanel(props: Props) {
                     <p>현재 인덱스에 해당하는 문제를 불러오지 못했습니다.</p>
                 ) : (
                     <>
-                        {/* 여기에는 StudentPlayPackPage 안에 있던
-                            기존 보기 버튼/정답 표시 UI 그대로 가져오면 됩니다 */}
-                        {/* 예시: */}
                         <p style={{ whiteSpace: "pre-wrap" }}>
                             {currentQuestion.prompt}
                         </p>
                         <div className="options">
-                            {(currentQuestion.options ?? []).map(
-                                (opt, idx) => {
-                                    const isSelected = selectedIndex === idx;
-                                    const isAnswer =
-                                        currentQuestion.answer_index === idx;
-                                    let className = "option-btn";
-                                    if (isSelected && isCorrect === true)
-                                        className += " correct";
-                                    if (isSelected && isCorrect === false)
-                                        className += " wrong";
-                                    if (!isSelected && isCorrect && isAnswer)
-                                        className += " correct";
+                            {(
+                                (currentQuestion.options ?? []) as string[]
+                            ).map((opt: string, idx: number) => {
+                                const isSelected = selectedIndex === idx;
+                                const isAnswer =
+                                    currentQuestion.answer_index === idx;
 
-                                    return (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            className={className}
-                                            disabled={
-                                                submitting ||
-                                                isCorrect !== null
-                                            }
-                                            onClick={() => onSelect(idx)}
-                                        >
-                                            {opt}
-                                        </button>
-                                    );
-                                }
-                            )}
+                                let className = "option-btn";
+                                if (isSelected && isCorrect === true)
+                                    className += " correct";
+                                if (isSelected && isCorrect === false)
+                                    className += " wrong";
+                                if (!isSelected && isCorrect && isAnswer)
+                                    className += " correct";
+
+                                return (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        className={className}
+                                        disabled={
+                                            submitting || isCorrect !== null
+                                        }
+                                        onClick={() => onSelect(idx)}
+                                    >
+                                        {opt}
+                                    </button>
+                                );
+                            })}
                         </div>
                         <div
                             style={{
@@ -133,7 +128,7 @@ export function StudentGamePanel(props: Props) {
                     </>
                 )
             ) : (
-                // === 게임 모드 (iframe or React 컴포넌트) ===
+                // === 게임 모드 (iframe / React 컴포넌트) ===
                 <>
                     {!roomId || !pack ? (
                         <p>방 정보 또는 퀴즈팩 정보를 불러오지 못했습니다.</p>
