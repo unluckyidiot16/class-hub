@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
-import type { QuizPackJsonV1 } from "../../types/quizPackJson";
+
 import {
     downloadQuizPackJson,
     type QuizQuestionRow,
