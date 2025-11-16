@@ -475,6 +475,11 @@ export function StudentRoomPage() {
     const roomTitle = state.roomTitle ?? room.title;
     const roomCode = state.roomCode ?? room.code;
 
+    // 방의 게임 종류 (기본: quiz-only)
+    const isQddRoom =
+        room.game_key === "qdd" ||
+        state.gameKey === "qdd";
+
     const showProgress =
         session &&
         session.status === "running" &&
@@ -488,8 +493,9 @@ export function StudentRoomPage() {
         <section className="page student-join">
             <h1>수업 방에 입장했습니다 🎉</h1>
             <p className="page-desc">
-                선생님이 문제를 진행하면 아래에 현재 문제가 표시됩니다. 보기
-                중 하나를 선택해 답을 제출해 주세요.
+                선생님이 문제를 진행하거나 게임을 시작하면 아래에 현재
+                문제/게임이 표시됩니다. 보기 중 하나를 선택해 답을 제출해
+                주세요.
             </p>
 
             {/* 상단 요약 + 진행도 바 */}
@@ -595,13 +601,45 @@ export function StudentRoomPage() {
             )}
 
             {/* 현재 문제 카드 */}
+            {/* 현재 문제 / 게임 영역 */}
             <div
                 className="card"
                 style={{ maxWidth: 720, margin: "0 auto" }}
             >
-                <h2>현재 문제</h2>
+                <h2>{isQddRoom ? "현재 게임" : "현재 문제"}</h2>
 
-                {!session || session.status === "ended" ? (
+                {isQddRoom ? (
+                    <>
+                        <p
+                            style={{
+                                fontSize: "0.9rem",
+                                marginBottom: "0.5rem",
+                                color: "var(--text-sub)",
+                            }}
+                        >
+                            이 방은{" "}
+                            <strong>퀴즈 다이스 디펜스(QDD)</strong> 게임용 방입니다.
+                        </p>
+                        <p
+                            style={{
+                                fontSize: "0.9rem",
+                                marginBottom: "0.5rem",
+                            }}
+                        >
+                            선생님이 게임을 시작하면 지정된 게임 화면에서 플레이하게
+                            됩니다.
+                            <br />
+                            <span
+                                style={{
+                                    fontSize: "0.8rem",
+                                    color: "var(--text-sub)",
+                                }}
+                            >
+                    (추후 이 위치에 게임 화면이 직접 임베드될 예정입니다)
+                </span>
+                        </p>
+                    </>
+                ) : !session || session.status === "ended" ? (
                     <p>
                         현재 진행 중인 퀴즈 세션이 없습니다. 선생님이 수업을
                         시작하면 문제가 자동으로 표시됩니다.
@@ -617,8 +655,8 @@ export function StudentRoomPage() {
                                 color: "var(--text-sub)",
                             }}
                         >
-                            선생님이 진행하는 문제에 맞춰 보기 중 하나를
-                            선택해 주세요.
+                            선생님이 진행하는 문제에 맞춰 보기 중 하나를 선택해
+                            주세요.
                         </p>
                         <p
                             style={{
@@ -636,40 +674,35 @@ export function StudentRoomPage() {
                                 gap: "0.4rem",
                             }}
                         >
-                            {(currentQuestion.options ?? []).map(
-                                (opt, idx) => (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        className={
-                                            selectedIndex === idx
-                                                ? "primary-btn"
-                                                : "secondary-btn"
-                                        }
-                                        disabled={
-                                            hasAnswered ||
-                                            submitting ||
-                                            !opt
-                                        }
-                                        onClick={() =>
-                                            handleSubmitAnswer(idx)
-                                        }
-                                        style={{ textAlign: "left" }}
+                            {(currentQuestion.options ?? []).map((opt, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    className={
+                                        selectedIndex === idx
+                                            ? "primary-btn"
+                                            : "secondary-btn"
+                                    }
+                                    disabled={
+                                        hasAnswered ||
+                                        submitting ||
+                                        !opt
+                                    }
+                                    onClick={() =>
+                                        handleSubmitAnswer(idx)
+                                    }
+                                    style={{ textAlign: "left" }}
+                                >
+                                    <strong
+                                        style={{
+                                            marginRight: "0.4rem",
+                                        }}
                                     >
-                                        <strong
-                                            style={{
-                                                marginRight: "0.4rem",
-                                            }}
-                                        >
-                                            {String.fromCharCode(
-                                                65 + idx
-                                            )}
-                                            .
-                                        </strong>
-                                        {opt || "(빈 보기)"}
-                                    </button>
-                                )
-                            )}
+                                        {String.fromCharCode(65 + idx)}.
+                                    </strong>
+                                    {opt || "(빈 보기)"}
+                                </button>
+                            ))}
                         </div>
 
                         {submitMessage && (
@@ -696,6 +729,7 @@ export function StudentRoomPage() {
                     </>
                 )}
             </div>
+
 
             {/* 선생님 알림 카드: 기본은 마지막 메시지 1개만, 버튼으로 전체 보기 */}
             {lastMessage && (

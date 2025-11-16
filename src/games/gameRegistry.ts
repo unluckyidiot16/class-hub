@@ -1,6 +1,7 @@
 // src/games/gameRegistry.ts
 import type { ComponentType } from "react";
 import type { QuizPackRow } from "../pages/student/StudentPlayPackPage";
+import { buildQddUrlForPack } from "../utils/qddLink";
 
 export type GameKey = "quiz-only" | "qdd";
 
@@ -35,38 +36,26 @@ export const GAME_REGISTRY: Record<GameKey, GameSpec> = {
         label: "퀴즈 다이스 디펜스",
         mode: "iframe",
         buildUrl: ({ pack, roomId }) => {
-            const env = import.meta.env as any;
-            const base: string =
-                env.VITE_QDD_HTML_URL ||
+            // 기본 QDD URL 생성 (pack=슬러그 or qp=...)
+            const base = buildQddUrlForPack({
+                id: pack.id,
+                title: pack.title,
+            });
+
+            // 혹시 title이 비어있어서 null이 나오면 안전하게 폴백
+            const safeBase =
+                base ||
                 "https://unluckyidiot16.github.io/WebGames/QuizDiceDefense/QDD.html";
 
-            const qpTemplate = env.VITE_QDD_QP_TEMPLATE as
-                | string
-                | undefined;
-
-            let url = base;
-            const hasQueryAlready = url.includes("?");
-
-            if (qpTemplate) {
-                const qpRaw = qpTemplate.replace(
-                    "{packId}",
-                    encodeURIComponent(pack.id)
-                );
-                url += `${hasQueryAlready ? "&" : "?"}qp=${encodeURIComponent(
-                    qpRaw
-                )}`;
-            } else {
-                const slug = (pack.title || "").trim() || "quizpack";
-                url += `${hasQueryAlready ? "&" : "?"}pack=${encodeURIComponent(
-                    slug
-                )}`;
-            }
-
+            // 방/팩 메타 정보 추가 (QDD가 필요하면 활용)
             const extra = new URLSearchParams();
             extra.set("roomId", roomId);
             extra.set("packId", pack.id);
 
-            return `${url}&${extra.toString()}`;
+            const hasQuery = safeBase.includes("?");
+            const sep = hasQuery ? "&" : "?";
+
+            return `${safeBase}${sep}${extra.toString()}`;
         },
     },
 };

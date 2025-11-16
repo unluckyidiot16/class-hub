@@ -1,10 +1,9 @@
-// src/components/StudentGamePanel.tsx
-
+// src/pages/student/components/StudentGamePanel.tsx
 import type {
     QuizPackRow,
     QuizQuestionRow,
-} from "../pages/student/StudentPlayPackPage";
-import { GAME_REGISTRY, type GameKey } from "../games/gameRegistry";
+} from "../StudentPlayPackPage";
+import { GAME_REGISTRY, type GameKey } from "../../../games/gameRegistry";
 
 type SessionRow = {
     id: string;
@@ -101,7 +100,7 @@ export function StudentGamePanel(props: Props) {
                             style={{
                                 display: "flex",
                                 justifyContent: "space-between",
-                                marginTop: "1rem",
+                                marginTop: "0.75rem",
                             }}
                         >
                             <button
@@ -128,7 +127,7 @@ export function StudentGamePanel(props: Props) {
                     </>
                 )
             ) : (
-                // === 게임 모드 (iframe / React 컴포넌트) ===
+                // === 게임 모드 (iframe / React component) ===
                 <>
                     {!roomId || !pack ? (
                         <p>방 정보 또는 퀴즈팩 정보를 불러오지 못했습니다.</p>
