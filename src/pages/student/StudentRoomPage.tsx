@@ -474,17 +474,7 @@ export function StudentRoomPage() {
         }
     };
 
-    if (!roomId) {
-        return (
-            <section className="page student-join">
-                <h1>방 입장</h1>
-                <p className="page-desc">잘못된 경로입니다.</p>
-                <Link to="/student" className="secondary-btn">
-                    ← 방 코드 다시 입력하기
-                </Link>
-            </section>
-        );
-    }
+
 
     if (loadingRoom) {
         return (
@@ -526,6 +516,21 @@ export function StudentRoomPage() {
                         roomId: room.id,
                 }) 
                 : null;
+
+    if (!roomId) {
+        return (
+            <section
+                className="page student-join"
+                style={{ maxWidth: isQddRoom ? 1200 : undefined }}
+            >
+                <h1>방 입장</h1>
+                <p className="page-desc">잘못된 경로입니다.</p>
+                <Link to="/student" className="secondary-btn">
+                    ← 방 코드 다시 입력하기
+                </Link>
+            </section>
+        );
+    }
     
     const showProgress =
         session &&
@@ -651,7 +656,10 @@ export function StudentRoomPage() {
             {/* 현재 문제 / 게임 영역 */}
             <div
                 className="card"
-                style={{ maxWidth: 720, margin: "0 auto" }}
+                style={{
+                    maxWidth: isQddRoom ? 1120 : 720,
+                    margin: "0 auto",
+                }}
             >
                 <h2>{isQddRoom ? "현재 게임" : "현재 문제"}</h2>
 
@@ -699,11 +707,9 @@ export function StudentRoomPage() {
                             style={{
                                 position: "relative",
                                 width: "100%",
-                                // 카드 안에서 최대 가로 폭 (원하면 720 → 900 정도로 조정 가능)
-                                maxWidth: 720,
-                                margin: "0 auto",
-                                // 세로형 화면 비율 (필요하면 16 / 9 등으로 변경 가능)
-                                aspectRatio: "9 / 16",
+                                // 카드 전체 폭을 쓰는 PC 레이아웃
+                                // (모바일에서는 카드 자체가 줄어들면서 함께 축소)
+                                aspectRatio: "16 / 9",
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
