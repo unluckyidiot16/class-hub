@@ -17,6 +17,8 @@ export type QuizQuestionRow = {
     prompt: string;
     options: string[] | null;
     answer_index: number | null;
+    difficulty?: number | null;
+    tags?: string[] | null;
 };
 
 export function buildQuizPackJson(
@@ -27,6 +29,7 @@ export function buildQuizPackJson(
         type: "quizpack",
         version: "v1",
         pack: {
+            id: pack.id,
             title: pack.title,
             subject: pack.subject,
             grade: pack.grade,
@@ -36,10 +39,21 @@ export function buildQuizPackJson(
             .slice()
             .sort((a, b) => a.index_in_pack - b.index_in_pack)
             .map((q) => ({
+                id: q.id,
                 index: q.index_in_pack,
                 prompt: q.prompt,
                 options: q.options ?? [],
-                answerIndex: q.answer_index ?? 0,
+                answerIndex:
+                    typeof q.answer_index === "number"
+                        ? q.answer_index
+                        : 0,
+                difficulty:
+                    typeof q.difficulty === "number"
+                        ? q.difficulty
+                        : null,
+                tags: Array.isArray(q.tags)
+                    ? q.tags.map((t) => String(t))
+                    : null,
             })),
     };
 }
@@ -57,7 +71,8 @@ export function downloadQuizPackJson(
     const a = document.createElement("a");
 
     const safeTitle =
-        pack.title.replace(/[^\w가-힣\-]+/g, "_").slice(0, 40) || "quizpack";
+        pack.title.replace(/[^\w가-힣\-]+/g, "_").slice(0, 40) ||
+        "quizpack";
 
     const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     a.href = url;

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
+import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 
 type QuizPackRow = {
     id: string;
@@ -159,7 +160,7 @@ export function QuizPackListPage() {
         const { data: qRows, error } = await supabase
             .from("quiz_questions")
             .select(
-                "id, pack_id, index_in_pack, prompt, options, answer_index"
+                "id, pack_id, index_in_pack, prompt, options, answer_index, difficulty, tags"
             )
             .eq("pack_id", pack.id)
             .order("index_in_pack", { ascending: true });
@@ -172,25 +173,37 @@ export function QuizPackListPage() {
 
         const questions = (qRows ?? []) as any[];
 
-        const json = {
+        const json: QuizPackJsonV1 = {
             type: "quizpack",
             version: "v1",
             pack: {
+                id: pack.id,
                 title: pack.title,
                 subject: pack.subject,
                 grade: pack.grade,
+                description: pack.description,
             },
             questions: questions.map((q, idx) => ({
+                id: q.id,
                 index:
                     typeof q.index_in_pack === "number"
                         ? q.index_in_pack
                         : idx,
                 prompt: String(q.prompt ?? ""),
-                options: Array.isArray(q.options) ? q.options : [],
+                options: Array.isArray(q.options)
+                    ? q.options.map((x: any) => String(x))
+                    : [],
                 answerIndex:
                     typeof q.answer_index === "number" ? q.answer_index : 0,
+                difficulty:
+                    typeof q.difficulty === "number" ? q.difficulty : null,
+                tags: Array.isArray(q.tags)
+                    ? q.tags.map((t: any) => String(t))
+                    : null,
+                // explanation, type 등은 지금 DB에 없으니 생략
             })),
         };
+
 
         const blob = new Blob([JSON.stringify(json, null, 2)], {
             type: "application/json",

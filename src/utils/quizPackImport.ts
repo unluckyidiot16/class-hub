@@ -1,7 +1,11 @@
 // src/utils/quizPackImport.ts
 import type { QuizPackJsonV1 } from "../types/quizPackJson";
+import { isQuizPackJsonV1 } from "../types/quizPackJson";
 import { supabase } from "../lib/supabaseClient";
 
+/**
+ * 업로드된 파일을 읽어서 QuizPackJsonV1로 파싱/검증
+ */
 export async function parseQuizPackFile(
     file: File
 ): Promise<QuizPackJsonV1> {
@@ -14,16 +18,16 @@ export async function parseQuizPackFile(
         throw new Error("JSON 형식이 올바르지 않습니다.");
     }
 
-    const data = raw as any;
-    if (data.type !== "quizpack" || data.version !== "v1") {
+    if (!isQuizPackJsonV1(raw)) {
         throw new Error("지원하지 않는 퀴즈팩 포맷입니다.");
     }
-    if (!data.pack || !Array.isArray(data.questions)) {
-        throw new Error("필수 필드(pack, questions)가 없습니다.");
+
+    if (!raw.questions || raw.questions.length === 0) {
+        throw new Error("문항이 하나 이상 있어야 합니다.");
     }
 
-    // 아주 간단한 유효성 검사
-    for (const [i, q] of data.questions.entries()) {
+    // 간단 추가 검증 (지문, 보기, 정답 인덱스)
+    raw.questions.forEach((q, i) => {
         if (
             typeof q.prompt !== "string" ||
             !Array.isArray(q.options) ||
@@ -31,9 +35,9 @@ export async function parseQuizPackFile(
         ) {
             throw new Error(`${i + 1}번 문항 형식이 잘못되었습니다.`);
         }
-    }
+    });
 
-    return data as QuizPackJsonV1;
+    return raw;
 }
 
 /**
@@ -45,7 +49,6 @@ export async function importQuizPackJson(
     ownerId: string
 ): Promise<string> {
     const data = await parseQuizPackFile(file);
-
     const { pack, questions } = data;
 
     // 1) quiz_packs insert
@@ -56,6 +59,7 @@ export async function importQuizPackJson(
             title: pack.title,
             subject: pack.subject ?? null,
             grade: pack.grade ?? null,
+            description: pack.description ?? null,
         })
         .select("*")
         .single();
@@ -74,6 +78,9 @@ export async function importQuizPackJson(
         prompt: q.prompt,
         options: q.options,
         answer_index: q.answerIndex,
+        difficulty:
+            typeof q.difficulty === "number" ? q.difficulty : null,
+        tags: Array.isArray(q.tags) ? q.tags : null,
     }));
 
     const { error: qErr } = await supabase
