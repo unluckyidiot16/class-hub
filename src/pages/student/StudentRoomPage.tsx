@@ -1,11 +1,11 @@
 // src/pages/student/StudentRoomPage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { usePresence } from "../../hooks/usePresence";
 import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY } from "../../games/gameRegistry";
-
+import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 
 type RoomRow = {
     id: string;
@@ -78,7 +78,7 @@ export function StudentRoomPage() {
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const [pack, setPack] = useState<QuizPackRow | null>(null);
-    
+
     // 세션 & 현재 문제
     const [session, setSession] = useState<QuizSessionRow | null>(null);
     const [currentQuestion, setCurrentQuestion] =
@@ -139,6 +139,8 @@ export function StudentRoomPage() {
     const roomCodeForPresence =
         room?.code ?? state.roomCode ?? roomId ?? "";
 
+    const iframeRef = useRef<HTMLIFrameElement | null>(null);
+    
     usePresence(roomCodeForPresence, "student", {
         studentId: studentKey,
         nickname,
@@ -155,16 +157,14 @@ export function StudentRoomPage() {
             const { data, error } = await supabase
                 .from("rooms")
                 .select(
-                    "id, code, title, game_key, status, created_at, quiz_pack_id"
+                    "id, code, title, game_key, status, created_at, quiz_pack_id",
                 )
                 .eq("id", roomId)
                 .single();
 
             if (error) {
                 console.error("[StudentRoom] load room error", error);
-                setErrorMsg(
-                    "이 방 정보를 불러오는 중 오류가 발생했습니다."
-                );
+                setErrorMsg("이 방 정보를 불러오는 중 오류가 발생했습니다.");
                 setLoadingRoom(false);
                 return;
             }
@@ -182,7 +182,7 @@ export function StudentRoomPage() {
             setPack(null);
             return;
         }
-        
+
         let cancelled = false;
         const fetchPack = async () => {
             const { data, error } = await supabase
@@ -190,25 +190,24 @@ export function StudentRoomPage() {
                 .select("id, owner_id, title, subject, grade")
                 .eq("id", room.quiz_pack_id)
                 .single();
-            
+
             if (cancelled) return;
-            
+
             if (error) {
                 console.error("[StudentRoom] load pack error", error);
                 setPack(null);
                 return;
             }
-            
+
             setPack(data as QuizPackRow);
         };
-        
-        void fetchPack();         
+
+        void fetchPack();
         return () => {
             cancelled = true;
         };
-        }, [room?.quiz_pack_id]);
-    
-    
+    }, [room?.quiz_pack_id]);
+
     // 1-2) 전체 문항 수 로드 (진행도 바용)
     useEffect(() => {
         if (!room?.quiz_pack_id) {
@@ -227,7 +226,7 @@ export function StudentRoomPage() {
             if (error) {
                 console.error(
                     "[StudentRoom] load question count error",
-                    error
+                    error,
                 );
                 return;
             }
@@ -254,9 +253,7 @@ export function StudentRoomPage() {
             // 최신 세션
             const { data: sRow, error: sErr } = await supabase
                 .from("quiz_sessions")
-                .select(
-                    "id, room_id, pack_id, status, current_index"
-                )
+                .select("id, room_id, pack_id, status, current_index")
                 .eq("room_id", roomId)
                 .order("created_at", { ascending: false })
                 .limit(1)
@@ -282,7 +279,7 @@ export function StudentRoomPage() {
             const { data: qRow, error: qErr } = await supabase
                 .from("quiz_questions")
                 .select(
-                    "id, pack_id, index_in_pack, prompt, options, answer_index"
+                    "id, pack_id, index_in_pack, prompt, options, answer_index",
                 )
                 .eq("pack_id", sess.pack_id)
                 .eq("index_in_pack", sess.current_index)
@@ -344,7 +341,10 @@ export function StudentRoomPage() {
             if (cancelled) return;
 
             if (error) {
-                console.error("[StudentRoom] load existing answer error", error);
+                console.error(
+                    "[StudentRoom] load existing answer error",
+                    error,
+                );
                 return;
             }
 
@@ -377,21 +377,16 @@ export function StudentRoomPage() {
             const { data, error } = await supabase
                 .from("room_messages")
                 .select(
-                    "id, room_id, session_id, target_type, target_student_key, target_nickname, body, link_url, created_at"
+                    "id, room_id, session_id, target_type, target_student_key, target_nickname, body, link_url, created_at",
                 )
                 .eq("room_id", roomId)
-                .or(
-                    `target_type.eq.all,target_student_key.eq.${studentKey}`
-                )
+                .or(`target_type.eq.all,target_student_key.eq.${studentKey}`)
                 .order("created_at", { ascending: true });
 
             if (cancelled) return;
 
             if (error) {
-                console.error(
-                    "[StudentRoom] load messages error",
-                    error
-                );
+                console.error("[StudentRoom] load messages error", error);
                 return;
             }
 
@@ -418,7 +413,7 @@ export function StudentRoomPage() {
                     ) {
                         setMessages((prev) => [...prev, m]);
                     }
-                }
+                },
             )
             .subscribe();
 
@@ -452,12 +447,9 @@ export function StudentRoomPage() {
             });
 
             if (error) {
-                console.error(
-                    "[StudentRoom] submit answer error",
-                    error
-                );
+                console.error("[StudentRoom] submit answer error", error);
                 setSubmitMessage(
-                    "답안을 전송하는 중 오류가 발생했습니다."
+                    "답안을 전송하는 중 오류가 발생했습니다.",
                 );
                 return;
             }
@@ -467,14 +459,12 @@ export function StudentRoomPage() {
             setSubmitMessage(
                 isCorrect
                     ? "정답입니다! 🎉"
-                    : "제출 완료! 정답은 선생님 화면에서 확인하세요."
+                    : "제출 완료! 정답은 선생님 화면에서 확인하세요.",
             );
         } finally {
             setSubmitting(false);
         }
     };
-
-
 
     if (loadingRoom) {
         return (
@@ -504,32 +494,56 @@ export function StudentRoomPage() {
 
     // 방의 게임 종류 (기본: quiz-only)
     const isQddRoom =
-        room.game_key === "qdd" ||
-        state.gameKey === "qdd";
+        room?.game_key === "qdd" || state.gameKey === "qdd";
 
-    // QDD iframe URL (게임 방 + 퀴즈팩이 로드된 경우에만)
+    // QDD iframe URL 기본값
     const qddSpec = GAME_REGISTRY["qdd"];
-    const qddUrl =
-            isQddRoom && pack && qddSpec.mode === "iframe"
-                ? qddSpec.buildUrl({
-                        pack,
-                        roomId: room.id,
-                }) 
-                : null;
+    const baseQddUrl =
+        isQddRoom &&
+        room &&
+        pack &&
+        qddSpec.mode === "iframe"
+            ? qddSpec.buildUrl({
+                pack,
+                roomId: room.id,
+            })
+            : null;
+
+    // quiz_sessions.id를 sessionId로 그대로 넘겨줌
+    const effectiveGameSessionId = isQddRoom && session ? session.id : "";
+
+    // sessionId를 쿼리 스트링으로 실어 QDD에 전달
+    const qddUrlWithSession =
+        baseQddUrl && effectiveGameSessionId
+            ? `${baseQddUrl}${
+                baseQddUrl.includes("?") ? "&" : "?"
+            }sessionId=${encodeURIComponent(effectiveGameSessionId)}`
+            : baseQddUrl;
+
+    // QDD ↔ ClassHub 브리지 활성화
+    useGameHostBridge({
+        iframeRef,
+        gameId: isQddRoom ? "qdd" : room?.game_key ?? "quiz-only",
+        gameSessionId: effectiveGameSessionId,
+        roomId: room?.id ?? "",
+        // 아직 QDD가 CH_REQUEST_QUIZPACK을 안 쓰고 있다면 null이어도 상관없음
+        quizpackJson: null,
+        studentId: studentKey,
+    });
 
     if (!roomId) {
         return (
             <section
                 className="page student-join"
                 style={
-                isQddRoom
-                    ? {
-                    // Chromebook(1366px)에서 가로폭 대부분 사용
-                        maxWidth: "100%",
-                        paddingInline: "1.5rem",
-                    }
-                    : undefined
-            }
+                    isQddRoom
+                        ? {
+                            // Chromebook(1366px)에서 가로폭 대부분 사용
+                            maxWidth: "100%",
+                            paddingInline: "1.5rem",
+                        }
+                        : undefined
+                }
             >
                 <h1>방 입장</h1>
                 <p className="page-desc">잘못된 경로입니다.</p>
@@ -539,7 +553,7 @@ export function StudentRoomPage() {
             </section>
         );
     }
-    
+
     const showProgress =
         session &&
         session.status === "running" &&
@@ -630,7 +644,7 @@ export function StudentRoomPage() {
                                         100,
                                         ((session!.current_index + 1) /
                                             questionCount) *
-                                        100
+                                        100,
                                     ).toFixed(1)}%`,
                                     height: "100%",
                                     background:
@@ -646,8 +660,8 @@ export function StudentRoomPage() {
                                 color: "var(--text-sub)",
                             }}
                         >
-                            {session!.current_index + 1} /{" "}
-                            {questionCount} 문제 진행 중
+                            {session!.current_index + 1} / {questionCount} 문제
+                            진행 중
                         </p>
                     </div>
                 )}
@@ -689,7 +703,9 @@ export function StudentRoomPage() {
                             이 방의 퀴즈팩 정보를 불러오지 못했습니다. 잠시 후
                             다시 시도해 주세요.
                         </p>
-                    ) : !session || session.status !== "running" || !qddUrl ? (
+                    ) : !session ||
+                    session.status !== "running" ||
+                    !qddUrlWithSession ? ( // 🔧 여기서 qddUrl → qddUrlWithSession 으로 수정
                         <>
                             <p
                                 style={{
@@ -703,13 +719,13 @@ export function StudentRoomPage() {
                                 게임용 방입니다.
                             </p>
                             <p
-                                style={{ 
+                                style={{
                                     fontSize: "0.9rem",
                                     marginBottom: "0.5rem",
                                 }}
                             >
-                                선생님이 게임을 시작하면 지정된 게임
-                                화면에서 플레이하게 됩니다.
+                                선생님이 게임을 시작하면 지정된 게임 화면에서
+                                플레이하게 됩니다.
                                 <br />
                                 <span
                                     style={{
@@ -717,20 +733,17 @@ export function StudentRoomPage() {
                                         color: "var(--text-sub)",
                                     }}
                                 >
-                                    (게임이 시작되면 이 위치에 QDD 게임
-                                    화면이 표시됩니다)
+                                    (게임이 시작되면 이 위치에 QDD 게임 화면이
+                                    표시됩니다)
                                 </span>
                             </p>
                         </>
                     ) : (
                         <div
+                            className="qdd-frame-wrapper"
                             style={{
                                 position: "relative",
                                 width: "100%",
-                                // 가로 폭에 맞춰 16:9 비율 유지
-                                aspectRatio: "16 / 9",
-                                // 너무 커지지 않도록 화면 높이의 85% 안으로 제한
-                                maxHeight: "85vh",
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
@@ -738,7 +751,8 @@ export function StudentRoomPage() {
                         >
                             <iframe
                                 title="퀴즈 다이스 디펜스(QDD)"
-                                src={qddUrl}
+                                src={qddUrlWithSession ?? ""}
+                                ref={iframeRef}
                                 style={{
                                     position: "absolute",
                                     inset: 0,
@@ -795,13 +809,9 @@ export function StudentRoomPage() {
                                             : "secondary-btn"
                                     }
                                     disabled={
-                                        hasAnswered ||
-                                        submitting ||
-                                        !opt
+                                        hasAnswered || submitting || !opt
                                     }
-                                    onClick={() =>
-                                        handleSubmitAnswer(idx)
-                                    }
+                                    onClick={() => handleSubmitAnswer(idx)}
                                     style={{ textAlign: "left" }}
                                 >
                                     <strong
@@ -841,7 +851,6 @@ export function StudentRoomPage() {
                 )}
             </div>
 
-
             {/* 선생님 알림 카드: 기본은 마지막 메시지 1개만, 버튼으로 전체 보기 */}
             {lastMessage && (
                 <div
@@ -874,15 +883,13 @@ export function StudentRoomPage() {
                                     <div
                                         style={{
                                             display: "flex",
-                                            justifyContent:
-                                                "space-between",
+                                            justifyContent: "space-between",
                                             gap: "0.5rem",
                                             marginBottom: "0.15rem",
                                         }}
                                     >
                                         <span>
-                                            {lastMessage.target_type ===
-                                            "all"
+                                            {lastMessage.target_type === "all"
                                                 ? "전체 알림"
                                                 : "개인 알림"}
                                         </span>
@@ -892,9 +899,7 @@ export function StudentRoomPage() {
                                                 color: "var(--text-sub)",
                                             }}
                                         >
-                                            {formatTime(
-                                                lastMessage.created_at
-                                            )}
+                                            {formatTime(lastMessage.created_at)}
                                         </span>
                                     </div>
                                     {lastMessage.body && (
@@ -940,8 +945,7 @@ export function StudentRoomPage() {
                                             setShowAllMessages(true)
                                         }
                                     >
-                                        모든 알림 보기 (
-                                        {messages.length})
+                                        모든 알림 보기 ({messages.length})
                                     </button>
                                 </div>
                             )}
@@ -971,16 +975,13 @@ export function StudentRoomPage() {
                                         <div
                                             style={{
                                                 display: "flex",
-                                                justifyContent:
-                                                    "space-between",
+                                                justifyContent: "space-between",
                                                 gap: "0.5rem",
-                                                marginBottom:
-                                                    "0.15rem",
+                                                marginBottom: "0.15rem",
                                             }}
                                         >
                                             <span>
-                                                {m.target_type ===
-                                                "all"
+                                                {m.target_type === "all"
                                                     ? "전체 알림"
                                                     : "개인 알림"}
                                             </span>
@@ -990,9 +991,7 @@ export function StudentRoomPage() {
                                                     color: "var(--text-sub)",
                                                 }}
                                             >
-                                                {formatTime(
-                                                    m.created_at
-                                                )}
+                                                {formatTime(m.created_at)}
                                             </span>
                                         </div>
                                         {m.body && <div>{m.body}</div>}
@@ -1005,8 +1004,7 @@ export function StudentRoomPage() {
                                                         m.link_url!;
                                                 }}
                                                 style={{
-                                                    marginTop:
-                                                        "0.25rem",
+                                                    marginTop: "0.25rem",
                                                     fontSize: "0.8rem",
                                                     padding:
                                                         "0.25rem 0.5rem",

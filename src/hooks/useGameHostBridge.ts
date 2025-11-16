@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { logGameEvent } from "../../api/gameSessions";
 
 type HostBridgeParams = {
-    iframeRef: React.RefObject<HTMLIFrameElement>;
+    iframeRef: React.RefObject<HTMLIFrameElement | null>;
     gameId: string;
     gameSessionId: string;
     roomId: string;
@@ -34,10 +34,17 @@ export function useGameHostBridge(params: HostBridgeParams) {
     const { iframeRef, gameSessionId, roomId, quizpackJson, studentId } = params;
 
     useEffect(() => {
+        // 세션/방 정보가 없으면 아직 브리지 열지 않음
+        if (!gameSessionId || !roomId) {
+            return;
+        }
+
         function onMessage(ev: MessageEvent) {
             const msg = ev.data as GameToHostMessage;
             if (!msg || typeof msg !== "object") return;
-            if (msg.sessionId !== gameSessionId) return; // 다른 세션 무시
+
+            // 세션 아이디가 다르면 무시
+            if (msg.sessionId !== gameSessionId) return;
 
             // 1) 퀴즈팩 요청 응답
             if (msg.type === "CH_REQUEST_QUIZPACK") {
@@ -54,7 +61,7 @@ export function useGameHostBridge(params: HostBridgeParams) {
 
             // 2) 정답/요약 이벤트 로깅
             if (msg.type === "CH_REPORT_ANSWER") {
-                logGameEvent({
+                void logGameEvent({
                     gameSessionId,
                     roomId,
                     studentId,
@@ -67,7 +74,7 @@ export function useGameHostBridge(params: HostBridgeParams) {
                     },
                 }).catch(console.error);
             } else if (msg.type === "CH_REPORT_SUMMARY") {
-                logGameEvent({
+                void logGameEvent({
                     gameSessionId,
                     roomId,
                     studentId,

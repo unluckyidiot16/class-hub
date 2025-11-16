@@ -7,6 +7,10 @@ import { QuestionStatsPanel } from "../../components/QuestionStatsPanel";
 import { SessionSummaryPanel } from "../../components/SessionSummaryPanel";
 import { usePresence } from "../../hooks/usePresence";
 import PresenceSidebar from "../../components/PresenceSidebar";
+import {
+    ensureGameSession,
+    endGameSession,
+} from "../../../api/gameSessions";
 
 type RoomRow = {
     id: string;
@@ -69,6 +73,77 @@ type RoomMessageRow = {
     created_at: string;
 };
 
+type GameEventRow = {
+    id: string;
+    game_session_id: string;
+    room_id: string;
+    student_id: string;
+    event_type: string;
+    payload: any;
+    created_at: string;
+};
+
+type QddQuestionStats = {
+    questionId: string;
+    total: number;
+    correct: number;
+    options: Record<number, number>; // answerIndex -> count
+};
+
+/** QDD game_events 한 줄을 누적 집계에 반영 */
+function applyQddEvent(
+    base: Record<string, QddQuestionStats>,
+    row: GameEventRow,
+): Record<string, QddQuestionStats> {
+    if (row.event_type !== "answer" || !row.payload) return base;
+
+    const payload = row.payload as {
+        questionId?: string;
+        answerIndex?: number;
+        correct?: boolean;
+    };
+
+    const qid = payload.questionId;
+    if (!qid) return base;
+
+    const answerIndex =
+        typeof payload.answerIndex === "number" ? payload.answerIndex : -1;
+    if (answerIndex < 0) return base;
+
+    const correct = Boolean(payload.correct);
+
+    const existing = base[qid] ?? {
+        questionId: qid,
+        total: 0,
+        correct: 0,
+        options: {},
+    };
+
+    const next: QddQuestionStats = {
+        ...existing,
+        total: existing.total + 1,
+        correct: existing.correct + (correct ? 1 : 0),
+        options: {
+            ...existing.options,
+            [answerIndex]: (existing.options[answerIndex] ?? 0) + 1,
+        },
+    };
+
+    return {
+        ...base,
+        [qid]: next,
+    };
+}
+
+/** 초기 game_events 목록 → QDD 통계 맵 */
+function buildQddStats(rows: GameEventRow[]): Record<string, QddQuestionStats> {
+    let stats: Record<string, QddQuestionStats> = {};
+    for (const row of rows) {
+        stats = applyQddEvent(stats, row);
+    }
+    return stats;
+}
+
 export function TeacherRoomLivePage() {
     const { roomId } = useParams<{ roomId: string }>();
     const navigate = useNavigate();
@@ -108,6 +183,11 @@ export function TeacherRoomLivePage() {
     const [personalMessageBody, setPersonalMessageBody] = useState("");
     const [personalMessageLink, setPersonalMessageLink] = useState("");
     const [sendingPersonalMessage, setSendingPersonalMessage] = useState(false);
+
+    // QDD용 game_events 기반 통계
+    const [qddStats, setQddStats] = useState<Record<string, QddQuestionStats>>(
+        {},
+    );
 
     // origin 한 번만 세팅
     useEffect(() => {
@@ -165,7 +245,7 @@ export function TeacherRoomLivePage() {
             if (!roomData.quiz_pack_id) {
                 setLoading(false);
                 setErrorMsg(
-                    "이 방에는 아직 퀴즈팩이 연결되어 있지 않습니다. 방 관리 화면에서 먼저 퀴즈팩을 선택해주세요."
+                    "이 방에는 아직 퀴즈팩이 연결되어 있지 않습니다. 방 관리 화면에서 먼저 퀴즈팩을 선택해주세요.",
                 );
                 return;
             }
@@ -180,7 +260,7 @@ export function TeacherRoomLivePage() {
             if (packErr) {
                 console.error("[TeacherRoomLive] load pack error", packErr);
                 setErrorMsg(
-                    "연결된 퀴즈팩을 불러오는 중 오류가 발생했습니다."
+                    "연결된 퀴즈팩을 불러오는 중 오류가 발생했습니다.",
                 );
                 setLoading(false);
                 return;
@@ -191,7 +271,7 @@ export function TeacherRoomLivePage() {
             const { data: qRows, error: qErr } = await supabase
                 .from("quiz_questions")
                 .select(
-                    "id, pack_id, index_in_pack, prompt, options, answer_index"
+                    "id, pack_id, index_in_pack, prompt, options, answer_index",
                 )
                 .eq("pack_id", roomData.quiz_pack_id)
                 .order("index_in_pack", { ascending: true });
@@ -207,9 +287,7 @@ export function TeacherRoomLivePage() {
                 ...q,
                 options: (q.options ?? null) as string[] | null,
                 answer_index:
-                    typeof q.answer_index === "number"
-                        ? q.answer_index
-                        : null,
+                    typeof q.answer_index === "number" ? q.answer_index : null,
             })) as QuizQuestionRow[];
             setQuestions(normalized);
 
@@ -305,7 +383,7 @@ export function TeacherRoomLivePage() {
             const { data, error } = await supabase
                 .from("room_messages")
                 .select(
-                    "id, room_id, session_id, sender_id, target_type, target_student_key, target_nickname, body, link_url, created_at"
+                    "id, room_id, session_id, sender_id, target_type, target_student_key, target_nickname, body, link_url, created_at",
                 )
                 .eq("room_id", room.id)
                 .order("created_at", { ascending: false })
@@ -322,6 +400,58 @@ export function TeacherRoomLivePage() {
         void loadMessages();
     }, [room?.id, session?.id]);
 
+    // QDD용 game_events 로드 + Realtime 구독
+    useEffect(() => {
+        if (!room?.id || !session?.id || room.game_key !== "qdd") {
+            setQddStats({});
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadEvents = async () => {
+            const { data, error } = await supabase
+                .from("game_events")
+                .select(
+                    "id, game_session_id, room_id, student_id, event_type, payload, created_at",
+                )
+                .eq("game_session_id", session.id)
+                .order("created_at", { ascending: true });
+
+            if (error) {
+                console.error("[TeacherRoomLive] load game_events error", error);
+                return;
+            }
+            if (cancelled) return;
+
+            setQddStats(buildQddStats((data ?? []) as GameEventRow[]));
+        };
+
+        void loadEvents();
+
+        const channel = supabase
+            .channel(`game_events:session:${session.id}`)
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "game_events",
+                    filter: `game_session_id=eq.${session.id}`,
+                },
+                (payload) => {
+                    const row = payload.new as GameEventRow;
+                    setQddStats((prev) => applyQddEvent(prev, row));
+                },
+            )
+            .subscribe();
+
+        return () => {
+            cancelled = true;
+            supabase.removeChannel(channel);
+        };
+    }, [room?.id, room?.game_key, session?.id]);
+
     // ✅ 학생 접속용 URL (QR/링크 공유용)
     // → /student?code= 로 방 코드 읽어서 닉네임 입력 → 입장 처리
     const studentJoinUrl =
@@ -331,17 +461,14 @@ export function TeacherRoomLivePage() {
 
     const qrImageUrl = studentJoinUrl
         ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(
-            studentJoinUrl
+            studentJoinUrl,
         )}`
         : "";
 
     const currentQuestion =
-        session &&
-        session.status === "running" &&
-        questions.length > 0
-            ? questions.find(
-            (q) => q.index_in_pack === session.current_index
-        ) ?? null
+        session && session.status === "running" && questions.length > 0
+            ? questions.find((q) => q.index_in_pack === session.current_index) ??
+            null
             : null;
 
     const totalCount = questions.length;
@@ -377,19 +504,28 @@ export function TeacherRoomLivePage() {
             if (error) {
                 console.error(
                     "[TeacherRoomLive] start session error",
-                    error
+                    error,
                 );
                 setErrorMsg("퀴즈 세션을 시작하는 중 오류가 발생했습니다.");
                 return;
             }
 
-            setSession(data as QuizSessionRow);
+            const newSession = data as QuizSessionRow;
+            setSession(newSession);
 
             // 방 상태도 live로 업데이트
             await supabase
                 .from("rooms")
                 .update({ status: "live" })
                 .eq("id", room.id);
+
+            // game_sessions에도 동일한 id로 세션 기록 (특히 QDD용)
+            await ensureGameSession({
+                sessionId: newSession.id,
+                roomId: room.id,
+                gameId: room.game_key || "quiz-only",
+                quizpackId: pack.id,
+            });
         } finally {
             setSaving(false);
         }
@@ -401,7 +537,7 @@ export function TeacherRoomLivePage() {
 
         const nextIndex = Math.max(
             0,
-            Math.min(totalCount - 1, session.current_index + delta)
+            Math.min(totalCount - 1, session.current_index + delta),
         );
 
         setSaving(true);
@@ -418,7 +554,7 @@ export function TeacherRoomLivePage() {
             if (error) {
                 console.error(
                     "[TeacherRoomLive] move question error",
-                    error
+                    error,
                 );
                 setErrorMsg("문제를 변경하는 중 오류가 발생했습니다.");
                 return;
@@ -456,12 +592,16 @@ export function TeacherRoomLivePage() {
                 return;
             }
 
-            setSession(data as QuizSessionRow);
+            const endedSession = data as QuizSessionRow;
+            setSession(endedSession);
 
             await supabase
                 .from("rooms")
                 .update({ status: "waiting" })
                 .eq("id", room.id);
+
+            // game_sessions 쪽도 finished로 정리
+            await endGameSession({ sessionId: endedSession.id });
         } finally {
             setSaving(false);
         }
@@ -504,7 +644,7 @@ export function TeacherRoomLivePage() {
             if (error) {
                 console.error(
                     "[TeacherRoomLive] send message error",
-                    error
+                    error,
                 );
                 setErrorMsg("메시지를 보내는 중 오류가 발생했습니다.");
                 return;
@@ -567,7 +707,7 @@ export function TeacherRoomLivePage() {
             if (error) {
                 console.error(
                     "[TeacherRoomLive] send personal message error",
-                    error
+                    error,
                 );
                 setErrorMsg("개인 메시지를 보내는 중 오류가 발생했습니다.");
                 return;
@@ -594,7 +734,7 @@ export function TeacherRoomLivePage() {
         } catch (err) {
             console.error("[TeacherRoomLive] copy link error", err);
             setErrorMsg(
-                "링크를 복사하는 중 문제가 발생했습니다. 직접 선택해서 복사해주세요."
+                "링크를 복사하는 중 문제가 발생했습니다. 직접 선택해서 복사해주세요.",
             );
         }
     };
@@ -609,7 +749,7 @@ export function TeacherRoomLivePage() {
     const handleOpenQrWindow = () => {
         if (!studentJoinUrl) return;
         const url = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&data=${encodeURIComponent(
-            studentJoinUrl
+            studentJoinUrl,
         )}`;
         window.open(url, "_blank", "noopener,noreferrer");
     };
@@ -718,9 +858,9 @@ export function TeacherRoomLivePage() {
                             <strong>퀴즈팩:</strong> {pack.title}
                         </p>
                         <p className="hint">
-                            학생은 학생 모드 / 방 코드 화면에서 이 방
-                            코드({room.code})를 입력하면 현재 진행 중인
-                            문제를 볼 수 있습니다.
+                            학생은 학생 모드 / 방 코드 화면에서 이 방 코드(
+                            {room.code})를 입력하면 현재 진행 중인 문제를 볼 수
+                            있습니다.
                         </p>
 
                         {/* ✅ 학생 접속 링크 / QR */}
@@ -740,9 +880,8 @@ export function TeacherRoomLivePage() {
                                         marginBottom: "0.25rem",
                                     }}
                                 >
-                                    이 링크를 공유하거나, 아래 버튼으로
-                                    QR 코드를 띄워 학생들이 바로 접속하도록
-                                    안내하세요.
+                                    이 링크를 공유하거나, 아래 버튼으로 QR 코드를
+                                    띄워 학생들이 바로 접속하도록 안내하세요.
                                 </p>
                                 <div
                                     style={{
@@ -761,16 +900,12 @@ export function TeacherRoomLivePage() {
                                             fontSize: "0.8rem",
                                             padding: "0.25rem 0.4rem",
                                         }}
-                                        onFocus={(e) =>
-                                            e.target.select()
-                                        }
+                                        onFocus={(e) => e.target.select()}
                                     />
                                     <button
                                         type="button"
                                         className="secondary-btn"
-                                        onClick={
-                                            handleCopyStudentLink
-                                        }
+                                        onClick={handleCopyStudentLink}
                                     >
                                         링크 복사
                                     </button>
@@ -810,8 +945,7 @@ export function TeacherRoomLivePage() {
 
                                 <hr
                                     style={{
-                                        borderColor:
-                                            "var(--border-subtle)",
+                                        borderColor: "var(--border-subtle)",
                                         margin: "0.75rem 0",
                                     }}
                                 />
@@ -840,8 +974,7 @@ export function TeacherRoomLivePage() {
                                 <p>
                                     문제 진행:{" "}
                                     <strong>
-                                        {currentNumber} /{" "}
-                                        {totalCount || 0}
+                                        {currentNumber} / {totalCount || 0}
                                     </strong>
                                 </p>
 
@@ -859,13 +992,10 @@ export function TeacherRoomLivePage() {
                                             className="secondary-btn"
                                             disabled={
                                                 saving ||
-                                                session.current_index <=
-                                                0
+                                                session.current_index <= 0
                                             }
                                             onClick={() =>
-                                                handleMoveQuestion(
-                                                    -1
-                                                )
+                                                handleMoveQuestion(-1)
                                             }
                                         >
                                             이전 문제
@@ -879,9 +1009,7 @@ export function TeacherRoomLivePage() {
                                                 totalCount - 1
                                             }
                                             onClick={() =>
-                                                handleMoveQuestion(
-                                                    1
-                                                )
+                                                handleMoveQuestion(1)
                                             }
                                         >
                                             다음 문제
@@ -912,15 +1040,12 @@ export function TeacherRoomLivePage() {
                         ) : (
                             <>
                                 <p>
-                                    현재 이 방에서 진행 중인 세션이
-                                    없습니다.
+                                    현재 이 방에서 진행 중인 세션이 없습니다.
                                 </p>
                                 <button
                                     type="button"
                                     className="primary-btn"
-                                    disabled={
-                                        saving || totalCount === 0
-                                    }
+                                    disabled={saving || totalCount === 0}
                                     onClick={handleStartSession}
                                     style={{ marginTop: "0.75rem" }}
                                 >
@@ -933,9 +1058,9 @@ export function TeacherRoomLivePage() {
                                             marginTop: "0.5rem",
                                         }}
                                     >
-                                        이 퀴즈팩에는 아직 문항이
-                                        없습니다. 퀴즈팩 에디터에서
-                                        문제를 먼저 추가해주세요.
+                                        이 퀴즈팩에는 아직 문항이 없습니다.
+                                        퀴즈팩 에디터에서 문제를 먼저
+                                        추가해주세요.
                                     </p>
                                 )}
                             </>
@@ -985,11 +1110,9 @@ export function TeacherRoomLivePage() {
                                         }}
                                     >
                                         개별 학생에게는 위의{" "}
-                                        <strong>
-                                            학생 상태 보기
-                                        </strong>{" "}
-                                        버튼을 눌러 모달에서 선택 후 메시지를
-                                        보낼 수 있습니다.
+                                        <strong>학생 상태 보기</strong> 버튼을
+                                        눌러 모달에서 선택 후 메시지를 보낼 수
+                                        있습니다.
                                     </div>
                                 </div>
                             </label>
@@ -1000,9 +1123,7 @@ export function TeacherRoomLivePage() {
                                     rows={2}
                                     value={messageBody}
                                     onChange={(e) =>
-                                        setMessageBody(
-                                            e.target.value
-                                        )
+                                        setMessageBody(e.target.value)
                                     }
                                     placeholder="예: 잠시 후 새 방으로 이동합니다."
                                 />
@@ -1014,9 +1135,7 @@ export function TeacherRoomLivePage() {
                                     type="url"
                                     value={messageLink}
                                     onChange={(e) =>
-                                        setMessageLink(
-                                            e.target.value
-                                        )
+                                        setMessageLink(e.target.value)
                                     }
                                     placeholder="예: https://... 또는 /student?code=..."
                                 />
@@ -1053,66 +1172,58 @@ export function TeacherRoomLivePage() {
                                         gap: "0.25rem",
                                     }}
                                 >
-                                    {messages
-                                        .slice(0, 5)
-                                        .map((m) => (
-                                            <li
-                                                key={m.id}
+                                    {messages.slice(0, 5).map((m) => (
+                                        <li
+                                            key={m.id}
+                                            style={{
+                                                fontSize: "0.85rem",
+                                                borderTop:
+                                                    "1px solid var(--border-subtle)",
+                                                paddingTop: "0.25rem",
+                                            }}
+                                        >
+                                            <div
                                                 style={{
-                                                    fontSize: "0.85rem",
-                                                    borderTop:
-                                                        "1px solid var(--border-subtle)",
-                                                    paddingTop: "0.25rem",
+                                                    display: "flex",
+                                                    justifyContent:
+                                                        "space-between",
+                                                    gap: "0.5rem",
                                                 }}
                                             >
-                                                <div
+                                                <span>
+                                                    {m.target_type === "all"
+                                                        ? "전체"
+                                                        : m.target_nickname ??
+                                                        "개인"}
+                                                </span>
+                                                <span
                                                     style={{
-                                                        display: "flex",
-                                                        justifyContent:
-                                                            "space-between",
-                                                        gap: "0.5rem",
+                                                        color: "var(--text-sub)",
                                                     }}
                                                 >
-                                                    <span>
-                                                        {m.target_type ===
-                                                        "all"
-                                                            ? "전체"
-                                                            : m.target_nickname ??
-                                                            "개인"}
-                                                    </span>
-                                                    <span
-                                                        style={{
-                                                            color: "var(--text-sub)",
-                                                        }}
-                                                    >
-                                                        {new Date(
-                                                            m.created_at
-                                                        ).toLocaleTimeString(
-                                                            [],
-                                                            {
-                                                                hour: "2-digit",
-                                                                minute:
-                                                                    "2-digit",
-                                                            }
-                                                        )}
-                                                    </span>
+                                                    {new Date(
+                                                        m.created_at,
+                                                    ).toLocaleTimeString([], {
+                                                        hour: "2-digit",
+                                                        minute: "2-digit",
+                                                    })}
+                                                </span>
+                                            </div>
+                                            {m.body && (
+                                                <div>{m.body}</div>
+                                            )}
+                                            {m.link_url && (
+                                                <div
+                                                    style={{
+                                                        fontSize: "0.8rem",
+                                                        color: "var(--accent)",
+                                                    }}
+                                                >
+                                                    링크: {m.link_url}
                                                 </div>
-                                                {m.body && (
-                                                    <div>{m.body}</div>
-                                                )}
-                                                {m.link_url && (
-                                                    <div
-                                                        style={{
-                                                            fontSize: "0.8rem",
-                                                            color: "var(--accent)",
-                                                        }}
-                                                    >
-                                                        링크:{" "}
-                                                        {m.link_url}
-                                                    </div>
-                                                )}
-                                            </li>
-                                        ))}
+                                            )}
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
                         )}
@@ -1132,14 +1243,13 @@ export function TeacherRoomLivePage() {
 
                         {!session || session.status !== "running" ? (
                             <p>
-                                진행 중인 세션이 없습니다. 왼쪽에서
-                                세션을 시작해주세요.
+                                진행 중인 세션이 없습니다. 왼쪽에서 세션을
+                                시작해주세요.
                             </p>
                         ) : !currentQuestion ? (
                             <p>
-                                현재 인덱스에 해당하는 문항을 찾을 수
-                                없습니다. (문항 삭제 후 재정렬이 필요할
-                                수 있습니다)
+                                현재 인덱스에 해당하는 문항을 찾을 수 없습니다.
+                                (문항 삭제 후 재정렬이 필요할 수 있습니다)
                             </p>
                         ) : (
                             <>
@@ -1168,7 +1278,7 @@ export function TeacherRoomLivePage() {
                                             <li key={idx}>
                                                 <strong>
                                                     {String.fromCharCode(
-                                                        65 + idx
+                                                        65 + idx,
                                                     )}
                                                     .
                                                 </strong>{" "}
@@ -1188,7 +1298,7 @@ export function TeacherRoomLivePage() {
                                                     </span>
                                                     )}
                                             </li>
-                                        )
+                                        ),
                                     )}
                                 </ul>
 
@@ -1198,11 +1308,10 @@ export function TeacherRoomLivePage() {
                                         marginTop: "0.75rem",
                                     }}
                                 >
-                                    지금은 학생 화면에서 개별 정답
-                                    여부를 보여주지 않고, 교사가 답을
-                                    공개하거나 설명하는 방식으로
-                                    사용하는 단계입니다. (나중에
-                                    정답 공개/리더보드도 붙일 수 있음)
+                                    지금은 학생 화면에서 개별 정답 여부를
+                                    보여주지 않고, 교사가 답을 공개하거나
+                                    설명하는 방식으로 사용하는 단계입니다.
+                                    (나중에 정답 공개/리더보드도 붙일 수 있음)
                                 </p>
                             </>
                         )}
@@ -1215,14 +1324,102 @@ export function TeacherRoomLivePage() {
                                 <QuestionStatsPanel
                                     sessionId={session.id}
                                     questionId={currentQuestion.id}
-                                    options={
-                                        currentQuestion.options ?? []
-                                    }
+                                    options={currentQuestion.options ?? []}
                                     correctIndex={
-                                        currentQuestion.answer_index ??
-                                        -1
+                                        currentQuestion.answer_index ?? -1
                                     }
                                 />
+                            </div>
+                        )}
+
+                    {/* QDD 방일 때 game_events 기반 실시간 통계 */}
+                    {room.game_key === "qdd" &&
+                        session &&
+                        session.status === "running" &&
+                        currentQuestion && (
+                            <div className="card">
+                                <h2>QDD 실시간 통계 (game_events)</h2>
+                                {(() => {
+                                    const stats =
+                                        qddStats[currentQuestion.id];
+                                    if (!stats) {
+                                        return (
+                                            <p className="hint">
+                                                아직 이 문제에 대한 QDD 응답이
+                                                없습니다.
+                                            </p>
+                                        );
+                                    }
+
+                                    const accuracy =
+                                        stats.total > 0
+                                            ? Math.round(
+                                                (stats.correct /
+                                                    stats.total) *
+                                                100,
+                                            )
+                                            : 0;
+
+                                    return (
+                                        <>
+                                            <p
+                                                style={{
+                                                    marginBottom: "0.5rem",
+                                                    fontSize: "0.9rem",
+                                                }}
+                                            >
+                                                응답 수:{" "}
+                                                <strong>
+                                                    {stats.total}명
+                                                </strong>{" "}
+                                                / 정답:{" "}
+                                                <strong>
+                                                    {stats.correct}명
+                                                </strong>{" "}
+                                                (정답률 {accuracy}
+                                                %)
+                                            </p>
+                                            <ul className="feature-list">
+                                                {(currentQuestion.options ??
+                                                    []).map(
+                                                    (opt, idx) => {
+                                                        const count =
+                                                            stats.options[
+                                                                idx
+                                                                ] ?? 0;
+                                                        return (
+                                                            <li key={idx}>
+                                                                <strong>
+                                                                    {String.fromCharCode(
+                                                                        65 +
+                                                                        idx,
+                                                                    )}
+                                                                    .
+                                                                </strong>{" "}
+                                                                <span>
+                                                                    {opt ??
+                                                                        "(빈 보기)"}
+                                                                </span>
+                                                                <span
+                                                                    style={{
+                                                                        marginLeft:
+                                                                            "0.4rem",
+                                                                        fontSize:
+                                                                            "0.8rem",
+                                                                        color: "var(--text-sub)",
+                                                                    }}
+                                                                >
+                                                                    {count}
+                                                                    명
+                                                                </span>
+                                                            </li>
+                                                        );
+                                                    },
+                                                )}
+                                            </ul>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         )}
                 </div>
@@ -1305,16 +1502,15 @@ export function TeacherRoomLivePage() {
                                 <h3
                                     style={{
                                         fontSize: "0.95rem",
-                                        marginBottom:
-                                            "0.4rem",
+                                        marginBottom: "0.4rem",
                                     }}
                                 >
                                     학생 목록
                                 </h3>
                                 {students.length === 0 ? (
                                     <p className="hint">
-                                        아직 이 세션에서 답안을 제출한
-                                        학생이 없습니다.
+                                        아직 이 세션에서 답안을 제출한 학생이
+                                        없습니다.
                                     </p>
                                 ) : (
                                     <ul
@@ -1323,14 +1519,14 @@ export function TeacherRoomLivePage() {
                                             padding: 0,
                                             margin: 0,
                                             display: "flex",
-                                            flexDirection:
-                                                "column",
+                                            flexDirection: "column",
                                             gap: "0.25rem",
                                         }}
                                     >
                                         {students.map((s) => {
                                             const isSelected =
-                                                selectedStudentForMessage?.student_key ===
+                                                selectedStudentForMessage
+                                                    ?.student_key ===
                                                 s.student_key;
 
                                             return (
@@ -1343,21 +1539,19 @@ export function TeacherRoomLivePage() {
                                                         type="button"
                                                         onClick={() =>
                                                             setSelectedStudentForMessage(
-                                                                s
+                                                                s,
                                                             )
                                                         }
                                                         style={{
                                                             width: "100%",
-                                                            textAlign:
-                                                                "left",
+                                                            textAlign: "left",
                                                             padding:
                                                                 "0.35rem 0.5rem",
                                                             borderRadius:
                                                                 "0.4rem",
-                                                            border:
-                                                                isSelected
-                                                                    ? "1px solid var(--accent)"
-                                                                    : "1px solid var(--border-subtle)",
+                                                            border: isSelected
+                                                                ? "1px solid var(--accent)"
+                                                                : "1px solid var(--border-subtle)",
                                                             background:
                                                                 isSelected
                                                                     ? "rgba(56, 189, 248, 0.12)"
@@ -1385,7 +1579,7 @@ export function TeacherRoomLivePage() {
                                                                 </strong>{" "}
                                                                 (
                                                                 {s.student_key.slice(
-                                                                    -4
+                                                                    -4,
                                                                 )}
                                                                 )
                                                             </span>
@@ -1396,21 +1590,19 @@ export function TeacherRoomLivePage() {
                                                                     color: "var(--text-sub)",
                                                                 }}
                                                             >
-                                                                {
-                                                                    s.answersCount
-                                                                }
+                                                                {s.answersCount}
                                                                 문항{" "}
                                                                 /{" "}
                                                                 {s.lastAnsweredAt
                                                                     ? new Date(
-                                                                        s.lastAnsweredAt
+                                                                        s.lastAnsweredAt,
                                                                     ).toLocaleTimeString(
                                                                         undefined,
                                                                         {
                                                                             hour: "2-digit",
                                                                             minute:
                                                                                 "2-digit",
-                                                                        }
+                                                                        },
                                                                     )
                                                                     : "-"}
                                                             </span>
@@ -1428,8 +1620,7 @@ export function TeacherRoomLivePage() {
                                 <h3
                                     style={{
                                         fontSize: "0.95rem",
-                                        marginBottom:
-                                            "0.4rem",
+                                        marginBottom: "0.4rem",
                                     }}
                                 >
                                     개인 메시지 보내기
@@ -1437,19 +1628,15 @@ export function TeacherRoomLivePage() {
 
                                 {!selectedStudentForMessage ? (
                                     <p className="hint">
-                                        왼쪽 목록에서 학생을 선택하면,
-                                        이곳에서 개인 메시지를 작성할 수
-                                        있습니다.
+                                        왼쪽 목록에서 학생을 선택하면, 이곳에서
+                                        개인 메시지를 작성할 수 있습니다.
                                     </p>
                                 ) : (
                                     <form
-                                        onSubmit={
-                                            handleSendPersonalMessage
-                                        }
+                                        onSubmit={handleSendPersonalMessage}
                                         style={{
                                             display: "flex",
-                                            flexDirection:
-                                                "column",
+                                            flexDirection: "column",
                                             gap: "0.5rem",
                                         }}
                                     >
@@ -1457,8 +1644,7 @@ export function TeacherRoomLivePage() {
                                             <span>대상 학생</span>
                                             <div
                                                 style={{
-                                                    fontSize:
-                                                        "0.9rem",
+                                                    fontSize: "0.9rem",
                                                     fontWeight: 600,
                                                 }}
                                             >
@@ -1466,7 +1652,7 @@ export function TeacherRoomLivePage() {
                                                     "이름 없음"}{" "}
                                                 (
                                                 {selectedStudentForMessage.student_key.slice(
-                                                    -4
+                                                    -4,
                                                 )}
                                                 )
                                             </div>
@@ -1476,13 +1662,10 @@ export function TeacherRoomLivePage() {
                                             <span>메시지 내용</span>
                                             <textarea
                                                 rows={3}
-                                                value={
-                                                    personalMessageBody
-                                                }
+                                                value={personalMessageBody}
                                                 onChange={(e) =>
                                                     setPersonalMessageBody(
-                                                        e.target
-                                                            .value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 placeholder="예: 잠시 후 새 방 코드로 이동해주세요."
@@ -1498,8 +1681,7 @@ export function TeacherRoomLivePage() {
                                                 }
                                                 onChange={(e) =>
                                                     setPersonalMessageLink(
-                                                        e.target
-                                                            .value
+                                                        e.target.value,
                                                     )
                                                 }
                                                 placeholder="예: https://... 또는 /student?code=..."
@@ -1509,9 +1691,7 @@ export function TeacherRoomLivePage() {
                                         <button
                                             type="submit"
                                             className="primary-btn"
-                                            disabled={
-                                                sendingPersonalMessage
-                                            }
+                                            disabled={sendingPersonalMessage}
                                         >
                                             {sendingPersonalMessage
                                                 ? "보내는 중..."
@@ -1559,8 +1739,8 @@ export function TeacherRoomLivePage() {
                             className="hint"
                             style={{ marginBottom: "0.75rem" }}
                         >
-                            수업 화면에 이 QR을 띄우고, 학생들이
-                            카메라로 스캔해서 바로 입장하도록 안내하세요.
+                            수업 화면에 이 QR을 띄우고, 학생들이 카메라로 스캔해서
+                            바로 입장하도록 안내하세요.
                         </p>
                         <div
                             style={{
