@@ -574,7 +574,7 @@ export function StudentRoomPage() {
             {/* 상단 요약 + 진행도 바 */}
             <div
                 style={{
-                    maxWidth: 720,
+                    maxWidth: isQddRoom ? 1180 : 720,
                     margin: "0 auto 1rem",
                 }}
             >
@@ -727,10 +727,10 @@ export function StudentRoomPage() {
                             style={{
                                 position: "relative",
                                 width: "100%",
-                                // Chromebook(1366x768) 기준:
-                                // 가로 1180px일 때 16:9 비율 높이 ≈ 660px
-                                // → 최대 680px, 동시에 화면 높이의 85% 안으로 제한
-                                height: "min(85vh, 680px)",
+                                // 가로 폭에 맞춰 16:9 비율 유지
+                                aspectRatio: "16 / 9",
+                                // 너무 커지지 않도록 화면 높이의 85% 안으로 제한
+                                maxHeight: "85vh",
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
