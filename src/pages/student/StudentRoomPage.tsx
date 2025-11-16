@@ -677,7 +677,7 @@ export function StudentRoomPage() {
             <div
                 className="card"
                 style={{
-                    maxWidth: isQddRoom ? 1920 : 1080,
+                    maxWidth: isQddRoom ? "100%" : 720,
                     margin: "0 auto",
                 }}
             >

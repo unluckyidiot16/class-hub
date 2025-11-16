@@ -52,12 +52,12 @@ export function StudentGamePanel(props: Props) {
         <div
             className="card"
             style={{
-                maxWidth: isIframeGame ? 1180 : 720,
+                maxWidth: isIframeGame ? "100%" : 720,
                 margin: "0 auto",
             }}
         >
             <h2>{title}</h2>
-
+            
             {spec.mode === "builtin-quiz" ? (
                 // === 기본 퀴즈 모드 ===
                 !session || session.status === "ended" ? (
