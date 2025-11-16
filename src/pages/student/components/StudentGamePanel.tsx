@@ -46,9 +46,16 @@ export function StudentGamePanel(props: Props) {
 
     const spec = GAME_REGISTRY[gameKey] ?? GAME_REGISTRY["quiz-only"];
     const title = spec.mode === "builtin-quiz" ? "현재 문제" : "현재 게임";
+    const isIframeGame = spec.mode === "iframe";
 
     return (
-        <div className="card" style={{ maxWidth: 720, margin: "0 auto" }}>
+        <div
+            className="card"
+            style={{
+                maxWidth: isIframeGame ? 1180 : 720,
+                margin: "0 auto",
+            }}
+        >
             <h2>{title}</h2>
 
             {spec.mode === "builtin-quiz" ? (

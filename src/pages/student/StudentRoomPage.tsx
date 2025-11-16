@@ -550,7 +550,20 @@ export function StudentRoomPage() {
         messages.length > 0 ? messages[messages.length - 1] : null;
 
     return (
-        <section className="page student-join">
+        <section
+            className="page student-join"
+            style={
+                isQddRoom
+                    ? {
+                        // 기본 .page의 max-width(보통 960px)를 덮어써서
+                        // QDD 카드가 1180px까지 넓어질 수 있게 함
+                        maxWidth: "100%",
+                        // 좌우 여백 조금만 주기 (Chromebook 기준)
+                        paddingInline: "1.5rem",
+                    }
+                    : undefined
+            }
+        >
             <h1>수업 방에 입장했습니다 🎉</h1>
             <p className="page-desc">
                 선생님이 문제를 진행하거나 게임을 시작하면 아래에 현재
@@ -660,7 +673,6 @@ export function StudentRoomPage() {
                 </div>
             )}
 
-            {/* 현재 문제 카드 */}
             {/* 현재 문제 / 게임 영역 */}
             <div
                 className="card"
