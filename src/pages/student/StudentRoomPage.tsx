@@ -556,7 +556,7 @@ export function StudentRoomPage() {
                 isQddRoom
                     ? {
                         // 기본 .page의 max-width(보통 960px)를 덮어써서
-                        // QDD 카드가 1180px까지 넓어질 수 있게 함
+                        // QDD 카드가 1920px까지 넓어질 수 있게 함
                         maxWidth: "100%",
                         // 좌우 여백 조금만 주기 (Chromebook 기준)
                         paddingInline: "1.5rem",
@@ -574,7 +574,7 @@ export function StudentRoomPage() {
             {/* 상단 요약 + 진행도 바 */}
             <div
                 style={{
-                    maxWidth: isQddRoom ? 1180 : 720,
+                    maxWidth: isQddRoom ? 1920 : 1080,
                     margin: "0 auto 1rem",
                 }}
             >
@@ -677,7 +677,7 @@ export function StudentRoomPage() {
             <div
                 className="card"
                 style={{
-                    maxWidth: isQddRoom ? 1180 : 720,
+                    maxWidth: isQddRoom ? 1920 : 1080,
                     margin: "0 auto",
                 }}
             >
