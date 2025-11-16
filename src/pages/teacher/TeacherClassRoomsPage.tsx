@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
+import { buildQddUrlForPack } from "../../utils/qddLink";
+
 
 type ClassRow = {
     id: string;
@@ -208,6 +210,33 @@ export function TeacherClassRoomsPage() {
         setRooms((prev) => prev.filter((r) => r.id !== roomId));
     };
 
+    const handleOpenQddForRoom = (room: RoomRow) => {
+        if (room.game_key !== "qdd") {
+            // QDD 방이 아니면 사용하지 않음
+            return;
+        }
+        if (!room.quiz_pack_id) {
+            window.alert("QDD를 사용하려면 먼저 이 방에 퀴즈팩을 연결해주세요.");
+            return;
+        }
+
+        const pack = packs.find((p) => p.id === room.quiz_pack_id);
+        if (!pack) {
+            window.alert("연결된 퀴즈팩 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        const url = buildQddUrlForPack({ id: pack.id, title: pack.title });
+        if (!url) {
+            window.alert(
+                "QDD 링크를 만들 수 없습니다. (퀴즈팩 제목 또는 환경 변수를 확인해주세요.)"
+            );
+            return;
+        }
+        window.open(url, "_blank", "noopener,noreferrer");
+    };
+
+
     const handleChangeRoomPack = async (roomId: string, packId: string | null) => {
         setErrorMsg(null);
         const { data, error } = await supabase
@@ -230,6 +259,35 @@ export function TeacherClassRoomsPage() {
     const handleGoLive = (roomId: string) => {
         navigate(`/teacher/rooms/${roomId}/live`);
     };
+
+    // 학생용 링크 (StudentPlay) 복사
+    // QDD 전용 방(game_key="qdd")인 경우에는 StudentPlay에서 바로 QDD로 리다이렉트됩니다.
+    const handleCopyStudentLink = async (room: RoomRow) => {
+        if (!room.quiz_pack_id) {
+            window.alert("먼저 이 방에 퀴즈팩을 연결해주세요.");
+            return;
+        }
+        try {
+            const origin = window.location.origin;
+            const base = import.meta.env.BASE_URL || "/";
+            const normalizedBase = base.startsWith("/") ? base : `/${base}`;
+            const trimmedBase = normalizedBase.replace(/\/$/, "");
+
+            // HashRouter 기준: .../#/student/play/:packId?roomId=...&gameKey=...
+            const url = `${origin}${trimmedBase}/#/student/play/${room.quiz_pack_id}?roomId=${encodeURIComponent(
+                room.id
+            )}&gameKey=${encodeURIComponent(room.game_key)}`;
+
+            await navigator.clipboard.writeText(url);
+            window.alert("학생용 링크를 클립보드에 복사했습니다.");
+        } catch (err) {
+            console.error("[TeacherClassRooms] copy student link error", err);
+            setErrorMsg(
+                "학생용 링크를 복사하는 중 오류가 발생했습니다. 주소를 직접 공유해주세요."
+            );
+        }
+    };
+
 
     if (!classId) {
         return (
@@ -400,6 +458,25 @@ export function TeacherClassRoomsPage() {
                                             >
                                                 라이브
                                             </button>
+
+                                            <button
+                                                type="button"
+                                                className="secondary-btn"
+                                                onClick={() => handleCopyStudentLink(room)}
+                                            >
+                                                학생 링크
+                                            </button>
+
+                                            {room.game_key === "qdd" && (
+                                                <button
+                                                    type="button"
+                                                    className="secondary-btn"
+                                                    onClick={() => handleOpenQddForRoom(room)}
+                                                >
+                                                    QDD 열기
+                                                </button>
+                                            )}
+
                                             <button
                                                 type="button"
                                                 className="secondary-btn"

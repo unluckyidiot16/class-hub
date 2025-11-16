@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
 import { importQuizPackJson } from "../../utils/quizPackImport";
+import { buildQddUrlForPack } from "../../utils/qddLink";
 
 import {
     downloadQuizPackJson,
@@ -196,22 +197,23 @@ export function QuizPackListPage() {
     };
 
     // QDD 게임으로 열기
+// QDD 게임으로 열기
     const handleOpenQdd = (pack: QuizPackRow) => {
-        // QDD는 GitHub Pages의 /assets-common/QuizDiceDefense/QDD.html 에 있다고 가정
-        const origin = window.location.origin;
-        const qddBaseUrl = `${origin}/assets-common/QuizDiceDefense/QDD.html`;
+        const url = buildQddUrlForPack({
+            id: pack.id,
+            title: pack.title,
+        });
 
-        // QDD.html에서 ?pack=파일명 → QuizPack/{파일명}.json 으로 읽도록 설정했음
-        const packSlug = (pack.title || "").trim();
-
-        if (!packSlug) {
-            window.alert("QDD로 연결하려면 퀴즈팩 제목을 먼저 설정해주세요.");
+        if (!url) {
+            window.alert(
+                "QDD 링크를 만들 수 없습니다. (퀴즈팩 제목 또는 환경 변수를 확인해주세요.)"
+            );
             return;
         }
 
-        const url = `${qddBaseUrl}?pack=${encodeURIComponent(packSlug)}`;
         window.open(url, "_blank", "noopener,noreferrer");
     };
+
 
 
     // JSON 가져오기

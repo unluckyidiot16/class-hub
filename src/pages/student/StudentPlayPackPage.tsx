@@ -1,6 +1,6 @@
 // src/pages/student/StudentPlayPackPage.tsx
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
 type QuizPackRow = {
@@ -41,6 +41,48 @@ function ensureStudentKey(): string {
 export function StudentPlayPackPage() {
     const { packId } = useParams<{ packId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // QueryString: ?roomId=...&gameKey=...
+    const searchParams = new URLSearchParams(location.search ?? "");
+    const gameKey = (searchParams.get("gameKey") ||
+        searchParams.get("game") ||
+        "quiz-only") as string;
+    const roomId = searchParams.get("roomId") || searchParams.get("room") || null;
+
+    // QDD 연동용 URL 생성기
+    function buildQddUrl(targetPack: QuizPackRow, targetRoomId: string): string {
+        const env = import.meta.env as any;
+        const base: string =
+            env.VITE_QDD_HTML_URL ||
+            "https://unluckyidiot16.github.io/WebGames/QuizDiceDefense/QDD.html";
+
+        // (선택) Supabase → JSON 뽑는 템플릿: ex) https://.../qdd-pack/{packId}.json
+        const qpTemplate = env.VITE_QDD_QP_TEMPLATE as string | undefined;
+
+        let url = base;
+        const hasQueryAlready = url.includes("?");
+
+        if (qpTemplate) {
+            // 템플릿이 설정된 경우: qp=... 로 전체 URL을 넘김
+            const qpRaw = qpTemplate.replace(
+                "{packId}",
+                encodeURIComponent(targetPack.id)
+            );
+            url += `${hasQueryAlready ? "&" : "?"}qp=${encodeURIComponent(qpRaw)}`;
+        } else {
+            // 기본: pack.title을 파일명 슬러그로 사용 (예: Eng5_9 → Eng5_9.json)
+            const slug = (targetPack.title || "").trim() || "quizpack";
+            url += `${hasQueryAlready ? "&" : "?"}pack=${encodeURIComponent(slug)}`;
+        }
+
+        // ClassHub ↔ QDD 연동용 메타 데이터
+        const extra = new URLSearchParams();
+        extra.set("roomId", targetRoomId);
+        extra.set("packId", targetPack.id);
+
+        return `${url}&${extra.toString()}`;
+    }
 
     const [pack, setPack] = useState<QuizPackRow | null>(null);
     const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
@@ -145,6 +187,21 @@ export function StudentPlayPackPage() {
         void load();
     }, [packId]);
 
+    // QDD 전용 방에서 들어온 경우 → 같은 퀴즈팩으로 QDD로 바로 이동
+    useEffect(() => {
+        if (!pack) return;
+        if (gameKey !== "qdd") return;
+        if (!roomId) return;
+
+        try {
+            const url = buildQddUrl(pack, roomId);
+            // StudentPlay 화면 대신 QDD 게임으로 완전히 이동
+            window.location.href = url;
+        } catch (err) {
+            console.error("[StudentPlayPack] QDD redirect error", err);
+        }
+    }, [pack, gameKey, roomId]);
+    
     const handleSaveNickname = () => {
         const trimmed = nickname.trim();
         if (!trimmed) return;
@@ -184,7 +241,7 @@ export function StudentPlayPackPage() {
 
         try {
             await supabase.from("quiz_answers").insert({
-                room_id: null,
+                room_id: roomId,
                 session_id: null,
                 pack_id: pack?.id ?? packId,
                 question_id: currentQuestion.id,
