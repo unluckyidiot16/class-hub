@@ -695,17 +695,33 @@ export function StudentRoomPage() {
                             </p>
                         </>
                     ) : (
-                        <iframe
-                            title="퀴즈 다이스 디펜스(QDD)"
-                            src={qddUrl}
+                        <div
                             style={{
+                                position: "relative",
                                 width: "100%",
-                                height: 600,
-                                border: "none",
+                                // 카드 안에서 최대 가로 폭 (원하면 720 → 900 정도로 조정 가능)
+                                maxWidth: 720,
+                                margin: "0 auto",
+                                // 세로형 화면 비율 (필요하면 16 / 9 등으로 변경 가능)
+                                aspectRatio: "9 / 16",
                                 borderRadius: 12,
+                                overflow: "hidden",
+                                backgroundColor: "#000",
                             }}
-                            allowFullScreen
-                        />
+                        >
+                            <iframe
+                                title="퀴즈 다이스 디펜스(QDD)"
+                                src={qddUrl}
+                                style={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    border: "none",
+                                }}
+                                allowFullScreen
+                            />
+                        </div>
                     )
                 ) : !session || session.status === "ended" ? (
                     <p>
