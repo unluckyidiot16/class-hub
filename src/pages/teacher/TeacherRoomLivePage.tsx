@@ -10,7 +10,7 @@ import PresenceSidebar from "../../components/PresenceSidebar";
 import {
     ensureGameSession,
     endGameSession,
-} from "../../../api/gameSessions";
+} from "../../api/gameSessions";
 
 type RoomRow = {
     id: string;

@@ -89,8 +89,6 @@ export function StudentRoomPage() {
     // 전체 문항 수 (진행도 표시용)
     const [questionCount, setQuestionCount] = useState<number | null>(null);
 
-    const [qddAspectRatio, setQddAspectRatio] = useState("16 / 10");
-
     // 답안 전송 상태
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [hasAnswered, setHasAnswered] = useState(false);
