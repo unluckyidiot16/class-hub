@@ -1,5 +1,5 @@
 // src/api/gameSessions.ts
-import { supabase } from "../src/lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export type GameEventLog = {
     gameSessionId: string;
