@@ -89,6 +89,8 @@ export function StudentRoomPage() {
     // 전체 문항 수 (진행도 표시용)
     const [questionCount, setQuestionCount] = useState<number | null>(null);
 
+    const [qddAspectRatio, setQddAspectRatio] = useState("16 / 10");
+
     // 답안 전송 상태
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [hasAnswered, setHasAnswered] = useState(false);
@@ -445,6 +447,30 @@ export function StudentRoomPage() {
         };
     }, [roomId, studentKey]);
 
+    useEffect(() => {
+        if (!isQddRoom) return;
+
+        function updateAspect() {
+            if (typeof window === "undefined") return;
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            // 가로가 좁고 세로가 더 길면 → 세로형
+            const isPortraitLike = w <= 900 && h >= w;
+            setQddAspectRatio(isPortraitLike ? "10 / 16" : "16 / 10");
+        }
+
+        updateAspect(); // 최초 1회
+        window.addEventListener("resize", updateAspect);
+        window.addEventListener("orientationchange", updateAspect);
+
+        return () => {
+            window.removeEventListener("resize", updateAspect);
+            window.removeEventListener("orientationchange", updateAspect);
+        };
+    }, [isQddRoom]);
+
+
     const handleSubmitAnswer = async (choiceIdx: number) => {
         if (!room || !session || !currentQuestion) return;
         if (hasAnswered || submitting) return;
@@ -754,7 +780,7 @@ export function StudentRoomPage() {
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
-                                aspectRatio: "16 / 10",
+                                aspectRatio:  qddAspectRatio,
                             }}
                         >
                             <iframe
