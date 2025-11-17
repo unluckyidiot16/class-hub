@@ -3,9 +3,10 @@ import { useEffect, useState, useRef } from "react";
 import { useLocation, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { usePresence } from "../../hooks/usePresence";
+import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY } from "../../games/gameRegistry";
-import { useGameHostBridge } from "../../hooks/useGameHostBridge";
+
 
 type RoomRow = {
     id: string;
@@ -136,16 +137,37 @@ export function StudentRoomPage() {
         return makeRandomKey();
     });
 
+    // presence용 방 코드
     const roomCodeForPresence =
         room?.code ?? state.roomCode ?? roomId ?? "";
 
+    // QDD iframe 레퍼런스
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
-    
+
+    // 접속 presence
     usePresence(roomCodeForPresence, "student", {
         studentId: studentKey,
         nickname,
     });
 
+    // 이 방이 QDD 연동 방인지 여부
+    const isQddRoom =
+        room?.game_key === "qdd" || state.gameKey === "qdd";
+
+    // quiz_sessions.id를 브리지에서 쓸 세션 ID로
+    const effectiveGameSessionId =
+        isQddRoom && session ? session.id : "";
+
+    // ✅ QDD ↔ ClassHub 브리지: 항상 한 번 호출 (조건문 X, early return 위!)
+    useGameHostBridge({
+        iframeRef,
+        gameId: isQddRoom ? "qdd" : room?.game_key ?? "quiz-only",
+        gameSessionId: effectiveGameSessionId,
+        roomId: room?.id ?? "",
+        // 아직 QDD가 CH_REQUEST_QUIZPACK을 안 쓰고 있으니 null로
+        quizpackJson: null,
+        studentId: studentKey,
+    });
     // 1) 방 기본 정보 로드
     useEffect(() => {
         if (!roomId) return;
@@ -466,13 +488,6 @@ export function StudentRoomPage() {
         }
     };
 
-    // ✅ 방의 게임 종류 (기본: quiz-only)
-    const isQddRoom =
-        room?.game_key === "qdd" || state.gameKey === "qdd";
-
-    // ✅ quiz_sessions.id를 sessionId로 그대로 넘겨줌
-    const effectiveGameSessionId = isQddRoom && session ? session.id : "";
-
 
     if (loadingRoom) {
         return (
@@ -514,25 +529,14 @@ export function StudentRoomPage() {
             })
             : null;
 
-
     // sessionId를 쿼리 스트링으로 실어 QDD에 전달
-    const qddUrlWithSession =
+    const qddUrl =
         baseQddUrl && effectiveGameSessionId
             ? `${baseQddUrl}${
                 baseQddUrl.includes("?") ? "&" : "?"
             }sessionId=${encodeURIComponent(effectiveGameSessionId)}`
             : baseQddUrl;
-
-    // QDD ↔ ClassHub 브리지 활성화
-    useGameHostBridge({
-        iframeRef,
-        gameId: isQddRoom ? "qdd" : room?.game_key ?? "quiz-only",
-        gameSessionId: effectiveGameSessionId,
-        roomId: room?.id ?? "",
-        // 아직 QDD가 CH_REQUEST_QUIZPACK을 안 쓰고 있다면 null이어도 상관없음
-        quizpackJson: null,
-        studentId: studentKey,
-    });
+    
 
     if (!roomId) {
         return (
@@ -708,7 +712,7 @@ export function StudentRoomPage() {
                         </p>
                     ) : !session ||
                     session.status !== "running" ||
-                    !qddUrlWithSession ? ( // 🔧 여기서 qddUrl → qddUrlWithSession 으로 수정
+                    !qddUrl ? ( // 🔧 여기서 qddUrl → qddUrlWithSession 으로 수정
                         <>
                             <p
                                 style={{
@@ -754,7 +758,7 @@ export function StudentRoomPage() {
                         >
                             <iframe
                                 title="퀴즈 다이스 디펜스(QDD)"
-                                src={qddUrlWithSession ?? ""}
+                                src={qddUrl ?? undefined}
                                 ref={iframeRef}
                                 style={{
                                     position: "absolute",
