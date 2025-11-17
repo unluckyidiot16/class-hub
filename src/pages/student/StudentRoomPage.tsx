@@ -466,6 +466,14 @@ export function StudentRoomPage() {
         }
     };
 
+    // ✅ 방의 게임 종류 (기본: quiz-only)
+    const isQddRoom =
+        room?.game_key === "qdd" || state.gameKey === "qdd";
+
+    // ✅ quiz_sessions.id를 sessionId로 그대로 넘겨줌
+    const effectiveGameSessionId = isQddRoom && session ? session.id : "";
+
+
     if (loadingRoom) {
         return (
             <section className="page student-join">
@@ -492,9 +500,6 @@ export function StudentRoomPage() {
     const roomTitle = state.roomTitle ?? room.title;
     const roomCode = state.roomCode ?? room.code;
 
-    // 방의 게임 종류 (기본: quiz-only)
-    const isQddRoom =
-        room?.game_key === "qdd" || state.gameKey === "qdd";
 
     // QDD iframe URL 기본값
     const qddSpec = GAME_REGISTRY["qdd"];
@@ -509,8 +514,6 @@ export function StudentRoomPage() {
             })
             : null;
 
-    // quiz_sessions.id를 sessionId로 그대로 넘겨줌
-    const effectiveGameSessionId = isQddRoom && session ? session.id : "";
 
     // sessionId를 쿼리 스트링으로 실어 QDD에 전달
     const qddUrlWithSession =
