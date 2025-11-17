@@ -42,16 +42,3 @@
   color: #888;
 }
 
-/* QDD용 iframe 래퍼: 기본 16:9, 모바일 9:16 */
-.qdd-frame-wrapper {
-    aspect-ratio: 16 / 10;
-    max-height: 85vh;     /* 지금 쓰던 값 그대로 */
-}
-
-/* 가로 폭이 좁을 때는 세로형(9:16)으로 전환 */
-@media (max-width: 768px) {
-    .qdd-frame-wrapper {
-        aspect-ratio: 10 / 16;
-        max-height: none;   /* 필요하면 세로 스크롤 허용 */
-    }
-}
