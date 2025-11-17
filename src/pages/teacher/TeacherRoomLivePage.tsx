@@ -412,11 +412,11 @@ export function TeacherRoomLivePage() {
         const loadEvents = async () => {
             const { data, error } = await supabase
                 .from("game_events")
-                .select(
-                    "id, game_session_id, room_id, student_id, event_type, payload, created_at",
-                )
-                .eq("game_session_id", session.id)
+                .select("id, game_session_id, room_id, student_id, event_type, payload, created_at")
+                .eq("room_id", room.id)                          // ✅ 방 기준으로 가져오고
+                .gte("created_at", session.created_at)           // ✅ 현재 quiz_session 기간에 해당하는 것만
                 .order("created_at", { ascending: true });
+
 
             if (error) {
                 console.error("[TeacherRoomLive] load game_events error", error);
@@ -430,21 +430,22 @@ export function TeacherRoomLivePage() {
         void loadEvents();
 
         const channel = supabase
-            .channel(`game_events:session:${session.id}`)
+            .channel(`game_events:room:${room.id}`)
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `game_session_id=eq.${session.id}`,
+                    filter: `room_id=eq.${room.id}`,
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
-                    setQddStats((prev) => applyQddEvent(prev, row));
+                    setQddStats(prev => applyQddEvent(prev, row));
                 },
             )
             .subscribe();
+
 
         return () => {
             cancelled = true;
@@ -1317,7 +1318,9 @@ export function TeacherRoomLivePage() {
                         )}
                     </div>
 
-                    {session &&
+                    {/* ✅ 일반 퀴즈 방에서만 quiz_answers 기반 통계 표시 */}
+                    {room.game_key !== "qdd" &&
+                        session &&
                         session.status === "running" &&
                         currentQuestion && (
                             <div className="card">
@@ -1325,9 +1328,7 @@ export function TeacherRoomLivePage() {
                                     sessionId={session.id}
                                     questionId={currentQuestion.id}
                                     options={currentQuestion.options ?? []}
-                                    correctIndex={
-                                        currentQuestion.answer_index ?? -1
-                                    }
+                                    correctIndex={currentQuestion.answer_index ?? -1}
                                 />
                             </div>
                         )}
