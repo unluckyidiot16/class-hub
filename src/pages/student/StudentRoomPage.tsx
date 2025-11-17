@@ -269,7 +269,8 @@ export function StudentRoomPage() {
 
     // 1-2) 전체 문항 수 로드 (진행도 바용)
     useEffect(() => {
-        if (!room?.quiz_pack_id) {
+        // ✅ QDD 방에서는 Supabase 질문 카운트 사용 안 함
+        if (!room?.quiz_pack_id || isQddRoom) {
             setQuestionCount(null);
             return;
         }
@@ -283,10 +284,7 @@ export function StudentRoomPage() {
                 .eq("pack_id", room.quiz_pack_id);
 
             if (error) {
-                console.error(
-                    "[StudentRoom] load question count error",
-                    error,
-                );
+                console.error("[StudentRoom] load question count error", error);
                 return;
             }
 
@@ -300,11 +298,19 @@ export function StudentRoomPage() {
         return () => {
             cancelled = true;
         };
-    }, [room?.quiz_pack_id]);
+    }, [room?.quiz_pack_id, isQddRoom]);
+
 
     // 2) 현재 세션/문제 폴링 (3초마다)
     useEffect(() => {
         if (!roomId) return;
+
+        // ✅ QDD 연동 방에서는 quiz_questions 폴링 안 함
+        if (isQddRoom) {
+            setSession(null);
+            setCurrentQuestion(null);
+            return;
+        }
 
         let cancelled = false;
 
@@ -334,7 +340,7 @@ export function StudentRoomPage() {
             const sess = sRow as QuizSessionRow;
             setSession(sess);
 
-            // 현재 문제
+            // 현재 문제 (퀴즈 모드에서만 필요하지만, QDD는 위에서 early return)
             const { data: qRow, error: qErr } = await supabase
                 .from("quiz_questions")
                 .select(
@@ -379,7 +385,8 @@ export function StudentRoomPage() {
             cancelled = true;
             window.clearInterval(timer);
         };
-    }, [roomId, lastQuestionId]);
+    }, [roomId, lastQuestionId, isQddRoom]);
+
 
     // 2-3) 현재 문제에 대한 기존 답안 여부 체크
     useEffect(() => {
