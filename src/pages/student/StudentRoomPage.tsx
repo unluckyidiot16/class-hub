@@ -754,7 +754,6 @@ export function StudentRoomPage() {
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
-                                aspectRatio: "16 / 10",
                             }}
                         >
                             <iframe
