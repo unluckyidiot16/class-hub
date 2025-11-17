@@ -1431,6 +1431,10 @@ export function TeacherRoomLivePage() {
                     <SessionSummaryPanel
                         sessionId={session.id}
                         questions={questions}
+                        // QDD 방일 때만 game_events 기반 통계를 함께 전달
+                        qddStatsByQuestion={
+                            room?.game_key === "qdd" ? qddStats : undefined
+                        }
                     />
                 </div>
             )}
