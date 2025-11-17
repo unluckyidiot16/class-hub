@@ -305,13 +305,6 @@ export function StudentRoomPage() {
     useEffect(() => {
         if (!roomId) return;
 
-        // ✅ QDD 연동 방에서는 quiz_questions 폴링 안 함
-        if (isQddRoom) {
-            setSession(null);
-            setCurrentQuestion(null);
-            return;
-        }
-
         let cancelled = false;
 
         const fetchSessionAndQuestion = async () => {
@@ -340,7 +333,13 @@ export function StudentRoomPage() {
             const sess = sRow as QuizSessionRow;
             setSession(sess);
 
-            // 현재 문제 (퀴즈 모드에서만 필요하지만, QDD는 위에서 early return)
+            // ✅ QDD 방이면 여기까지만: 세션 정보만 유지하고 문제는 Supabase에서 안 가져옴
+            if (isQddRoom) {
+                setCurrentQuestion(null);
+                return;
+            }
+
+            // 일반 퀴즈 방일 때만 현재 문제 로드
             const { data: qRow, error: qErr } = await supabase
                 .from("quiz_questions")
                 .select(
@@ -386,6 +385,7 @@ export function StudentRoomPage() {
             window.clearInterval(timer);
         };
     }, [roomId, lastQuestionId, isQddRoom]);
+
 
 
     // 2-3) 현재 문제에 대한 기존 답안 여부 체크
