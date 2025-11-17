@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { logGameEvent } from "../../api/gameSessions";
 
 type HostBridgeParams = {
-    iframeRef: React.RefObject<HTMLIFrameElement | null>;
+    iframeRef: React.RefObject<HTMLIFrameElement | null>; // ✅ null 허용
     gameId: string;
     gameSessionId: string;
     roomId: string;
@@ -31,10 +31,17 @@ type GameToHostMessage =
 };
 
 export function useGameHostBridge(params: HostBridgeParams) {
-    const { iframeRef, gameSessionId, roomId, quizpackJson, studentId } = params;
+    const {
+        iframeRef,
+        gameSessionId,
+        roomId,
+        quizpackJson,
+        studentId,
+        // gameId 는 지금은 안 쓰지만 나중 확장용으로 존재 가능
+    } = params;
 
     useEffect(() => {
-        // 세션/방 정보가 없으면 아직 브리지 열지 않음
+        // ✅ 훅 자체는 항상 호출, 내부에서만 조건 체크
         if (!gameSessionId || !roomId) {
             return;
         }
@@ -42,11 +49,8 @@ export function useGameHostBridge(params: HostBridgeParams) {
         function onMessage(ev: MessageEvent) {
             const msg = ev.data as GameToHostMessage;
             if (!msg || typeof msg !== "object") return;
-
-            // 세션 아이디가 다르면 무시
             if (msg.sessionId !== gameSessionId) return;
 
-            // 1) 퀴즈팩 요청 응답
             if (msg.type === "CH_REQUEST_QUIZPACK") {
                 iframeRef.current?.contentWindow?.postMessage(
                     {
@@ -59,7 +63,6 @@ export function useGameHostBridge(params: HostBridgeParams) {
                 return;
             }
 
-            // 2) 정답/요약 이벤트 로깅
             if (msg.type === "CH_REPORT_ANSWER") {
                 void logGameEvent({
                     gameSessionId,
