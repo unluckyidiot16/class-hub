@@ -139,6 +139,26 @@ export function StudentRoomPage() {
         return makeRandomKey();
     });
 
+    // 뷰포트 폭에 따라 QDD iframe 비율 전환 (<= 768px → 세로형)
+    const [isNarrowViewport, setIsNarrowViewport] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const mq = window.matchMedia("(max-width: 768px)");
+
+        const handleChange = (event: MediaQueryListEvent) => {
+            setIsNarrowViewport(event.matches);
+        };
+
+        // 최초 1회 반영
+        setIsNarrowViewport(mq.matches);
+
+        mq.addEventListener("change", handleChange);
+        return () => mq.removeEventListener("change", handleChange);
+    }, []);
+
+
     // presence용 방 코드
     const roomCodeForPresence =
         room?.code ?? state.roomCode ?? roomId ?? "";
@@ -170,6 +190,7 @@ export function StudentRoomPage() {
         quizpackJson: null,
         studentId: studentKey,
     });
+    
     // 1) 방 기본 정보 로드
     useEffect(() => {
         if (!roomId) return;
@@ -447,30 +468,8 @@ export function StudentRoomPage() {
         };
     }, [roomId, studentKey]);
 
-    useEffect(() => {
-        if (!isQddRoom) return;
-
-        function updateAspect() {
-            if (typeof window === "undefined") return;
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-
-            // 가로가 좁고 세로가 더 길면 → 세로형
-            const isPortraitLike = w <= 900 && h >= w;
-            setQddAspectRatio(isPortraitLike ? "10 / 16" : "16 / 10");
-        }
-
-        updateAspect(); // 최초 1회
-        window.addEventListener("resize", updateAspect);
-        window.addEventListener("orientationchange", updateAspect);
-
-        return () => {
-            window.removeEventListener("resize", updateAspect);
-            window.removeEventListener("orientationchange", updateAspect);
-        };
-    }, [isQddRoom]);
-
-
+    
+    
     const handleSubmitAnswer = async (choiceIdx: number) => {
         if (!room || !session || !currentQuestion) return;
         if (hasAnswered || submitting) return;
@@ -780,7 +779,8 @@ export function StudentRoomPage() {
                                 borderRadius: 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
-                                aspectRatio:  qddAspectRatio,
+                                aspectRatio: isNarrowViewport ? "10 / 16" : "16 / 10",
+                                maxHeight: isNarrowViewport ? "none" : "85vh",
                             }}
                         >
                             <iframe
