@@ -98,6 +98,9 @@ export function StudentRoomPage() {
     // "내 정보" 토글
     const [showProfile, setShowProfile] = useState(false);
 
+    // 🔥 QDD 전체화면 토글
+    const [isGameFullscreen, setIsGameFullscreen] = useState(false);
+
     // 메시지
     const [messages, setMessages] = useState<RoomMessageRow[]>([]);
     const [showAllMessages, setShowAllMessages] = useState(false);
@@ -117,6 +120,19 @@ export function StudentRoomPage() {
 
         return "학생";
     });
+
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        if (isGameFullscreen) {
+            const original = document.body.style.overflow;
+            document.body.style.overflow = "hidden";
+            return () => {
+                document.body.style.overflow = original;
+            };
+        }
+    }, [isGameFullscreen]);
+
 
     // 학생 식별 키 (방마다 로컬스토리지에 저장)
     const [studentKey] = useState(() => {
@@ -138,7 +154,7 @@ export function StudentRoomPage() {
     });
 
     // 뷰포트 폭에 따라 QDD iframe 비율 전환 (<= 768px → 세로형)
-    const [isNarrowViewport, setIsNarrowViewport] = useState(false);
+    const [, setIsNarrowViewport] = useState(false);
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -725,17 +741,46 @@ export function StudentRoomPage() {
                     margin: "0 auto",
                 }}
             >
-                <h2>{isQddRoom ? "현재 게임" : "현재 문제"}</h2>
+                {/* 카드 상단: 제목 + (QDD일 때만) 게임만 보기 버튼 */}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "0.5rem",
+                        marginBottom: "0.5rem",
+                    }}
+                >
+                    <h2 style={{ margin: 0 }}>
+                        {isQddRoom ? "현재 게임" : "현재 문제"}
+                    </h2>
 
+                    {isQddRoom &&
+                        session &&
+                        session.status === "running" &&
+                        qddUrl && (
+                            <button
+                                type="button"
+                                className="secondary-btn"
+                                style={{
+                                    fontSize: "0.8rem",
+                                    padding: "0.25rem 0.5rem",
+                                }}
+                                onClick={() => setIsGameFullscreen(true)}
+                            >
+                                게임만 보기
+                            </button>
+                        )}
+                </div>
+
+                {/* QDD 방일 때 / 일반 퀴즈 방일 때 분기 */}
                 {isQddRoom ? (
                     !pack ? (
                         <p>
                             이 방의 퀴즈팩 정보를 불러오지 못했습니다. 잠시 후
                             다시 시도해 주세요.
                         </p>
-                    ) : !session ||
-                    session.status !== "running" ||
-                    !qddUrl ? ( // 🔧 여기서 qddUrl → qddUrlWithSession 으로 수정
+                    ) : !session || session.status !== "running" || !qddUrl ? (
                         <>
                             <p
                                 style={{
@@ -772,13 +817,24 @@ export function StudentRoomPage() {
                         <div
                             className="qdd-frame-wrapper"
                             style={{
-                                position: "relative",
-                                width: "100%",
-                                borderRadius: 12,
+                                position: isGameFullscreen
+                                    ? "fixed"
+                                    : "relative",
+                                inset: isGameFullscreen ? 0 : undefined,
+                                top: isGameFullscreen ? 0 : undefined,
+                                left: isGameFullscreen ? 0 : undefined,
+                                width: isGameFullscreen ? "100vw" : "100%",
+                                height: isGameFullscreen
+                                    ? "100vh"
+                                    : undefined,
+                                // 전체화면 아닐 때는 비율로 높이 확보
+                                aspectRatio: isGameFullscreen
+                                    ? undefined
+                                    : "16 / 10",
+                                borderRadius: isGameFullscreen ? 0 : 12,
                                 overflow: "hidden",
                                 backgroundColor: "#000",
-                                aspectRatio: isNarrowViewport ? "10 / 16" : "16 / 10",
-                                maxHeight: isNarrowViewport ? "none" : "85vh",
+                                zIndex: isGameFullscreen ? 1000 : "auto",
                             }}
                         >
                             <iframe
@@ -794,6 +850,28 @@ export function StudentRoomPage() {
                                 }}
                                 allowFullScreen
                             />
+
+                            {isGameFullscreen && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsGameFullscreen(false)}
+                                    style={{
+                                        position: "absolute",
+                                        top: 8,
+                                        right: 8,
+                                        zIndex: 1001,
+                                        padding: "0.4rem 0.6rem",
+                                        borderRadius: 999,
+                                        border: "none",
+                                        fontSize: "0.8rem",
+                                        background:
+                                            "rgba(15, 23, 42, 0.75)",
+                                        color: "#fff",
+                                    }}
+                                >
+                                    ✕ 수업 화면
+                                </button>
+                            )}
                         </div>
                     )
                 ) : !session || session.status === "ended" ? (
