@@ -101,30 +101,42 @@ function applyQddEvent(
 ): Record<string, QddQuestionStats> {
     if (!row.payload) return base;
 
-    // useQddAnswerStats와 동일하게 event_type 허용 범위 확장
+    // 1) payload를 object로 정규화 (jsonb / text 모두 대응)
+    let raw = row.payload as any;
+    if (typeof raw === "string") {
+        try {
+            raw = JSON.parse(raw);
+        } catch (e) {
+            console.warn("[QDD] invalid payload JSON, skip", row.payload);
+            return base;
+        }
+    }
+    const payload = raw as {
+        questionId?: string;
+        answerIndex?: number;
+        correct?: boolean;
+        // 혹시 index 기반으로 들어오면 여기에 indexInPack 같은 필드도 나중에 쓸 수 있음
+    };
+
+    // 2) event_type은 참고용만 두고, 일단 payload에 questionId가 없으면 스킵
     const t = row.event_type;
     if (
         t !== "answer" &&
         t !== "qdd-answer" &&
         t !== "CH_REPORT_ANSWER"
     ) {
+        // TODO: 나중에 QDD 외 이벤트가 섞이면 여기서 더 세밀하게 필터링
+        // 지금은 payload.questionId가 있으면 QDD 답안으로 취급
+    }
+
+    const qid = payload.questionId;
+    if (!qid) {
+        // console.debug("[QDD] skip event without questionId", { t, payload });
         return base;
     }
 
-    const payload = row.payload as {
-        questionId?: string;
-        answerIndex?: number;
-        correct?: boolean;
-    };
-
-    const qid = payload.questionId;
-    if (!qid) return base;
-
-    const answerIndex =
-        typeof payload.answerIndex === "number" ? payload.answerIndex : -1;
-    if (answerIndex < 0) return base;
-
-    const correct = Boolean(payload.correct);
+    const answerIndex = payload.answerIndex;
+    const correct = !!payload.correct;
 
     const existing = base[qid] ?? {
         questionId: qid,
@@ -134,12 +146,17 @@ function applyQddEvent(
     };
 
     const next: QddQuestionStats = {
-        ...existing,
+        questionId: qid,
         total: existing.total + 1,
         correct: existing.correct + (correct ? 1 : 0),
         options: {
             ...existing.options,
-            [answerIndex]: (existing.options[answerIndex] ?? 0) + 1,
+            ...(typeof answerIndex === "number"
+                ? {
+                    [answerIndex]:
+                        (existing.options[answerIndex] ?? 0) + 1,
+                }
+                : {}),
         },
     };
 
@@ -152,12 +169,15 @@ function applyQddEvent(
 
 /** 초기 game_events 목록 → QDD 통계 맵 */
 function buildQddStats(rows: GameEventRow[]): Record<string, QddQuestionStats> {
+    console.log("[QDD] buildQddStats input count:", rows.length);
     let stats: Record<string, QddQuestionStats> = {};
     for (const row of rows) {
         stats = applyQddEvent(stats, row);
     }
+    console.log("[QDD] buildQddStats keys:", Object.keys(stats));
     return stats;
 }
+
 
 export function TeacherRoomLivePage() {
     const { roomId } = useParams<{ roomId: string }>();
@@ -432,7 +452,7 @@ export function TeacherRoomLivePage() {
                     "id, game_session_id, room_id, student_id, event_type, payload, created_at",
                 )
                 .eq("room_id", room.id)
-                .eq("game_session_id", session.id) // ✅ 현재 quiz_session 과 연결된 game_session 만
+                .eq("game_session_id", session.id)
                 .order("created_at", { ascending: true });
 
             if (error) {
@@ -444,8 +464,15 @@ export function TeacherRoomLivePage() {
             }
             if (cancelled || !data) return;
 
+            console.log(
+                "[TeacherRoomLive] initial game_events rows:",
+                data.length,
+                data,
+            );
+
             setQddStats(buildQddStats(data as GameEventRow[]));
         };
+
 
         void loadEvents();
 
