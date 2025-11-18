@@ -92,13 +92,14 @@ type QddQuestionStats = {
 };
 
 /** QDD game_events 한 줄을 누적 집계에 반영 */
+/** QDD game_events 한 줄을 누적 집계에 반영 */
 function applyQddEvent(
     base: Record<string, QddQuestionStats>,
     row: GameEventRow,
 ): Record<string, QddQuestionStats> {
     if (!row.payload) return base;
 
-    // ✅ useQddAnswerStats와 동일하게 event_type 허용 범위 확장
+    // useQddAnswerStats와 동일하게 event_type 허용 범위 확장
     const t = row.event_type;
     if (
         t !== "answer" &&
@@ -130,20 +131,19 @@ function applyQddEvent(
         options: {},
     };
 
-    const nextOptions = { ...existing.options };
-    nextOptions[answerIndex] = (nextOptions[answerIndex] ?? 0) + 1;
-
-    const nextTotal = existing.total + 1;
-    const nextCorrect = existing.correct + (correct ? 1 : 0);
+    const next: QddQuestionStats = {
+        ...existing,
+        total: existing.total + 1,
+        correct: existing.correct + (correct ? 1 : 0),
+        options: {
+            ...existing.options,
+            [answerIndex]: (existing.options[answerIndex] ?? 0) + 1,
+        },
+    };
 
     return {
         ...base,
-        [qid]: {
-            questionId: qid,
-            total: nextTotal,
-            correct: nextCorrect,
-            options: nextOptions,
-        },
+        [qid]: next,
     };
 }
 
