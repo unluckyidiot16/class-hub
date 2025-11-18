@@ -415,29 +415,37 @@ export function TeacherRoomLivePage() {
 
     // QDD용 game_events 로드 + Realtime 구독
     useEffect(() => {
-
         console.log("[TeacherRoomLive] qdd effect", {
             roomId: room?.id,
             gameKey: room?.game_key,
             sessionId: session?.id,
         });
-        
+
+        // ✅ QDD 방 + 세션 ID가 있을 때만 동작
         if (!room?.id || !session?.id || room.game_key !== "qdd") {
             setQddStats({});
             return;
         }
+
+        // TypeScript에게 "여기선 항상 존재한다"는 걸 알려주기 위해 별도 변수로 뽑기
+        const sessionId = session.id;
 
         let cancelled = false;
 
         const loadEvents = async () => {
             const { data, error } = await supabase
                 .from("game_events")
-                .select("id, game_session_id, room_id, student_id, event_type, payload, created_at")
-                .eq("room_id", room.id)                          // ✅ 방 기준으로 가져오고
-                .gte("created_at", session.created_at)           // ✅ 현재 quiz_session 기간에 해당하는 것만
+                .select(
+                    "id, game_session_id, room_id, student_id, event_type, payload, created_at"
+                )
+                // ✅ 이 세션(game_session_id)에 해당하는 모든 이벤트를 전부 가져온다
+                .eq("game_session_id", sessionId)
                 .order("created_at", { ascending: true });
 
-            console.log("[TeacherRoomLive] game_events initial", { data, error });
+            console.log("[TeacherRoomLive] game_events initial (by game_session_id)", {
+                data,
+                error,
+            });
 
             if (error) {
                 console.error("[TeacherRoomLive] load game_events error", error);
@@ -450,23 +458,23 @@ export function TeacherRoomLivePage() {
 
         void loadEvents();
 
+        // ✅ 이 세션에 속한 새로운 game_events INSERT만 실시간으로 누적
         const channel = supabase
-            .channel(`game_events:room:${room.id}`)
+            .channel(`game_events:session:${sessionId}`)
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `room_id=eq.${room.id}`,
+                    filter: `game_session_id=eq.${sessionId}`,
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
-                    setQddStats(prev => applyQddEvent(prev, row));
+                    setQddStats((prev) => applyQddEvent(prev, row));
                 },
             )
             .subscribe();
-
 
         return () => {
             cancelled = true;
