@@ -1,5 +1,5 @@
 // src/pages/teacher/TeacherRoomLivePage.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
@@ -219,6 +219,49 @@ export function TeacherRoomLivePage() {
     // 🔹 QDD용 game_events 기반 통계 (문제별 보기 분포)
     const [qddStats, setQddStats] =
         useState<Record<string, QddQuestionStats>>({});
+
+    // QDD에서 사용하는 questionId 예시: "Eng5_9-033"
+    // → prefix("Eng5_9") + 번호(033) 구조라서 prefix만 한 번 뽑아서 재사용
+    const qddQuestionPrefix = useMemo(() => {
+        const keys = Object.keys(qddStats);
+        if (keys.length === 0) return null;
+
+        const sample = keys[0];              // 예: "Eng5_9-033"
+        const idx = sample.lastIndexOf("-");
+        if (idx <= 0) return null;
+
+        return sample.slice(0, idx);         // "Eng5_9"
+    }, [qddStats]);
+
+    // DB quiz_questions.row -> QDD questionId 문자열로 변환
+    function getQddKeyForQuestion(q: QuizQuestionRow): string | null {
+        if (!qddQuestionPrefix) return null;
+        const n = q.index_in_pack + 1;               // 0-based → 1-based
+        const suffix = String(n).padStart(3, "0");   // 1 → "001"
+        return `${qddQuestionPrefix}-${suffix}`;     // "Eng5_9-001"
+    }
+
+    // DB question.id 기준으로 다시 매핑한 통계 (SessionSummaryPanel 용)
+    const qddStatsByQuestionId: Record<string, QddQuestionStats> = useMemo(
+        () => {
+            if (!room || room.game_key !== "qdd") return {};
+            if (!qddQuestionPrefix) return {};
+
+            const out: Record<string, QddQuestionStats> = {};
+            for (const q of questions) {
+                const key = getQddKeyForQuestion(q);
+                if (!key) continue;
+                const s = qddStats[key];
+                if (s) {
+                    // 키를 QDD questionId → DB question.id 로 변경
+                    out[q.id] = s;
+                }
+            }
+            return out;
+        },
+        [room?.game_key, qddQuestionPrefix, qddStats, questions],
+    );
+
 
     // 현재 퀴즈 세션과 연결된 game_sessions.id (QDD용)
     const [activeGameSessionId, setActiveGameSessionId] = useState<string | null>(null);
@@ -1428,24 +1471,20 @@ export function TeacherRoomLivePage() {
                             <div className="card">
                                 <h2>QDD 실시간 통계 (game_events)</h2>
                                 {(() => {
-                                    const stats =
-                                        qddStats[currentQuestion.id];
+                                    const key = getQddKeyForQuestion(currentQuestion);
+                                    const stats = key ? qddStats[key] : undefined;
+
                                     if (!stats) {
                                         return (
                                             <p className="hint">
-                                                아직 이 문제에 대한 QDD 응답이
-                                                없습니다.
+                                                아직 이 문제에 대한 QDD 응답이 없습니다.
                                             </p>
                                         );
                                     }
 
                                     const accuracy =
                                         stats.total > 0
-                                            ? Math.round(
-                                                (stats.correct /
-                                                    stats.total) *
-                                                100,
-                                            )
+                                            ? Math.round((stats.correct / stats.total) * 100)
                                             : 0;
 
                                     return (
@@ -1520,7 +1559,7 @@ export function TeacherRoomLivePage() {
                         questions={questions}
                         // QDD 방일 때만 game_events 기반 통계를 함께 전달
                         qddStatsByQuestion={
-                            room?.game_key === "qdd" ? qddStats : undefined
+                            room?.game_key === "qdd" ? qddStatsByQuestionId : undefined
                         }
                     />
                 </div>
