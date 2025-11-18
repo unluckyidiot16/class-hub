@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 import type { QuizPackRow } from "../pages/student/StudentPlayPackPage";
 import { buildQddUrlForPack } from "../utils/qddLink";
 
-export type GameKey = "quiz-only" | "qdd";
+export type GameKey = "quiz-only" | "qdd" | "pixel";
 
 export type GameMode = "builtin-quiz" | "iframe" | "react-component";
 
@@ -56,6 +56,25 @@ export const GAME_REGISTRY: Record<GameKey, GameSpec> = {
             const sep = hasQuery ? "&" : "?";
 
             return `${safeBase}${sep}${extra.toString()}`;
+        },
+    },
+
+    pixel: {
+        key: "pixel",
+        label: "픽셀 미니 퀴즈",
+        mode: "iframe",
+        buildUrl: ({ pack, roomId }) => {
+            // 실제로 올린 경로에 맞춰 base만 수정하면 됨
+            const base = "https://unluckyidiot16.github.io/WebGames/Pixel/Pixel.html";
+            const params = new URLSearchParams();
+
+            // Pixel.html은 지금 URL 파라미터를 안 쓰지만,
+            // 나중 확장을 위해 미리 달아 두자
+            if (pack?.id) params.set("packId", pack.id);
+            if (roomId) params.set("roomId", roomId);
+
+            const qs = params.toString();
+            return qs ? `${base}?${qs}` : base;
         },
     },
 };
