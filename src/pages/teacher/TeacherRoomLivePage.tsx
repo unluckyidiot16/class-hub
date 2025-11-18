@@ -9,8 +9,10 @@ import { usePresence } from "../../hooks/usePresence";
 import PresenceSidebar from "../../components/PresenceSidebar";
 import {
     ensureGameSession,
-    endGameSession,
-} from "../../api/gameSessions";
+        endGameSession,
+    } from "../../api/gameSessions";
+// QDD 누적 요약 통계용 훅(useQddAnswerStats)은
+// 이 페이지에서는 현재 사용하지 않으므로 import를 제거했습니다.
 
 
 type RoomRow = {
@@ -196,11 +198,6 @@ export function TeacherRoomLivePage() {
     const [personalMessageBody, setPersonalMessageBody] = useState("");
     const [personalMessageLink, setPersonalMessageLink] = useState("");
     const [sendingPersonalMessage, setSendingPersonalMessage] = useState(false);
-
-    // QDD용 game_events 기반 통계
-    const [qddStats, setQddStats] = useState<Record<string, QddQuestionStats>>(
-        {},
-    );
 
     // origin 한 번만 세팅
     useEffect(() => {
@@ -415,72 +412,68 @@ export function TeacherRoomLivePage() {
 
     // QDD용 game_events 로드 + Realtime 구독
     useEffect(() => {
-        console.log("[TeacherRoomLive] qdd effect", {
-            roomId: room?.id,
-            gameKey: room?.game_key,
-            sessionId: session?.id,
-        });
-
-        // ✅ QDD 방 + 세션 ID가 있을 때만 동작
+        // QDD 방이 아니거나 세션이 없으면 통계 초기화
         if (!room?.id || !session?.id || room.game_key !== "qdd") {
             setQddStats({});
             return;
         }
 
-        // TypeScript에게 "여기선 항상 존재한다"는 걸 알려주기 위해 별도 변수로 뽑기
-        const sessionId = session.id;
-
         let cancelled = false;
 
+        // 1) 초기 로드 – 이 방의 "현재 세션"에 해당하는 이벤트만 집계
         const loadEvents = async () => {
             const { data, error } = await supabase
                 .from("game_events")
                 .select(
-                    "id, game_session_id, room_id, student_id, event_type, payload, created_at"
+                    "id, game_session_id, room_id, student_id, event_type, payload, created_at",
                 )
-                // ✅ 이 세션(game_session_id)에 해당하는 모든 이벤트를 전부 가져온다
-                .eq("game_session_id", sessionId)
+                .eq("room_id", room.id)
+                .eq("game_session_id", session.id) // ✅ 현재 quiz_session 과 연결된 game_session 만
                 .order("created_at", { ascending: true });
 
-            console.log("[TeacherRoomLive] game_events initial (by game_session_id)", {
-                data,
-                error,
-            });
-
             if (error) {
-                console.error("[TeacherRoomLive] load game_events error", error);
+                console.error(
+                    "[TeacherRoomLive] load game_events error",
+                    error,
+                );
                 return;
             }
-            if (cancelled) return;
+            if (cancelled || !data) return;
 
-            setQddStats(buildQddStats((data ?? []) as GameEventRow[]));
+            setQddStats(buildQddStats(data as GameEventRow[]));
         };
 
         void loadEvents();
 
-        // ✅ 이 세션에 속한 새로운 game_events INSERT만 실시간으로 누적
+        // 2) Realtime 구독 – 역시 현재 세션의 game_events 만 수신
         const channel = supabase
-            .channel(`game_events:session:${sessionId}`)
+            .channel(`game_events:session:${session.id}`)
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `game_session_id=eq.${sessionId}`,
+                    filter: `game_session_id=eq.${session.id}`,
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
                     setQddStats((prev) => applyQddEvent(prev, row));
                 },
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log(
+                    "[TeacherRoomLive] game_events channel status:",
+                    status,
+                );
+            });
 
         return () => {
             cancelled = true;
             supabase.removeChannel(channel);
         };
     }, [room?.id, room?.game_key, session?.id]);
+
 
     // ✅ 학생 접속용 URL (QR/링크 공유용)
     // → /student?code= 로 방 코드 읽어서 닉네임 입력 → 입장 처리
@@ -495,6 +488,10 @@ export function TeacherRoomLivePage() {
         )}`
         : "";
 
+    // QDD용 game_events 기반 통계 (문제별 보기 분포 – 기존 로직)
+    const [qddStats, setQddStats] =
+        useState<Record<string, QddQuestionStats>>({});
+
     const currentQuestion =
         session && session.status === "running" && questions.length > 0
             ? questions.find((q) => q.index_in_pack === session.current_index) ??
@@ -502,6 +499,8 @@ export function TeacherRoomLivePage() {
             : null;
 
     const totalCount = questions.length;
+
+
     const currentNumber =
         session && currentQuestion
             ? session.current_index + 1
