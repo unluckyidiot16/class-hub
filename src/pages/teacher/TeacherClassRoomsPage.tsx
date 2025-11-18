@@ -38,7 +38,8 @@ type QuizPackRow = {
 const GAME_OPTIONS: { value: string; label: string }[] = [
     { value: "quiz-only", label: "퀴즈만 (실시간 수업)" },
     { value: "linebattle", label: "라인 배틀 (계획)" },
-    { value: "qdd", label: "퀴즈 다이스 디펜스 (계획)" },
+    { value: "qdd", label: "퀴즈 다이스 디펜스" },
+    { value: "pixel", label: "픽셀" },
     { value: "quizmon", label: "퀴즈몬 (계획)" },
 ];
 
