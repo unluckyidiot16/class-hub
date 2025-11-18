@@ -402,6 +402,13 @@ export function TeacherRoomLivePage() {
 
     // QDD용 game_events 로드 + Realtime 구독
     useEffect(() => {
+
+        console.log("[TeacherRoomLive] qdd effect", {
+            roomId: room?.id,
+            gameKey: room?.game_key,
+            sessionId: session?.id,
+        });
+        
         if (!room?.id || !session?.id || room.game_key !== "qdd") {
             setQddStats({});
             return;
@@ -417,6 +424,7 @@ export function TeacherRoomLivePage() {
                 .gte("created_at", session.created_at)           // ✅ 현재 quiz_session 기간에 해당하는 것만
                 .order("created_at", { ascending: true });
 
+            console.log("[TeacherRoomLive] game_events initial", { data, error });
 
             if (error) {
                 console.error("[TeacherRoomLive] load game_events error", error);
