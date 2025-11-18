@@ -37,57 +37,46 @@ export function useGameHostBridge(params: HostBridgeParams) {
         roomId,
         quizpackJson,
         studentId,
-        // gameId 는 지금은 안 쓰지만 나중 확장용으로 존재 가능
+        // ...
     } = params;
 
     useEffect(() => {
-        // ✅ 훅 자체는 항상 호출, 내부에서만 조건 체크
-        if (!gameSessionId || !roomId) {
-            return;
-        }
+        if (!iframeRef.current) return;
+        if (!gameSessionId || !roomId || !studentId) return;  // ✅ 가드
 
-        function onMessage(ev: MessageEvent) {
-            const msg = ev.data as GameToHostMessage;
+        function handleMessage(ev: MessageEvent<GameToHostMessage>) {
+            const msg = ev.data;
             if (!msg || typeof msg !== "object") return;
-            if (msg.sessionId !== gameSessionId) return;
-
-            if (msg.type === "CH_REQUEST_QUIZPACK") {
-                iframeRef.current?.contentWindow?.postMessage(
-                    {
-                        type: "CH_QUIZPACK_DATA",
-                        sessionId: gameSessionId,
-                        quizpack: quizpackJson,
-                    },
-                    "*",
-                );
-                return;
-            }
 
             if (msg.type === "CH_REPORT_ANSWER") {
-                void logGameEvent({
+                logGameEvent({
                     gameSessionId,
                     roomId,
                     studentId,
                     eventType: "answer",
                     payload: {
                         questionId: msg.questionId,
-                        correct: msg.correct,
                         answerIndex: msg.answerIndex,
+                        correct: msg.correct,
                         timeMs: msg.timeMs ?? null,
                     },
-                }).catch(console.error);
-            } else if (msg.type === "CH_REPORT_SUMMARY") {
-                void logGameEvent({
+                });
+            }
+
+            if (msg.type === "CH_REPORT_SUMMARY") {
+                logGameEvent({
                     gameSessionId,
                     roomId,
                     studentId,
                     eventType: "summary",
                     payload: msg.summary,
-                }).catch(console.error);
+                });
             }
+
+            // CH_REQUEST_QUIZPACK 처리 등...
         }
 
-        window.addEventListener("message", onMessage);
-        return () => window.removeEventListener("message", onMessage);
+        window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
     }, [iframeRef, gameSessionId, roomId, quizpackJson, studentId]);
 }

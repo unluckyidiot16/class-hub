@@ -7,10 +7,7 @@ import { QuestionStatsPanel } from "../../components/QuestionStatsPanel";
 import { SessionSummaryPanel } from "../../components/SessionSummaryPanel";
 import { usePresence } from "../../hooks/usePresence";
 import PresenceSidebar from "../../components/PresenceSidebar";
-import {
-    ensureGameSession,
-        endGameSession,
-    } from "../../api/gameSessions";
+import {ensureGameSession, endGameSession } from "../../api/gameSessions";
 // QDD 누적 요약 통계용 훅(useQddAnswerStats)은
 // 이 페이지에서는 현재 사용하지 않으므로 import를 제거했습니다.
 
@@ -223,6 +220,10 @@ export function TeacherRoomLivePage() {
     const [qddStats, setQddStats] =
         useState<Record<string, QddQuestionStats>>({});
 
+    // 현재 퀴즈 세션과 연결된 game_sessions.id (QDD용)
+    const [activeGameSessionId, setActiveGameSessionId] = useState<string | null>(null);
+
+
     // origin 한 번만 세팅
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -236,6 +237,37 @@ export function TeacherRoomLivePage() {
             setAppBaseUrl(`${origin}${trimmedBase}`);
         }
     }, []);
+
+    // room / session 이 이미 있는 상태에서 들어온 교사도 game_sessions.id를 얻도록
+    useEffect(() => {
+        if (!room?.id || !session?.id || room.game_key !== "qdd") {
+            setActiveGameSessionId(null);
+            return;
+        }
+
+        const loadGameSession = async () => {
+            const { data, error } = await supabase
+                .from("game_sessions")
+                .select("id")
+                .eq("room_id", room.id)
+                .eq("game_id", room.game_key)
+                .eq("quiz_session_id", session.id)
+                .maybeSingle();
+
+            if (error) {
+                console.error("[TeacherRoomLive] load game_session error", error);
+                return;
+            }
+            if (data) {
+                setActiveGameSessionId(data.id);
+            } else {
+                setActiveGameSessionId(null);
+            }
+        };
+
+        void loadGameSession();
+    }, [room?.id, room?.game_key, session?.id]);
+
 
     useEffect(() => {
         if (!roomId) return;
@@ -436,15 +468,14 @@ export function TeacherRoomLivePage() {
 
     // QDD용 game_events 로드 + Realtime 구독
     useEffect(() => {
-        // QDD 방이 아니거나 세션이 없으면 통계 초기화
-        if (!room?.id || !session?.id || room.game_key !== "qdd") {
+        // QDD 방이 아니거나 세션이 없거나 game_sessionId를 아직 모르면 통계 초기화
+        if (!room?.id || !session?.id || room.game_key !== "qdd" || !activeGameSessionId) {
             setQddStats({});
             return;
         }
 
         let cancelled = false;
 
-        // 1) 초기 로드 – 이 방의 "현재 세션"에 해당하는 이벤트만 집계
         const loadEvents = async () => {
             const { data, error } = await supabase
                 .from("game_events")
@@ -452,14 +483,11 @@ export function TeacherRoomLivePage() {
                     "id, game_session_id, room_id, student_id, event_type, payload, created_at",
                 )
                 .eq("room_id", room.id)
-                .eq("game_session_id", session.id)
+                .eq("game_session_id", activeGameSessionId)  // ✅ 변경
                 .order("created_at", { ascending: true });
 
             if (error) {
-                console.error(
-                    "[TeacherRoomLive] load game_events error",
-                    error,
-                );
+                console.error("[TeacherRoomLive] load game_events error", error);
                 return;
             }
             if (cancelled || !data) return;
@@ -473,19 +501,17 @@ export function TeacherRoomLivePage() {
             setQddStats(buildQddStats(data as GameEventRow[]));
         };
 
-
         void loadEvents();
 
-        // 2) Realtime 구독 – 역시 현재 세션의 game_events 만 수신
         const channel = supabase
-            .channel(`game_events:session:${session.id}`)
+            .channel(`game_events:session:${activeGameSessionId}`) // ✅ 변경
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `game_session_id=eq.${session.id}`,
+                    filter: `game_session_id=eq.${activeGameSessionId}`, // ✅ 변경
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
@@ -503,7 +529,8 @@ export function TeacherRoomLivePage() {
             cancelled = true;
             supabase.removeChannel(channel);
         };
-    }, [room?.id, room?.game_key, session?.id]);
+    }, [room?.id, room?.game_key, session?.id, activeGameSessionId]);
+
 
 
     // ✅ 학생 접속용 URL (QR/링크 공유용)
@@ -575,14 +602,15 @@ export function TeacherRoomLivePage() {
                 .update({ status: "live" })
                 .eq("id", room.id);
 
-            // game_sessions에도 동일한 id로 세션 기록 (특히 QDD용)
-            // game_sessions에도 동일한 id로 세션 기록 (특히 QDD용)
-            await ensureGameSession({
+            // game_sessions에도 세션 기록 (특히 QDD용)
+            const gameSession = await ensureGameSession({
                 roomId: room.id,
                 gameId: room.game_key || "quiz-only",
-                quizPackId: pack.id,        // ✅ camelCase 맞추기
-                quizSessionId: newSession.id, // ✅ sessionId → quizSessionId 로
+                quizPackId: pack.id,
+                quizSessionId: newSession.id,
             });
+            setActiveGameSessionId(gameSession.id);
+
         } finally {
             setSaving(false);
         }
@@ -657,8 +685,11 @@ export function TeacherRoomLivePage() {
                 .update({ status: "waiting" })
                 .eq("id", room.id);
 
-            // game_sessions 쪽도 finished로 정리
-            await endGameSession({ sessionId: endedSession.id });
+            // game_sessions 쪽도 finished로 정리 (별도 game_session_id 사용)
+            if (activeGameSessionId) {
+                await endGameSession({ sessionId: activeGameSessionId });
+            }
+
         } finally {
             setSaving(false);
         }

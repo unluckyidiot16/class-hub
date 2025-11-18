@@ -29,7 +29,12 @@ export async function logGameEvent(params: {
     });
 
     if (error) {
-        console.error("[logGameEvent] insert error", error);
+        console.error("[logGameEvent] insert error", error, {
+            gameSessionId: params.gameSessionId, 
+                roomId: params.roomId,
+                studentId: params.studentId,
+                eventType: params.eventType,
+        });   
     }
 }
 

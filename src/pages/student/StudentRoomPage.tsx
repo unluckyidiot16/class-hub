@@ -121,6 +121,42 @@ export function StudentRoomPage() {
         return "학생";
     });
 
+    const [gameSessionId, setGameSessionId] = useState<string | null>(null);
+    const quizpackJson: any = null;
+
+    // room / session / game_key 준비되면 game_sessions 조회
+    useEffect(() => {
+        if (!room?.id || !session?.id || !room.game_key) {
+            setGameSessionId(null);
+            return;
+        }
+
+        const loadGameSession = async () => {
+            const { data, error } = await supabase
+                .from("game_sessions")
+                .select("id")
+                .eq("room_id", room.id)
+                .eq("game_id", room.game_key)
+                .eq("quiz_session_id", session.id)
+                .maybeSingle();
+
+            if (error) {
+                console.error("[StudentRoom] load game_session error", error);
+                return;
+            }
+
+            if (data) {
+                setGameSessionId(data.id);
+            } else {
+                console.warn("[StudentRoom] game_session not found for this quiz_session");
+                setGameSessionId(null);
+            }
+        };
+
+        void loadGameSession();
+    }, [room?.id, room?.game_key, session?.id]);
+
+
     useEffect(() => {
         if (typeof document === "undefined") return;
 
@@ -152,6 +188,9 @@ export function StudentRoomPage() {
         }
         return makeRandomKey();
     });
+
+    // ✅ 브리지에 넘길 학생 ID는 studentKey를 그대로 사용
+    const studentId = studentKey;
 
     // 뷰포트 폭에 따라 QDD iframe 비율 전환 (<= 768px → 세로형)
     const [, setIsNarrowViewport] = useState(false);
@@ -196,20 +235,24 @@ export function StudentRoomPage() {
     const isIframeGame = gameSpec?.mode === "iframe";
     const isQddRoom = effectiveGameKey === "qdd";
     
-    // quiz_sessions.id를 브리지에서 쓸 세션 ID로 (iframe 게임만 사용)
+    // ✅ iframe 게임용 세션 ID는 "game_sessions.id"를 사용
     const effectiveGameSessionId =
-        isIframeGame && session ? session.id : "";
+        isIframeGame && gameSessionId ? gameSessionId : "";
     
     // ✅ 게임 ↔ ClassHub 브리지: 항상 한 번 호출
     // (현재는 QDD만 실제로 postMessage를 쓰지만 Pixel 등 확장도 대비)
     useGameHostBridge({
             iframeRef,
+        // 방에 설정된 실제 게임 키 사용 (예: "qdd", "pixel" 등)
             gameId: effectiveGameKey,
-            gameSessionId: effectiveGameSessionId,
+        // 아직 game_session이 없으면 빈 문자열 → 훅 내부 가드에서 막힘
+            gameSessionId: gameSessionId ?? "",
+        // room이 아직 로드되지 않았을 수도 있으므로 방어 코드
             roomId: room?.id ?? "",
-            quizpackJson: null,
-            studentId: studentKey,
+            quizpackJson,
+            studentId,
     });
+
     
     // 1) 방 기본 정보 로드
     useEffect(() => {
