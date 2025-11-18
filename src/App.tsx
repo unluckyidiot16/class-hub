@@ -1,4 +1,5 @@
 // src/App.tsx
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { MainLayout } from "./layouts/MainLayout";
 import { LandingPage } from "./pages/LandingPage";
@@ -11,10 +12,14 @@ import { QuizPackEditorPage } from "./pages/teacher/QuizPackEditorPage";
 import { TeacherRoomLivePage } from "./pages/teacher/TeacherRoomLivePage";
 import { StudentPlayPackPage } from "./pages/student/StudentPlayPackPage";
 
+const QuizMonDevPage = lazy(
+    () => import("./games/quizmon/QuizMonDevPage"),
+);
 
 function App() {
     return (
         <MainLayout>
+            <Suspense fallback={<div>Loading…</div>}>
             <Routes>
                 <Route path="/" element={<LandingPage />} />
 
@@ -38,7 +43,11 @@ function App() {
                 <Route path="/student" element={<StudentJoinPage />} />
                 <Route path="/student/room/:roomId" element={<StudentRoomPage />} />
                 <Route path="/student/play/:packId" element={<StudentPlayPackPage />} />
+
+                {/* QuizMon 샌드박스 */}
+                <Route path="/dev/quizmon" element={<QuizMonDevPage />} />
             </Routes>
+            </Suspense>
         </MainLayout>
     );
 }

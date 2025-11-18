@@ -234,6 +234,8 @@ export function StudentRoomPage() {
     const gameSpec = GAME_REGISTRY[effectiveGameKey];
     const isIframeGame = gameSpec?.mode === "iframe";
     const isQddRoom = effectiveGameKey === "qdd";
+
+    const isReactGame = gameSpec?.mode === "react-component";
     
     // ✅ iframe 게임용 세션 ID는 "game_sessions.id"를 사용
     const effectiveGameSessionId =
@@ -613,6 +615,7 @@ export function StudentRoomPage() {
 
     const currentGameSpec = gameSpec;
     const gameLabel = currentGameSpec?.label ?? "게임";
+    const isGameRoom = isIframeGame || isReactGame;
     
     // iframe 게임일 때 기본 URL 생성 (QDD, Pixel 등)
     const baseGameUrl =
@@ -809,7 +812,7 @@ export function StudentRoomPage() {
                     }}
                 >
                     <h2 style={{ margin: 0 }}>
-                        {isQddRoom ? "현재 게임" : "현재 문제"}
+                        {isGameRoom ? "현재 게임" : "현재 문제"}
                     </h2>
 
                     {isIframeGame &&
@@ -830,7 +833,7 @@ export function StudentRoomPage() {
                         )}
                 </div>
 
-                {/* QDD 방일 때 / 일반 퀴즈 방일 때 분기 */}
+                {/* iframe 게임 / React 게임 / 기본 퀴즈 분기 */}
                 {isIframeGame ? (
                     !pack ? (
                         <p>
@@ -932,7 +935,14 @@ export function StudentRoomPage() {
                                 </button>
                             )}
                         </div>
-                    )
+                        )
+                ) : gameSpec?.mode === "react-component" ? (
+                    // 🔥 React 기반 게임 (QuizMon Class 등)
+                    <gameSpec.component
+                        roomId={room?.id ?? null}
+                        pack={pack}
+                        session={session}
+                    />
                 ) : !session || session.status === "ended" ? (
                     <p>
                         현재 진행 중인 퀴즈 세션이 없습니다. 선생님이 수업을

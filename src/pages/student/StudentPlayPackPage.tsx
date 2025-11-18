@@ -46,8 +46,7 @@ export function StudentPlayPackPage() {
     // QueryString: ?roomId=...&gameKey=...
     const searchParams = new URLSearchParams(location.search ?? "");
     const roomId = searchParams.get("roomId") || searchParams.get("room") || null;
-
-
+    
     const [pack, setPack] = useState<QuizPackRow | null>(null);
     const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
     const [loading, setLoading] = useState(true);
