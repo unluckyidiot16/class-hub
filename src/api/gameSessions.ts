@@ -12,36 +12,27 @@ export type GameEventLog = {
 /**
  * game_events에 한 줄 남기는 함수
  */
-export async function logGameEvent(event: GameEventLog): Promise<void> {
-    if (import.meta.env.DEV) {
-        // 개발 중에는 어떤 값이 들어오는지 로그로 확인
-        console.debug("[logGameEvent]", event);
-    }
-
-    const { gameSessionId, roomId, studentId, eventType, payload } = event;
-
-    if (!gameSessionId || !roomId || !studentId) {
-        console.warn("[logGameEvent] missing ids", {
-            gameSessionId,
-            roomId,
-            studentId,
-        });
-        return;
-    }
-
+// src/api/gameEvents.ts (또는 gameSessions.ts 안에)
+export async function logGameEvent(params: {
+    gameSessionId: string;
+    roomId: string;
+    studentId: string;
+    eventType: string;
+    payload: any;
+}) {
     const { error } = await supabase.from("game_events").insert({
-        game_session_id: gameSessionId,
-        room_id: roomId,
-        student_id: studentId,
-        event_type: eventType,
-        payload,
+        game_session_id: params.gameSessionId,
+        room_id: params.roomId,
+        student_id: params.studentId,
+        event_type: params.eventType,
+        payload: params.payload,
     });
 
     if (error) {
         console.error("[logGameEvent] insert error", error);
-        throw error;
     }
 }
+
 
 /**
  * quiz_sessions.id와 동일한 id로 game_sessions를 보장
@@ -49,50 +40,35 @@ export async function logGameEvent(event: GameEventLog): Promise<void> {
  * - 없으면 새로 insert
  */
 export async function ensureGameSession(params: {
-    sessionId: string;
     roomId: string;
-    gameId: string;
-    quizpackId?: string | null;
+    gameId: string;          // 'qdd' | 'quizmon' | ...
+    quizPackId: string;
+    quizSessionId: string;   // quiz_sessions.id
 }) {
-    const { sessionId, roomId, gameId, quizpackId } = params;
+    const { roomId, gameId, quizPackId, quizSessionId } = params;
 
-    if (!sessionId || !roomId) return;
-
-    // 이미 있는지 먼저 확인
-    const { data: existing, error: loadErr } = await supabase
-        .from("game_sessions")
-        .select("id, status")
-        .eq("id", sessionId)
-        .maybeSingle();
-
-    if (loadErr) {
-        console.error("[ensureGameSession] load error", loadErr);
-        throw loadErr;
-    }
-
-    if (existing) {
-        return existing;
-    }
-
-    // 없으면 새로 생성 (id를 quiz_sessions.id와 동일하게 지정)
     const { data, error } = await supabase
         .from("game_sessions")
-        .insert({
-            id: sessionId,
-            room_id: roomId,
-            game_id: gameId,
-            quizpack_id: quizpackId ?? null,
-            status: "running",
-        })
-        .select("id, status")
+        .upsert(
+            {
+                room_id: roomId,
+                game_id: gameId,
+                quiz_pack_id: quizPackId,
+                quiz_session_id: quizSessionId,
+            },
+            {
+                onConflict: "room_id,quiz_session_id,game_id",
+            },
+        )
+        .select("id")
         .single();
 
     if (error) {
-        console.error("[ensureGameSession] insert error", error);
+        console.error("[ensureGameSession] upsert error", error);
         throw error;
     }
 
-    return data;
+    return data; // { id: '...gameSessionId...' }
 }
 
 /**

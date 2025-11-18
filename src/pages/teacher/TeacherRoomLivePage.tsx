@@ -576,11 +576,12 @@ export function TeacherRoomLivePage() {
                 .eq("id", room.id);
 
             // game_sessions에도 동일한 id로 세션 기록 (특히 QDD용)
+            // game_sessions에도 동일한 id로 세션 기록 (특히 QDD용)
             await ensureGameSession({
-                sessionId: newSession.id,
                 roomId: room.id,
                 gameId: room.game_key || "quiz-only",
-                quizpackId: pack.id,
+                quizPackId: pack.id,        // ✅ camelCase 맞추기
+                quizSessionId: newSession.id, // ✅ sessionId → quizSessionId 로
             });
         } finally {
             setSaving(false);
