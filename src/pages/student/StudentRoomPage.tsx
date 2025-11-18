@@ -5,7 +5,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { usePresence } from "../../hooks/usePresence";
 import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 import type { QuizPackRow } from "./StudentPlayPackPage";
-import { GAME_REGISTRY } from "../../games/gameRegistry";
+import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
 
 
 type RoomRow = {
@@ -186,23 +186,29 @@ export function StudentRoomPage() {
         nickname,
     });
 
-    // 이 방이 QDD 연동 방인지 여부
-    const isQddRoom =
-        room?.game_key === "qdd" || state.gameKey === "qdd";
-
-    // quiz_sessions.id를 브리지에서 쓸 세션 ID로
+    // 이 방의 실제 게임 키 (rooms.game_key → navigation state → 기본값)
+    const effectiveGameKey: GameKey =
+        ((room?.game_key as GameKey) ??
+            (state.gameKey as GameKey) ??
+            "quiz-only");
+    
+    const gameSpec = GAME_REGISTRY[effectiveGameKey];
+    const isIframeGame = gameSpec?.mode === "iframe";
+    const isQddRoom = effectiveGameKey === "qdd";
+    
+    // quiz_sessions.id를 브리지에서 쓸 세션 ID로 (iframe 게임만 사용)
     const effectiveGameSessionId =
-        isQddRoom && session ? session.id : "";
-
-    // ✅ QDD ↔ ClassHub 브리지: 항상 한 번 호출 (조건문 X, early return 위!)
+        isIframeGame && session ? session.id : "";
+    
+    // ✅ 게임 ↔ ClassHub 브리지: 항상 한 번 호출
+    // (현재는 QDD만 실제로 postMessage를 쓰지만 Pixel 등 확장도 대비)
     useGameHostBridge({
-        iframeRef,
-        gameId: isQddRoom ? "qdd" : room?.game_key ?? "quiz-only",
-        gameSessionId: effectiveGameSessionId,
-        roomId: room?.id ?? "",
-        // 아직 QDD가 CH_REQUEST_QUIZPACK을 안 쓰고 있으니 null로
-        quizpackJson: null,
-        studentId: studentKey,
+            iframeRef,
+            gameId: effectiveGameKey,
+            gameSessionId: effectiveGameSessionId,
+            roomId: room?.id ?? "",
+            quizpackJson: null,
+            studentId: studentKey,
     });
     
     // 1) 방 기본 정보 로드
@@ -562,26 +568,27 @@ export function StudentRoomPage() {
     const roomCode = state.roomCode ?? room.code;
 
 
-    // QDD iframe URL 기본값
-    const qddSpec = GAME_REGISTRY["qdd"];
-    const baseQddUrl =
-        isQddRoom &&
-        room &&
-        pack &&
-        qddSpec.mode === "iframe"
-            ? qddSpec.buildUrl({
-                pack,
-                roomId: room.id,
-            })
-            : null;
-
-    // sessionId를 쿼리 스트링으로 실어 QDD에 전달
-    const qddUrl =
-        baseQddUrl && effectiveGameSessionId
-            ? `${baseQddUrl}${
-                baseQddUrl.includes("?") ? "&" : "?"
-            }sessionId=${encodeURIComponent(effectiveGameSessionId)}`
-            : baseQddUrl;
+    const currentGameSpec = gameSpec;
+    const gameLabel = currentGameSpec?.label ?? "게임";
+    
+    // iframe 게임일 때 기본 URL 생성 (QDD, Pixel 등)
+    const baseGameUrl =
+            isIframeGame && room && pack && currentGameSpec?.mode === "iframe"
+                ? currentGameSpec.buildUrl({
+                        pack,
+                        roomId: room.id,
+                })
+                : null;
+    
+            // QDD만 sessionId를 쿼리 스트링으로 전달 (Pixel은 필요 없음)
+                const gameUrl = 
+                    baseGameUrl && 
+                    effectiveGameSessionId && 
+                    currentGameSpec?.key === "qdd" 
+                        ? `${baseGameUrl}${
+                                  baseGameUrl.includes("?") ? "&" : "?"
+                                  }sessionId=${encodeURIComponent(effectiveGameSessionId)}`
+                        : baseGameUrl;
     
 
     if (!roomId) {
@@ -641,7 +648,7 @@ export function StudentRoomPage() {
             {/* 상단 요약 + 진행도 바 */}
             <div
                 style={{
-                    maxWidth: isQddRoom ? 1920 : 1080,
+                    maxWidth: isIframeGame ? 1920 : 1080,
                     margin: "0 auto 1rem",
                 }}
             >
@@ -762,10 +769,10 @@ export function StudentRoomPage() {
                         {isQddRoom ? "현재 게임" : "현재 문제"}
                     </h2>
 
-                    {isQddRoom &&
+                    {isIframeGame &&
                         session &&
                         session.status === "running" &&
-                        qddUrl && (
+                        gameUrl && (
                             <button
                                 type="button"
                                 className="secondary-btn"
@@ -781,13 +788,15 @@ export function StudentRoomPage() {
                 </div>
 
                 {/* QDD 방일 때 / 일반 퀴즈 방일 때 분기 */}
-                {isQddRoom ? (
+                {isIframeGame ? (
                     !pack ? (
                         <p>
                             이 방의 퀴즈팩 정보를 불러오지 못했습니다. 잠시 후
                             다시 시도해 주세요.
                         </p>
-                    ) : !session || session.status !== "running" || !qddUrl ? (
+                    ) : !session ||
+                    session.status !== "running" ||
+                    !gameUrl ? (
                         <>
                             <p
                                 style={{
@@ -797,7 +806,7 @@ export function StudentRoomPage() {
                                 }}
                             >
                                 이 방은{" "}
-                                <strong>퀴즈 다이스 디펜스(QDD)</strong>{" "}
+                                <strong>{gameLabel}</strong>{" "}
                                 게임용 방입니다.
                             </p>
                             <p
@@ -815,8 +824,8 @@ export function StudentRoomPage() {
                                         color: "var(--text-sub)",
                                     }}
                                 >
-                                    (게임이 시작되면 이 위치에 QDD 게임 화면이
-                                    표시됩니다)
+                                    (게임이 시작되면 이 위치에 {gameLabel} 게임
+                                    화면이 표시됩니다)
                                 </span>
                             </p>
                         </>
@@ -846,7 +855,7 @@ export function StudentRoomPage() {
                         >
                             <iframe
                                 title="퀴즈 다이스 디펜스(QDD)"
-                                src={qddUrl ?? undefined}
+                                src={gameUrl ?? undefined}
                                 ref={iframeRef}
                                 style={{
                                     position: "absolute",
