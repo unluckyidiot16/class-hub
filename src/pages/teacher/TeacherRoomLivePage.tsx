@@ -199,6 +199,10 @@ export function TeacherRoomLivePage() {
     const [personalMessageLink, setPersonalMessageLink] = useState("");
     const [sendingPersonalMessage, setSendingPersonalMessage] = useState(false);
 
+    // 🔹 QDD용 game_events 기반 통계 (문제별 보기 분포)
+    const [qddStats, setQddStats] =
+        useState<Record<string, QddQuestionStats>>({});
+
     // origin 한 번만 세팅
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -487,10 +491,6 @@ export function TeacherRoomLivePage() {
             studentJoinUrl,
         )}`
         : "";
-
-    // QDD용 game_events 기반 통계 (문제별 보기 분포 – 기존 로직)
-    const [qddStats, setQddStats] =
-        useState<Record<string, QddQuestionStats>>({});
 
     const currentQuestion =
         session && session.status === "running" && questions.length > 0

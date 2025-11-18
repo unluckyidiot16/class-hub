@@ -2,123 +2,118 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-export type QddAnswerStats = {
+export type QddQuestionStats = {
     total: number;
     correct: number;
     wrong: number;
-    options: Record<number, number>; // answerIndex -> count
 };
 
-export type QddStatsMap = Record<string, QddAnswerStats>;
-
 type GameEventRow = {
-    id: string;
+    id: number;
+    game_id: string;
+    game_session_id: string;
     room_id: string;
     event_type: string;
-    payload: {
-        questionId?: string;
-        answerIndex?: number;
-        correct?: boolean;
-    } | null;
+    payload: any;
     created_at: string;
 };
 
-function accumulate(prev: QddStatsMap, row: GameEventRow): QddStatsMap {
-    const p = row.payload ?? {};
+function applyEvent(
+    prev: Record<string, QddQuestionStats>,
+    ev: GameEventRow,
+): Record<string, QddQuestionStats> {
+    // QDD 답안 이벤트만 카운트
+    if (ev.game_id !== "qdd") return prev;
+    if (ev.event_type !== "answer") return prev;
 
-    const qid =
-        typeof p.questionId === "string" && p.questionId.length > 0
-            ? p.questionId
-            : "unknown";
+    const { questionId, correct } = ev.payload ?? {};
+    if (!questionId) return prev;
 
-    const answerIdx =
-        typeof p.answerIndex === "number" ? p.answerIndex : -1;
-    if (answerIdx < 0) return prev;
-
-    const isCorrect = p.correct === true;
-
-    const existing =
-        prev[qid] || { total: 0, correct: 0, wrong: 0, options: {} };
-
-    const next: QddAnswerStats = {
-        total: existing.total + 1,
-        correct: existing.correct + (isCorrect ? 1 : 0),
-        wrong: existing.wrong + (isCorrect ? 0 : 1),
-        options: {
-            ...existing.options,
-            [answerIdx]: (existing.options[answerIdx] ?? 0) + 1,
-        },
+    const current = prev[questionId] ?? { total: 0, correct: 0, wrong: 0 };
+    const next: QddQuestionStats = {
+        total: current.total + 1,
+        correct: current.correct + (correct ? 1 : 0),
+        wrong: current.wrong + (correct ? 0 : 1),
     };
 
     return {
         ...prev,
-        [qid]: next,
+        [questionId]: next,
     };
 }
 
-export function useQddAnswerStats(roomId: string | null) {
-    const [stats, setStats] = useState<QddStatsMap>({});
+function buildStats(events: GameEventRow[]): Record<string, QddQuestionStats> {
+    let acc: Record<string, QddQuestionStats> = {};
+    for (const ev of events) {
+        acc = applyEvent(acc, ev);
+    }
+    return acc;
+}
+
+/**
+ * QDD 전용: game_events 기준으로 질문별 통계를 계산해 주는 훅
+ */
+export function useQddAnswerStats(params: {
+    roomId: string | null;
+    gameSessionId: string | null;
+}) {
+    const { roomId, gameSessionId } = params;
+    const [stats, setStats] = useState<Record<string, QddQuestionStats>>({});
 
     useEffect(() => {
-        if (!roomId) return;
+        if (!roomId || !gameSessionId) return;
+
         let cancelled = false;
 
-        async function bootstrap() {
+        // 1) 페이지 진입 시 한 번 전체 로드
+        async function loadInitial() {
             const { data, error } = await supabase
                 .from("game_events")
-                .select("id, room_id, event_type, payload, created_at")
+                .select(
+                    "id, game_id, game_session_id, room_id, event_type, payload, created_at",
+                )
                 .eq("room_id", roomId)
-                .order("created_at", { ascending: true });
+                .eq("game_session_id", gameSessionId)
+                .eq("game_id", "qdd")
+                .order("id", { ascending: true });
 
-            console.log("[TeacherRoomLive] game_events initial", {
-                roomId,
-                data,
-                error,
-            });
-
-            if (error || !data) return;
-            if (cancelled) return;
-
-            let next: QddStatsMap = {};
-            for (const row of data as GameEventRow[]) {
-                next = accumulate(next, row);
+            if (error) {
+                console.error("[QDD] loadInitial game_events error", error);
+                return;
             }
-            setStats(next);
+            if (!data || cancelled) return;
+
+            const typed = data as GameEventRow[];
+            setStats(buildStats(typed));
         }
 
-        void bootstrap();
+        loadInitial();
 
+        // 2) Realtime INSERT 구독
         const channel = supabase
-            .channel(`game_events:room=${roomId}`)
+            .channel(`realtime:qdd:${gameSessionId}`)
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `room_id=eq.${roomId}`,
+                    filter: `game_session_id=eq.${gameSessionId}`,
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
-                    console.log(
-                        "[TeacherRoomLive] game_events realtime INSERT",
-                        row,
-                    );
-                    setStats((prev) => accumulate(prev, row));
+                    setStats((prev) => applyEvent(prev, row));
                 },
             )
             .subscribe((status) => {
-                console.log(
-                    "[TeacherRoomLive] game_events channel status:",
-                    status,
-                );
+                console.log("[QDD] game_events channel status:", status);
             });
 
         return () => {
             cancelled = true;
             supabase.removeChannel(channel);
         };
-    }, [roomId]);
+    }, [roomId, gameSessionId]);
 
     return stats;
 }
