@@ -8,12 +8,47 @@ export type QddAnswerStats = {
     wrong: number;
 };
 
-export type QddStatsMap = Record<string, QddAnswerStats>; // key: question_id
+export type QddStatsMap = Record<string, QddAnswerStats>; // key: questionId (또는 unknown)
 
-function accumulate(prev: QddStatsMap, row: any): QddStatsMap {
-    const qid: string = row.question_id || "unknown";
+/** game_events 한 줄 타입 (payload 기반) */
+type GameEventRow = {
+    id: string;
+    room_id: string;
+    event_type: string;
+    payload: {
+        questionId?: string;
+        answerIndex?: number;
+        correct?: boolean;
+        // timeMs 등 다른 필드는 무시
+    } | null;
+    created_at: string;
+};
+
+/** 1개의 이벤트를 stats 맵에 반영 */
+function accumulate(prev: QddStatsMap, row: GameEventRow): QddStatsMap {
+    // event_type 이 애매하면 여기서 필터링 (answer / qdd-answer / CH_REPORT_ANSWER 전부 허용)
+    const t = row.event_type;
+    if (
+        t !== "answer" &&
+        t !== "qdd-answer" &&
+        t !== "CH_REPORT_ANSWER"
+    ) {
+        return prev;
+    }
+
+    const p = row.payload ?? {};
+    const qid =
+        typeof p.questionId === "string" && p.questionId.length > 0
+            ? p.questionId
+            : "unknown";
+
+    const answerIdx =
+        typeof p.answerIndex === "number" ? p.answerIndex : -1;
+    if (answerIdx < 0) return prev;
+
+    const isCorrect = p.correct === true;
+
     const existing = prev[qid] || { total: 0, correct: 0, wrong: 0 };
-    const isCorrect = row.is_correct === true;
 
     return {
         ...prev,
@@ -25,6 +60,11 @@ function accumulate(prev: QddStatsMap, row: any): QddStatsMap {
     };
 }
 
+/**
+ * roomId 기준으로 QDD 정답 통계를 실시간으로 집계
+ * - 초기에는 game_events 전체를 한 번 select
+ * - 이후에는 Realtime INSERT 이벤트마다 stats 갱신
+ */
 export function useQddAnswerStats(roomId: string | null) {
     const [stats, setStats] = useState<QddStatsMap>({});
 
@@ -36,21 +76,29 @@ export function useQddAnswerStats(roomId: string | null) {
         async function bootstrap() {
             const { data, error } = await supabase
                 .from("game_events")
-                .select(
-                    "id, room_id, game_key, event_type, question_id, is_correct, answer_index"
-                )
+                .select("id, room_id, event_type, payload, created_at")
                 .eq("room_id", roomId)
-                .eq("game_key", "qdd")
-                .eq("event_type", "answer");
+                .order("created_at", { ascending: true });
 
-            if (error) {
-                console.error("[TeacherRoomLive] load game_events failed", error);
+            console.log("[TeacherRoomLive] game_events initial", {
+                roomId,
+                data,
+                error,
+            });
+
+            if (error || !data) {
+                if (error) {
+                    console.error(
+                        "[TeacherRoomLive] load game_events failed",
+                        error,
+                    );
+                }
                 return;
             }
             if (cancelled) return;
 
             let next: QddStatsMap = {};
-            for (const row of data ?? []) {
+            for (const row of data as GameEventRow[]) {
                 next = accumulate(next, row);
             }
             setStats(next);
@@ -70,16 +118,19 @@ export function useQddAnswerStats(roomId: string | null) {
                     filter: `room_id=eq.${roomId}`,
                 },
                 (payload) => {
-                    const row: any = payload.new;
-                    if (!row) return;
-                    if (row.game_key !== "qdd") return;
-                    if (row.event_type !== "answer") return;
-
+                    const row = payload.new as GameEventRow;
+                    console.log(
+                        "[TeacherRoomLive] game_events realtime INSERT",
+                        row,
+                    );
                     setStats((prev) => accumulate(prev, row));
-                }
+                },
             )
             .subscribe((status) => {
-                console.log("[TeacherRoomLive] game_events channel status:", status);
+                console.log(
+                    "[TeacherRoomLive] game_events channel status:",
+                    status,
+                );
             });
 
         return () => {

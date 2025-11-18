@@ -12,6 +12,7 @@ import {
     endGameSession,
 } from "../../api/gameSessions";
 
+
 type RoomRow = {
     id: string;
     teacher_id: string;
@@ -95,7 +96,17 @@ function applyQddEvent(
     base: Record<string, QddQuestionStats>,
     row: GameEventRow,
 ): Record<string, QddQuestionStats> {
-    if (row.event_type !== "answer" || !row.payload) return base;
+    if (!row.payload) return base;
+
+    // ✅ useQddAnswerStats와 동일하게 event_type 허용 범위 확장
+    const t = row.event_type;
+    if (
+        t !== "answer" &&
+        t !== "qdd-answer" &&
+        t !== "CH_REPORT_ANSWER"
+    ) {
+        return base;
+    }
 
     const payload = row.payload as {
         questionId?: string;
@@ -119,21 +130,23 @@ function applyQddEvent(
         options: {},
     };
 
-    const next: QddQuestionStats = {
-        ...existing,
-        total: existing.total + 1,
-        correct: existing.correct + (correct ? 1 : 0),
-        options: {
-            ...existing.options,
-            [answerIndex]: (existing.options[answerIndex] ?? 0) + 1,
-        },
-    };
+    const nextOptions = { ...existing.options };
+    nextOptions[answerIndex] = (nextOptions[answerIndex] ?? 0) + 1;
+
+    const nextTotal = existing.total + 1;
+    const nextCorrect = existing.correct + (correct ? 1 : 0);
 
     return {
         ...base,
-        [qid]: next,
+        [qid]: {
+            questionId: qid,
+            total: nextTotal,
+            correct: nextCorrect,
+            options: nextOptions,
+        },
     };
 }
+
 
 /** 초기 game_events 목록 → QDD 통계 맵 */
 function buildQddStats(rows: GameEventRow[]): Record<string, QddQuestionStats> {
