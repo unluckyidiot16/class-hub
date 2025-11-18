@@ -547,26 +547,25 @@ export function TeacherRoomLivePage() {
         void loadEvents();
 
         const channel = supabase
-            .channel(`game_events:session:${activeGameSessionId}`) // ✅ 변경
+            .channel(`game_events:session:${session.id}`)
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `game_session_id=eq.${activeGameSessionId}`, // ✅ 변경
+                    filter: `game_session_id=eq.${session.id}`,
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
+                    console.log("[TeacherRoomLive] realtime game_event:", row); // 👈 추가
                     setQddStats((prev) => applyQddEvent(prev, row));
                 },
             )
             .subscribe((status) => {
-                console.log(
-                    "[TeacherRoomLive] game_events channel status:",
-                    status,
-                );
+                console.log("[TeacherRoomLive] game_events channel status:", status);
             });
+
 
         return () => {
             cancelled = true;
