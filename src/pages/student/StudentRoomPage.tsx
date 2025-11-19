@@ -6,6 +6,9 @@ import { usePresence } from "../../hooks/usePresence";
 import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
+import { logGameEvent } from "../../api/gameSessions";
+import type { QuizAnswerResult } from "../../games/quizmon/types"; // ⭐ 추가
+
 
 
 type RoomRow = {
@@ -942,6 +945,24 @@ export function StudentRoomPage() {
                         roomId={room?.id ?? null}
                         pack={pack}
                         session={session}
+                        gameSessionId={gameSessionId}
+                        studentId={studentId}
+                        onQuizAnswer={(r: QuizAnswerResult) => {
+                            if (!room?.id || !gameSessionId || !studentId) return;
+                            void logGameEvent({
+                                roomId: room.id,
+                                gameSessionId,
+                                studentId,
+                                eventType: "answer",
+                                payload: {
+                                    game: "quizmon",
+                                    questionId: r.questionId,
+                                    answerIndex: r.chosenIndex,
+                                    correct: r.correct,
+                                    timeMs: r.timeMs,
+                                },
+                            });
+                        }}
                     />
                 ) : !session || session.status === "ended" ? (
                     <p>

@@ -59,20 +59,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
         if (!state.pendingEnemyMove && state.phase === "command") {
             const enemyMove = enemyMon.moves[0];
             setState((prev) => ({
-                ...prev,
-                pendingEnemyMove: {
-                    side: "enemy",
-                    move: enemyMove,
+                    ...prev,
+                pendingEnemyMove: { 
+                        side: "enemy",
+                        move: enemyMove,
                 },
             }));
         }
-    }, [state.phase, state.pendingEnemyMove, enemyMon.moves]);
+        }, [state.phase, state.pendingEnemyMove, enemyMon]);
 
     /** 현재 질문 선택 (없으면 null) */
     const getNextQuestion = (): QuizQuestionLite | null => {
-        if (!questions.length) return null;
-        const q = questions[questionIndex % questions.length];
-        return q;
+        if (!questions || questions.length === 0) return null;
+        return questions[questionIndex % questions.length];
     };
 
     const handleSelectMove = (move: Move) => {
