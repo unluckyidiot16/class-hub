@@ -546,6 +546,7 @@ export function TeacherRoomLivePage() {
                     "[TeacherRoomLive] game_events channel status:",
                     status,
                 );
+                console.log("[TeacherRoomLive] activeGameSessionId =", activeGameSessionId);
             });
 
         return () => {

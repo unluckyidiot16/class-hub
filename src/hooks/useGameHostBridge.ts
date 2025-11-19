@@ -67,8 +67,13 @@ export function useGameHostBridge(params: HostBridgeParams) {
                     timeMs: timeMs ?? null,
                 };
 
-                // ✅ ➊ snake_case 파라미터 이름
-                // ✅ ➋ event_type 은 기존 "answer" 로 통일
+                console.log("[HostBridge] logGameEvent params", {
+                    gameSessionId,
+                    roomId,
+                    studentId,
+                    payload,
+                });
+
                 void logGameEvent({
                     gameSessionId: gameSessionId,
                     roomId: roomId,
@@ -77,6 +82,7 @@ export function useGameHostBridge(params: HostBridgeParams) {
                     payload,
                 });
             }
+
 
             if (msg.type === "CH_REPORT_SUMMARY") {
                 const payload = {
