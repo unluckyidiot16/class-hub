@@ -10,6 +10,7 @@ import type {
     QuizPackQuestionV1,
 } from "../../types/quizPackJson";
 import { QuizMonGame } from "./QuizMonGame";
+import type { QuizAnswerResult } from "./types"; // ⭐ 추가
 
 type SessionRow = {
     id: string;
@@ -21,8 +22,10 @@ type QuizMonClassPanelProps = {
     roomId: string | null;
     pack: QuizPackRow | null;
     session: SessionRow | null;
-};
 
+    // ⭐ StudentRoomPage 쪽에서 넘겨줄 콜백
+    onQuizAnswer?: (result: QuizAnswerResult) => void;
+};
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const { pack, session } = props;
 
