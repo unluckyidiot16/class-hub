@@ -241,6 +241,28 @@ export function TeacherRoomLivePage() {
         return `${qddQuestionPrefix}-${suffix}`;     // "Eng5_9-001"
     }
 
+    // DB question.id 기준으로 다시 매핑한 통계 (SessionSummaryPanel 용)
+    const qddStatsByQuestionId: Record<string, QddQuestionStats> = useMemo(
+        () => {
+            if (!room || room.game_key !== "qdd") return {};
+            if (!qddQuestionPrefix) return {};
+
+            const out: Record<string, QddQuestionStats> = {};
+            for (const q of questions) {
+                const key = getQddKeyForQuestion(q);
+                if (!key) continue;
+                const s = qddStats[key];
+                if (s) {
+                    // 키를 QDD questionId → DB question.id 로 변경
+                    out[q.id] = s;
+                }
+            }
+            return out;
+        },
+        [room?.game_key, qddQuestionPrefix, qddStats, questions],
+    );
+
+
     // 현재 퀴즈 세션과 연결된 game_sessions.id (QDD용)
     const [activeGameSessionId, setActiveGameSessionId] = useState<string | null>(null);
 
@@ -877,9 +899,6 @@ export function TeacherRoomLivePage() {
         setShowQrModal(true);
     };
 
-    const isGameEventsRoom =
-        room?.game_key === "qdd" || room?.game_key === "quizmon";
-    
     // ✅ QR만 새 창으로 열기 (빔프로젝터용)
     const handleOpenQrWindow = () => {
         if (!studentJoinUrl) return;
@@ -1561,7 +1580,10 @@ export function TeacherRoomLivePage() {
                     <SessionSummaryPanel
                         sessionId={session.id}
                         questions={questions}
-                        qddStatsByQuestion={isGameEventsRoom ? qddStats : undefined}
+                        // QDD 방일 때만 game_events 기반 통계를 함께 전달
+                        qddStatsByQuestion={
+                            room?.game_key === "qdd" ? qddStatsByQuestionId : undefined
+                        }
                     />
                 </div>
             )}
