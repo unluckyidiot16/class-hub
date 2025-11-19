@@ -481,38 +481,13 @@ export function TeacherRoomLivePage() {
         void loadStudents();
     }, [room?.id, session?.id]);
 
-    // 방 기준 최근 메시지 불러오기
+    // QDD/QuizMon용 game_events 로드 + Realtime 구독
     useEffect(() => {
-        if (!room?.id) {
-            setMessages([]);
-            return;
-        }
+        const isGameEventsRoom =
+            room?.game_key === "qdd" || room?.game_key === "quizmon";
 
-        const loadMessages = async () => {
-            const { data, error } = await supabase
-                .from("room_messages")
-                .select(
-                    "id, room_id, session_id, sender_id, target_type, target_student_key, target_nickname, body, link_url, created_at",
-                )
-                .eq("room_id", room.id)
-                .order("created_at", { ascending: false })
-                .limit(50);
-
-            if (error) {
-                console.error("[TeacherRoomLive] load messages error", error);
-                return;
-            }
-
-            setMessages((data ?? []) as RoomMessageRow[]);
-        };
-
-        void loadMessages();
-    }, [room?.id, session?.id]);
-
-    // QDD용 game_events 로드 + Realtime 구독
-    useEffect(() => {
-        // QDD 방이 아니거나 세션이 없거나 game_sessionId를 아직 모르면 통계 초기화
-        if (!room?.id || !session?.id || room.game_key !== "qdd" || !activeGameSessionId) {
+        // QDD/QuizMon 방이 아니거나, game_sessionId를 아직 모르면 통계 초기화
+        if (!room?.id || !isGameEventsRoom || !activeGameSessionId) {
             setQddStats({});
             return;
         }
@@ -526,7 +501,7 @@ export function TeacherRoomLivePage() {
                     "id, game_session_id, room_id, student_id, event_type, payload, created_at",
                 )
                 .eq("room_id", room.id)
-                .eq("game_session_id", activeGameSessionId)  // ✅ 변경
+                .eq("game_session_id", activeGameSessionId) // ✅ game_sessions.id 기준
                 .order("created_at", { ascending: true });
 
             if (error) {
@@ -547,31 +522,38 @@ export function TeacherRoomLivePage() {
         void loadEvents();
 
         const channel = supabase
-            .channel(`game_events:session:${session.id}`)
+            .channel(`game_events:session:${activeGameSessionId}`)
             .on(
                 "postgres_changes",
                 {
                     event: "INSERT",
                     schema: "public",
                     table: "game_events",
-                    filter: `game_session_id=eq.${session.id}`,
+                    // ✅ 여기서도 activeGameSessionId 사용
+                    filter: `game_session_id=eq.${activeGameSessionId}`,
                 },
                 (payload) => {
                     const row = payload.new as GameEventRow;
-                    console.log("[TeacherRoomLive] realtime game_event:", row); // 👈 추가
+                    console.log(
+                        "[TeacherRoomLive] realtime game_event:",
+                        row,
+                    );
                     setQddStats((prev) => applyQddEvent(prev, row));
                 },
             )
             .subscribe((status) => {
-                console.log("[TeacherRoomLive] game_events channel status:", status);
+                console.log(
+                    "[TeacherRoomLive] game_events channel status:",
+                    status,
+                );
             });
-
 
         return () => {
             cancelled = true;
             supabase.removeChannel(channel);
         };
-    }, [room?.id, room?.game_key, session?.id, activeGameSessionId]);
+    }, [room?.id, room?.game_key, activeGameSessionId]);
+
 
 
 
