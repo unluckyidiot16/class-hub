@@ -240,19 +240,15 @@ export function StudentRoomPage() {
     // ✅ iframe 게임용 세션 ID는 "game_sessions.id"를 사용
     const effectiveGameSessionId =
         isIframeGame && gameSessionId ? gameSessionId : "";
-    
-    // ✅ 게임 ↔ ClassHub 브리지: 항상 한 번 호출
-    // (현재는 QDD만 실제로 postMessage를 쓰지만 Pixel 등 확장도 대비)
+
+
     useGameHostBridge({
-            iframeRef,
-        // 방에 설정된 실제 게임 키 사용 (예: "qdd", "pixel" 등)
-            gameId: effectiveGameKey,
-        // 아직 game_session이 없으면 빈 문자열 → 훅 내부 가드에서 막힘
-            gameSessionId: gameSessionId ?? "",
-        // room이 아직 로드되지 않았을 수도 있으므로 방어 코드
-            roomId: room?.id ?? "",
-            quizpackJson,
-            studentId,
+        iframeRef,
+        gameId: effectiveGameKey,
+        gameSessionId: effectiveGameSessionId,   // ⬅ 여기만 살짝 교체
+        roomId: room?.id ?? "",
+        quizpackJson,
+        studentId,
     });
 
     

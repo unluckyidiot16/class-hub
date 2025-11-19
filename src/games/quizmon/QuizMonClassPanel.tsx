@@ -27,7 +27,7 @@ type QuizMonClassPanelProps = {
     onQuizAnswer?: (result: QuizAnswerResult) => void;
 };
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
-    const { pack, session } = props;
+    const { pack, session, onQuizAnswer } = props;
 
     const [quizpack, setQuizpack] = useState<QuizPackJsonV1 | null>(null);
     const [loading, setLoading] = useState(false);
@@ -152,6 +152,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         <div>
             <QuizMonGame
                 quizpack={quizpack}
+                onQuizAnswer={onQuizAnswer}
                 // 나중에 game_events 연동할 때 여기서 onQuizAnswer 연결 예정
                 // onQuizAnswer={(result) => { ... }}
             />
