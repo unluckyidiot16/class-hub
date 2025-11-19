@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { logGameEvent } from "../api/gameSessions";
 
 type HostBridgeParams = {
-    iframeRef: React.RefObject<HTMLIFrameElement | null>; // ✅ null 허용
+    iframeRef: React.RefObject<HTMLIFrameElement | null>;
     gameId: string;
     gameSessionId: string;
     roomId: string;
@@ -33,50 +33,71 @@ type GameToHostMessage =
 export function useGameHostBridge(params: HostBridgeParams) {
     const {
         iframeRef,
+        gameId,
         gameSessionId,
         roomId,
         quizpackJson,
         studentId,
-        // ...
     } = params;
 
     useEffect(() => {
         if (!iframeRef.current) return;
-        if (!gameSessionId || !roomId || !studentId) return;  // ✅ 가드
+        if (!gameSessionId || !roomId || !studentId) return;
 
         function handleMessage(ev: MessageEvent<GameToHostMessage>) {
             const msg = ev.data;
             if (!msg || typeof msg !== "object") return;
 
+            // ✅ 공통 메타
+            const baseMeta = {
+                gameId,
+                packId: quizpackJson?.pack?.id ?? null,
+                studentId,
+            };
+
             if (msg.type === "CH_REPORT_ANSWER") {
-                logGameEvent({
-                    gameSessionId,
-                    roomId,
-                    studentId,
+                const { questionId, correct, answerIndex, timeMs } = msg;
+
+                const payload = {
+                    ...baseMeta,
+                    kind: "answer",
+                    questionId,
+                    correct,
+                    answerIndex,
+                    timeMs: timeMs ?? null,
+                };
+
+                // ✅ ➊ snake_case 파라미터 이름
+                // ✅ ➋ event_type 은 기존 "answer" 로 통일
+                void logGameEvent({
+                    gameSessionId: gameSessionId,
+                    roomId: roomId,
+                    studentId: studentId,
                     eventType: "answer",
-                    payload: {
-                        questionId: msg.questionId,
-                        answerIndex: msg.answerIndex,
-                        correct: msg.correct,
-                        timeMs: msg.timeMs ?? null,
-                    },
+                    payload,
                 });
             }
 
             if (msg.type === "CH_REPORT_SUMMARY") {
-                logGameEvent({
-                    gameSessionId,
-                    roomId,
-                    studentId,
+                const payload = {
+                    ...baseMeta,
+                    kind: "summary",
+                    summary: msg.summary,
+                };
+
+                void logGameEvent({
+                    gameSessionId: gameSessionId,
+                    roomId: roomId,
+                    studentId: studentId,
                     eventType: "summary",
-                    payload: msg.summary,
+                    payload,
                 });
             }
 
-            // CH_REQUEST_QUIZPACK 처리 등...
+            // CH_REQUEST_QUIZPACK 는 필요 시 나중에 처리
         }
 
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [iframeRef, gameSessionId, roomId, quizpackJson, studentId]);
+    }, [iframeRef, gameId, gameSessionId, roomId, quizpackJson, studentId]);
 }
