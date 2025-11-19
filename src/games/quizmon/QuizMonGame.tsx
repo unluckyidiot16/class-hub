@@ -1,6 +1,7 @@
 // src/games/quizmon/QuizMonGame.tsx
 import { useEffect, useMemo, useState } from "react";
 import { quizPackToLiteQuestions } from "./quizSource";
+import { logGameEvent } from "../../api/gameSessions";
 import {
     applyDamageToMonster,
     calcDamage,
@@ -12,6 +13,8 @@ import {
 import {
     createInitialBattleState,
 } from "./mockData"; // 트레이너/몬스터 기본값은 일단 mockData에서
+
+
 
 import type {
     BattleState,
@@ -27,10 +30,21 @@ type QuizMonGameProps = {
     /** 나중에 game_events 붙일 때 쓸 콜백 (지금은 선택 사항) */
     onQuizAnswer?: (result: QuizAnswerResult) => void;
     // onBattleEnd 등도 나중에 추가 가능
+
+    /** Supabase game_events 로그용 식별자들 (없으면 로깅 스킵) */
+    roomId?: string | null;
+    gameSessionId?: string | null;
+    studentId?: string | null;
 };
 
 export function QuizMonGame(props: QuizMonGameProps) {
-    const { quizpack, onQuizAnswer } = props;
+    const {
+        quizpack,
+        onQuizAnswer,
+        roomId,
+        gameSessionId,
+        studentId,
+    } = props;
 
     // 1) 전투 상태
     const [state, setState] = useState<BattleState>(() =>
@@ -116,8 +130,38 @@ export function QuizMonGame(props: QuizMonGameProps) {
             timeMs,
         };
 
-        // 밖으로도 한번 전달 (나중에 Supabase game_events에 연결)
+        // 밖으로도 한번 전달 (부모에서 별도 처리할 수 있도록)
         onQuizAnswer?.(quizResult);
+
+        // 🎯 Supabase game_events 로깅
+        // QDD 통계 파이프라인을 그대로 재사용할 수 있도록
+        // payload는 questionId / answerIndex / correct / timeMs 형태로 맞춘다.
+        if (roomId && gameSessionId && studentId) {
+            logGameEvent({
+                roomId,
+                gameSessionId,
+                studentId,
+                eventType: "quizmon-answer",
+                payload: {
+                    source: "quizmon",
+                    questionId: quizResult.questionId,
+                    answerIndex: quizResult.chosenIndex,
+                    correct: quizResult.correct,
+                    timeMs: quizResult.timeMs ?? null,
+                },
+            }).catch((err) => {
+                console.warn(
+                    "[QuizMonGame] failed to log game event",
+                    err,
+                );
+            });
+        } else {
+            console.warn("[QuizMonGame] skip logGameEvent – missing ids", { 
+                roomId,
+                gameSessionId,
+                studentId,
+            });
+        }
 
         // 한 번에 player → enemy 순으로만 처리 (샌드박스 단순화)
         setState((prev) => {

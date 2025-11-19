@@ -938,6 +938,9 @@ export function StudentRoomPage() {
                         roomId={room?.id ?? null}
                         pack={pack}
                         session={session}
+                        // QuizMon 등 React 게임에서도 game_events를 남길 수 있도록 전달
+                        gameSessionId={gameSessionId}
+                        studentId={studentId}
                     />
                 ) : !session || session.status === "ended" ? (
                     <p>

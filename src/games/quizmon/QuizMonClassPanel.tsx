@@ -23,11 +23,22 @@ type QuizMonClassPanelProps = {
     pack: QuizPackRow | null;
     session: SessionRow | null;
 
-    // ⭐ StudentRoomPage 쪽에서 넘겨줄 콜백
-    onQuizAnswer?: (result: QuizAnswerResult) => void;
+    /** React 게임(학생 화면)에서만 사용: Supabase game_events 연동용 */
+    gameSessionId?: string | null;
+        studentId?: string | null;
+    
+        // ⭐ StudentRoomPage / TeacherRoomLivePage 쪽에서 넘겨줄 콜백
+        onQuizAnswer?: (result: QuizAnswerResult) => void;
 };
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
-    const { pack, session, onQuizAnswer } = props;
+    const {
+        roomId,
+        pack,
+        session,
+        gameSessionId,
+        studentId,
+        onQuizAnswer,
+    } = props;
 
     const [quizpack, setQuizpack] = useState<QuizPackJsonV1 | null>(null);
     const [loading, setLoading] = useState(false);
@@ -153,8 +164,10 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             <QuizMonGame
                 quizpack={quizpack}
                 onQuizAnswer={onQuizAnswer}
-                // 나중에 game_events 연동할 때 여기서 onQuizAnswer 연결 예정
-                // onQuizAnswer={(result) => { ... }}
+                // 👉 StudentRoomPage(학생 측)에서 내려온 경우에만 값이 채워짐
+                roomId={roomId}
+                gameSessionId={gameSessionId}
+                studentId={studentId}
             />
         </div>
     );
