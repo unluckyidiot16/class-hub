@@ -8,8 +8,9 @@ import { SessionSummaryPanel } from "../../components/SessionSummaryPanel";
 import { usePresence } from "../../hooks/usePresence";
 import PresenceSidebar from "../../components/PresenceSidebar";
 import {ensureGameSession, endGameSession } from "../../api/gameSessions";
-// QDD 누적 요약 통계용 훅(useQddAnswerStats)은
-// 이 페이지에서는 현재 사용하지 않으므로 import를 제거했습니다.
+
+import { QuizMonClassPanel } from "../../games/quizmon/QuizMonClassPanel";
+
 
 
 type RoomRow = {
@@ -621,6 +622,15 @@ export function TeacherRoomLivePage() {
             : session && totalCount > 0
                 ? session.current_index + 1
                 : 0;
+
+    const quizMonSession =
+        session
+            ? {
+                id: session.id,
+                status: session.status as "pending" | "running" | "ended",
+                current_index: session.current_index,
+            }
+            : null;
 
     const handleStartSession = async () => {
         if (!room || !pack) return;
@@ -1568,6 +1578,26 @@ export function TeacherRoomLivePage() {
                         )}
                 </div>
             </div>
+
+            {/* 🔹 QuizMon 전용 클래스 패널 (교사용 미리보기) */}
+            {room?.game_key === "quizmon" && pack && (
+                <div className="card">
+                    <h2>QuizMon 클래스 패널 (베타)</h2>
+                    <p className="hint">
+                        현재 세션의 퀴즈를 사용해 퀴즈몬 배틀을 시뮬레이션합니다.
+                        (지금은 통계와는 독립된 테스트용 화면입니다.)
+                    </p>
+                    <div style={{ borderTop: "1px solid var(--border-subtle, #eee)", marginTop: "0.75rem", paddingTop: "0.75rem" }}>
+                        <QuizMonClassPanel
+                            roomId={room.id}
+                            pack={pack}
+                            session={quizMonSession}
+                            // onQuizAnswer는 나중에 game_events 연동할 때 여기서 넘겨줄 예정
+                        />
+                    </div>
+                </div>
+            )}
+
 
             {session && (
                 <div className="card" style={{ marginTop: "1rem" }}>
