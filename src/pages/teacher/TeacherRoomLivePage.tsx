@@ -242,24 +242,38 @@ export function TeacherRoomLivePage() {
         return `${qddQuestionPrefix}-${suffix}`;     // "Eng5_9-001"
     }
 
-    // DB question.id 기준으로 다시 매핑한 통계 (SessionSummaryPanel 용)
     const qddStatsByQuestionId: Record<string, QddQuestionStats> = useMemo(
-        () => {
-            if (!room || room.game_key !== "qdd") return {};
-            if (!qddQuestionPrefix) return {};
-
-            const out: Record<string, QddQuestionStats> = {};
-            for (const q of questions) {
-                const key = getQddKeyForQuestion(q);
-                if (!key) continue;
-                const s = qddStats[key];
-                if (s) {
-                    // 키를 QDD questionId → DB question.id 로 변경
-                    out[q.id] = s;
-                }
-            }
-            return out;
-        },
+                () => {
+                    if (!room) return {};
+        
+                    // 🧩 1) QDD: Eng5_9-033 → quiz_questions.id 로 매핑
+                    if (room.game_key === "qdd") {
+                        if (!qddQuestionPrefix) return {};                         
+                        const out: Record<string, QddQuestionStats> = {};
+                        for (const q of questions) {
+                            const key = getQddKeyForQuestion(q);
+                            if (!key) continue;
+                            const s = qddStats[key];
+                            if (s) {
+                                out[q.id] = s;
+                            }
+                        }
+                        return out;
+                    }
+        
+                    // 🧩 2) QuizMon: payload.questionId 를 quiz_questions.id 로 사용
+                    if (room.game_key === "quizmon") {
+                        const out: Record<string, QddQuestionStats> = {};
+                        for (const q of questions) {
+                            const s = qddStats[q.id];
+                            if (s) {
+                                out[q.id] = s;
+                            }
+                        }
+                        return out;
+                    }
+                    return {};
+                },
         [room?.game_key, qddQuestionPrefix, qddStats, questions],
     );
 
@@ -1490,16 +1504,26 @@ export function TeacherRoomLivePage() {
                             </div>
                         )}
 
-                    {/* QDD 방일 때 game_events 기반 실시간 통계 */}
-                    {room.game_key === "qdd" &&
+                    {/* QDD / QuizMon 방일 때 game_events 기반 실시간 통계 */}
+                    {(room.game_key === "qdd" ||
+                            room.game_key === "quizmon") &&
                         session &&
                         session.status === "running" &&
                         currentQuestion && (
                             <div className="card">
                                 <h2>QDD 실시간 통계 (game_events)</h2>
                                 {(() => {
-                                    const key = getQddKeyForQuestion(currentQuestion);
-                                    const stats = key ? qddStats[key] : undefined;
+                                    let stats: QddQuestionStats | undefined;
+                                    if (room.game_key === "qdd") {
+                                        const key =
+                                            getQddKeyForQuestion(
+                                                currentQuestion,
+                                            );
+                                        stats = key ? qddStats[key] : undefined;
+                                    } else if (room.game_key === "quizmon") {
+                                        // QuizMon 은 payload.questionId = quiz_questions.id 기준
+                                        stats = qddStats[currentQuestion.id];
+                                    }
 
                                     if (!stats) {
                                         return (
@@ -1587,7 +1611,13 @@ export function TeacherRoomLivePage() {
                         현재 세션의 퀴즈를 사용해 퀴즈몬 배틀을 시뮬레이션합니다.
                         (지금은 통계와는 독립된 테스트용 화면입니다.)
                     </p>
-                    <div style={{ borderTop: "1px solid var(--border-subtle, #eee)", marginTop: "0.75rem", paddingTop: "0.75rem" }}>
+                    <div
+                        style={{
+                            borderTop: "1px solid var(--border-subtle, #eee)",
+                            marginTop: "0.75rem",
+                            paddingTop: "0.75rem",
+                        }}
+                    >
                         <QuizMonClassPanel
                             roomId={room.id}
                             pack={pack}
@@ -1598,20 +1628,22 @@ export function TeacherRoomLivePage() {
                 </div>
             )}
 
-
+                {/* 🔹 세션 전체 요약 (문항별 정답률 표) */}
             {session && (
                 <div className="card" style={{ marginTop: "1rem" }}>
                     <SessionSummaryPanel
                         sessionId={session.id}
                         questions={questions}
-                        // QDD 방일 때만 game_events 기반 통계를 함께 전달
+                        // QDD 방일 때는 game_events(=QDD) 통계도 함께 더해줌
                         qddStatsByQuestion={
-                            room?.game_key === "qdd" ? qddStatsByQuestionId : undefined
+                            room?.game_key === "qdd"
+                                ? qddStatsByQuestionId
+                                : undefined
                         }
                     />
                 </div>
             )}
-
+            
             {/* 학생 상태 + 개별 메시지 모달 */}
             {showStudentStatusModal && (
                 <div
