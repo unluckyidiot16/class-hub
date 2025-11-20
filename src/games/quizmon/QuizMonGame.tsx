@@ -26,9 +26,11 @@ import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 type QuizMonGameProps = {
     quizpack: QuizPackJsonV1;
 
-    /** 나중에 game_events 붙일 때 쓸 콜백 (지금은 선택 사항) */
+    /** 정답 제출 시 호출 (이미 있음) */
     onQuizAnswer?: (result: QuizAnswerResult) => void;
-    // onBattleEnd 등도 나중에 추가 가능
+
+    /** 배틀이 끝났을 때 한 번 호출 */
+    onBattleEnd?: (summary: { correct: number; total: number }) => void;
 
     /** Supabase game_events 로그용 식별자들 (없으면 로깅 스킵) */
     roomId?: string | null;
@@ -36,10 +38,12 @@ type QuizMonGameProps = {
     studentId?: string | null;
 };
 
+
 export function QuizMonGame(props: QuizMonGameProps) {
     const {
         quizpack,
         onQuizAnswer,
+        onBattleEnd,
         roomId,
         gameSessionId,
         studentId,
@@ -49,14 +53,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [state, setState] = useState<BattleState>(() =>
         createInitialBattleState(),
     );
+    const [questionIndex, setQuestionIndex] = useState(0);
+
+    // 이번 배틀에서 학생이 푼 퀴즈 집계
+    const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
+    const [hasReportedEnd, setHasReportedEnd] = useState(false);
+
 
     // 2) 퀴즈 소스: quizpackJson → Lite 배열
     const questions: QuizQuestionLite[] = useMemo(
         () => quizPackToLiteQuestions(quizpack),
         [quizpack],
     );
-
-    const [questionIndex, setQuestionIndex] = useState(0);
 
     const playerMon = useMemo(
         () => state.player.monsters[state.player.activeIndex],
@@ -80,6 +88,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
             }));
         }
         }, [state.phase, state.pendingEnemyMove, enemyMon]);
+
+    // 배틀이 끝난 시점에 한 번만 onBattleEnd 호출
+    useEffect(() => {
+        if (!onBattleEnd) return;
+        if (state.phase !== "finished") return;
+        if (hasReportedEnd) return;
+        if (battleStats.total <= 0) return; // 한 문제도 풀지 않았다면 스킵
+
+        onBattleEnd({ ...battleStats });
+        setHasReportedEnd(true);
+    }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
+
 
     /** 현재 질문 선택 (없으면 null) */
     const getNextQuestion = (): QuizQuestionLite | null => {
@@ -128,6 +148,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
             correct,
             timeMs,
         };
+
+        // 🔹 이번 배틀 통계에 반영
+        setBattleStats((prev) => ({
+            correct: prev.correct + (correct ? 1 : 0),
+            total: prev.total + 1,
+        }));
 
         // 밖으로도 한번 전달 (부모에서 별도 처리할 수 있도록)
         onQuizAnswer?.(quizResult);
@@ -296,7 +322,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const handleReset = () => {
         setState(createInitialBattleState());
         setQuestionIndex(0);
+        setBattleStats({ correct: 0, total: 0 });
+        setHasReportedEnd(false);
     };
+
 
     return (
         <div style={{ padding: "1.5rem", maxWidth: 960, margin: "0 auto" }}>

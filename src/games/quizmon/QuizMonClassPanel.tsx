@@ -10,7 +10,8 @@ import type {
     QuizPackQuestionV1,
 } from "../../types/quizPackJson";
 import { QuizMonGame } from "./QuizMonGame";
-import type { QuizAnswerResult } from "./types"; // ⭐ 추가
+import type { QuizAnswerResult } from "./types"; 
+import { useQuizmonProfile } from "./useQuizmonProfile";
 
 type SessionRow = {
     id: string;
@@ -39,6 +40,11 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         studentId,
         onQuizAnswer,
     } = props;
+
+    // 학생 화면에서만 의미 있음 (studentId가 null이면 내부에서 바로 return)
+    const { applyRaidResult } = useQuizmonProfile({
+        studentKey: studentId ?? null,
+    });
 
     const [quizpack, setQuizpack] = useState<QuizPackJsonV1 | null>(null);
     const [loading, setLoading] = useState(false);
@@ -168,6 +174,14 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 roomId={roomId}
                 gameSessionId={gameSessionId}
                 studentId={studentId}
+                // ⭐ 배틀 종료 시 내 몬스터 레벨업/EXP 반영
+                onBattleEnd={
+                    studentId
+                        ? ({ correct, total }) => {
+                            void applyRaidResult({ correct, total });
+                        }
+                        : undefined
+                }
             />
         </div>
     );
