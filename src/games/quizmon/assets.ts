@@ -5,8 +5,8 @@ const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
 
 // ex) BASE_URL = "/class-hub/" 라면
 //   → "/class-hub/assets/quizmon/monsters/poke-0001.png"
-const MONSTER_BASE = `${BASE_URL}games/quizmon/monsters/`;
-const TRAINER_BASE = `${BASE_URL}games/quizmon/trainers/`;
+const MONSTER_BASE = `${BASE_URL}assets/quizmon/monsters/`;
+const TRAINER_BASE = `${BASE_URL}assets/quizmon/trainers/`;
 
 /**
  * species_id → 몬스터 스프라이트 URL
