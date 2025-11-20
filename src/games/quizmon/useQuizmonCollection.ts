@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import type { QuizmonOwnedMonsterRow } from "./types";
 
 // 아주 단순한 가챠 풀 (일단은 하드코딩)
-const GACHA_POOL = ["starter-001", "starter-002", "starter-003"] as const;
+const GACHA_POOL = ["starter-001"] as const;
 
 function rollSpeciesId(): string {
     const idx = Math.floor(Math.random() * GACHA_POOL.length);
