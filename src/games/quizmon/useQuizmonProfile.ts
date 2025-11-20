@@ -13,10 +13,14 @@ type UseQuizmonProfileResult = {
     loading: boolean;
     error: string | null;
     refresh: () => void;
+
     applyRaidResult: (params: {
         correct: number;
         total: number;
     }) => Promise<void>;
+
+    // 🔹 새로 추가
+    chooseStarter: (speciesId: string) => Promise<void>;
 };
 
 function calcTurnDamage(correct: number, total: number): number {
@@ -77,12 +81,14 @@ export function useQuizmonProfile(
                 }
 
                 if (!data) {
-                    // 2) 없으면 새 프로필 생성
                     const { data: inserted, error: insertError } = await supabase
                         .from("quizmon_profiles")
                         .insert({
                             student_key: studentKey,
-                            partner: DEFAULT_PARTNER,
+                            partner: DEFAULT_PARTNER, // 임시 기본 파트너 (나중에 스타터 선택 시 덮어씀)
+                            trainer_name: null,
+                            starter_species_id: null,
+                            starter_chosen: false,
                         })
                         .select("*")
                         .single();
@@ -152,5 +158,58 @@ export function useQuizmonProfile(
         [profile, studentKey],
     );
 
-    return { profile, loading, error, refresh, applyRaidResult };
+
+    // 🔹 스타터 선택 헬퍼
+    const chooseStarter = useCallback(
+        async (speciesId: string) => {
+            if (!profile || !studentKey) return;
+
+            // 1) 프로필에 파트너 / starter 정보 반영
+            const starterPartner: QuizmonPartner = {
+                speciesId,
+                level: 1,
+                exp: 0,
+            };
+
+            const { data, error } = await supabase
+                .from("quizmon_profiles")
+                .update({
+                    partner: starterPartner,
+                    starter_species_id: speciesId,
+                    starter_chosen: true,
+                })
+                .eq("id", profile.id)
+                .select("*")
+                .single();
+
+            if (error) {
+                console.error("[useQuizmonProfile] chooseStarter update error", error);
+                setError("스타터를 선택하는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            const updated = data as QuizmonProfileRow;
+            setProfile(updated);
+
+            // 2) 소유 몬스터 테이블에도 스타터 1마리 추가 (파티 1번 슬롯)
+            try {
+                await supabase.from("quizmon_owned_monsters").insert({
+                    profile_id: updated.id,
+                    species_id: speciesId,
+                    level: starterPartner.level,
+                    exp: starterPartner.exp,
+                    party_slot: 1,
+                });
+            } catch (e) {
+                // 여기 실패해도 치명적이지 않으니 콘솔만 남김
+                console.error(
+                    "[useQuizmonProfile] chooseStarter insert owned_monster error",
+                    e,
+                );
+            }
+        },
+        [profile, studentKey],
+    );
+
+    return { profile, loading, error, refresh, applyRaidResult, chooseStarter };
 }

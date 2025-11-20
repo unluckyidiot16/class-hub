@@ -1,13 +1,19 @@
 // src/games/quizmon/QuizMonClassPanel.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import type { QuizPackRow, QuizQuestionRow } from "../../pages/student/StudentPlayPackPage";
-import type { QuizPackJsonV1, QuizPackQuestionV1 } from "../../types/quizPackJson";
+import type {
+    QuizPackRow,
+    QuizQuestionRow,
+} from "../../pages/student/StudentPlayPackPage";
+import type {
+    QuizPackJsonV1,
+    QuizPackQuestionV1,
+} from "../../types/quizPackJson";
 import { QuizMonGame } from "./QuizMonGame";
 import type { QuizAnswerResult } from "./types";
 import { useQuizmonProfile } from "./useQuizmonProfile";
 import { useQuizmonCollection } from "./useQuizmonCollection";
-
+import { StarterSelectPanel } from "./StarterSelectPanel";
 
 type SessionRow = {
     id: string;
@@ -22,10 +28,10 @@ type QuizMonClassPanelProps = {
 
     /** React 게임(학생 화면)에서만 사용: Supabase game_events 연동용 */
     gameSessionId?: string | null;
-        studentId?: string | null;
-    
-        // ⭐ StudentRoomPage / TeacherRoomLivePage 쪽에서 넘겨줄 콜백
-        onQuizAnswer?: (result: QuizAnswerResult) => void;
+    studentId?: string | null;
+
+    // ⭐ StudentRoomPage / TeacherRoomLivePage 쪽에서 넘겨줄 콜백
+    onQuizAnswer?: (result: QuizAnswerResult) => void;
 };
 
 type LastRaidResult = {
@@ -35,7 +41,6 @@ type LastRaidResult = {
 
 const LEVEL_CAP = 10;
 const expNeededForLevel = (level: number) => 5 * level;
-
 
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const {
@@ -48,21 +53,48 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     } = props;
 
     const [quizpack, setQuizpack] = useState<QuizPackJsonV1 | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [quizLoading, setQuizLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const [lastRaidResult, setLastRaidResult] = useState<LastRaidResult | null>(null);
+    const [lastRaidResult, setLastRaidResult] =
+        useState<LastRaidResult | null>(null);
 
-    // 🔹 Quizmon 프로필
-    const { profile, applyRaidResult } = useQuizmonProfile({
+    const isStudent = !!studentId;
+
+    // 🔹 Quizmon 프로필 (학생일 때만 의미 있음)
+    const {
+        profile,
+        loading: profileLoading,
+        applyRaidResult,
+        chooseStarter,
+    } = useQuizmonProfile({
         studentKey: studentId ?? null,
     });
+
+    // 🔹 학생인 경우: 프로필/스타터 선택 가드
+    if (isStudent) {
+        if (!profile || profileLoading) {
+            return <p>프로필을 불러오는 중입니다...</p>;
+        }
+
+        if (!profile.starter_chosen) {
+            return (
+                <StarterSelectPanel
+                    disabled={profileLoading}
+                    onChooseStarter={async (speciesId) => {
+                        await chooseStarter(speciesId);
+                        // chooseStarter 내부에서 profile 갱신 → 다음 렌더부터는 로비/배틀 UI로 전환
+                    }}
+                />
+            );
+        }
+    }
 
     const partner = profile?.partner ?? null;
     let expNeeded = 0;
     let expRatio = 0;
 
-    // 🔹 컬렉션 / 가챠
+    // 🔹 컬렉션 / 가챠 (학생일 때만 실제로 데이터가 채워짐)
     const {
         monsters,
         loading: collLoading,
@@ -71,10 +103,10 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     } = useQuizmonCollection({ profileId: profile?.id ?? null });
 
     const handleBattleEnd = async (summary: { correct: number; total: number }) => {
-        if (!studentId) return;          // 교사 미리보기 방지
+        if (!studentId) return; // 교사 미리보기 방지
 
         setLastRaidResult(summary);
-        await applyRaidResult(summary);  // quizmon_profiles 갱신
+        await applyRaidResult(summary); // quizmon_profiles 갱신
     };
 
     if (partner) {
@@ -100,7 +132,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         let cancelled = false;
 
         const loadQuestions = async () => {
-            setLoading(true);
+            setQuizLoading(true);
             setErrorMsg(null);
 
             const { data, error } = await supabase
@@ -120,7 +152,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 );
                 setErrorMsg("퀴즈를 불러오는 중 오류가 발생했습니다.");
                 setQuizpack(null);
-                setLoading(false);
+                setQuizLoading(false);
                 return;
             }
 
@@ -155,10 +187,10 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             };
 
             setQuizpack(qp);
-            setLoading(false);
+            setQuizLoading(false);
         };
 
-        loadQuestions();
+        void loadQuestions();
 
         return () => {
             cancelled = true;
@@ -192,7 +224,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     }
 
     // 여기까지 왔으면 session.status === "running"
-    if (loading || !quizpack) {
+    if (quizLoading || !quizpack) {
         return <p>퀴즈 데이터를 불러오는 중입니다…</p>;
     }
 
@@ -216,8 +248,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 onBattleEnd={studentId ? handleBattleEnd : undefined}
             />
 
-            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP */}
-            {partner && lastRaidResult && (
+            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP (학생 전용) */}
+            {isStudent && partner && lastRaidResult && (
                 <section
                     className="card"
                     style={{
@@ -237,7 +269,9 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         정답 {lastRaidResult.correct} / {lastRaidResult.total} (
                         {lastRaidResult.total > 0
                             ? Math.round(
-                                (lastRaidResult.correct / lastRaidResult.total) * 100,
+                                (lastRaidResult.correct /
+                                    lastRaidResult.total) *
+                                100,
                             )
                             : 0}
                         %)
@@ -306,8 +340,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 </section>
             )}
 
-            {/* 🔹 내 몬스터들 + 무료 소환 버튼 */}
-            {profile && (
+            {/* 🔹 내 몬스터들 + 무료 소환 버튼 (학생 전용) */}
+            {isStudent && profile && (
                 <section className="card" style={{ marginTop: "1rem" }}>
                     <h3>내 몬스터들 (베타)</h3>
 
@@ -349,6 +383,5 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 </section>
             )}
         </div>
-
     );
 }

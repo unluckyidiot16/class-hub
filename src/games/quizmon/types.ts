@@ -13,8 +13,8 @@ export type Trainer = {
 export type Move = {
     id: string;
     name: string;
-    power: number; // 0 이면 순수 보조 기술
-    baseAcc: number; // 0~100
+    power: number;
+    baseAcc: number;
     element: ElementType;
 };
 
@@ -27,15 +27,15 @@ export type Monster = {
     atk: number;
     def: number;
     spd: number;
-    accStage: number; // 명중 보정 (1.0이 기본)
-    evaStage: number; // 회피 보정 (1.0이 기본)
+    accStage: number;
+    evaStage: number;
     moves: Move[];
 };
 
 export type BattleSide = {
     trainer: Trainer;
     monsters: Monster[];
-    activeIndex: number; // 현재 전투 중인 몬스터 인덱스
+    activeIndex: number;
 };
 
 export type QuizQuestionLite = {
@@ -70,14 +70,15 @@ export type BattleState = {
     phase: TurnPhase;
     turn: number;
     pendingPlayerMove: PendingMove | null;
-    pendingEnemyMove: PendingMove | null; // 샌드박스에서는 랜덤 선택
+    pendingEnemyMove: PendingMove | null;
     currentQuestion: QuizQuestionLite | null;
     questionStartedAt: number | null;
     lastQuizResult: QuizAnswerResult | null;
     logs: BattleLogEntry[];
 };
 
-// DB row 타입
+// ------- DB row 타입들 -------
+
 export type QuizmonPartner = {
     speciesId: string;   // "starter-001" 등
     level: number;
@@ -88,31 +89,18 @@ export type QuizmonProfileRow = {
     id: string;
     student_key: string;
     partner: QuizmonPartner;
+
     total_raids: number;
     total_correct: number;
     total_questions: number;
+
     created_at: string | null;
     updated_at: string | null;
-};
 
-/** 새 프로필 생성 시 기본 파트너 값 */
-export const DEFAULT_PARTNER: QuizmonPartner = {
-    speciesId: "starter-001",
-    level: 1,
-    exp: 0,
-};
-
-// 기존 ElementType, QuizmonPartner, QuizmonProfileRow 아래에 추가
-
-export type QuizmonSpeciesRow = {
-    id: string;
-    name: string;
-    element: ElementType;
-    rarity: number;
-    base_hp: number;
-    base_atk: number;
-    base_def: number;
-    base_spd: number;
+    // 새로 추가한 컬럼들
+    trainer_name: string | null;
+    starter_species_id: string | null;
+    starter_chosen: boolean;
 };
 
 export type QuizmonOwnedMonsterRow = {
@@ -124,4 +112,10 @@ export type QuizmonOwnedMonsterRow = {
     party_slot: number | null;
     created_at: string | null;
     updated_at: string | null;
+};
+
+export const DEFAULT_PARTNER: QuizmonPartner = {
+    speciesId: "starter-001",
+    level: 1,
+    exp: 0,
 };
