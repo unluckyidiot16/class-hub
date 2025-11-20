@@ -115,7 +115,7 @@ export type QuizmonOwnedMonsterRow = {
 };
 
 export const DEFAULT_PARTNER: QuizmonPartner = {
-    speciesId: "starter-001",
+    speciesId: "poke-0001", // 이상해씨 (#001)
     level: 1,
     exp: 0,
 };

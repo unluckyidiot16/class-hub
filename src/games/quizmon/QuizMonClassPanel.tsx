@@ -1,4 +1,5 @@
 // src/games/quizmon/QuizMonClassPanel.tsx
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type {
@@ -14,6 +15,7 @@ import type { QuizAnswerResult } from "./types";
 import { useQuizmonProfile } from "./useQuizmonProfile";
 import { useQuizmonCollection } from "./useQuizmonCollection";
 import { StarterSelectPanel } from "./StarterSelectPanel";
+import { getMonsterSprite, getTrainerSprite } from "./assets";
 
 type SessionRow = {
     id: string;
@@ -72,8 +74,30 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     });
 
     const partner = profile?.partner ?? null;
+
     let expNeeded = 0;
     let expRatio = 0;
+
+    const partnerDisplayName =
+        partner
+            ? ((partner as any).nickname ??
+                (partner as any).name ??          // 혹시 나중에 name 필드를 추가해도 커버
+                (partner as any).species_id ??    // 종 ID라도 보여주기
+                "파트너")
+            : "파트너";
+
+    if (partner) {
+        if (partner.level >= LEVEL_CAP) {
+            expNeeded = 1;
+            expRatio = 1;
+        } else {
+            expNeeded = expNeededForLevel(partner.level);
+            expRatio =
+                expNeeded > 0
+                    ? Math.max(0, Math.min(1, partner.exp / expNeeded))
+                    : 0;
+        }
+    }
 
     // 🔹 컬렉션 / 가챠 (학생일 때만 실제로 데이터가 채워짐)
     const {
@@ -89,19 +113,6 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         setLastRaidResult(summary);
         await applyRaidResult(summary); // quizmon_profiles 갱신
     };
-
-    if (partner) {
-        if (partner.level >= LEVEL_CAP) {
-            expNeeded = 1;
-            expRatio = 1;
-        } else {
-            expNeeded = expNeededForLevel(partner.level);
-            expRatio =
-                expNeeded > 0
-                    ? Math.max(0, Math.min(1, partner.exp / expNeeded))
-                    : 0;
-        }
-    }
 
     // 🎯 1) 퀴즈팩이 바뀔 때마다 quiz_questions → QuizPackJsonV1 로딩
     useEffect(() => {
@@ -179,10 +190,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     }, [pack?.id]);
 
     // =========================
-    // ✅ 2) 상태별 가드 (Hook 호출 이후)
+    // ✅ 2) 학생 프로필/스타터 선택 가드 (훅 호출 이후)
     // =========================
-
-    // 🔐 학생인 경우: 프로필/스타터 선택 가드
     if (isStudent) {
         if (!profile || profileLoading) {
             return <p>프로필을 불러오는 중입니다...</p>;
@@ -201,46 +210,47 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         }
     }
 
+    // =========================
+    // ✅ 3) 전투/수업 상태 카드 내용 구성
+    // =========================
+
+    let battleBody: ReactNode = null;
+
     if (!pack) {
-        return (
+        battleBody = (
             <p>
                 이 방에는 아직 <strong>퀴즈팩</strong>이 연결되어 있지 않습니다.
                 <br />
-                선생님이 퀴즈팩을 선택하면 퀴즈몬 전투가 시작됩니다.
+                선생님이 퀴즈팩을 선택하면 퀴즈몬 전투를 진행할 수 있어요.
             </p>
         );
-    }
-
-    if (!session || session.status === "pending") {
-        return (
+    } else if (!session || session.status === "pending") {
+        battleBody = (
             <p>
                 선생님이 아직 <strong>퀴즈몬 게임</strong>을 시작하지 않았습니다.
                 <br />
-                수업이 시작되면 이 위치에 전투 화면이 표시됩니다.
+                수업이 시작되면 내 파트너가 전투에 참가합니다.
             </p>
         );
-    }
-
-    if (session.status === "ended") {
-        return <p>이 수업의 퀴즈몬 게임이 종료되었습니다.</p>;
-    }
-
-    // 여기까지 왔으면 session.status === "running"
-    if (quizLoading || !quizpack) {
-        return <p>퀴즈 데이터를 불러오는 중입니다…</p>;
-    }
-
-    if (errorMsg) {
-        return (
+    } else if (session.status === "ended") {
+        battleBody = (
+            <p>
+                이 수업의 퀴즈몬 게임이 종료되었습니다.
+                <br />
+                다음 수업을 기다리는 동안 로비에서 파트너를 관리해 보세요.
+            </p>
+        );
+    } else if (quizLoading || !quizpack) {
+        battleBody = <p>퀴즈 데이터를 불러오는 중입니다…</p>;
+    } else if (errorMsg) {
+        battleBody = (
             <p className="form-message error" style={{ marginTop: "0.5rem" }}>
                 {errorMsg}
             </p>
         );
-    }
-
-    // 🎯 3) 실제 퀴즈몬 전투 컴포넌트
-    return (
-        <div>
+    } else {
+        // session.status === "running" && quizpack 준비 완료
+        battleBody = (
             <QuizMonGame
                 quizpack={quizpack}
                 onQuizAnswer={onQuizAnswer}
@@ -249,8 +259,206 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 studentId={studentId}
                 onBattleEnd={studentId ? handleBattleEnd : undefined}
             />
+        );
+    }
 
-            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP (학생 전용) */}
+    // 스프라이트 URL (있으면 로비에서 사용)
+    const trainerSpriteUrl = getTrainerSprite(
+        // 나중에 profile.trainer_key 생기면 여기로 교체
+        null,
+    );
+    const partnerSpriteUrl = partner
+        ? getMonsterSprite((partner as any).species_id ?? null)
+        : null;
+
+    // =========================
+    // ✅ 4) 로비 + 전투 + 결과/컬렉션 렌더링
+    // =========================
+
+    return (
+        <div>
+            {/* 🔹 로비: 학생 + 파트너가 있을 때 항상 노출 */}
+            {isStudent && profile && partner && (
+                <section className="card" style={{ marginBottom: "1rem" }}>
+                    <h3 style={{ marginTop: 0 }}>퀴즈몬 교실 로비</h3>
+                    <p
+                        style={{
+                            fontSize: 13,
+                            color: "#9ca3af",
+                            marginBottom: "0.5rem",
+                        }}
+                    >
+                        이 수업에서 함께 싸울 트레이너와 파트너입니다. 퀴즈를
+                        맞추면 파트너가 경험치를 얻어요.
+                    </p>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "1rem",
+                        }}
+                    >
+                        {/* 트레이너 아바타 */}
+                        <div
+                            style={{
+                                width: 80,
+                                height: 80,
+                                borderRadius: 12,
+                                background: "#020617",
+                                border: "1px solid #1f2937",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                            }}
+                        >
+                            {trainerSpriteUrl && (
+                                <img
+                                    src={trainerSpriteUrl}
+                                    alt="Trainer"
+                                    style={{
+                                        width: 64,
+                                        height: 64,
+                                        imageRendering: "pixelated",
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        {/* 파트너 스프라이트 + 정보 + EXP 바 */}
+                        <div
+                            style={{
+                                flex: 1,
+                                display: "flex",
+                                gap: "0.75rem",
+                                alignItems: "center",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 72,
+                                    height: 72,
+                                    borderRadius: 12,
+                                    background: "#020617",
+                                    border: "1px solid #1f2937",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {partnerSpriteUrl && (
+                                    <img
+                                        src={partnerSpriteUrl}
+                                        alt= {partnerDisplayName}
+                                        style={{
+                                            maxWidth: "100%",
+                                            maxHeight: "100%",
+                                            imageRendering: "pixelated",
+                                        }}
+                                    />
+                                )}
+                            </div>
+
+                            <div style={{ flex: 1 }}>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "baseline",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    <div>
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                color: "#9ca3af",
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            파트너
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: 16,
+                                                fontWeight: 600,
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            {partnerDisplayName}
+                                        </div>
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 13,
+                                            color: "#e5e7eb",
+                                        }}
+                                    >
+                                        Lv. {partner?.level ?? 1}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "baseline",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontSize: 13,
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            경험치
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontSize: 12,
+                                                color: "#e5e7eb",
+                                            }}
+                                        >
+                                            {partner.level < LEVEL_CAP
+                                                ? `EXP ${partner.exp} / ${expNeeded}`
+                                                : "MAX"}
+                                        </span>
+                                    </div>
+                                    <div
+                                        style={{
+                                            marginTop: 4,
+                                            background: "#111827",
+                                            borderRadius: 999,
+                                            overflow: "hidden",
+                                            height: 10,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: `${expRatio * 100}%`,
+                                                height: "100%",
+                                                background: "#22c55e",
+                                                transition: "width 0.3s ease",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* 🔹 전투/수업 상태 영역 */}
+            <section className="card">
+                <h3 style={{ marginTop: 0 }}>전투 / 수업 상태</h3>
+                {battleBody}
+            </section>
+
+            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP (학생 전용, 전투 후) */}
             {isStudent && partner && lastRaidResult && (
                 <section
                     className="card"
@@ -342,7 +550,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 </section>
             )}
 
-            {/* 🔹 내 몬스터들 + 무료 소환 버튼 (학생 전용) */}
+            {/* 🔹 내 몬스터들 + 무료 소환 버튼 (학생 전용, 상시 로비 기능) */}
             {isStudent && profile && (
                 <section className="card" style={{ marginTop: "1rem" }}>
                     <h3>내 몬스터들 (베타)</h3>
@@ -371,17 +579,102 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         </p>
                     )}
 
-                    <ul style={{ marginTop: "0.5rem" }}>
-                        {monsters.map((m) => (
-                            <li key={m.id}>
-                                {m.species_id} Lv.{m.level}
-                                {m.party_slot && ` (파티 ${m.party_slot}번 슬롯)`}
-                            </li>
-                        ))}
+                    <div
+                        style={{
+                            marginTop: "0.75rem",
+                            display: "grid",
+                            gridTemplateColumns:
+                                "repeat(auto-fill, minmax(120px, 1fr))",
+                            gap: "0.75rem",
+                        }}
+                    >
+                        {monsters.map((m) => {
+                            const spriteUrl = getMonsterSprite(
+                                (m as any).species_id,
+                            );
+                            return (
+                                <div
+                                    key={m.id}
+                                    style={{
+                                        position: "relative",
+                                        padding: "0.5rem",
+                                        borderRadius: 12,
+                                        background: "#020617",
+                                        border: "1px solid #1f2937",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {spriteUrl && (
+                                        <div
+                                            style={{
+                                                width: 72,
+                                                height: 72,
+                                                margin: "0 auto 0.25rem",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            <img
+                                                src={spriteUrl}
+                                                alt={String(m.species_id)}
+                                                style={{
+                                                    maxWidth: "100%",
+                                                    maxHeight: "100%",
+                                                    imageRendering:
+                                                        "pixelated",
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div
+                                        style={{
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            color: "#e5e7eb",
+                                        }}
+                                    >
+                                        {String(m.species_id)}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#9ca3af",
+                                            marginTop: 2,
+                                        }}
+                                    >
+                                        Lv. {m.level}
+                                    </div>
+
+                                    {m.party_slot && (
+                                        <div
+                                            style={{
+                                                marginTop: 2,
+                                                fontSize: 11,
+                                                color: "#a5b4fc",
+                                            }}
+                                        >
+                                            파티 {m.party_slot}번
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+
                         {monsters.length === 0 && (
-                            <li>아직 획득한 몬스터가 없습니다.</li>
+                            <p
+                                style={{
+                                    gridColumn: "1 / -1",
+                                    margin: 0,
+                                    fontSize: 13,
+                                    color: "#9ca3af",
+                                }}
+                            >
+                                아직 획득한 몬스터가 없습니다.
+                            </p>
                         )}
-                    </ul>
+                    </div>
                 </section>
             )}
         </div>

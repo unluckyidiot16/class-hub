@@ -9,22 +9,22 @@ type StarterSelectPanelProps = {
 // 화면에 보여줄 메타 정보 (DB에는 같은 id로 들어가 있음)
 const STARTER_OPTIONS = [
     {
-        id: "starter-001",
+        id: "poke-0001", // 이상해씨 (#001)
         name: "이상해씨",
         elementLabel: "풀",
         description: "균형 잡힌 풀 타입 스타터",
     },
     {
-        id: "starter-002",
+        id: "poke-0004", // 파이리 (#004)
         name: "파이리",
         elementLabel: "불꽃",
-        description: "공격적인 불꽃 타입 스타터",
+        description: "공격력이 높은 불 타입 스타터",
     },
     {
-        id: "starter-003",
+        id: "poke-0007", // 꼬부기 (#007)
         name: "꼬부기",
         elementLabel: "물",
-        description: "방어적인 물 타입 스타터",
+        description: "방어력이 높은 물 타입 스타터",
     },
 ] as const;
 
