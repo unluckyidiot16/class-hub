@@ -76,3 +76,28 @@ export type BattleState = {
     lastQuizResult: QuizAnswerResult | null;
     logs: BattleLogEntry[];
 };
+
+// DB row 타입
+export type QuizmonPartner = {
+    speciesId: string;   // "starter-001" 등
+    level: number;
+    exp: number;
+};
+
+export type QuizmonProfileRow = {
+    id: string;
+    student_key: string;
+    partner: QuizmonPartner;
+    total_raids: number;
+    total_correct: number;
+    total_questions: number;
+    created_at: string | null;
+    updated_at: string | null;
+};
+
+/** 새 프로필 생성 시 기본 파트너 값 */
+export const DEFAULT_PARTNER: QuizmonPartner = {
+    speciesId: "starter-001",
+    level: 1,
+    exp: 0,
+};
