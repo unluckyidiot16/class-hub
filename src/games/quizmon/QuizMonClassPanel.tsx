@@ -31,6 +31,16 @@ type QuizMonClassPanelProps = {
         // ⭐ StudentRoomPage / TeacherRoomLivePage 쪽에서 넘겨줄 콜백
         onQuizAnswer?: (result: QuizAnswerResult) => void;
 };
+
+type LastRaidResult = {
+    correct: number;
+    total: number;
+};
+
+const LEVEL_CAP = 10;
+const expNeededForLevel = (level: number) => 5 * level;
+
+
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const {
         roomId,
@@ -41,14 +51,45 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         onQuizAnswer,
     } = props;
 
-    // 학생 화면에서만 의미 있음 (studentId가 null이면 내부에서 바로 return)
-    const { applyRaidResult } = useQuizmonProfile({
-        studentKey: studentId ?? null,
-    });
-
     const [quizpack, setQuizpack] = useState<QuizPackJsonV1 | null>(null);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    // 🔹 이번 레이드 요약 (정답/총문항)
+    const [lastRaidResult, setLastRaidResult] = useState<LastRaidResult | null>(
+        null,
+    );
+
+    // 🔹 Quizmon 프로필 훅 (학생 키가 없으면 내부에서 아무 일도 안 함)
+    const { profile, applyRaidResult } = useQuizmonProfile({
+        studentKey: studentId ?? null,
+    });
+
+    const partner = profile?.partner ?? null;
+    let expNeeded = 0;
+    let expRatio = 0;
+    
+    const handleBattleEnd = async (summary: { correct: number; total: number }) => {
+        // 학생 키가 없다면 (교사 미리보기 등) 아무 것도 안 함
+        if (!studentId) return;
+
+        setLastRaidResult(summary);
+        await applyRaidResult(summary); // 내부에서 quizmon_profiles 업데이트
+    };
+
+
+    if (partner) {
+        if (partner.level >= LEVEL_CAP) {
+            expNeeded = 1;
+            expRatio = 1;
+        } else {
+            expNeeded = expNeededForLevel(partner.level);
+            expRatio =
+                expNeeded > 0
+                    ? Math.max(0, Math.min(1, partner.exp / expNeeded))
+                    : 0;
+        }
+    }
 
     // 🎯 1) 퀴즈팩이 바뀔 때마다 quiz_questions → QuizPackJsonV1 로딩
     useEffect(() => {
@@ -170,19 +211,103 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             <QuizMonGame
                 quizpack={quizpack}
                 onQuizAnswer={onQuizAnswer}
-                // 👉 StudentRoomPage(학생 측)에서 내려온 경우에만 값이 채워짐
                 roomId={roomId}
                 gameSessionId={gameSessionId}
                 studentId={studentId}
-                // ⭐ 배틀 종료 시 내 몬스터 레벨업/EXP 반영
-                onBattleEnd={
-                    studentId
-                        ? ({ correct, total }) => {
-                            void applyRaidResult({ correct, total });
-                        }
-                        : undefined
-                }
+                onBattleEnd={studentId ? handleBattleEnd : undefined}
             />
+
+            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP 표시 */}
+            {partner && lastRaidResult && (
+                <section
+                    className="card"
+                    style={{
+                        marginTop: "1rem",
+                        padding: "0.75rem",
+                        borderRadius: 8,
+                        border: "1px solid #444",
+                        background: "#111",
+                        color: "#eee",
+                    }}
+                >
+                    <h3 style={{ marginTop: 0, marginBottom: "0.5rem" }}>
+                        이번 레이드 결과
+                    </h3>
+
+                    <p style={{ margin: 0, fontSize: 14 }}>
+                        정답 {lastRaidResult.correct} / {lastRaidResult.total} (
+                        {lastRaidResult.total > 0
+                            ? Math.round(
+                                (lastRaidResult.correct /
+                                    lastRaidResult.total) *
+                                100,
+                            )
+                            : 0}
+                        %)
+                    </p>
+
+                    <div style={{ marginTop: "0.75rem" }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "baseline",
+                            }}
+                        >
+                            <strong>내 파트너</strong>
+                            <span
+                                style={{
+                                    fontSize: 13,
+                                    color: "#ccc",
+                                }}
+                            >
+                                Lv. {partner.level}
+                            </span>
+                        </div>
+
+                        <div
+                            style={{
+                                marginTop: 4,
+                                background: "#222",
+                                borderRadius: 999,
+                                overflow: "hidden",
+                                height: 10,
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: `${expRatio * 100}%`,
+                                    height: "100%",
+                                    background: "#22c55e", // 연두색 느낌
+                                    transition: "width 0.4s ease",
+                                }}
+                            />
+                        </div>
+
+                        {partner.level < LEVEL_CAP ? (
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                    color: "#aaa",
+                                }}
+                            >
+                                EXP {partner.exp} / {expNeeded}
+                            </p>
+                        ) : (
+                            <p
+                                style={{
+                                    fontSize: 12,
+                                    marginTop: 4,
+                                    color: "#facc15",
+                                }}
+                            >
+                                MAX 레벨에 도달했습니다!
+                            </p>
+                        )}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }
