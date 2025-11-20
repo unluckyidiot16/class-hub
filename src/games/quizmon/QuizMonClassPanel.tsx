@@ -71,25 +71,6 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         studentKey: studentId ?? null,
     });
 
-    // 🔹 학생인 경우: 프로필/스타터 선택 가드
-    if (isStudent) {
-        if (!profile || profileLoading) {
-            return <p>프로필을 불러오는 중입니다...</p>;
-        }
-
-        if (!profile.starter_chosen) {
-            return (
-                <StarterSelectPanel
-                    disabled={profileLoading}
-                    onChooseStarter={async (speciesId) => {
-                        await chooseStarter(speciesId);
-                        // chooseStarter 내부에서 profile 갱신 → 다음 렌더부터는 로비/배틀 UI로 전환
-                    }}
-                />
-            );
-        }
-    }
-
     const partner = profile?.partner ?? null;
     let expNeeded = 0;
     let expRatio = 0;
@@ -197,7 +178,28 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         };
     }, [pack?.id]);
 
-    // 🎯 2) 상태별 가드 (pack / session / loading…)
+    // =========================
+    // ✅ 2) 상태별 가드 (Hook 호출 이후)
+    // =========================
+
+    // 🔐 학생인 경우: 프로필/스타터 선택 가드
+    if (isStudent) {
+        if (!profile || profileLoading) {
+            return <p>프로필을 불러오는 중입니다...</p>;
+        }
+
+        if (!profile.starter_chosen) {
+            return (
+                <StarterSelectPanel
+                    disabled={profileLoading}
+                    onChooseStarter={async (speciesId) => {
+                        await chooseStarter(speciesId);
+                        // chooseStarter 내부에서 profile 갱신 → 다음 렌더부터는 로비/배틀 UI로 전환
+                    }}
+                />
+            );
+        }
+    }
 
     if (!pack) {
         return (
