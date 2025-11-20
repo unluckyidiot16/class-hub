@@ -1,13 +1,21 @@
 // src/games/quizmon/StarterSelectPanel.tsx
 import { useState } from "react";
+import { getMonsterSprite } from "./assets";
 
 type StarterSelectPanelProps = {
     onChooseStarter: (speciesId: string) => Promise<void> | void;
     disabled?: boolean;
 };
 
+type StarterOption = {
+    id: string;
+    name: string;
+    elementLabel: string;
+    description: string;
+};
+
 // 화면에 보여줄 메타 정보 (DB에는 같은 id로 들어가 있음)
-const STARTER_OPTIONS = [
+const STARTER_OPTIONS: StarterOption[] = [
     {
         id: "poke-0001", // 이상해씨 (#001)
         name: "이상해씨",
@@ -18,117 +26,158 @@ const STARTER_OPTIONS = [
         id: "poke-0004", // 파이리 (#004)
         name: "파이리",
         elementLabel: "불꽃",
-        description: "공격력이 높은 불 타입 스타터",
+        description: "공격적인 불 타입 스타터",
     },
     {
         id: "poke-0007", // 꼬부기 (#007)
         name: "꼬부기",
         elementLabel: "물",
-        description: "방어력이 높은 물 타입 스타터",
+        description: "방어적인 물 타입 스타터",
     },
-] as const;
+];
 
 export function StarterSelectPanel(props: StarterSelectPanelProps) {
     const { onChooseStarter, disabled } = props;
-    const [selectingId, setSelectingId] = useState<string | null>(null);
+    const [submittingId, setSubmittingId] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const handleClick = async (speciesId: string) => {
-        if (disabled || selectingId) return;
+    const handleChoose = async (id: string) => {
+        if (disabled || submittingId) return;
 
         setErrorMsg(null);
-        setSelectingId(speciesId);
+        setSubmittingId(id);
         try {
-            await onChooseStarter(speciesId);
+            await onChooseStarter(id);
+            // 성공하면 상위에서 프로필 갱신 → 이 패널은 자연스럽게 사라짐
         } catch (err) {
-            console.error("[StarterSelectPanel] choose error", err);
-            setErrorMsg("스타터를 선택하는 중 오류가 발생했습니다.");
-            setSelectingId(null);
+            console.error("[StarterSelectPanel] choose starter error", err);
+            setErrorMsg(
+                "스타터를 선택하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+            );
+            setSubmittingId(null);
         }
     };
 
     return (
-        <section className="card" style={{ marginTop: "1rem" }}>
-            <h2>첫 파트너를 선택하세요!</h2>
-            <p className="page-desc">
-                한 번 선택한 스타터는 변경할 수 없어요. 마음에 드는 친구를 골라주세요.
+        <section className="card">
+            <h2 style={{ marginTop: 0 }}>첫 파트너 선택</h2>
+            <p className="form-message help" style={{ marginBottom: "1rem" }}>
+                이번 학기 동안 함께 싸울 첫 파트너를 선택해 주세요.
             </p>
 
             <div
                 style={{
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
                     gap: "1rem",
-                    flexWrap: "wrap",
-                    marginTop: "0.75rem",
                 }}
             >
-                {STARTER_OPTIONS.map((starter) => {
-                    const isBusy = selectingId === starter.id;
+                {STARTER_OPTIONS.map((opt) => {
+                    const spriteUrl = getMonsterSprite(opt.id);
+                    const isSubmitting = submittingId === opt.id;
+
                     return (
                         <button
-                            key={starter.id}
+                            key={opt.id}
                             type="button"
-                            className="secondary-btn"
-                            disabled={disabled || !!selectingId}
-                            onClick={() => handleClick(starter.id)}
+                            onClick={() => void handleChoose(opt.id)}
+                            disabled={disabled || !!submittingId}
                             style={{
-                                flex: "1 1 160px",
                                 textAlign: "left",
-                                padding: "0.75rem",
-                                borderRadius: 8,
-                                border: "1px solid #444",
-                                background:
-                                    selectingId === starter.id ? "#1e293b" : "#020617",
+                                borderRadius: 16,
+                                padding: "0.75rem 0.9rem",
+                                border: "1px solid #1f2937",
+                                background: "#020617",
                                 cursor:
-                                    disabled || !!selectingId ? "not-allowed" : "pointer",
+                                    disabled || submittingId ? "default" : "pointer",
+                                opacity:
+                                    disabled || (!!submittingId && !isSubmitting)
+                                        ? 0.5
+                                        : 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
                             }}
                         >
                             <div
                                 style={{
                                     display: "flex",
-                                    justifyContent: "space-between",
                                     alignItems: "center",
+                                    gap: "0.75rem",
                                 }}
                             >
+                                <div
+                                    style={{
+                                        width: 80,
+                                        height: 80,
+                                        borderRadius: 16,
+                                        background: "#000",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    {spriteUrl && (
+                                        <img
+                                            src={spriteUrl}
+                                            alt={opt.name}
+                                            style={{
+                                                width: 72,
+                                                height: 72,
+                                                imageRendering: "pixelated",
+                                            }}
+                                        />
+                                    )}
+                                </div>
+
                                 <div>
                                     <div
                                         style={{
+                                            fontSize: 16,
                                             fontWeight: 600,
-                                            marginBottom: 4,
+                                            color: "#e5e7eb",
                                         }}
                                     >
-                                        {starter.name}
+                                        {opt.name}
                                     </div>
                                     <div
                                         style={{
-                                            fontSize: 12,
-                                            color: "#9ca3af",
+                                            fontSize: 13,
+                                            color: "#a5b4fc",
+                                            marginTop: 2,
                                         }}
                                     >
-                                        {starter.elementLabel} 타입
+                                        {opt.elementLabel} 타입
                                     </div>
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: 11,
-                                        color: "#e5e7eb",
-                                    }}
-                                >
-                                    {starter.description}
                                 </div>
                             </div>
 
-                            {isBusy && (
-                                <p
+                            <p
+                                style={{
+                                    fontSize: 13,
+                                    color: "#9ca3af",
+                                    margin: 0,
+                                    marginTop: 4,
+                                }}
+                            >
+                                {opt.description}
+                            </p>
+
+                            <div style={{ marginTop: "0.5rem" }}>
+                                <span
+                                    className="secondary-btn"
                                     style={{
-                                        marginTop: 6,
-                                        fontSize: 12,
-                                        color: "#22c55e",
+                                        display: "inline-block",
+                                        fontSize: 13,
+                                        paddingInline: "0.85rem",
+                                        paddingBlock: "0.3rem",
                                     }}
                                 >
-                                    선택 중...
-                                </p>
-                            )}
+                                    {isSubmitting ? "선택 중..." : "이 파트너로 선택"}
+                                </span>
+                            </div>
                         </button>
                     );
                 })}

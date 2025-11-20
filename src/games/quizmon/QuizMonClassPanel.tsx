@@ -550,25 +550,35 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 </section>
             )}
 
-            {/* 🔹 내 몬스터들 + 무료 소환 버튼 (학생 전용, 상시 로비 기능) */}
+            {/* 🔹 내 몬스터들 + 무료 소환 버튼 (학생 전용) */}
             {isStudent && profile && (
                 <section className="card" style={{ marginTop: "1rem" }}>
-                    <h3>내 몬스터들 (베타)</h3>
-
-                    <button
-                        type="button"
-                        className="secondary-btn"
-                        disabled={!profile.id || collLoading}
-                        onClick={async () => {
-                            const result = await pullFreeGacha();
-                            if (result) {
-                                // TODO: "새 몬스터 획득!" 토스트/텍스트 연출
-                                console.log("[QuizMon] gacha result", result);
-                            }
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "0.75rem",
+                            marginBottom: "0.5rem",
                         }}
                     >
-                        무료 소환 1회
-                    </button>
+                        <h3 style={{ margin: 0 }}>내 몬스터들 (베타)</h3>
+
+                        <button
+                            type="button"
+                            className="secondary-btn"
+                            disabled={!profile.id || collLoading}
+                            onClick={async () => {
+                                const result = await pullFreeGacha();
+                                if (result) {
+                                    // TODO: "새 몬스터 획득!" 토스트/텍스트 연출
+                                    console.log("[QuizMon] gacha result", result);
+                                }
+                            }}
+                        >
+                            무료 소환 1회
+                        </button>
+                    </div>
 
                     {collError && (
                         <p
@@ -579,104 +589,96 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         </p>
                     )}
 
-                    <div
-                        style={{
-                            marginTop: "0.75rem",
-                            display: "grid",
-                            gridTemplateColumns:
-                                "repeat(auto-fill, minmax(120px, 1fr))",
-                            gap: "0.75rem",
-                        }}
-                    >
-                        {monsters.map((m) => {
-                            const spriteUrl = getMonsterSprite(
-                                (m as any).species_id,
-                            );
-                            return (
-                                <div
-                                    key={m.id}
-                                    style={{
-                                        position: "relative",
-                                        padding: "0.5rem",
-                                        borderRadius: 12,
-                                        background: "#020617",
-                                        border: "1px solid #1f2937",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    {spriteUrl && (
+                    {monsters.length === 0 ? (
+                        <p
+                            style={{
+                                marginTop: "0.5rem",
+                                fontSize: 13,
+                                color: "#9ca3af",
+                            }}
+                        >
+                            아직 획득한 몬스터가 없습니다.
+                        </p>
+                    ) : (
+                        <div
+                            style={{
+                                marginTop: "0.5rem",
+                                display: "grid",
+                                gridTemplateColumns:
+                                    "repeat(auto-fit, minmax(180px, 1fr))",
+                                gap: "0.75rem",
+                            }}
+                        >
+                            {monsters.map((m) => {
+                                const spriteUrl = getMonsterSprite(m.species_id);
+                                return (
+                                    <div
+                                        key={m.id}
+                                        style={{
+                                            display: "flex",
+                                            gap: "0.75rem",
+                                            padding: "0.5rem 0.75rem",
+                                            borderRadius: 12,
+                                            border: "1px solid #1f2937",
+                                            background: "#020617",
+                                            alignItems: "center",
+                                        }}
+                                    >
                                         <div
                                             style={{
                                                 width: 72,
                                                 height: 72,
-                                                margin: "0 auto 0.25rem",
+                                                borderRadius: 16,
+                                                background: "#000",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
+                                                overflow: "hidden",
                                             }}
                                         >
-                                            <img
-                                                src={spriteUrl}
-                                                alt={String(m.species_id)}
+                                            {spriteUrl && (
+                                                <img
+                                                    src={spriteUrl}
+                                                    alt={m.species_id}
+                                                    style={{
+                                                        width: 64,
+                                                        height: 64,
+                                                        imageRendering: "pixelated",
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+
+                                        <div style={{ flex: 1 }}>
+                                            <div
                                                 style={{
-                                                    maxWidth: "100%",
-                                                    maxHeight: "100%",
-                                                    imageRendering:
-                                                        "pixelated",
+                                                    fontSize: 14,
+                                                    fontWeight: 600,
+                                                    color: "#e5e7eb",
                                                 }}
-                                            />
+                                            >
+                                                {m.species_id}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: "#9ca3af",
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                Lv.{m.level}{" "}
+                                                {m.party_slot &&
+                                                    `(파티 ${m.party_slot}번 슬롯)`}
+                                            </div>
                                         </div>
-                                    )}
-
-                                    <div
-                                        style={{
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            color: "#e5e7eb",
-                                        }}
-                                    >
-                                        {String(m.species_id)}
                                     </div>
-                                    <div
-                                        style={{
-                                            fontSize: 12,
-                                            color: "#9ca3af",
-                                            marginTop: 2,
-                                        }}
-                                    >
-                                        Lv. {m.level}
-                                    </div>
-
-                                    {m.party_slot && (
-                                        <div
-                                            style={{
-                                                marginTop: 2,
-                                                fontSize: 11,
-                                                color: "#a5b4fc",
-                                            }}
-                                        >
-                                            파티 {m.party_slot}번
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-
-                        {monsters.length === 0 && (
-                            <p
-                                style={{
-                                    gridColumn: "1 / -1",
-                                    margin: 0,
-                                    fontSize: 13,
-                                    color: "#9ca3af",
-                                }}
-                            >
-                                아직 획득한 몬스터가 없습니다.
-                            </p>
-                        )}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </section>
             )}
+
         </div>
     );
 }
