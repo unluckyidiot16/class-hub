@@ -1511,7 +1511,9 @@ export function TeacherRoomLivePage() {
                         session.status === "running" &&
                         currentQuestion && (
                             <div className="card">
-                                <h2>QDD 실시간 통계 (game_events)</h2>
+                                <h2>
+                                    {room.game_key === "qdd" ? "QDD" : "퀴즈몬"} 실시간 통계 (game_events)
+                                </h2>
                                 {(() => {
                                     let stats: QddQuestionStats | undefined;
                                     if (room.game_key === "qdd") {
@@ -1634,9 +1636,10 @@ export function TeacherRoomLivePage() {
                     <SessionSummaryPanel
                         sessionId={session.id}
                         questions={questions}
-                        // QDD 방일 때는 game_events(=QDD) 통계도 함께 더해줌
+                        // QDD / QuizMon 방일 때는 game_events 기반 통계도 함께 더해줌
                         qddStatsByQuestion={
-                            room?.game_key === "qdd"
+                            room?.game_key === "qdd" ||
+                            room?.game_key === "quizmon"
                                 ? qddStatsByQuestionId
                                 : undefined
                         }
