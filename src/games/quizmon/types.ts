@@ -101,3 +101,27 @@ export const DEFAULT_PARTNER: QuizmonPartner = {
     level: 1,
     exp: 0,
 };
+
+// 기존 ElementType, QuizmonPartner, QuizmonProfileRow 아래에 추가
+
+export type QuizmonSpeciesRow = {
+    id: string;
+    name: string;
+    element: ElementType;
+    rarity: number;
+    base_hp: number;
+    base_atk: number;
+    base_def: number;
+    base_spd: number;
+};
+
+export type QuizmonOwnedMonsterRow = {
+    id: string;
+    profile_id: string;
+    species_id: string;
+    level: number;
+    exp: number;
+    party_slot: number | null;
+    created_at: string | null;
+    updated_at: string | null;
+};

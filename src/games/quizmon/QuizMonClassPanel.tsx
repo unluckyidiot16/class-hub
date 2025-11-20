@@ -1,17 +1,13 @@
 // src/games/quizmon/QuizMonClassPanel.tsx
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import type {
-    QuizPackRow,
-    QuizQuestionRow,
-} from "../../pages/student/StudentPlayPackPage";
-import type {
-    QuizPackJsonV1,
-    QuizPackQuestionV1,
-} from "../../types/quizPackJson";
+import type { QuizPackRow, QuizQuestionRow } from "../../pages/student/StudentPlayPackPage";
+import type { QuizPackJsonV1, QuizPackQuestionV1 } from "../../types/quizPackJson";
 import { QuizMonGame } from "./QuizMonGame";
-import type { QuizAnswerResult } from "./types"; 
+import type { QuizAnswerResult } from "./types";
 import { useQuizmonProfile } from "./useQuizmonProfile";
+import { useQuizmonCollection } from "./useQuizmonCollection";
+
 
 type SessionRow = {
     id: string;
@@ -55,12 +51,9 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // 🔹 이번 레이드 요약 (정답/총문항)
-    const [lastRaidResult, setLastRaidResult] = useState<LastRaidResult | null>(
-        null,
-    );
+    const [lastRaidResult, setLastRaidResult] = useState<LastRaidResult | null>(null);
 
-    // 🔹 Quizmon 프로필 훅 (학생 키가 없으면 내부에서 아무 일도 안 함)
+    // 🔹 Quizmon 프로필
     const { profile, applyRaidResult } = useQuizmonProfile({
         studentKey: studentId ?? null,
     });
@@ -68,15 +61,21 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const partner = profile?.partner ?? null;
     let expNeeded = 0;
     let expRatio = 0;
-    
+
+    // 🔹 컬렉션 / 가챠
+    const {
+        monsters,
+        loading: collLoading,
+        error: collError,
+        pullFreeGacha,
+    } = useQuizmonCollection({ profileId: profile?.id ?? null });
+
     const handleBattleEnd = async (summary: { correct: number; total: number }) => {
-        // 학생 키가 없다면 (교사 미리보기 등) 아무 것도 안 함
-        if (!studentId) return;
+        if (!studentId) return;          // 교사 미리보기 방지
 
         setLastRaidResult(summary);
-        await applyRaidResult(summary); // 내부에서 quizmon_profiles 업데이트
+        await applyRaidResult(summary);  // quizmon_profiles 갱신
     };
-
 
     if (partner) {
         if (partner.level >= LEVEL_CAP) {
@@ -217,7 +216,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 onBattleEnd={studentId ? handleBattleEnd : undefined}
             />
 
-            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP 표시 */}
+            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP */}
             {partner && lastRaidResult && (
                 <section
                     className="card"
@@ -238,9 +237,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         정답 {lastRaidResult.correct} / {lastRaidResult.total} (
                         {lastRaidResult.total > 0
                             ? Math.round(
-                                (lastRaidResult.correct /
-                                    lastRaidResult.total) *
-                                100,
+                                (lastRaidResult.correct / lastRaidResult.total) * 100,
                             )
                             : 0}
                         %)
@@ -278,8 +275,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                 style={{
                                     width: `${expRatio * 100}%`,
                                     height: "100%",
-                                    background: "#22c55e", // 연두색 느낌
-                                    transition: "width 0.4s ease",
+                                    background: "#22c55e",
+                                    transition: "width 0.3s ease",
                                 }}
                             />
                         </div>
@@ -308,6 +305,50 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     </div>
                 </section>
             )}
+
+            {/* 🔹 내 몬스터들 + 무료 소환 버튼 */}
+            {profile && (
+                <section className="card" style={{ marginTop: "1rem" }}>
+                    <h3>내 몬스터들 (베타)</h3>
+
+                    <button
+                        type="button"
+                        className="secondary-btn"
+                        disabled={!profile.id || collLoading}
+                        onClick={async () => {
+                            const result = await pullFreeGacha();
+                            if (result) {
+                                // TODO: "새 몬스터 획득!" 토스트/텍스트 연출
+                                console.log("[QuizMon] gacha result", result);
+                            }
+                        }}
+                    >
+                        무료 소환 1회
+                    </button>
+
+                    {collError && (
+                        <p
+                            className="form-message error"
+                            style={{ marginTop: "0.5rem" }}
+                        >
+                            {collError}
+                        </p>
+                    )}
+
+                    <ul style={{ marginTop: "0.5rem" }}>
+                        {monsters.map((m) => (
+                            <li key={m.id}>
+                                {m.species_id} Lv.{m.level}
+                                {m.party_slot && ` (파티 ${m.party_slot}번 슬롯)`}
+                            </li>
+                        ))}
+                        {monsters.length === 0 && (
+                            <li>아직 획득한 몬스터가 없습니다.</li>
+                        )}
+                    </ul>
+                </section>
+            )}
         </div>
+
     );
 }
