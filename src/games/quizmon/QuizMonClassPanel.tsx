@@ -1,6 +1,6 @@
 // src/games/quizmon/QuizMonClassPanel.tsx
-import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type {
     QuizPackRow,
@@ -10,7 +10,7 @@ import type {
     QuizPackJsonV1,
     QuizPackQuestionV1,
 } from "../../types/quizPackJson";
-import { QuizMonGame } from "./QuizMonGame";
+import { QuizMonBattleSection } from "./QuizMonBattleSection";
 import type { QuizAnswerResult } from "./types";
 import { useQuizmonProfile } from "./useQuizmonProfile";
 import { useQuizmonCollection } from "./useQuizmonCollection";
@@ -114,7 +114,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
 
     // 🔹 컬렉션 / 가챠 (학생일 때만 실제로 데이터가 채워짐)
     const {
-        monsters,
+        monsters = [],
         loading: collLoading,
         error: collError,
         pullFreeGacha,
@@ -222,58 +222,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             );
         }
     }
-
-    // =========================
-    // ✅ 3) 전투/수업 상태 카드 내용 구성
-    // =========================
-
-    let battleBody: ReactNode = null;
-
-    if (!pack) {
-        battleBody = (
-            <p>
-                이 방에는 아직 <strong>퀴즈팩</strong>이 연결되어 있지 않습니다.
-                <br />
-                선생님이 퀴즈팩을 선택하면 퀴즈몬 전투를 진행할 수 있어요.
-            </p>
-        );
-    } else if (!session || session.status === "pending") {
-        battleBody = (
-            <p>
-                선생님이 아직 <strong>퀴즈몬 게임</strong>을 시작하지 않았습니다.
-                <br />
-                수업이 시작되면 내 파트너가 전투에 참가합니다.
-            </p>
-        );
-    } else if (session.status === "ended") {
-        battleBody = (
-            <p>
-                이 수업의 퀴즈몬 게임이 종료되었습니다.
-                <br />
-                다음 수업을 기다리는 동안 로비에서 파트너를 관리해 보세요.
-            </p>
-        );
-    } else if (quizLoading || !quizpack) {
-        battleBody = <p>퀴즈 데이터를 불러오는 중입니다…</p>;
-    } else if (errorMsg) {
-        battleBody = (
-            <p className="form-message error" style={{ marginTop: "0.5rem" }}>
-                {errorMsg}
-            </p>
-        );
-    } else {
-        // session.status === "running" && quizpack 준비 완료
-        battleBody = (
-            <QuizMonGame
-                quizpack={quizpack}
-                onQuizAnswer={onQuizAnswer}
-                roomId={roomId}
-                gameSessionId={gameSessionId}
-                studentId={studentId}
-                onBattleEnd={studentId ? handleBattleEnd : undefined}
-            />
-        );
-    }
+    
 
     // 스프라이트 URL (있으면 로비에서 사용)
     const trainerSpriteUrl = getTrainerSprite(
@@ -325,8 +274,19 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     if (activeView === "battle") {
         mainViewBody = (
             <>
-                <h3 style={{ marginTop: 0 }}>전투 / 수업 상태</h3>
-                {battleBody}
+                <QuizMonBattleSection
+                    mode="class"
+                    pack={pack}
+                    session={session ?? null}
+                    quizpack={quizpack}
+                    quizLoading={quizLoading}
+                    errorMsg={errorMsg}
+                    roomId={roomId}
+                    gameSessionId={gameSessionId}
+                    studentId={studentId}
+                    onQuizAnswer={onQuizAnswer}
+                    onBattleEnd={studentId ? handleBattleEnd : undefined}
+                />
 
                 {isStudent && partner && lastRaidResult && (
                     <div
@@ -350,8 +310,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         </h4>
 
                         <p style={{ margin: 0, fontSize: 13 }}>
-                            정답 {lastRaidResult.correct} /{" "}
-                            {lastRaidResult.total} (
+                            정답 {lastRaidResult.correct} / {lastRaidResult.total} (
                             {lastRaidResult.total > 0
                                 ? Math.round(
                                     (lastRaidResult.correct /
@@ -377,8 +336,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                         color: "#9ca3af",
                                     }}
                                 >
-                                    Lv. {partner.level}
-                                </span>
+                                Lv. {partner.level}
+                            </span>
                             </div>
 
                             <div
