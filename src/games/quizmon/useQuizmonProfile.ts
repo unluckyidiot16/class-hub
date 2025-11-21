@@ -133,6 +133,9 @@ export function useQuizmonProfile(
             const damage = calcTurnDamage(correct, total);
             const gainedExp = Math.max(1, damage); // 예: 데미지 ~= 경험치
 
+            // 🔹 코인 지급 규칙: 정답 1개당 1코인 (예시)
+            const gainedCoins = correct;
+
             const newPartner = addExp(profile.partner, gainedExp);
 
             const { data, error } = await supabase
@@ -142,6 +145,9 @@ export function useQuizmonProfile(
                     total_raids: profile.total_raids + 1,
                     total_correct: profile.total_correct + correct,
                     total_questions: profile.total_questions + total,
+
+                    // 🔹 코인 증가
+                    coins: profile.coins + gainedCoins,
                 })
                 .eq("id", profile.id)
                 .select("*")
@@ -157,6 +163,7 @@ export function useQuizmonProfile(
         },
         [profile, studentKey],
     );
+
 
 
     // 🔹 스타터 선택 헬퍼

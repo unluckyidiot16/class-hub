@@ -101,7 +101,11 @@ export type QuizmonProfileRow = {
     trainer_name: string | null;
     starter_species_id: string | null;
     starter_chosen: boolean;
+
+    // 🔹 새로 추가: 퀴즈몬 재화 (기본 코인)
+    coins: number;  // NOT NULL DEFAULT 0
 };
+
 
 export type QuizmonOwnedMonsterRow = {
     id: string;
@@ -119,3 +123,4 @@ export const DEFAULT_PARTNER: QuizmonPartner = {
     level: 1,
     exp: 0,
 };
+

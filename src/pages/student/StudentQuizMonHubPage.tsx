@@ -245,6 +245,9 @@ export default function StudentQuizMonHubPage() {
     const partner = profile.partner ?? null;
     const totalMonsters = monsters.length;
 
+    // 🔹 재화(코인) 읽기
+    const coins = (profile as any).coins ?? 0;
+    
     // trainer_skin 컬럼은 타입에 없으므로 any 캐스팅으로 안전하게 접근
     const trainerSkinKey =
         (profile as any).trainer_skin ??
@@ -711,6 +714,15 @@ export default function StudentQuizMonHubPage() {
                             }}
                         >
                             보유 퀴즈몬: {totalMonsters}마리
+                        </div>
+                        <div
+                            style={{
+                                fontSize: 12,
+                                color: "#9ca3af",
+                                marginTop: 2,
+                            }}
+                        >
+                            보유 코인: {coins.toLocaleString("ko-KR")}개
                         </div>
                     </div>
                 </div>
