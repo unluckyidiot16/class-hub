@@ -72,10 +72,11 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
 
     const isStudent = !!studentId;
 
-    // 🔹 Quizmon 프로필 (학생일 때만 의미 있음)
+// 🔹 Quizmon 프로필 (학생일 때만 의미 있음)
     const {
         profile,
         loading: profileLoading,
+        error: profileError,
         applyRaidResult,
         chooseStarter,
     } = useQuizmonProfile({
@@ -211,7 +212,28 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     // =========================
     // ✅ 2) 학생 프로필/스타터 선택 가드 (훅 호출 이후)
     // =========================
+    // =========================
+// ✅ 2) 학생 프로필/스타터 선택 가드 (훅 호출 이후)
+// =========================
     if (isStudent) {
+        if (profileError) {
+            return (
+                <div style={{ padding: "1rem" }}>
+                    <p>퀴즈몬 프로필을 불러오는 중 오류가 발생했습니다.</p>
+                    <p
+                        style={{
+                            fontSize: "0.8rem",
+                            color: "#9ca3af",
+                            marginTop: "0.5rem",
+                            whiteSpace: "pre-wrap",
+                        }}
+                    >
+                        {profileError}
+                    </p>
+                </div>
+            );
+        }
+
         if (!profile || profileLoading) {
             return <p>프로필을 불러오는 중입니다...</p>;
         }
@@ -222,13 +244,14 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     disabled={profileLoading}
                     onChooseStarter={async (speciesId) => {
                         await chooseStarter(speciesId);
-                        // chooseStarter 내부에서 profile 갱신 → 다음 렌더부터는 로비/배틀 UI로 전환
+                        // TODO: 필요하면 여기서도 refresh() 호출
                     }}
                 />
             );
         }
     }
-    
+
+
 
     // 스프라이트 URL (있으면 로비에서 사용)
     const trainerSpriteUrl = getTrainerSprite(

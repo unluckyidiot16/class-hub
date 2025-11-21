@@ -77,9 +77,9 @@ export function useQuizmonProfile(
                     .maybeSingle();
 
                 if (error && error.code !== "PGRST116") {
-                    // PGRST116 = no rows
                     console.error("[useQuizmonProfile] select error", error);
-                    if (!cancelled) setError("프로필을 불러오는 중 오류가 발생했습니다.");
+                    if (!cancelled)
+                        setError(error.message ?? "프로필을 불러오는 중 오류가 발생했습니다.");
                     return;
                 }
 
@@ -101,7 +101,7 @@ export function useQuizmonProfile(
                     if (insertError) {
                         console.error("[useQuizmonProfile] insert error", insertError);
                         if (!cancelled)
-                            setError("새 프로필을 만드는 중 오류가 발생했습니다.");
+                            setError(insertError.message ?? "새 프로필을 만드는 중 오류가 발생했습니다.");
                         return;
                     }
 
