@@ -450,10 +450,11 @@ export default function StudentQuizMonHubPage() {
                     {selectedPack ? (
                         <QuizMonBattleSection
                             mode="practice"
-                            title={`연습 배틀 — ${selectedPack.title}`}
+                            title="연습 배틀"
                             quizpack={quizpack}
                             quizLoading={quizLoading}
                             errorMsg={quizError}
+                            profileId={profile?.id ?? null}
                         />
                     ) : (
                         <p

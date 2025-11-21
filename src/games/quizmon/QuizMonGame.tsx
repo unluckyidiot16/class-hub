@@ -1,5 +1,14 @@
 // src/games/quizmon/QuizMonGame.tsx
 import { useEffect, useMemo, useState } from "react";
+import type {
+    BattleState,
+    Move,
+    QuizAnswerResult,
+    QuizQuestionLite,
+    Monster,
+    QuizmonOwnedMonsterRow,
+    QuizmonSpeciesRow,
+} from "./types";
 import { quizPackToLiteQuestions } from "./quizSource";
 import { logGameEvent } from "../../api/gameSessions";
 import {
@@ -10,43 +19,41 @@ import {
     pushLog,
     rollHit,
 } from "./logic";
-import {
-    createInitialBattleState,
-} from "./mockData"; // 트레이너/몬스터 기본값은 일단 mockData에서
+import { createInitialBattleState } from "./mockData";
+import { supabase } from "../../lib/supabaseClient";
+import { buildBattleMonsterFromSpecies } from "./battleFactory";
+import type { QuizPackJsonV1 } from "../../types/quizPackJson"; // ← 기존 import 유지
 
 
-import type {
-    BattleState,
-    Move,
-    QuizAnswerResult,
-    QuizQuestionLite,
-} from "./types";
-import type { QuizPackJsonV1 } from "../../types/quizPackJson";
+
 
 type QuizMonGameProps = {
     quizpack: QuizPackJsonV1;
-
-    /** 정답 제출 시 호출 (이미 있음) */
-    onQuizAnswer?: (result: QuizAnswerResult) => void;
-
-    /** 배틀이 끝났을 때 한 번 호출 */
-    onBattleEnd?: (summary: { correct: number; total: number }) => void;
-
-    /** Supabase game_events 로그용 식별자들 (없으면 로깅 스킵) */
     roomId?: string | null;
     gameSessionId?: string | null;
     studentId?: string | null;
+
+    /** quizmon_profile.id - 있으면 이 프로필의 파티(1~3번)로 전투 시작 */
+    profileId?: string | null;
+
+    onQuizAnswer?: (result: QuizAnswerResult) => void;
+    onBattleEnd?: (summary: {
+        correct: number;
+        total: number;
+    }) => void;
 };
+
 
 
 export function QuizMonGame(props: QuizMonGameProps) {
     const {
         quizpack,
-        onQuizAnswer,
-        onBattleEnd,
         roomId,
         gameSessionId,
         studentId,
+        profileId,
+        onQuizAnswer,
+        onBattleEnd,
     } = props;
 
     // 1) 전투 상태
@@ -59,6 +66,152 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
+    /**
+     * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
+     * 실제 전투용 Monster 배열을 만들고, 그걸로 배틀 상태를 리셋한다.
+     */
+    const resetBattleWithProfileParty = async (profileId: string) => {
+        try {
+            // 1) 파티 슬롯 1~3인 owned 몬스터 로딩
+            const { data: ownedData, error: ownedError } = await supabase
+                .from("quizmon_owned_monsters")
+                .select(
+                    "id, profile_id, species_id, level, exp, party_slot, created_at, updated_at",
+                )
+                .eq("profile_id", profileId)
+                .in("party_slot", [1, 2, 3])
+                .order("party_slot", { ascending: true });
+
+            if (ownedError) {
+                console.error(
+                    "[QuizMonGame] load owned_monsters error",
+                    ownedError,
+                );
+                // 에러 시에는 mock 상태 유지
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                return;
+            }
+
+            const ownedRows = (ownedData ?? []) as QuizmonOwnedMonsterRow[];
+
+            if (!ownedRows.length) {
+                console.warn(
+                    "[QuizMonGame] no party monsters (slot 1~3) for profile",
+                    profileId,
+                );
+                // 파티가 없으면 mock 상태로
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                return;
+            }
+
+            // 2) 필요한 종 정보 모아서 quizmon_species 조회
+            const speciesIds = Array.from(
+                new Set(
+                    ownedRows
+                        .map((o) => o.species_id)
+                        .filter((id): id is string => !!id),
+                ),
+            );
+
+            if (!speciesIds.length) {
+                console.warn(
+                    "[QuizMonGame] owned_monsters has no species_id",
+                    ownedRows,
+                );
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                return;
+            }
+
+            const { data: speciesData, error: speciesError } = await supabase
+                .from("quizmon_species")
+                .select(
+                    "id, name, element, rarity, base_hp, base_atk, base_def, base_spd, pokedex_no, sprite_key, description",
+                )
+                .in("id", speciesIds);
+
+            if (speciesError) {
+                console.error(
+                    "[QuizMonGame] load species error",
+                    speciesError,
+                );
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                return;
+            }
+
+            const speciesRows = (speciesData ?? []) as QuizmonSpeciesRow[];
+            const speciesMap = new Map(
+                speciesRows.map((s) => [s.id, s] as const),
+            );
+
+            // 3) battleFactory로 Monster 빌드
+            const partyMonsters: Monster[] = ownedRows
+                .map((owned) => {
+                    const species = speciesMap.get(owned.species_id);
+                    if (!species) return null;
+                    return buildBattleMonsterFromSpecies(species, owned);
+                })
+                .filter((m): m is Monster => m !== null);
+
+            if (!partyMonsters.length) {
+                console.warn(
+                    "[QuizMonGame] partyMonsters empty after build",
+                    ownedRows,
+                    speciesRows,
+                );
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                return;
+            }
+
+            // 4) 기존 mock 기반 상태를 가져와서 player 쪽만 교체
+            const base = createInitialBattleState();
+
+            const newState: BattleState = {
+                ...base,
+                player: {
+                    ...base.player,
+                    monsters: partyMonsters,
+                    activeIndex: 0,
+                },
+                phase: "command",
+                turn: 1,
+                pendingPlayerMove: null,
+                pendingEnemyMove: null,
+                currentQuestion: null,
+                questionStartedAt: null,
+                lastQuizResult: null,
+                logs: [],
+            };
+
+            setState(newState);
+            setBattleStats({ correct: 0, total: 0 });
+            setHasReportedEnd(false);
+            setQuestionIndex(0);
+        } catch (err) {
+            console.error(
+                "[QuizMonGame] resetBattleWithProfileParty unexpected error",
+                err,
+            );
+            setState(createInitialBattleState());
+            setBattleStats({ correct: 0, total: 0 });
+            setHasReportedEnd(false);
+            setQuestionIndex(0);
+        }
+    };
 
     // 2) 퀴즈 소스: quizpackJson → Lite 배열
     const questions: QuizQuestionLite[] = useMemo(
@@ -74,6 +227,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
         () => state.enemy.monsters[state.enemy.activeIndex],
         [state.enemy],
     );
+
+    // profileId가 있으면, 학생이 설정한 파티(1~3번 슬롯)로 전투 상태를 초기화
+    useEffect(() => {
+        if (!profileId) return;
+        void resetBattleWithProfileParty(profileId);
+    }, [profileId]);
+
 
     // 적은 일단 영구히 첫 번째 기술만 쓰는 더미 AI
     useEffect(() => {
@@ -318,11 +478,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
     const handleReset = () => {
-        setState(createInitialBattleState());
-        setQuestionIndex(0);
-        setBattleStats({ correct: 0, total: 0 });
-        setHasReportedEnd(false);
+        if (profileId) {
+            // 학생 프로필이 있으면 항상 "실제 파티" 기준으로 리셋
+            void resetBattleWithProfileParty(profileId);
+        } else {
+            // fallback: mock 상태로 리셋
+            setState(createInitialBattleState());
+            setBattleStats({ correct: 0, total: 0 });
+            setHasReportedEnd(false);
+            setQuestionIndex(0);
+        }
     };
+
 
 
     return (

@@ -315,6 +315,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     roomId={roomId}
                     gameSessionId={gameSessionId}
                     studentId={studentId}
+                    profileId={profile?.id ?? null}
                     onQuizAnswer={onQuizAnswer}
                     onBattleEnd={studentId ? handleBattleEnd : undefined}
                 />

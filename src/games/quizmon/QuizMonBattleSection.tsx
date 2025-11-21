@@ -36,6 +36,9 @@ type QuizMonBattleSectionProps = {
     gameSessionId?: string | null;
     studentId?: string | null;
 
+    /** 사용할 quizmon_profile.id (있으면 학생 파티 로딩) */
+    profileId?: string | null;
+    
     /** 정답 제출 시 호출 */
     onQuizAnswer?: (result: QuizAnswerResult) => void;
 
@@ -55,6 +58,7 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         roomId,
         gameSessionId,
         studentId,
+        profileId,
         onQuizAnswer,
         onBattleEnd,
     } = props;
@@ -107,10 +111,11 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
             content = (
                 <QuizMonGame
                     quizpack={quizpack}
+                    roomId={mode === "class" ? roomId ?? null : null}
+                    gameSessionId={mode === "class" ? gameSessionId ?? null : null}
+                    studentId={mode === "class" ? studentId ?? null : null}
+                    profileId={profileId}
                     onQuizAnswer={onQuizAnswer}
-                    roomId={roomId}
-                    gameSessionId={gameSessionId}
-                    studentId={studentId}
                     onBattleEnd={onBattleEnd}
                 />
             );
