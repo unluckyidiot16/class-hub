@@ -41,6 +41,8 @@ type LastRaidResult = {
     total: number;
 };
 
+type ActiveView = "battle" | "monsters" | "missions" | "dex";
+
 const LEVEL_CAP = 10;
 const expNeededForLevel = (level: number) => 5 * level;
 
@@ -60,6 +62,9 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
 
     const [lastRaidResult, setLastRaidResult] =
         useState<LastRaidResult | null>(null);
+
+    // 🔹 메인 탭 상태 (전투 / 몬스터 / 미션 / 도감)
+    const [activeView, setActiveView] = useState<ActiveView>("battle");
 
     const isStudent = !!studentId;
 
@@ -89,11 +94,10 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const partnerDisplayName =
         partner
             ? ((partner as any).nickname ??
-                (partner as any).name ??          // 혹시 나중에 name 필드를 추가해도 커버
-                (partner as any).species_id ??    // 종 ID라도 보여주기
+                (partner as any).name ?? // 혹시 나중에 name 필드를 추가해도 커버
+                (partner as any).species_id ?? // 종 ID라도 보여주기
                 "파트너")
             : "파트너";
-
 
     if (partner) {
         if (partner.level >= LEVEL_CAP) {
@@ -271,13 +275,13 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         );
     }
 
-// 스프라이트 URL (있으면 로비에서 사용)
+    // 스프라이트 URL (있으면 로비에서 사용)
     const trainerSpriteUrl = getTrainerSprite(
         // 나중에 profile.trainer_key 생기면 여기로 교체
         null,
     );
 
-// 🔹 파트너 스프라이트: 여러 소스에서 species_id 추론
+    // 🔹 파트너 스프라이트: 여러 소스에서 species_id 추론
     let partnerSpeciesId: string | null = null;
 
     if (partner) {
@@ -291,8 +295,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
 
         // 3) 둘 다 없으면 컬렉션의 첫 번째 몬스터라도 사용
         const fromCollection =
-            fromCollectionById ??
-            (monsters.length > 0 ? monsters[0] : null);
+            fromCollectionById ?? (monsters.length > 0 ? monsters[0] : null);
 
         partnerSpeciesId =
             fromPartner ?? (fromCollection ? fromCollection.species_id : null);
@@ -303,7 +306,292 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         : null;
 
     // =========================
-    // ✅ 4) 로비 + 전투 + 결과/컬렉션 렌더링
+    // ✅ 4) 탭별 메인 콘텐츠 구성
+    // =========================
+
+    const tabs: { key: ActiveView; label: string; disabled?: boolean }[] = [
+        { key: "battle", label: "전투" },
+        {
+            key: "monsters",
+            label: "몬스터",
+            disabled: !isStudent,
+        },
+        { key: "missions", label: "미션", disabled: true },
+        { key: "dex", label: "도감", disabled: true },
+    ];
+
+    let mainViewBody: ReactNode;
+
+    if (activeView === "battle") {
+        mainViewBody = (
+            <>
+                <h3 style={{ marginTop: 0 }}>전투 / 수업 상태</h3>
+                {battleBody}
+
+                {isStudent && partner && lastRaidResult && (
+                    <div
+                        style={{
+                            marginTop: "1rem",
+                            padding: "0.75rem",
+                            borderRadius: 8,
+                            border: "1px solid #374151",
+                            background: "#020617",
+                            color: "#e5e7eb",
+                        }}
+                    >
+                        <h4
+                            style={{
+                                margin: 0,
+                                marginBottom: "0.5rem",
+                                fontSize: 14,
+                            }}
+                        >
+                            이번 레이드 결과
+                        </h4>
+
+                        <p style={{ margin: 0, fontSize: 13 }}>
+                            정답 {lastRaidResult.correct} /{" "}
+                            {lastRaidResult.total} (
+                            {lastRaidResult.total > 0
+                                ? Math.round(
+                                    (lastRaidResult.correct /
+                                        lastRaidResult.total) *
+                                    100,
+                                )
+                                : 0}
+                            %)
+                        </p>
+
+                        <div style={{ marginTop: "0.75rem" }}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "baseline",
+                                }}
+                            >
+                                <strong>내 파트너</strong>
+                                <span
+                                    style={{
+                                        fontSize: 13,
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    Lv. {partner.level}
+                                </span>
+                            </div>
+
+                            <div
+                                style={{
+                                    marginTop: 4,
+                                    background: "#111827",
+                                    borderRadius: 999,
+                                    overflow: "hidden",
+                                    height: 10,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: `${expRatio * 100}%`,
+                                        height: "100%",
+                                        background: "#22c55e",
+                                        transition: "width 0.3s ease",
+                                    }}
+                                />
+                            </div>
+
+                            {partner.level < LEVEL_CAP ? (
+                                <p
+                                    style={{
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    EXP {partner.exp} / {expNeeded}
+                                </p>
+                            ) : (
+                                <p
+                                    style={{
+                                        fontSize: 12,
+                                        marginTop: 4,
+                                        color: "#facc15",
+                                    }}
+                                >
+                                    MAX 레벨에 도달했습니다!
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </>
+        );
+    } else if (activeView === "monsters") {
+        if (!isStudent || !profile) {
+            mainViewBody = (
+                <p style={{ fontSize: 13, color: "#9ca3af" }}>
+                    몬스터 관리는 학생 모드에서만 사용할 수 있습니다.
+                </p>
+            );
+        } else {
+            mainViewBody = (
+                <>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "0.75rem",
+                            marginBottom: "0.75rem",
+                        }}
+                    >
+                        <h3 style={{ margin: 0 }}>내 몬스터들 (베타)</h3>
+
+                        <button
+                            type="button"
+                            className="secondary-btn"
+                            disabled={!profile.id || collLoading}
+                            onClick={async () => {
+                                const result = await pullFreeGacha();
+                                if (result) {
+                                    // TODO: "새 몬스터 획득!" 토스트/텍스트 연출
+                                    console.log(
+                                        "[QuizMon] gacha result",
+                                        result,
+                                    );
+                                }
+                            }}
+                        >
+                            무료 소환 1회
+                        </button>
+                    </div>
+
+                    {collError && (
+                        <p
+                            className="form-message error"
+                            style={{ marginTop: "0.5rem" }}
+                        >
+                            {collError}
+                        </p>
+                    )}
+
+                    {monsters.length === 0 ? (
+                        <p
+                            style={{
+                                marginTop: "0.5rem",
+                                fontSize: 13,
+                                color: "#9ca3af",
+                            }}
+                        >
+                            아직 획득한 몬스터가 없습니다.
+                        </p>
+                    ) : (
+                        <div
+                            style={{
+                                marginTop: "0.5rem",
+                                display: "grid",
+                                gridTemplateColumns:
+                                    "repeat(auto-fit, minmax(180px, 1fr))",
+                                gap: "0.75rem",
+                            }}
+                        >
+                            {monsters.map((m) => {
+                                const spriteUrl = getMonsterSprite(
+                                    m.species_id,
+                                );
+                                return (
+                                    <div
+                                        key={m.id}
+                                        style={{
+                                            display: "flex",
+                                            gap: "0.75rem",
+                                            padding: "0.5rem 0.75rem",
+                                            borderRadius: 12,
+                                            border: "1px solid #1f2937",
+                                            background: "#020617",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: 72,
+                                                height: 72,
+                                                borderRadius: 16,
+                                                background: "#000",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                overflow: "hidden",
+                                            }}
+                                        >
+                                            {spriteUrl && (
+                                                <img
+                                                    src={spriteUrl}
+                                                    alt={m.species_id}
+                                                    style={{
+                                                        width: 64,
+                                                        height: 64,
+                                                        imageRendering:
+                                                            "pixelated",
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+
+                                        <div style={{ flex: 1 }}>
+                                            <div
+                                                style={{
+                                                    fontSize: 14,
+                                                    fontWeight: 600,
+                                                    color: "#e5e7eb",
+                                                }}
+                                            >
+                                                {m.species_id}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: "#9ca3af",
+                                                    marginTop: 2,
+                                                }}
+                                            >
+                                                Lv.{m.level}{" "}
+                                                {m.party_slot &&
+                                                    `(파티 ${m.party_slot}번 슬롯)`}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </>
+            );
+        }
+    } else if (activeView === "missions") {
+        mainViewBody = (
+            <>
+                <h3 style={{ marginTop: 0 }}>미션 (준비 중)</h3>
+                <p style={{ fontSize: 13, color: "#9ca3af" }}>
+                    오늘 수업 목표, 일일 미션 등은 추후 업데이트될 예정입니다.
+                </p>
+            </>
+        );
+    } else {
+        // dex
+        mainViewBody = (
+            <>
+                <h3 style={{ marginTop: 0 }}>도감 (준비 중)</h3>
+                <p style={{ fontSize: 13, color: "#9ca3af" }}>
+                    수업 중에 만난 몬스터들을 기록하는 도감 기능이 추가될
+                    예정입니다.
+                </p>
+            </>
+        );
+    }
+
+    // =========================
+    // ✅ 5) 로비 + 탭 렌더링
     // =========================
 
     return (
@@ -328,8 +616,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                 color: "#9ca3af",
                             }}
                         >
-                Beta
-            </span>
+                            Beta
+                        </span>
                     </div>
 
                     {/* 본문: 트레이너 카드 + 파트너 카드 */}
@@ -452,14 +740,14 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                         marginBottom: 4,
                                     }}
                                 >
-                        <span
-                            style={{
-                                fontSize: 13,
-                                color: "#9ca3af",
-                            }}
-                        >
-                            파트너
-                        </span>
+                                    <span
+                                        style={{
+                                            fontSize: 13,
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                                        파트너
+                                    </span>
                                     <span
                                         style={{
                                             fontSize: 14,
@@ -467,8 +755,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                             color: "#e5e7eb",
                                         }}
                                     >
-                            Lv. {partner?.level ?? 1}
-                        </span>
+                                        Lv. {partner?.level ?? 1}
+                                    </span>
                                 </div>
 
                                 <div
@@ -512,338 +800,56 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         }}
                     >
                         퀴즈를 맞추면 파트너가 경험치를 얻어요. 오늘 수업에서 Lv.
-                        {Math.min((partner?.level ?? 1) + 1, LEVEL_CAP)}을(를) 노려보세요!
+                        {Math.min((partner?.level ?? 1) + 1, LEVEL_CAP)}을(를)
+                        노려보세요!
                     </p>
                 </section>
             )}
-            {/* 🔹 메인 메뉴 (베타, 학생 전용) */}
-            {isStudent && (
-                <section className="card" style={{ marginBottom: "1rem" }}>
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                                "repeat(auto-fit, minmax(180px, 1fr))",
-                            gap: "0.75rem",
-                        }}
-                    >
-                        {[
-                            {
-                                key: "monsters",
-                                title: "몬스터",
-                                description: "보유 몬스터 확인",
-                            },
-                            {
-                                key: "missions",
-                                title: "미션",
-                                description: "오늘의 수업 목표",
-                            },
-                            {
-                                key: "dex",
-                                title: "도감",
-                                description: "발견한 몬스터 기록",
-                            },
-                            {
-                                key: "settings",
-                                title: "설정",
-                                description: "퀴즈 옵션 및 사운드",
-                            },
-                        ].map((item) => (
-                            <button
-                                key={item.key}
-                                type="button"
-                                disabled
-                                style={{
-                                    borderRadius: 16,
-                                    padding: "0.75rem 0.9rem",
-                                    border: "1px solid #1f2937",
-                                    background:
-                                        "radial-gradient(circle at top left, #1d4ed8 0, #020617 55%)",
-                                    textAlign: "left",
-                                    opacity: 0.85,
-                                    cursor: "default",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        fontSize: 14,
-                                        fontWeight: 600,
-                                        color: "#e5e7eb",
-                                        marginBottom: 4,
-                                    }}
-                                >
-                                    {item.title}
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: 12,
-                                        color: "#9ca3af",
-                                    }}
-                                >
-                                    {item.description}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
 
-                    <div
-                        style={{
-                            marginTop: "0.75rem",
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "0.5rem",
-                        }}
-                    >
-                        {["수업 정보", "소환", "도전 모드", "옵션"].map((label) => (
+            {/* 🔹 메인 탭 영역: 전투 / 몬스터 / 미션 / 도감 */}
+            <section className="card">
+                {/* 탭 버튼 줄 */}
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                        marginBottom: "0.75rem",
+                    }}
+                >
+                    {tabs.map((tab) => {
+                        const isActive = activeView === tab.key;
+                        const disabled = !!tab.disabled;
+                        return (
                             <button
-                                key={label}
+                                key={tab.key}
                                 type="button"
-                                disabled
+                                onClick={() => {
+                                    if (!disabled) setActiveView(tab.key);
+                                }}
+                                disabled={disabled}
                                 style={{
                                     padding: "0.35rem 0.9rem",
                                     borderRadius: 999,
                                     border: "1px solid #1f2937",
-                                    background: "#020617",
-                                    fontSize: 12,
-                                    color: "#e5e7eb",
-                                    opacity: 0.85,
-                                    cursor: "default",
-                                }}
-                            >
-                                {label}
-                            </button>
-                        ))}
-                    </div>
-                </section>
-            )}
-            {/* 🔹 전투/수업 상태 영역 */}
-            <section className="card">
-
-            <h3 style={{ marginTop: 0 }}>전투 / 수업 상태</h3>
-                {battleBody}
-            </section>
-
-            {/* 🔹 레이드 결과 + 내 파트너 레벨/EXP (학생 전용, 전투 후) */}
-            {isStudent && partner && lastRaidResult && (
-                <section
-                    className="card"
-                    style={{
-                        marginTop: "1rem",
-                        padding: "0.75rem",
-                        borderRadius: 8,
-                        border: "1px solid #444",
-                        background: "#111",
-                        color: "#eee",
-                    }}
-                >
-                    <h3 style={{ marginTop: 0, marginBottom: "0.5rem" }}>
-                        이번 레이드 결과
-                    </h3>
-
-                    <p style={{ margin: 0, fontSize: 14 }}>
-                        정답 {lastRaidResult.correct} / {lastRaidResult.total} (
-                        {lastRaidResult.total > 0
-                            ? Math.round(
-                                (lastRaidResult.correct /
-                                    lastRaidResult.total) *
-                                100,
-                            )
-                            : 0}
-                        %)
-                    </p>
-
-                    <div style={{ marginTop: "0.75rem" }}>
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "baseline",
-                            }}
-                        >
-                            <strong>내 파트너</strong>
-                            <span
-                                style={{
                                     fontSize: 13,
-                                    color: "#ccc",
+                                    background: isActive
+                                        ? "linear-gradient(90deg, #1d4ed8, #22c55e)"
+                                        : "#020617",
+                                    color: isActive ? "#f9fafb" : "#e5e7eb",
+                                    opacity: disabled ? 0.4 : 1,
+                                    cursor: disabled ? "default" : "pointer",
                                 }}
                             >
-                                Lv. {partner.level}
-                            </span>
-                        </div>
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                        <div
-                            style={{
-                                marginTop: 4,
-                                background: "#222",
-                                borderRadius: 999,
-                                overflow: "hidden",
-                                height: 10,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: `${expRatio * 100}%`,
-                                    height: "100%",
-                                    background: "#22c55e",
-                                    transition: "width 0.3s ease",
-                                }}
-                            />
-                        </div>
-
-                        {partner.level < LEVEL_CAP ? (
-                            <p
-                                style={{
-                                    fontSize: 12,
-                                    marginTop: 4,
-                                    color: "#aaa",
-                                }}
-                            >
-                                EXP {partner.exp} / {expNeeded}
-                            </p>
-                        ) : (
-                            <p
-                                style={{
-                                    fontSize: 12,
-                                    marginTop: 4,
-                                    color: "#facc15",
-                                }}
-                            >
-                                MAX 레벨에 도달했습니다!
-                            </p>
-                        )}
-                    </div>
-                </section>
-            )}
-
-            {/* 🔹 내 몬스터들 + 무료 소환 버튼 (학생 전용) */}
-            {isStudent && profile && (
-                <section className="card" style={{ marginTop: "1rem" }}>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "0.75rem",
-                            marginBottom: "0.5rem",
-                        }}
-                    >
-                        <h3 style={{ margin: 0 }}>내 몬스터들 (베타)</h3>
-
-                        <button
-                            type="button"
-                            className="secondary-btn"
-                            disabled={!profile.id || collLoading}
-                            onClick={async () => {
-                                const result = await pullFreeGacha();
-                                if (result) {
-                                    // TODO: "새 몬스터 획득!" 토스트/텍스트 연출
-                                    console.log("[QuizMon] gacha result", result);
-                                }
-                            }}
-                        >
-                            무료 소환 1회
-                        </button>
-                    </div>
-
-                    {collError && (
-                        <p
-                            className="form-message error"
-                            style={{ marginTop: "0.5rem" }}
-                        >
-                            {collError}
-                        </p>
-                    )}
-
-                    {monsters.length === 0 ? (
-                        <p
-                            style={{
-                                marginTop: "0.5rem",
-                                fontSize: 13,
-                                color: "#9ca3af",
-                            }}
-                        >
-                            아직 획득한 몬스터가 없습니다.
-                        </p>
-                    ) : (
-                        <div
-                            style={{
-                                marginTop: "0.5rem",
-                                display: "grid",
-                                gridTemplateColumns:
-                                    "repeat(auto-fit, minmax(180px, 1fr))",
-                                gap: "0.75rem",
-                            }}
-                        >
-                            {monsters.map((m) => {
-                                const spriteUrl = getMonsterSprite(m.species_id);
-                                return (
-                                    <div
-                                        key={m.id}
-                                        style={{
-                                            display: "flex",
-                                            gap: "0.75rem",
-                                            padding: "0.5rem 0.75rem",
-                                            borderRadius: 12,
-                                            border: "1px solid #1f2937",
-                                            background: "#020617",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                width: 72,
-                                                height: 72,
-                                                borderRadius: 16,
-                                                background: "#000",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                overflow: "hidden",
-                                            }}
-                                        >
-                                            {spriteUrl && (
-                                                <img
-                                                    src={spriteUrl}
-                                                    alt={m.species_id}
-                                                    style={{
-                                                        width: 64,
-                                                        height: 64,
-                                                        imageRendering: "pixelated",
-                                                    }}
-                                                />
-                                            )}
-                                        </div>
-
-                                        <div style={{ flex: 1 }}>
-                                            <div
-                                                style={{
-                                                    fontSize: 14,
-                                                    fontWeight: 600,
-                                                    color: "#e5e7eb",
-                                                }}
-                                            >
-                                                {m.species_id}
-                                            </div>
-                                            <div
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: "#9ca3af",
-                                                    marginTop: 2,
-                                                }}
-                                            >
-                                                Lv.{m.level}{" "}
-                                                {m.party_slot &&
-                                                    `(파티 ${m.party_slot}번 슬롯)`}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </section>
-            )}
-
+                {/* 탭 내용 */}
+                <div>{mainViewBody}</div>
+            </section>
         </div>
     );
 }
