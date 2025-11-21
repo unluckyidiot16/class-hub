@@ -266,7 +266,7 @@ export function StudentRoomPage() {
             const { data, error } = await supabase
                 .from("rooms")
                 .select(
-                    "id, code, title, game_key, status, created_at, quiz_pack_id",
+                    "id, class_id, code, title, game_key, status, created_at, quiz_pack_id",
                 )
                 .eq("id", roomId)
                 .single();
