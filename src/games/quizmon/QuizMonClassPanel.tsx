@@ -78,6 +78,14 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     let expNeeded = 0;
     let expRatio = 0;
 
+    const playerDisplayName =
+        profile
+            ? ((profile as any).nickname ??
+                (profile as any).display_name ??
+                (profile as any).name ??
+                "학생 트레이너")
+            : "학생 트레이너";
+
     const partnerDisplayName =
         partner
             ? ((partner as any).nickname ??
@@ -85,6 +93,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 (partner as any).species_id ??    // 종 ID라도 보여주기
                 "파트너")
             : "파트너";
+
 
     if (partner) {
         if (partner.level >= LEVEL_CAP) {
@@ -302,66 +311,117 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             {/* 🔹 로비: 학생 + 파트너가 있을 때 항상 노출 */}
             {isStudent && profile && partner && (
                 <section className="card" style={{ marginBottom: "1rem" }}>
-                    <h3 style={{ marginTop: 0 }}>퀴즈몬 교실 로비</h3>
-                    <p
-                        style={{
-                            fontSize: 13,
-                            color: "#9ca3af",
-                            marginBottom: "0.5rem",
-                        }}
-                    >
-                        이 수업에서 함께 싸울 트레이너와 파트너입니다. 퀴즈를
-                        맞추면 파트너가 경험치를 얻어요.
-                    </p>
-
+                    {/* 상단: 타이틀 + 작은 배지 */}
                     <div
                         style={{
                             display: "flex",
+                            justifyContent: "space-between",
                             alignItems: "center",
+                            marginBottom: "0.5rem",
+                            gap: "0.75rem",
+                        }}
+                    >
+                        <h3 style={{ margin: 0 }}>퀴즈몬 교실 로비</h3>
+                        <span
+                            style={{
+                                fontSize: 12,
+                                color: "#9ca3af",
+                            }}
+                        >
+                Beta
+            </span>
+                    </div>
+
+                    {/* 본문: 트레이너 카드 + 파트너 카드 */}
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "stretch",
+                            justifyContent: "space-between",
                             gap: "1rem",
                         }}
                     >
-                        {/* 트레이너 아바타 */}
-                        <div
-                            style={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: 12,
-                                background: "#020617",
-                                border: "1px solid #1f2937",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                flexShrink: 0,
-                            }}
-                        >
-                            {trainerSpriteUrl && (
-                                <img
-                                    src={trainerSpriteUrl}
-                                    alt="Trainer"
-                                    style={{
-                                        width: 64,
-                                        height: 64,
-                                        imageRendering: "pixelated",
-                                    }}
-                                />
-                            )}
-                        </div>
-
-                        {/* 파트너 스프라이트 + 정보 + EXP 바 */}
+                        {/* 트레이너 정보 (왼쪽) */}
                         <div
                             style={{
                                 flex: 1,
                                 display: "flex",
-                                gap: "0.75rem",
                                 alignItems: "center",
+                                gap: "0.75rem",
                             }}
                         >
                             <div
                                 style={{
-                                    width: 72,
-                                    height: 72,
-                                    borderRadius: 12,
+                                    width: 80,
+                                    height: 80,
+                                    borderRadius: 16,
+                                    background: "#020617",
+                                    border: "1px solid #1f2937",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    flexShrink: 0,
+                                }}
+                            >
+                                {trainerSpriteUrl && (
+                                    <img
+                                        src={trainerSpriteUrl}
+                                        alt="Trainer"
+                                        style={{
+                                            width: 64,
+                                            height: 64,
+                                            imageRendering: "pixelated",
+                                        }}
+                                    />
+                                )}
+                            </div>
+
+                            <div style={{ flex: 1 }}>
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: "#9ca3af",
+                                        marginBottom: 2,
+                                    }}
+                                >
+                                    트레이너
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 16,
+                                        fontWeight: 600,
+                                        color: "#e5e7eb",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    {playerDisplayName}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    파트너: {partnerDisplayName}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 파트너 + EXP (오른쪽) */}
+                        <div
+                            style={{
+                                flex: 1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "flex-end",
+                                gap: "0.75rem",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 80,
+                                    height: 80,
+                                    borderRadius: 16,
                                     background: "#020617",
                                     border: "1px solid #1f2937",
                                     display: "flex",
@@ -373,17 +433,17 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                 {partnerSpriteUrl && (
                                     <img
                                         src={partnerSpriteUrl}
-                                        alt= {partnerDisplayName}
+                                        alt={partnerDisplayName}
                                         style={{
-                                            maxWidth: "100%",
-                                            maxHeight: "100%",
+                                            width: 72,
+                                            height: 72,
                                             imageRendering: "pixelated",
                                         }}
                                     />
                                 )}
                             </div>
 
-                            <div style={{ flex: 1 }}>
+                            <div style={{ minWidth: 150 }}>
                                 <div
                                     style={{
                                         display: "flex",
@@ -392,91 +452,174 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                                         marginBottom: 4,
                                     }}
                                 >
-                                    <div>
-                                        <div
-                                            style={{
-                                                fontSize: 13,
-                                                color: "#9ca3af",
-                                                marginBottom: 2,
-                                            }}
-                                        >
-                                            파트너
-                                        </div>
-                                        <div
-                                            style={{
-                                                fontSize: 16,
-                                                fontWeight: 600,
-                                                marginBottom: 2,
-                                            }}
-                                        >
-                                            {partnerDisplayName}
-                                        </div>
-                                    </div>
-                                    <div
+                        <span
+                            style={{
+                                fontSize: 13,
+                                color: "#9ca3af",
+                            }}
+                        >
+                            파트너
+                        </span>
+                                    <span
                                         style={{
-                                            fontSize: 13,
+                                            fontSize: 14,
+                                            fontWeight: 600,
                                             color: "#e5e7eb",
                                         }}
                                     >
-                                        Lv. {partner?.level ?? 1}
-                                    </div>
+                            Lv. {partner?.level ?? 1}
+                        </span>
                                 </div>
 
-                                <div>
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: "#e5e7eb",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    {partner && partner.level < LEVEL_CAP
+                                        ? `EXP ${partner.exp} / ${expNeeded}`
+                                        : "MAX 레벨"}
+                                </div>
+
+                                <div
+                                    style={{
+                                        background: "#111827",
+                                        borderRadius: 999,
+                                        overflow: "hidden",
+                                        height: 8,
+                                    }}
+                                >
                                     <div
                                         style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "baseline",
+                                            width: `${expRatio * 100}%`,
+                                            height: "100%",
+                                            background: "#22c55e",
+                                            transition: "width 0.3s ease",
                                         }}
-                                    >
-                                        <span
-                                            style={{
-                                                fontSize: 13,
-                                                color: "#9ca3af",
-                                            }}
-                                        >
-                                            경험치
-                                        </span>
-                                        <span
-                                            style={{
-                                                fontSize: 12,
-                                                color: "#e5e7eb",
-                                            }}
-                                        >
-                                            {partner.level < LEVEL_CAP
-                                                ? `EXP ${partner.exp} / ${expNeeded}`
-                                                : "MAX"}
-                                        </span>
-                                    </div>
-                                    <div
-                                        style={{
-                                            marginTop: 4,
-                                            background: "#111827",
-                                            borderRadius: 999,
-                                            overflow: "hidden",
-                                            height: 10,
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                width: `${expRatio * 100}%`,
-                                                height: "100%",
-                                                background: "#22c55e",
-                                                transition: "width 0.3s ease",
-                                            }}
-                                        />
-                                    </div>
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <p
+                        style={{
+                            fontSize: 12,
+                            color: "#9ca3af",
+                            marginTop: "0.75rem",
+                        }}
+                    >
+                        퀴즈를 맞추면 파트너가 경험치를 얻어요. 오늘 수업에서 Lv.
+                        {Math.min((partner?.level ?? 1) + 1, LEVEL_CAP)}을(를) 노려보세요!
+                    </p>
                 </section>
             )}
+            {/* 🔹 메인 메뉴 (베타, 학생 전용) */}
+            {isStudent && (
+                <section className="card" style={{ marginBottom: "1rem" }}>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns:
+                                "repeat(auto-fit, minmax(180px, 1fr))",
+                            gap: "0.75rem",
+                        }}
+                    >
+                        {[
+                            {
+                                key: "monsters",
+                                title: "몬스터",
+                                description: "보유 몬스터 확인",
+                            },
+                            {
+                                key: "missions",
+                                title: "미션",
+                                description: "오늘의 수업 목표",
+                            },
+                            {
+                                key: "dex",
+                                title: "도감",
+                                description: "발견한 몬스터 기록",
+                            },
+                            {
+                                key: "settings",
+                                title: "설정",
+                                description: "퀴즈 옵션 및 사운드",
+                            },
+                        ].map((item) => (
+                            <button
+                                key={item.key}
+                                type="button"
+                                disabled
+                                style={{
+                                    borderRadius: 16,
+                                    padding: "0.75rem 0.9rem",
+                                    border: "1px solid #1f2937",
+                                    background:
+                                        "radial-gradient(circle at top left, #1d4ed8 0, #020617 55%)",
+                                    textAlign: "left",
+                                    opacity: 0.85,
+                                    cursor: "default",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 14,
+                                        fontWeight: 600,
+                                        color: "#e5e7eb",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    {item.title}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    {item.description}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
 
+                    <div
+                        style={{
+                            marginTop: "0.75rem",
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        {["수업 정보", "소환", "도전 모드", "옵션"].map((label) => (
+                            <button
+                                key={label}
+                                type="button"
+                                disabled
+                                style={{
+                                    padding: "0.35rem 0.9rem",
+                                    borderRadius: 999,
+                                    border: "1px solid #1f2937",
+                                    background: "#020617",
+                                    fontSize: 12,
+                                    color: "#e5e7eb",
+                                    opacity: 0.85,
+                                    cursor: "default",
+                                }}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </section>
+            )}
             {/* 🔹 전투/수업 상태 영역 */}
             <section className="card">
-                <h3 style={{ marginTop: 0 }}>전투 / 수업 상태</h3>
+
+            <h3 style={{ marginTop: 0 }}>전투 / 수업 상태</h3>
                 {battleBody}
             </section>
 
