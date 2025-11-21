@@ -211,8 +211,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             // 1) 플레이어 공격
             const quizMod = calcQuizMod(quizResult);
             const hitChance = calcHitChance(
-                prevPlayerMon,
-                prevEnemyMon,
+                prevEnemyMon,                    // defender
                 prev.pendingPlayerMove.move,
                 quizMod,
             );
@@ -251,8 +250,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             if (enemyStillAlive && prev.pendingEnemyMove) {
                 const enemyQuizMod = 1.0; // 적은 항상 평균 정도라고 가정
                 const enemyHitChance = calcHitChance(
-                    prevEnemyMon,
-                    prevPlayerMon,
+                    prevPlayerMon,                   // defender
                     prev.pendingEnemyMove.move,
                     enemyQuizMod,
                 );

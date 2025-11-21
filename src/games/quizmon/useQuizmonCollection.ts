@@ -2,6 +2,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { QuizmonOwnedMonsterRow } from "./types";
+import {
+    buildBattleMonsterFromSpecies,
+    type BattleMonsterCore,
+    type QuizmonSpeciesLike,
+} from "./battleFactory";
+
 
 // 아주 단순한 가챠 풀 (일단은 하드코딩)
 const GACHA_POOL = ["poke-0001", "poke-0004", "poke-0007"] as const;
@@ -23,6 +29,12 @@ type UseQuizmonCollectionResult = {
 
     // 무료 1회 소환
     pullFreeGacha: () => Promise<QuizmonOwnedMonsterRow | null>;
+};
+
+type QuizmonSpeciesRow = QuizmonSpeciesLike;
+
+export type BattlePartyMonster = BattleMonsterCore & {
+    partySlot: number;
 };
 
 export function useQuizmonCollection(
@@ -82,6 +94,12 @@ export function useQuizmonCollection(
     const pullFreeGacha = useCallback(async () => {
         if (!profileId) return null;
 
+        // ✅ 로딩 중에는 가챠 막기 (Race condition 방지)
+        if (loading) {
+            setError("몬스터 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
+            return null;
+        }
+
         setError(null);
 
         // 1) 종족 뽑기
@@ -136,4 +154,90 @@ export function useQuizmonCollection(
         refresh,
         pullFreeGacha,
     };
+}
+
+
+// 파일 맨 아래, useQuizmonCollection return 뒤에 추가
+
+/**
+ * 특정 profileId에 대해
+ *   quizmon_owned_monsters + quizmon_species 를 조인해서
+ *   전투용 파티 몬스터 배열을 만들어 주는 헬퍼.
+ *
+ * - party_slot 이 1~3인 몬스터만 대상으로 함
+ * - 슬롯 순서대로 정렬된 BattleMonsterCore[] 반환
+ */
+export async function loadBattlePartyForProfile(
+    profileId: string | null,
+): Promise<BattlePartyMonster[]> {
+    if (!profileId) return [];
+
+    // 1) 해당 프로필의 파티 몬스터(슬롯 1~3만) 가져오기
+    const { data: ownedRows, error } = await supabase
+        .from("quizmon_owned_monsters")
+        .select("*")
+        .eq("profile_id", profileId)
+        .not("party_slot", "is", null)
+        .order("party_slot", { ascending: true });
+
+    if (error) {
+        console.error("[loadBattlePartyForProfile] owned select error", error);
+        return [];
+    }
+
+    const owned = (ownedRows ?? []) as QuizmonOwnedMonsterRow[];
+
+    if (owned.length === 0) {
+        return [];
+    }
+
+    // 2) 필요한 species_id 목록 추출
+    const speciesIds = Array.from(
+        new Set(owned.map((m) => m.species_id)),
+    );
+
+    // 3) quizmon_species 에서 종 마스터 데이터 가져오기
+    const { data: speciesRows, error: speciesError } = await supabase
+        .from("quizmon_species")
+        .select(
+            "id, name, element, base_hp, base_atk, base_def, base_spd, pokedex_no",
+        )
+        .in("id", speciesIds);
+
+    if (speciesError) {
+        console.error(
+            "[loadBattlePartyForProfile] species select error",
+            speciesError,
+        );
+        return [];
+    }
+
+    const speciesList = (speciesRows ?? []) as QuizmonSpeciesRow[];
+
+    const speciesById = new Map<string, QuizmonSpeciesRow>();
+    for (const s of speciesList) {
+        speciesById.set(s.id, s);
+    }
+
+    // 4) owned + species 를 합쳐서 BattleMonsterCore로 변환
+    const result: BattlePartyMonster[] = [];
+
+    for (const ownedMon of owned) {
+        if (!ownedMon.party_slot) continue;
+
+        const species = speciesById.get(ownedMon.species_id);
+        if (!species) continue;
+
+        const battleMon = buildBattleMonsterFromSpecies(
+            species,
+            ownedMon,
+            {
+                partySlot: ownedMon.party_slot,
+            },
+        );
+
+        result.push(battleMon);
+    }
+
+    return result;
 }
