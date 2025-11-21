@@ -6,10 +6,11 @@ import { usePresence } from "../../hooks/usePresence";
 import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
+import { ensurePlayStudentKey } from "../../utils/playStudentKey";
 
 
 type RoomRow = {
-    class_id: null;
+    class_id: string | null;
     id: string;
     code: string;
     title: string;
@@ -54,10 +55,6 @@ type LocationState = {
     roomTitle?: string;
     gameKey?: string;
 };
-
-function makeRandomKey() {
-    return "s-" + Math.random().toString(36).slice(2);
-}
 
 function formatTime(iso: string): string {
     try {
@@ -134,12 +131,12 @@ export function StudentRoomPage() {
 
         const loadGameSession = async () => {
             const { data, error } = await supabase
-                .from("game_sessions")
-                .select("id")
-                .eq("room_id", room.id)
-                .eq("game_id", room.game_key)
-                .eq("quiz_session_id", session.id)
-                .maybeSingle();
+                .from("rooms")
+                .select(
+                    "id, class_id, code, title, game_key, status, created_at, quiz_pack_id",
+                )
+                .eq("id", roomId)
+                .single();
 
             if (error) {
                 console.error("[StudentRoom] load game_session error", error);
@@ -171,26 +168,31 @@ export function StudentRoomPage() {
     }, [isGameFullscreen]);
 
 
-    // 학생 식별 키 (방마다 로컬스토리지에 저장)
-    const [studentKey] = useState(() => {
+    // 학생 식별 키 (초기에는 전역 키, 반 정보 로딩 후 반 단위 키로 전환)
+    const [studentKey, setStudentKey] = useState<string>(() => {
         try {
-            const storageKey = roomId
-                ? `classhub:room:${roomId}:studentKey`
-                : "classhub:room:default";
             if (typeof window !== "undefined") {
-                const existing = window.localStorage.getItem(storageKey);
-                if (existing) return existing;
-                const created = makeRandomKey();
-                window.localStorage.setItem(storageKey, created);
-                return created;
+                // 클래스 정보 로딩 전에는 global 스코프 사용
+                return ensurePlayStudentKey(null);
             }
         } catch {
             // ignore
         }
-        return makeRandomKey();
+        return "s-" + Math.random().toString(36).slice(2);
     });
 
-    // ✅ 브리지에 넘길 학생 ID는 studentKey를 그대로 사용
+    // room.class_id 로딩 후 → 반 단위 키로 확정
+    useEffect(() => {
+        if (!room?.class_id) return;
+        try {
+            const key = ensurePlayStudentKey(room.class_id);
+            setStudentKey(key);
+        } catch (e) {
+            console.error("[StudentRoom] ensurePlayStudentKey error", e);
+        }
+    }, [room?.class_id]);
+
+    // ✅ 브리지/퀴즈몬에 넘길 학생 ID
     const studentId = studentKey;
 
     // 뷰포트 폭에 따라 QDD iframe 비율 전환 (<= 768px → 세로형)

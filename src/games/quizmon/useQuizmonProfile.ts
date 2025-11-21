@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { QuizmonPartner, QuizmonProfileRow } from "./types";
 import { DEFAULT_PARTNER } from "./types";
+import { grantQuizmonCoins } from "../../api/quizmonRewards";
 
 type UseQuizmonProfileOptions = {
     classId: string | null;
@@ -129,6 +130,7 @@ export function useQuizmonProfile(
     }, []);
 
     // 레이드 끝났을 때 정답/문항 수를 반영해서 프로필 갱신
+    // 레이드 끝났을 때 정답/문항 수를 반영해서 프로필 갱신
     const applyRaidResult = useCallback(
         async (params: { correct: number; total: number }) => {
             if (!profile || !studentKey) return;
@@ -140,22 +142,37 @@ export function useQuizmonProfile(
             // 🔹 코인 지급 규칙: 정답 1개당 1코인 (예시)
             const gainedCoins = correct;
 
+            // 1) 코인 지급은 RPC로만 처리 (동시성 안전)
+            try {
+                if (gainedCoins > 0 && classId) {
+                    await grantQuizmonCoins({
+                        classId,
+                        studentKey,
+                        amount: gainedCoins,
+                        reason: "raid_correct",
+                    });
+                }
+            } catch (e) {
+                console.error(
+                    "[useQuizmonProfile] grantQuizmonCoins error",
+                    e,
+                );
+                // 코인 지급 실패해도 레이드 기록 업데이트는 진행
+            }
+
+            // 2) 파트너/누적 카운터만 quizmon_profiles UPDATE
             const newPartner = addExp(profile.partner, gainedExp);
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from("quizmon_profiles")
                 .update({
                     partner: newPartner,
                     total_raids: profile.total_raids + 1,
                     total_correct: profile.total_correct + correct,
                     total_questions: profile.total_questions + total,
-
-                    // 🔹 코인 증가
-                    coins: profile.coins + gainedCoins,
+                    // ❌ coins는 여기서 건드리지 않음 (RPC 전용)
                 })
-                .eq("id", profile.id)
-                .select("*")
-                .single();
+                .eq("id", profile.id);
 
             if (error) {
                 console.error("[useQuizmonProfile] update error", error);
@@ -163,9 +180,10 @@ export function useQuizmonProfile(
                 return;
             }
 
-            setProfile(data as QuizmonProfileRow);
+            // 3) 최신 값(코인 포함)을 다시 읽어오도록 트리거
+            setReloadFlag((x) => x + 1);
         },
-        [profile, studentKey],
+        [profile, studentKey, classId],
     );
 
 
