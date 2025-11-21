@@ -262,13 +262,35 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         );
     }
 
-    // 스프라이트 URL (있으면 로비에서 사용)
+// 스프라이트 URL (있으면 로비에서 사용)
     const trainerSpriteUrl = getTrainerSprite(
         // 나중에 profile.trainer_key 생기면 여기로 교체
         null,
     );
-    const partnerSpriteUrl = partner
-        ? getMonsterSprite((partner as any).species_id ?? null)
+
+// 🔹 파트너 스프라이트: 여러 소스에서 species_id 추론
+    let partnerSpeciesId: string | null = null;
+
+    if (partner) {
+        // 1) profile.partner 안에 species_id가 있으면 최우선 사용
+        const fromPartner =
+            ((partner as any).species_id as string | undefined) ?? undefined;
+
+        // 2) 컬렉션에서 같은 몬스터 id 찾아보기
+        const fromCollectionById =
+            monsters.find((m) => m.id === (partner as any).id) ?? null;
+
+        // 3) 둘 다 없으면 컬렉션의 첫 번째 몬스터라도 사용
+        const fromCollection =
+            fromCollectionById ??
+            (monsters.length > 0 ? monsters[0] : null);
+
+        partnerSpeciesId =
+            fromPartner ?? (fromCollection ? fromCollection.species_id : null);
+    }
+
+    const partnerSpriteUrl = partnerSpeciesId
+        ? getMonsterSprite(partnerSpeciesId)
         : null;
 
     // =========================
