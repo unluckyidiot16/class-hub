@@ -95,10 +95,11 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         partner
             ? ((partner as any).nickname ??
                 (partner as any).name ?? // 혹시 나중에 name 필드를 추가해도 커버
+                (partner as any).speciesId ??
                 (partner as any).species_id ?? // 종 ID라도 보여주기
                 "파트너")
             : "파트너";
-
+    
     if (partner) {
         if (partner.level >= LEVEL_CAP) {
             expNeeded = 1;
@@ -236,7 +237,9 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     if (partner) {
         // 1) profile.partner 안에 species_id가 있으면 최우선 사용
         const fromPartner =
-            ((partner as any).species_id as string | undefined) ?? undefined;
+            ((partner as any).speciesId as string | undefined) ??
+            ((partner as any).species_id as string | undefined) ??
+            undefined;
 
         // 2) 컬렉션에서 같은 몬스터 id 찾아보기
         const fromCollectionById =

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { ensurePlayStudentKey } from "../../utils/playStudentKey";
 
 export type QuizPackRow = {
     id: string;
@@ -21,22 +22,6 @@ export type QuizQuestionRow = {
 };
 
 const PLAY_NICKNAME_KEY = "classhub:play:nickname";
-const PLAY_STUDENT_KEY_KEY = "classhub:play:studentKey";
-
-function ensureStudentKey(): string {
-    try {
-        if (typeof window !== "undefined") {
-            const existing = window.localStorage.getItem(PLAY_STUDENT_KEY_KEY);
-            if (existing) return existing;
-            const created = "play-" + Math.random().toString(36).slice(2);
-            window.localStorage.setItem(PLAY_STUDENT_KEY_KEY, created);
-            return created;
-        }
-    } catch {
-        // ignore
-    }
-    return "play-" + Math.random().toString(36).slice(2);
-}
 
 export function StudentPlayPackPage() {
     const { packId } = useParams<{ packId: string }>();
@@ -185,7 +170,7 @@ export function StudentPlayPackPage() {
         setScoreTotal((prev) => prev + 1);
         if (correct) setScoreCorrect((prev) => prev + 1);
 
-        const studentKey = ensureStudentKey();
+        const studentKey = ensurePlayStudentKey();
 
         try {
             await supabase.from("quiz_answers").insert({
