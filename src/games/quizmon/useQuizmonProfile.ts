@@ -5,7 +5,8 @@ import type { QuizmonPartner, QuizmonProfileRow } from "./types";
 import { DEFAULT_PARTNER } from "./types";
 
 type UseQuizmonProfileOptions = {
-    studentKey: string | null;   // StudentRoomPage 의 studentKey 재사용
+    classId: string | null;
+    studentKey: string | null;
 };
 
 type UseQuizmonProfileResult = {
@@ -50,7 +51,7 @@ function addExp(partner: QuizmonPartner, gainedExp: number): QuizmonPartner {
 export function useQuizmonProfile(
     options: UseQuizmonProfileOptions,
 ): UseQuizmonProfileResult {
-    const { studentKey } = options;
+    const { classId, studentKey } = options;
 
     const [profile, setProfile] = useState<QuizmonProfileRow | null>(null);
     const [loading, setLoading] = useState(false);
@@ -58,7 +59,7 @@ export function useQuizmonProfile(
     const [reloadFlag, setReloadFlag] = useState(0);
 
     useEffect(() => {
-        if (!studentKey) return;
+        if (!studentKey || !classId) return;
 
         let cancelled = false;
 
@@ -70,6 +71,7 @@ export function useQuizmonProfile(
                 const { data, error } = await supabase
                     .from("quizmon_profiles")
                     .select("*")
+                    .eq("class_id", classId)
                     .eq("student_key", studentKey)
                     .maybeSingle();
 
@@ -84,11 +86,13 @@ export function useQuizmonProfile(
                     const { data: inserted, error: insertError } = await supabase
                         .from("quizmon_profiles")
                         .insert({
+                            class_id: classId,
                             student_key: studentKey,
-                            partner: DEFAULT_PARTNER, // 임시 기본 파트너 (나중에 스타터 선택 시 덮어씀)
+                            partner: DEFAULT_PARTNER,
                             trainer_name: null,
                             starter_species_id: null,
                             starter_chosen: false,
+                            coins: 0,
                         })
                         .select("*")
                         .single();
@@ -118,7 +122,7 @@ export function useQuizmonProfile(
         return () => {
             cancelled = true;
         };
-    }, [studentKey, reloadFlag]);
+    }, [classId, studentKey, reloadFlag]);
 
     const refresh = useCallback(() => {
         setReloadFlag((x) => x + 1);

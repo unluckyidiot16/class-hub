@@ -37,6 +37,7 @@ export default function StudentQuizMonHubPage() {
         loading: profileLoading,
         chooseStarter,
     } = useQuizmonProfile({
+        classId: null,      // 연습 허브에서는 반 정보가 없으므로 null
         studentKey,
     });
 

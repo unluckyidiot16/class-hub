@@ -28,6 +28,9 @@ type QuizMonClassPanelProps = {
     pack: QuizPackRow | null;
     session: SessionRow | null;
 
+    // 🔹 새로 추가: 현재 수업이 속한 반 ID
+    classId?: string | null;
+
     /** React 게임(학생 화면)에서만 사용: Supabase game_events 연동용 */
     gameSessionId?: string | null;
     studentId?: string | null;
@@ -51,6 +54,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         roomId,
         pack,
         session,
+        classId,
         gameSessionId,
         studentId,
         onQuizAnswer,
@@ -75,6 +79,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         applyRaidResult,
         chooseStarter,
     } = useQuizmonProfile({
+        classId: classId ?? null,
         studentKey: studentId ?? null,
     });
 

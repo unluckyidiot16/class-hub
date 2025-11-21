@@ -9,6 +9,7 @@ import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
 
 
 type RoomRow = {
+    class_id: null;
     id: string;
     code: string;
     title: string;
@@ -936,6 +937,7 @@ export function StudentRoomPage() {
                     // 🔥 React 기반 게임 (QuizMon Class 등)
                     <gameSpec.component
                         roomId={room?.id ?? null}
+                        classId={room?.class_id ?? null}
                         pack={pack}
                         session={session}
                         // QuizMon 등 React 게임에서도 game_events를 남길 수 있도록 전달

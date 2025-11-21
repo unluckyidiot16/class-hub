@@ -17,11 +17,6 @@ const QuizMonDevPage = lazy(
     () => import("./games/quizmon/QuizMonDevPage"),
 );
 
-// 🔹 새로 추가: 학생용 퀴즈몬 허브 페이지
-const StudentQuizMonHubPage = lazy(
-    () => import("./pages/student/StudentQuizMonHubPage"),
-);
-
 function App() {
     return (
         <MainLayout>
@@ -58,12 +53,6 @@ function App() {
                     <Route
                         path="/student/play/:packId"
                         element={<StudentPlayPackPage />}
-                    />
-
-                    {/* 🔹 학생용 퀴즈몬 허브 (자습/수집용) */}
-                    <Route
-                        path="/student/quizmon"
-                        element={<StudentQuizMonHubPage />}
                     />
 
                     {/* QuizMon 샌드박스 */}

@@ -1624,6 +1624,7 @@ export function TeacherRoomLivePage() {
                             roomId={room.id}
                             pack={pack}
                             session={quizMonSession}
+                            classId={room.class_id}
                             // onQuizAnswer는 나중에 game_events 연동할 때 여기서 넘겨줄 예정
                         />
                     </div>
