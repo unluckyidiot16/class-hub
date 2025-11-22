@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { QuizMonGame } from "./QuizMonGame";
 import { SpriteAnimation } from "./SpriteAnimation";
-import { getMonsterAnimJson } from "./assets";
+import { getMonsterAnimJson, getMonsterSprite } from "./assets";
 import type { QuizAnswerResult } from "./types";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import type {
@@ -68,22 +68,26 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         onBattleEnd,
     } = props;
 
-    // Bulbasaur(0001) 앞모습 애니 JSON
-    const bulbasaurFrontJson = getMonsterAnimJson("0001", "front");
+    const BULBASAUR_ID = "0001";
 
+    // JSON: /games/quizmon/monster/front/0001.json
+    const bulbasaurFrontJson = getMonsterAnimJson(BULBASAUR_ID, "front");
+
+    // PNG: /games/quizmon/monster/front/0001.png
+    const bulbasaurFrontPng = getMonsterSprite(BULBASAUR_ID, "front");
 
     const renderBulbasaur = () =>
-        bulbasaurFrontJson ? (
+        bulbasaurFrontJson && bulbasaurFrontPng ? (
             <SpriteAnimation
                 jsonUrl={bulbasaurFrontJson}
+                imageUrlOverride={bulbasaurFrontPng}  // ★ 여기서 PNG를 강제 지정
                 fps={12}
-                // 실제 0001.json 프레임 이름이 "0001.png" ~ "0102.png" 형태라,
-                // 앞부분 1~20번만 사용 (0001~0020).
                 frameFilter={(frame) => {
                     const n = parseInt(
                         frame.filename.replace(".png", ""),
                         10,
                     );
+                    // 1~20 프레임만 사용 (필요하면 숫자 바꿔도 됨)
                     return !Number.isNaN(n) && n >= 1 && n <= 20;
                 }}
                 style={{
