@@ -503,12 +503,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         [state.enemy],
     );
 
-    // profileId가 있으면, 학생이 설정한 파티(1~3번 슬롯)로 전투 상태를 초기화
-    useEffect(() => {
-        if (!profileId) return;
-        void resetBattleWithProfileParty(profileId);
-    }, [profileId]);
-
     // 적은 일단 영구히 첫 번째 기술만 쓰는 더미 AI
     useEffect(() => {
         if (!state.pendingEnemyMove && state.phase === "command") {
