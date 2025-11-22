@@ -22,7 +22,7 @@ import {
 import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
-import type { QuizPackJsonV1 } from "../../types/quizPackJson"; // ← 기존 import 유지
+import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import { getArenaSprite, getMonsterAnimJson, getMonsterSprite } from "./assets";
 import { SpriteAnimation } from "./SpriteAnimation";
 
@@ -70,7 +70,6 @@ type QuizBottomPanelProps = {
     hasQuestions: boolean;
     onSelectMove: (move: Move) => void;
     onAnswer: (index: number) => void;
-    logs: BattleState["logs"];
 };
 
 function QuizBottomPanel(props: QuizBottomPanelProps) {
@@ -83,7 +82,6 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         hasQuestions,
         onSelectMove,
         onAnswer,
-        logs,
     } = props;
 
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
@@ -97,10 +95,9 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         mainText =
             "배틀이 종료되었습니다. 위의 결과를 확인한 뒤 리셋 버튼으로 다시 시작할 수 있어요.";
     } else {
+        // 포켓몬 느낌: "{이상해씨}는(은) 무엇을 할까?"
         mainText = `${playerName}은(는) 무엇을 할까?`;
     }
-
-    const recentLogs = logs.slice(-6);
 
     return (
         <div
@@ -114,31 +111,37 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                 fontSize: 13,
             }}
         >
-            {/* 상단 텍스트 영역 (질문/명령) */}
-            <div
-                style={{
-                    minHeight: 44,
-                    padding: "0.25rem 0.25rem 0.5rem",
-                    borderBottom: "1px solid #1f2937",
-                    marginBottom: "0.5rem",
-                    whiteSpace: "pre-wrap",
-                }}
-            >
-                {mainText}
-            </div>
-
-            {/* 하단: 왼쪽(기술/보기) + 오른쪽(로그) */}
             <div
                 style={{
                     display: "flex",
                     gap: "0.75rem",
                 }}
             >
-                <div style={{ flex: 2 }}>
-                    {isQuizPhase && currentQuestion ? (
-                        // 🔹 보기 선택 영역
+                {/* 🔹 왼쪽: 메세지 + (퀴즈 phase일 때) 보기 4개 */}
+                <div
+                    style={{
+                        flex: 3,
+                        borderRadius: 8,
+                        border: "1px solid #1f2937",
+                        background: "rgba(15,23,42,0.96)",
+                        padding: "0.4rem 0.6rem 0.5rem",
+                        minHeight: 60,
+                    }}
+                >
+                    <div
+                        style={{
+                            minHeight: 32,
+                            paddingBottom: "0.4rem",
+                            whiteSpace: "pre-wrap",
+                        }}
+                    >
+                        {mainText}
+                    </div>
+
+                    {isQuizPhase && currentQuestion && (
                         <div
                             style={{
+                                marginTop: "0.4rem",
                                 display: "grid",
                                 gridTemplateColumns: "1fr 1fr",
                                 gap: "0.5rem",
@@ -164,13 +167,29 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                 </button>
                             ))}
                         </div>
-                    ) : (
-                        // 🔹 기술 선택 영역
+                    )}
+                </div>
+
+                {/* 🔹 오른쪽: 명령 4개(기술) 그리드 – 포켓몬식 커맨드 패널 */}
+                <div
+                    style={{
+                        flex: 2,
+                        display: "flex",
+                        alignItems: "stretch",
+                    }}
+                >
+                    {!isQuizPhase && (
                         <div
                             style={{
+                                width: "100%",
+                                borderRadius: 8,
+                                border: "1px solid #1f2937",
+                                background: "#020617",
+                                padding: "0.5rem",
                                 display: "grid",
                                 gridTemplateColumns: "1fr 1fr",
-                                gap: "0.5rem",
+                                gap: "0.4rem",
+                                minHeight: 80,
                             }}
                         >
                             {playerMoves.map((move) => (
@@ -181,13 +200,14 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                     onClick={() => onSelectMove(move)}
                                     style={{
                                         textAlign: "left",
-                                        padding: "0.5rem 0.75rem",
+                                        padding: "0.4rem 0.6rem",
                                         borderRadius: 8,
                                         border: "1px solid #4b5563",
                                         background: canSelectMove
                                             ? "#020617"
                                             : "#020617aa",
                                         color: "#e5e7eb",
+                                        fontSize: 12,
                                         cursor: canSelectMove
                                             ? "pointer"
                                             : "default",
@@ -212,45 +232,6 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                 </button>
                             ))}
                         </div>
-                    )}
-                </div>
-
-                {/* 전투 로그 박스 */}
-                <div
-                    style={{
-                        flex: 1,
-                        minWidth: 180,
-                        maxHeight: 128,
-                        borderRadius: 8,
-                        border: "1px solid #1f2937",
-                        background: "#020617",
-                        padding: "0.5rem",
-                        overflowY: "auto",
-                        fontSize: 12,
-                    }}
-                >
-                    <div
-                        style={{
-                            fontWeight: 600,
-                            marginBottom: 4,
-                            color: "#9ca3af",
-                        }}
-                    >
-                        전투 로그
-                    </div>
-                    {recentLogs.length === 0 ? (
-                        <div style={{ opacity: 0.6 }}>
-                            로그가 여기에 표시됩니다.
-                        </div>
-                    ) : (
-                        recentLogs.map((log) => (
-                            <div
-                                key={log.id}
-                                style={{ marginBottom: 2 }}
-                            >
-                                {log.text}
-                            </div>
-                        ))
                     )}
                 </div>
             </div>
@@ -299,12 +280,29 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
-    // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
+    // Bulbasaur(0001) 임시 전투 스프라이트
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
     const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
+    // ✅ 플레이어: back 스프라이트 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
+        bulbasaurBackPng ? (
+            <img
+                src={bulbasaurBackPng}
+                alt={playerMon.name}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    imageRendering: "pixelated",
+                    transform: "scale(1.6)",
+                    transformOrigin: "bottom left",
+                }}
+            />
+        ) : null;
+
+    // ✅ 적: front 애니메이션 (오른쪽 위, 상대편)
+    const renderEnemySprite = () =>
         bulbasaurFrontJson && bulbasaurFrontPng ? (
             <SpriteAnimation
                 jsonUrl={bulbasaurFrontJson}
@@ -319,26 +317,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 }}
                 style={{
                     transform: "scale(2)",
-                    transformOrigin: "bottom left",
-                }}
-            />
-        ) : null;
-
-    const renderEnemySprite = () =>
-        bulbasaurBackPng ? (
-            <img
-                src={bulbasaurBackPng}
-                alt={enemyMon.name}
-                style={{
-                    width: "100%",
-                    height: "100%",
-                    imageRendering: "pixelated",
-                    transform: "scale(1.6)",
                     transformOrigin: "bottom right",
                 }}
             />
         ) : null;
-
 
     /**
      * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
@@ -591,8 +573,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onQuizAnswer?.(quizResult);
 
         // 🎯 Supabase game_events 로깅
-        // QDD 통계 파이프라인을 그대로 재사용할 수 있도록
-        // payload는 questionId / answerIndex / correct / timeMs 형태로 맞춘다.
         if (roomId && gameSessionId && studentId) {
             logGameEvent({
                 roomId,
@@ -810,7 +790,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     <div
                         style={{
                             width: "100%",
-                            paddingTop: "62.5%", // 16:10 비율 정도로 약간 더 세로
+                            paddingTop: "62.5%",
                             backgroundImage: `url(${BATTLE_BG_URL})`,
                             backgroundRepeat: "no-repeat",
                             backgroundSize: "cover",
@@ -933,7 +913,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         </div>
                     </div>
 
-                    {/* 🔹 하단 명령 / 퀴즈 / 로그 패널 – 포켓몬처럼 필드 위에 오버레이 */}
+                    {/* 🔹 하단 명령 / 퀴즈 패널 – 필드 위에 오버레이 */}
                     <div
                         style={{
                             position: "absolute",
@@ -959,7 +939,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             hasQuestions={questions.length > 0}
                             onSelectMove={handleSelectMove}
                             onAnswer={handleAnswer}
-                            logs={state.logs}
                         />
                     </div>
                 </div>
@@ -998,4 +977,3 @@ export function QuizMonGame(props: QuizMonGameProps) {
         </div>
     );
 }
-
