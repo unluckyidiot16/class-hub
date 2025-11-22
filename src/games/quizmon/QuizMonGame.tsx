@@ -286,7 +286,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
-    const PLAYER_SCALE = 2.5; // 적(2.0)보다 1.25배
+    const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.25배
     const ENEMY_SCALE = 2.0;
 
 
