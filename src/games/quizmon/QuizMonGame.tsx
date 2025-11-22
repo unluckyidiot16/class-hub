@@ -319,6 +319,23 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
+    const [hasBattleInitialized, setHasBattleInitialized] = useState(false);
+    const handleContinue = () => {
+        // 이미 배틀 화면이면 아무 것도 안 함
+        if (viewState === "battle") return;
+
+        if (!hasBattleInitialized) {
+            // 아직 한 번도 배틀을 시작한 적이 없으면
+            // ⇒ 처음 한 번은 항상 "새 레이드 시작"처럼 동작
+            handleReset();
+        } else {
+            // 이미 한 번이라도 배틀을 만든 상태면
+            // ⇒ 단순히 배틀 화면으로 복귀
+            setViewState("battle");
+        }
+    };
+
+
     const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.5배
     const ENEMY_SCALE = 2.0;
     
@@ -379,12 +396,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     "[QuizMonGame] load owned_monsters error",
                     ownedError,
                 );
-                // 에러 시에는 mock 상태 유지
+                // 파티가 없을 때도 mock 상태
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
                 setQuestionIndex(0);
                 setViewState("battle");
+                setHasBattleInitialized(true); // ⭐ 추가
                 return;
             }
 
@@ -401,6 +419,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setHasReportedEnd(false);
                 setQuestionIndex(0);
                 setViewState("battle");
+                setHasBattleInitialized(true);
                 return;
             }
 
@@ -845,6 +864,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setHasReportedEnd(false);
             setQuestionIndex(0);
             setViewState("battle");
+            setHasBattleInitialized(true);
         }
     };
 
@@ -1143,11 +1163,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                         {/* ▶ 계속하기 */}
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                // 배틀이 끝난 상태면 결과 화면으로,
-                                                // 아니면 전투 화면으로 복귀
-                                                setViewState(state.phase === "finished" ? "result" : "battle");
-                                            }}
+                                            onClick={() => {handleContinue}}
                                             style={{
                                                 width: "100%",
                                                 padding: "0.5rem 0.75rem",
