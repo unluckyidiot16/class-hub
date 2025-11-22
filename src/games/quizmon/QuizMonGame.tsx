@@ -1076,7 +1076,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 inset: 0,
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "flex-end",
+                                justifyContent: "center",
                                 padding: "1rem",
                                 pointerEvents: "none",
                             }}
