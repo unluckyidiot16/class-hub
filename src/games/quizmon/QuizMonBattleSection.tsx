@@ -1,13 +1,13 @@
 // src/games/quizmon/QuizMonBattleSection.tsx
 import type { ReactNode } from "react";
 import { QuizMonGame } from "./QuizMonGame";
-import { SpriteAnimation } from "./SpriteAnimation";
-import { getMonsterAnimJson, getMonsterSprite } from "./assets";
 import type { QuizAnswerResult } from "./types";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import type {
     QuizPackRow,
 } from "../../pages/student/StudentPlayPackPage";
+
+// src/games/quizmon/QuizMonBattleSection.tsx
 
 type SessionRow = {
     id: string;
@@ -50,7 +50,6 @@ type QuizMonBattleSectionProps = {
     onBattleEnd?: (summary: { correct: number; total: number }) => void;
 };
 
-
 export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
     const {
         mode = "class",
@@ -67,35 +66,6 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         onQuizAnswer,
         onBattleEnd,
     } = props;
-
-    const BULBASAUR_ID = "0001";
-
-    // JSON: /games/quizmon/monster/front/0001.json
-    const bulbasaurFrontJson = getMonsterAnimJson(BULBASAUR_ID, "front");
-
-    // PNG: /games/quizmon/monster/front/0001.png
-    const bulbasaurFrontPng = getMonsterSprite(BULBASAUR_ID, "front");
-
-    const renderBulbasaur = () =>
-        bulbasaurFrontJson && bulbasaurFrontPng ? (
-            <SpriteAnimation
-                jsonUrl={bulbasaurFrontJson}
-                imageUrlOverride={bulbasaurFrontPng}  // ★ 여기서 PNG를 강제 지정
-                fps={12}
-                frameFilter={(frame) => {
-                    const n = parseInt(
-                        frame.filename.replace(".png", ""),
-                        10,
-                    );
-                    // 1~20 프레임만 사용 (필요하면 숫자 바꿔도 됨)
-                    return !Number.isNaN(n) && n >= 1 && n <= 20;
-                }}
-                style={{
-                    transform: "scale(2)",
-                    transformOrigin: "bottom center",
-                }}
-            />
-        ) : null;
 
     let content: ReactNode = null;
 
@@ -142,26 +112,15 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         } else {
             // running + quizpack 준비 완료
             content = (
-                <div>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            marginBottom: "0.5rem",
-                        }}
-                    >
-                        {renderBulbasaur()}
-                    </div>
-                    <QuizMonGame
-                        quizpack={quizpack}
-                        onQuizAnswer={onQuizAnswer}
-                        roomId={roomId}
-                        gameSessionId={gameSessionId}
-                        studentId={studentId}
-                        profileId={profileId ?? null}
-                        onBattleEnd={onBattleEnd}
-                    />
-                </div>
+                <QuizMonGame
+                    quizpack={quizpack}
+                    onQuizAnswer={onQuizAnswer}
+                    roomId={roomId ?? null}
+                    gameSessionId={gameSessionId ?? null}
+                    studentId={studentId ?? null}
+                    profileId={profileId ?? null}
+                    onBattleEnd={onBattleEnd}
+                />
             );
         }
     } else {
@@ -179,25 +138,14 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
             );
         } else {
             content = (
-                <div>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            marginBottom: "0.5rem",
-                        }}
-                    >
-                        {renderBulbasaur()}
-                    </div>
-                    <QuizMonGame
-                        quizpack={quizpack}
-                        onQuizAnswer={onQuizAnswer}
-                        roomId={roomId}
-                        gameSessionId={gameSessionId}
-                        studentId={studentId}
-                        onBattleEnd={onBattleEnd}
-                    />
-                </div>
+                <QuizMonGame
+                    quizpack={quizpack}
+                    onQuizAnswer={onQuizAnswer}
+                    roomId={roomId ?? null}
+                    gameSessionId={gameSessionId ?? null}
+                    studentId={studentId ?? null}
+                    onBattleEnd={onBattleEnd}
+                />
             );
         }
     }
