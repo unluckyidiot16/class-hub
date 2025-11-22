@@ -24,8 +24,242 @@ import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson"; // ← 기존 import 유지
 
+// =========================
+// 🌆 배틀 BG / 하단 패널용 헬퍼
+// =========================
+const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
+const BATTLE_BG_URL = `${BASE_URL}games/quizmon/arenas/forest_bg.png`;
 
+function HpBar({ current, max }: { current: number; max: number }) {
+    const ratio =
+        max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
 
+    let color = "#22c55e"; // green
+    if (ratio < 0.25) color = "#ef4444"; // red
+    else if (ratio < 0.5) color = "#facc15"; // yellow
+
+    return (
+        <div
+            style={{
+                background: "#111827",
+                borderRadius: 999,
+                overflow: "hidden",
+                height: 6,
+            }}
+        >
+            <div
+                style={{
+                    width: `${ratio * 100}%`,
+                    height: "100%",
+                    background: color,
+                    transition: "width 0.2s ease",
+                }}
+            />
+        </div>
+    );
+}
+
+type QuizBottomPanelProps = {
+    phase: BattleState["phase"];
+    currentQuestion: QuizQuestionLite | null;
+    playerName: string;
+    playerMoves: Move[];
+    canSelectMove: boolean;
+    hasQuestions: boolean;
+    onSelectMove: (move: Move) => void;
+    onAnswer: (index: number) => void;
+    logs: BattleState["logs"];
+};
+
+function QuizBottomPanel(props: QuizBottomPanelProps) {
+    const {
+        phase,
+        currentQuestion,
+        playerName,
+        playerMoves,
+        canSelectMove,
+        hasQuestions,
+        onSelectMove,
+        onAnswer,
+        logs,
+    } = props;
+
+    const isQuizPhase = phase === "quiz" && !!currentQuestion;
+
+    let mainText: string;
+    if (isQuizPhase && currentQuestion) {
+        mainText = currentQuestion.prompt;
+    } else if (!hasQuestions) {
+        mainText = "이 퀴즈팩에는 문제가 없습니다. (질문 0개)";
+    } else if (phase === "finished") {
+        mainText =
+            "배틀이 종료되었습니다. 위의 결과를 확인한 뒤 리셋 버튼으로 다시 시작할 수 있어요.";
+    } else {
+        mainText = `${playerName}은(는) 무엇을 할까?`;
+    }
+
+    const recentLogs = logs.slice(-6);
+
+    return (
+        <div
+            style={{
+                marginTop: "0.75rem",
+                borderRadius: 12,
+                border: "1px solid #111827",
+                background:
+                    "linear-gradient(180deg, #020617 0%, #020617 40%, #020617 100%)",
+                padding: "0.75rem",
+                color: "#e5e7eb",
+                fontSize: 13,
+            }}
+        >
+            {/* 상단 텍스트 영역 (질문/명령) */}
+            <div
+                style={{
+                    minHeight: 44,
+                    padding: "0.25rem 0.25rem 0.5rem",
+                    borderBottom: "1px solid #1f2937",
+                    marginBottom: "0.5rem",
+                    whiteSpace: "pre-wrap",
+                }}
+            >
+                {mainText}
+            </div>
+
+            {/* 하단: 왼쪽(기술/보기) + 오른쪽(로그) */}
+            <div
+                style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                }}
+            >
+                <div style={{ flex: 2 }}>
+                    {isQuizPhase && currentQuestion ? (
+                        // 🔹 보기 선택 영역
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            {currentQuestion.options.map((opt, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => onAnswer(idx)}
+                                    style={{
+                                        textAlign: "left",
+                                        padding: "0.5rem 0.75rem",
+                                        borderRadius: 8,
+                                        border: "1px solid #4b5563",
+                                        background: "#020617",
+                                        color: "#e5e7eb",
+                                        fontSize: 13,
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    {opt}
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        // 🔹 기술 선택 영역
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "1fr 1fr",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            {playerMoves.map((move) => (
+                                <button
+                                    key={move.id}
+                                    type="button"
+                                    disabled={!canSelectMove}
+                                    onClick={() => onSelectMove(move)}
+                                    style={{
+                                        textAlign: "left",
+                                        padding: "0.5rem 0.75rem",
+                                        borderRadius: 8,
+                                        border: "1px solid #4b5563",
+                                        background: canSelectMove
+                                            ? "#020617"
+                                            : "#020617aa",
+                                        color: "#e5e7eb",
+                                        cursor: canSelectMove
+                                            ? "pointer"
+                                            : "default",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontWeight: 600,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {move.name}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            opacity: 0.8,
+                                        }}
+                                    >
+                                        위력 {move.power} / 명중 {move.baseAcc}%
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* 전투 로그 박스 */}
+                <div
+                    style={{
+                        flex: 1,
+                        minWidth: 180,
+                        maxHeight: 128,
+                        borderRadius: 8,
+                        border: "1px solid #1f2937",
+                        background: "#020617",
+                        padding: "0.5rem",
+                        overflowY: "auto",
+                        fontSize: 12,
+                    }}
+                >
+                    <div
+                        style={{
+                            fontWeight: 600,
+                            marginBottom: 4,
+                            color: "#9ca3af",
+                        }}
+                    >
+                        전투 로그
+                    </div>
+                    {recentLogs.length === 0 ? (
+                        <div style={{ opacity: 0.6 }}>
+                            로그가 여기에 표시됩니다.
+                        </div>
+                    ) : (
+                        recentLogs.map((log) => (
+                            <div
+                                key={log.id}
+                                style={{ marginBottom: 2 }}
+                            >
+                                {log.text}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// =========================
+// 🎮 Game 컴포넌트
+// =========================
 
 type QuizMonGameProps = {
     quizpack: QuizPackJsonV1;
@@ -42,8 +276,6 @@ type QuizMonGameProps = {
         total: number;
     }) => void;
 };
-
-
 
 export function QuizMonGame(props: QuizMonGameProps) {
     const {
@@ -234,20 +466,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
         void resetBattleWithProfileParty(profileId);
     }, [profileId]);
 
-
     // 적은 일단 영구히 첫 번째 기술만 쓰는 더미 AI
     useEffect(() => {
         if (!state.pendingEnemyMove && state.phase === "command") {
             const enemyMove = enemyMon.moves[0];
             setState((prev) => ({
-                    ...prev,
-                pendingEnemyMove: { 
-                        side: "enemy",
-                        move: enemyMove,
+                ...prev,
+                pendingEnemyMove: {
+                    side: "enemy",
+                    move: enemyMove,
                 },
             }));
         }
-        }, [state.phase, state.pendingEnemyMove, enemyMon]);
+    }, [state.phase, state.pendingEnemyMove, enemyMon]);
 
     // 배틀이 끝난 시점에 한 번만 onBattleEnd 호출
     useEffect(() => {
@@ -259,7 +490,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onBattleEnd({ ...battleStats });
         setHasReportedEnd(true);
     }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
-
 
     /** 현재 질문 선택 (없으면 null) */
     const getNextQuestion = (): QuizQuestionLite | null => {
@@ -341,7 +571,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 );
             });
         } else {
-            console.warn("[QuizMonGame] skip logGameEvent – missing ids", { 
+            console.warn("[QuizMonGame] skip logGameEvent – missing ids", {
                 roomId,
                 gameSessionId,
                 studentId,
@@ -371,7 +601,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             // 1) 플레이어 공격
             const quizMod = calcQuizMod(quizResult);
             const hitChance = calcHitChance(
-                prevEnemyMon,                    // defender
+                prevEnemyMon, // defender
                 prev.pendingPlayerMove.move,
                 quizMod,
             );
@@ -386,10 +616,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     prevEnemyMon,
                     prev.pendingPlayerMove.move,
                 );
-                const newEnemyMon = applyDamageToMonster(
-                    prevEnemyMon,
-                    dmg,
-                );
+                const newEnemyMon = applyDamageToMonster(prevEnemyMon, dmg);
                 const newEnemyMons = [...prev.enemy.monsters];
                 newEnemyMons[prev.enemy.activeIndex] = newEnemyMon;
 
@@ -410,7 +637,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             if (enemyStillAlive && prev.pendingEnemyMove) {
                 const enemyQuizMod = 1.0; // 적은 항상 평균 정도라고 가정
                 const enemyHitChance = calcHitChance(
-                    prevPlayerMon,                   // defender
+                    prevPlayerMon, // defender
                     prev.pendingEnemyMove.move,
                     enemyQuizMod,
                 );
@@ -490,195 +717,207 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
-
+    const canSelectMove =
+        state.phase === "command" &&
+        questions.length > 0 &&
+        playerMon.hp > 0 &&
+        enemyMon.hp > 0;
 
     return (
-        <div style={{ padding: "1.5rem", maxWidth: 960, margin: "0 auto" }}>
-            <h1>QuizMon Class – Battle Core</h1>
-            <p style={{ fontSize: 13, color: "#aaa" }}>
-                현재는 quizpackJson 기반 전투 코어 테스트용 UI입니다.
+        <div
+            style={{
+                padding: "1.5rem",
+                maxWidth: 960,
+                margin: "0 auto",
+                color: "#e5e7eb",
+            }}
+        >
+            <h1 style={{ marginBottom: "0.25rem" }}>
+                QuizMon Class – Battle Core
+            </h1>
+            <p
+                style={{
+                    fontSize: 13,
+                    color: "#9ca3af",
+                    marginTop: 0,
+                }}
+            >
+                quizpackJson 기반 전투 코어 + 포켓로그풍 배틀 UI 테스트 버전입니다.
             </p>
 
-            <section
+            <div
                 style={{
-                    display: "flex",
-                    gap: "1rem",
                     marginTop: "1rem",
-                    alignItems: "flex-start",
+                    borderRadius: 12,
+                    border: "1px solid #0f172a",
+                    background: "#020617",
+                    padding: "0.75rem",
                 }}
             >
-                {/* 플레이어 측 */}
+                {/* 🔹 배틀 BG + HUD */}
                 <div
                     style={{
-                        flex: 1,
-                        border: "1px solid #444",
-                        padding: "0.75rem",
+                        position: "relative",
+                        width: "100%",
                         borderRadius: 8,
+                        overflow: "hidden",
+                        backgroundColor: "#000",
                     }}
                 >
-                    <h2>플레이어</h2>
-                    <p>
-                        트레이너:{" "}
-                        <strong>{state.player.trainer.name}</strong>
-                    </p>
-                    <p>
-                        몬스터:{" "}
-                        <strong>{playerMon.name}</strong> (HP {playerMon.hp}/
-                        {playerMon.maxHp})
-                    </p>
-
-                    <h3>기술 선택</h3>
-                    {state.phase !== "command" && (
-                        <p style={{ fontSize: 12, color: "#888" }}>
-                            현재 턴에서는 기술을 선택할 수 없습니다.
-                        </p>
-                    )}
-                    {!questions.length && (
-                        <p style={{ fontSize: 12, color: "#f66" }}>
-                            이 퀴즈팩에는 문제가 없습니다. (질문 0개)
-                        </p>
-                    )}
                     <div
                         style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "0.5rem",
+                            width: "100%",
+                            paddingTop: "56.25%", // 16:9
+                            backgroundImage: `url(${BATTLE_BG_URL})`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundSize: "cover",
+                            backgroundPosition: "center bottom",
+                            imageRendering: "pixelated",
                         }}
-                    >
-                        {playerMon.moves.map((move) => (
-                            <button
-                                key={move.id}
-                                onClick={() => handleSelectMove(move)}
-                                disabled={
-                                    state.phase !== "command" ||
-                                    !questions.length
-                                }
-                                style={{
-                                    padding: "0.5rem 0.75rem",
-                                    borderRadius: 6,
-                                    border: "1px solid #666",
-                                    cursor:
-                                        state.phase === "command" &&
-                                        questions.length
-                                            ? "pointer"
-                                            : "not-allowed",
-                                }}
-                            >
-                                <div style={{ fontWeight: 600 }}>
-                                    {move.name}
-                                </div>
-                                <div style={{ fontSize: 12 }}>
-                                    위력 {move.power} / 명중{" "}
-                                    {move.baseAcc}%
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                    />
 
-                {/* 적 측 */}
-                <div
-                    style={{
-                        flex: 1,
-                        border: "1px solid #444",
-                        padding: "0.75rem",
-                        borderRadius: 8,
-                    }}
-                >
-                    <h2>적</h2>
-                    <p>
-                        트레이너:{" "}
-                        <strong>{state.enemy.trainer.name}</strong>
-                    </p>
-                    <p>
-                        몬스터:{" "}
-                        <strong>{enemyMon.name}</strong> (HP {enemyMon.hp}/
-                        {enemyMon.maxHp})
-                    </p>
-                </div>
-            </section>
-
-            {/* 퀴즈 영역 */}
-            {state.phase === "quiz" && state.currentQuestion && (
-                <section
-                    style={{
-                        marginTop: "1rem",
-                        padding: "0.75rem",
-                        borderRadius: 8,
-                        border: "1px solid #555",
-                        background: "#111",
-                    }}
-                >
-                    <h3>퀴즈</h3>
-                    <p>{state.currentQuestion.prompt}</p>
+                    {/* HUD overlay */}
                     <div
                         style={{
+                            position: "absolute",
+                            inset: 0,
+                            pointerEvents: "none",
+                            padding: "0.75rem",
                             display: "flex",
                             flexDirection: "column",
-                            gap: "0.5rem",
                         }}
                     >
-                        {state.currentQuestion.options.map((opt, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => handleAnswer(idx)}
+                        {/* 적 상태 (상단 우측) */}
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "flex-end",
+                            }}
+                        >
+                            <div
                                 style={{
-                                    textAlign: "left",
-                                    padding: "0.5rem 0.75rem",
-                                    borderRadius: 6,
-                                    border: "1px solid #666",
+                                    minWidth: 160,
+                                    padding: "0.35rem 0.5rem",
+                                    borderRadius: 8,
+                                    background: "rgba(15,23,42,0.92)",
+                                    border: "1px solid #020617",
+                                    textAlign: "right",
+                                    fontSize: 12,
                                 }}
                             >
-                                {opt}
-                            </button>
-                        ))}
+                                <div
+                                    style={{
+                                        fontWeight: 700,
+                                        marginBottom: 2,
+                                    }}
+                                >
+                                    {enemyMon.name}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        marginBottom: 2,
+                                    }}
+                                >
+                                    HP {enemyMon.hp}/{enemyMon.maxHp}
+                                </div>
+                                <HpBar
+                                    current={enemyMon.hp}
+                                    max={enemyMon.maxHp}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 플레이어 상태 (하단 좌측) */}
+                        <div
+                            style={{
+                                marginTop: "auto",
+                                display: "flex",
+                                justifyContent: "flex-start",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    minWidth: 180,
+                                    padding: "0.35rem 0.5rem",
+                                    borderRadius: 8,
+                                    background: "rgba(15,23,42,0.92)",
+                                    border: "1px solid #020617",
+                                    fontSize: 12,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontWeight: 700,
+                                        marginBottom: 2,
+                                    }}
+                                >
+                                    {playerMon.name}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        marginBottom: 2,
+                                    }}
+                                >
+                                    HP {playerMon.hp}/{playerMon.maxHp}
+                                </div>
+                                <HpBar
+                                    current={playerMon.hp}
+                                    max={playerMon.maxHp}
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <p
-                        style={{
-                            fontSize: 12,
-                            marginTop: "0.5rem",
-                            color: "#aaa",
-                        }}
-                    >
-                        ※ 타이머 UI는 추후 연동. 현재는 클릭 시점까지 시간만 측정합니다.
-                    </p>
-                </section>
-            )}
 
-            {/* 컨트롤 */}
-            <section style={{ marginTop: "1rem" }}>
-                <button onClick={handleReset}>배틀 리셋</button>
-                <span
-                    style={{
-                        marginLeft: "1rem",
-                        fontSize: 12,
-                    }}
-                >
-                    턴: {state.turn}, 현재 단계: {state.phase}
-                </span>
-            </section>
+                    {/* 🔹 하단 패널 (기술 / 퀴즈 / 로그) */}
+                    <QuizBottomPanel
+                        phase={state.phase}
+                        currentQuestion={
+                            state.phase === "quiz"
+                                ? state.currentQuestion ?? null
+                                : null
+                        }
+                        playerName={playerMon.name}
+                        playerMoves={playerMon.moves}
+                        canSelectMove={canSelectMove}
+                        hasQuestions={questions.length > 0}
+                        onSelectMove={handleSelectMove}
+                        onAnswer={handleAnswer}
+                        logs={state.logs}
+                    />
+                </div>
+            </div>
 
-            {/* 로그 */}
+            {/* 컨트롤/상태 줄 */}
             <section
                 style={{
-                    marginTop: "1rem",
-                    padding: "0.75rem",
-                    borderRadius: 8,
-                    border: "1px solid #333",
-                    maxHeight: 240,
-                    overflowY: "auto",
-                    background: "#050505",
-                    fontSize: 13,
+                    marginTop: "0.75rem",
+                    fontSize: 12,
                 }}
             >
-                <h3>전투 로그</h3>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                    {state.logs.map((log) => (
-                        <li key={log.id} style={{ marginBottom: 4 }}>
-                            {log.text}
-                        </li>
-                    ))}
-                </ul>
+                <button
+                    type="button"
+                    onClick={handleReset}
+                    style={{
+                        padding: "0.35rem 0.9rem",
+                        borderRadius: 999,
+                        border: "1px solid #4b5563",
+                        background: "#020617",
+                        color: "#e5e7eb",
+                        cursor: "pointer",
+                    }}
+                >
+                    배틀 리셋
+                </button>
+                <span
+                    style={{
+                        marginLeft: "0.75rem",
+                        color: "#9ca3af",
+                    }}
+                >
+                    턴: {state.turn} · 단계: {state.phase}
+                </span>
             </section>
         </div>
     );
