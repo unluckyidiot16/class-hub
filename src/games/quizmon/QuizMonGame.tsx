@@ -36,7 +36,7 @@ const PLAYER_SPECIES_ID = "0001";
 // - "lobby": 메인 메뉴 오버레이
 // - "battle": 실제 전투 진행 화면
 // - "result": 배틀 결산 오버레이
-type ViewState = "lobby" | "battle" | "result";
+type ViewState = "lobby" | "dungeon" | "gacha" | "battle" | "result";
 
 function HpBar({ current, max }: { current: number; max: number }) {
     const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
@@ -830,7 +830,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         backgroundColor: "#000",
                     }}
                 >
-                    {/* BG */}
+                    {/* BG 는 항상 보여주기 */}
                     <div
                         style={{
                             width: "100%",
@@ -843,148 +843,155 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         }}
                     />
 
-                    {/* 적 측: 상단 우측 HP + 포켓몬 */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 8,
-                            right: 8,
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                            gap: 8,
-                        }}
-                    >
-                        <div
-                            style={{
-                                minWidth: 160,
-                                padding: "0.35rem 0.5rem",
-                                borderRadius: 8,
-                                background: "rgba(15,23,42,0.92)",
-                                border: "1px solid #020617",
-                                textAlign: "right",
-                                fontSize: 12,
-                            }}
-                        >
+                    {/* 🐾 배틀 레이어: battle 상태에서만 포켓몬/HP/명령창 표시 */}
+                    {viewState === "battle" && (
+                        <>
+                            {/* 적 측: 상단 우측 HP + 포켓몬 */}
                             <div
                                 style={{
-                                    fontWeight: 700,
-                                    marginBottom: 2,
+                                    position: "absolute",
+                                    top: 8,
+                                    right: 8,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end",
+                                    gap: 8,
                                 }}
                             >
-                                {enemyMon.name}
+                                <div
+                                    style={{
+                                        minWidth: 160,
+                                        padding: "0.35rem 0.5rem",
+                                        borderRadius: 8,
+                                        background:
+                                            "rgba(15,23,42,0.92)",
+                                        border: "1px solid #020617",
+                                        textAlign: "right",
+                                        fontSize: 12,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontWeight: 700,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {enemyMon.name}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        HP {enemyMon.hp}/{enemyMon.maxHp}
+                                    </div>
+                                    <HpBar
+                                        current={enemyMon.hp}
+                                        max={enemyMon.maxHp}
+                                    />
+                                </div>
+
+                                <div
+                                    style={{
+                                        width: 96,
+                                        height: 96,
+                                        display: "flex",
+                                        alignItems: "flex-end",
+                                        justifyContent: "flex-end",
+                                    }}
+                                >
+                                    {renderEnemySprite()}
+                                </div>
                             </div>
+
+                            {/* 플레이어 측: 하단 좌측 포켓몬 + HP */}
                             <div
                                 style={{
-                                    fontSize: 11,
-                                    marginBottom: 2,
+                                    position: "absolute",
+                                    left: 16,
+                                    bottom: 112,
+                                    display: "flex",
+                                    alignItems: "flex-end",
+                                    gap: 12,
                                 }}
                             >
-                                HP {enemyMon.hp}/{enemyMon.maxHp}
+                                <div
+                                    style={{
+                                        width: 96,
+                                        height: 96,
+                                        display: "flex",
+                                        alignItems: "flex-end",
+                                        justifyContent: "flex-start",
+                                    }}
+                                >
+                                    {renderPlayerSprite()}
+                                </div>
+
+                                <div
+                                    style={{
+                                        minWidth: 180,
+                                        padding: "0.35rem 0.5rem",
+                                        borderRadius: 8,
+                                        background:
+                                            "rgba(15,23,42,0.92)",
+                                        border: "1px solid #020617",
+                                        fontSize: 12,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontWeight: 700,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {playerMon.name}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        HP {playerMon.hp}/{playerMon.maxHp}
+                                    </div>
+                                    <HpBar
+                                        current={playerMon.hp}
+                                        max={playerMon.maxHp}
+                                    />
+                                </div>
                             </div>
-                            <HpBar
-                                current={enemyMon.hp}
-                                max={enemyMon.maxHp}
-                            />
-                        </div>
 
-                        <div
-                            style={{
-                                width: 96,
-                                height: 96,
-                                display: "flex",
-                                alignItems: "flex-end",
-                                justifyContent: "flex-end",
-                            }}
-                        >
-                            {renderEnemySprite()}
-                        </div>
-                    </div>
-
-                    {/* 플레이어 측: 하단 좌측 포켓몬 + HP */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            left: 16,
-                            bottom: 112, // 하단 명령창 위로 살짝 띄우기
-                            display: "flex",
-                            alignItems: "flex-end",
-                            gap: 12,
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 96,
-                                height: 96,
-                                display: "flex",
-                                alignItems: "flex-end",
-                                justifyContent: "flex-start",
-                            }}
-                        >
-                            {renderPlayerSprite()}
-                        </div>
-
-                        <div
-                            style={{
-                                minWidth: 180,
-                                padding: "0.35rem 0.5rem",
-                                borderRadius: 8,
-                                background: "rgba(15,23,42,0.92)",
-                                border: "1px solid #020617",
-                                fontSize: 12,
-                            }}
-                        >
+                            {/* 🔹 하단 명령 / 퀴즈 패널 */}
                             <div
                                 style={{
-                                    fontWeight: 700,
-                                    marginBottom: 2,
+                                    position: "absolute",
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    padding: "0.75rem",
+                                    background:
+                                        "linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(15,23,42,1) 60%, #020617 100%)",
+                                    borderTop: "1px solid #020617",
                                 }}
                             >
-                                {playerMon.name}
+                                <QuizBottomPanel
+                                    phase={state.phase}
+                                    currentQuestion={
+                                        state.phase === "quiz"
+                                            ? state.currentQuestion ?? null
+                                            : null
+                                    }
+                                    playerName={playerMon.name}
+                                    playerMoves={playerMon.moves}
+                                    canSelectMove={canSelectMove}
+                                    hasQuestions={questions.length > 0}
+                                    onSelectMove={handleSelectMove}
+                                    onAnswer={handleAnswer}
+                                />
                             </div>
-                            <div
-                                style={{
-                                    fontSize: 11,
-                                    marginBottom: 2,
-                                }}
-                            >
-                                HP {playerMon.hp}/{playerMon.maxHp}
-                            </div>
-                            <HpBar
-                                current={playerMon.hp}
-                                max={playerMon.maxHp}
-                            />
-                        </div>
-                    </div>
-
-                    {/* 🔹 하단 명령 / 퀴즈 패널 – 필드 위에 오버레이 */}
-                    <div
-                        style={{
-                            position: "absolute",
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            padding: "0.75rem",
-                            background:
-                                "linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(15,23,42,1) 60%, #020617 100%)",
-                            borderTop: "1px solid #020617",
-                        }}
-                    >
-                        <QuizBottomPanel
-                            phase={state.phase}
-                            currentQuestion={
-                                state.phase === "quiz"
-                                    ? state.currentQuestion ?? null
-                                    : null
-                            }
-                            playerName={playerMon.name}
-                            playerMoves={playerMon.moves}
-                            canSelectMove={canSelectMove}
-                            hasQuestions={questions.length > 0}
-                            onSelectMove={handleSelectMove}
-                            onAnswer={handleAnswer}
-                        />
-                    </div>
+                        </>
+                    )}
 
                     {/* 🏠 메인 메뉴 오버레이 (포켓로그풍) */}
                     {viewState === "lobby" && (
