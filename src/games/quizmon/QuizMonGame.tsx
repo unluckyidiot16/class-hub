@@ -22,7 +22,7 @@ import {
 import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
-import type { QuizPackJsonV1 } from "../../types/quizPackJson";
+import type { QuizPackJsonV1 } from "../../types/quizPackJson"; // ← 기존 import 유지
 import { getArenaSprite, getMonsterAnimJson, getMonsterSprite } from "./assets";
 import { SpriteAnimation } from "./SpriteAnimation";
 
@@ -33,8 +33,7 @@ const BATTLE_BG_URL = getArenaSprite("forest_bg");
 const PLAYER_SPECIES_ID = "0001";
 
 function HpBar({ current, max }: { current: number; max: number }) {
-    const ratio =
-        max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
+    const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
 
     let color = "#22c55e"; // green
     if (ratio < 0.25) color = "#ef4444"; // red
@@ -70,6 +69,7 @@ type QuizBottomPanelProps = {
     hasQuestions: boolean;
     onSelectMove: (move: Move) => void;
     onAnswer: (index: number) => void;
+    logs: BattleState["logs"];
 };
 
 function QuizBottomPanel(props: QuizBottomPanelProps) {
@@ -82,6 +82,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         hasQuestions,
         onSelectMove,
         onAnswer,
+        logs,
     } = props;
 
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
@@ -93,11 +94,12 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         mainText = "이 퀴즈팩에는 문제가 없습니다. (질문 0개)";
     } else if (phase === "finished") {
         mainText =
-            "배틀이 종료되었습니다. 위의 결과를 확인한 뒤 리셋 버튼으로 다시 시작할 수 있어요.";
+            "배틀이 종료되었습니다. 위의 결과를 확인한 뒤 결산창에서 다음 행동을 선택해 보세요.";
     } else {
-        // 포켓몬 느낌: "{이상해씨}는(은) 무엇을 할까?"
         mainText = `${playerName}은(는) 무엇을 할까?`;
     }
+
+    const recentLogs = logs.slice(-6);
 
     return (
         <div
@@ -111,37 +113,31 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                 fontSize: 13,
             }}
         >
+            {/* 상단 텍스트 영역 (질문/명령) */}
+            <div
+                style={{
+                    minHeight: 44,
+                    padding: "0.25rem 0.25rem 0.5rem",
+                    borderBottom: "1px solid #1f2937",
+                    marginBottom: "0.5rem",
+                    whiteSpace: "pre-wrap",
+                }}
+            >
+                {mainText}
+            </div>
+
+            {/* 하단: 왼쪽(기술/보기) + 오른쪽(로그) */}
             <div
                 style={{
                     display: "flex",
                     gap: "0.75rem",
                 }}
             >
-                {/* 🔹 왼쪽: 메세지 + (퀴즈 phase일 때) 보기 4개 */}
-                <div
-                    style={{
-                        flex: 3,
-                        borderRadius: 8,
-                        border: "1px solid #1f2937",
-                        background: "rgba(15,23,42,0.96)",
-                        padding: "0.4rem 0.6rem 0.5rem",
-                        minHeight: 60,
-                    }}
-                >
-                    <div
-                        style={{
-                            minHeight: 32,
-                            paddingBottom: "0.4rem",
-                            whiteSpace: "pre-wrap",
-                        }}
-                    >
-                        {mainText}
-                    </div>
-
-                    {isQuizPhase && currentQuestion && (
+                <div style={{ flex: 2 }}>
+                    {isQuizPhase && currentQuestion ? (
+                        // 🔹 보기 선택 영역
                         <div
                             style={{
-                                marginTop: "0.4rem",
                                 display: "grid",
                                 gridTemplateColumns: "1fr 1fr",
                                 gap: "0.5rem",
@@ -167,29 +163,13 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                 </button>
                             ))}
                         </div>
-                    )}
-                </div>
-
-                {/* 🔹 오른쪽: 명령 4개(기술) 그리드 – 포켓몬식 커맨드 패널 */}
-                <div
-                    style={{
-                        flex: 2,
-                        display: "flex",
-                        alignItems: "stretch",
-                    }}
-                >
-                    {!isQuizPhase && (
+                    ) : (
+                        // 🔹 기술 선택 영역
                         <div
                             style={{
-                                width: "100%",
-                                borderRadius: 8,
-                                border: "1px solid #1f2937",
-                                background: "#020617",
-                                padding: "0.5rem",
                                 display: "grid",
                                 gridTemplateColumns: "1fr 1fr",
-                                gap: "0.4rem",
-                                minHeight: 80,
+                                gap: "0.5rem",
                             }}
                         >
                             {playerMoves.map((move) => (
@@ -200,14 +180,13 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                     onClick={() => onSelectMove(move)}
                                     style={{
                                         textAlign: "left",
-                                        padding: "0.4rem 0.6rem",
+                                        padding: "0.5rem 0.75rem",
                                         borderRadius: 8,
                                         border: "1px solid #4b5563",
                                         background: canSelectMove
                                             ? "#020617"
                                             : "#020617aa",
                                         color: "#e5e7eb",
-                                        fontSize: 12,
                                         cursor: canSelectMove
                                             ? "pointer"
                                             : "default",
@@ -233,6 +212,272 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                             ))}
                         </div>
                     )}
+                </div>
+
+                {/* 전투 로그 박스 */}
+                <div
+                    style={{
+                        flex: 1,
+                        minWidth: 180,
+                        maxHeight: 128,
+                        borderRadius: 8,
+                        border: "1px solid #1f2937",
+                        background: "#020617",
+                        padding: "0.5rem",
+                        overflowY: "auto",
+                        fontSize: 12,
+                    }}
+                >
+                    <div
+                        style={{
+                            fontWeight: 600,
+                            marginBottom: 4,
+                            color: "#9ca3af",
+                        }}
+                    >
+                        전투 로그
+                    </div>
+                    {recentLogs.length === 0 ? (
+                        <div style={{ opacity: 0.6 }}>
+                            로그가 여기에 표시됩니다.
+                        </div>
+                    ) : (
+                        recentLogs.map((log) => (
+                            <div key={log.id} style={{ marginBottom: 2 }}>
+                                {log.text}
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// =========================
+// 🧾 결산 오버레이
+// =========================
+
+type ResultOverlayProps = {
+    stats: { correct: number; total: number };
+    playerMon: Monster;
+    enemyMon: Monster;
+    onRetry: () => void;
+    onClose: () => void;
+};
+
+function ResultOverlay(props: ResultOverlayProps) {
+    const { stats, playerMon, enemyMon, onRetry, onClose } = props;
+
+    const playerHp = playerMon.hp;
+    const enemyHp = enemyMon.hp;
+
+    let headline = "무승부!";
+    if (playerHp <= 0 && enemyHp > 0) {
+        headline = "아쉽다… 패배했다!";
+    } else if (enemyHp <= 0 && playerHp > 0) {
+        headline = `신난다! ${enemyMon.name}을(를) 잡았다!`;
+    }
+
+    const { correct, total } = stats;
+    const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    return (
+        <div
+            style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.75)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 20,
+            }}
+        >
+            <div
+                style={{
+                    width: "90%",
+                    maxWidth: 640,
+                    borderRadius: 12,
+                    border: "2px solid #b91c1c",
+                    background:
+                        "linear-gradient(180deg,#111827 0%,#020617 100%)",
+                    boxShadow: "0 18px 40px rgba(0,0,0,0.7)",
+                    padding: "0.75rem 0.9rem 0.85rem",
+                    color: "#e5e7eb",
+                    fontSize: 14,
+                }}
+            >
+                {/* 상단: 제목 영역 (포켓로그 하단 박스 느낌) */}
+                <div
+                    style={{
+                        marginBottom: "0.5rem",
+                        paddingBottom: "0.35rem",
+                        borderBottom: "1px solid #4b5563",
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 16,
+                            fontWeight: 700,
+                            marginBottom: 4,
+                        }}
+                    >
+                        {headline}
+                    </div>
+                    <div
+                        style={{
+                            fontSize: 12,
+                            color: "#9ca3af",
+                        }}
+                    >
+                        이번 레이드의 풀이 결과를 확인해 보세요.
+                    </div>
+                </div>
+
+                {/* 중간: 정답/정확도 + 양측 포켓몬 HP 요약 */}
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "1rem",
+                        alignItems: "stretch",
+                        marginBottom: "0.75rem",
+                        flexWrap: "wrap",
+                    }}
+                >
+                    {/* 정답 통계 */}
+                    <div
+                        style={{
+                            flex: 1,
+                            minWidth: 140,
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: 13,
+                                color: "#9ca3af",
+                                marginBottom: 4,
+                            }}
+                        >
+                            레이드 결과
+                        </div>
+                        <div
+                            style={{
+                                fontSize: 24,
+                                fontWeight: 700,
+                                marginBottom: 2,
+                            }}
+                        >
+                            {correct} / {total}
+                        </div>
+                        <div
+                            style={{
+                                fontSize: 13,
+                                color: "#e5e7eb",
+                            }}
+                        >
+                            정답률 {acc}%
+                        </div>
+                    </div>
+
+                    {/* 플레이어 / 적 간단 스테이터스 */}
+                    <div
+                        style={{
+                            flex: 1.2,
+                            minWidth: 180,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 6,
+                            fontSize: 12,
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <span style={{ color: "#9ca3af" }}>내 파트너</span>
+                            <span style={{ fontWeight: 600 }}>
+                                {playerMon.name}
+                            </span>
+                        </div>
+                        <HpBar current={playerHp} max={playerMon.maxHp} />
+                        <span
+                            style={{
+                                fontSize: 11,
+                                color: "#9ca3af",
+                            }}
+                        >
+                            HP {playerHp}/{playerMon.maxHp}
+                        </span>
+
+                        <div
+                            style={{
+                                marginTop: 8,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <span style={{ color: "#9ca3af" }}>상대</span>
+                            <span style={{ fontWeight: 600 }}>
+                                {enemyMon.name}
+                            </span>
+                        </div>
+                        <HpBar current={enemyHp} max={enemyMon.maxHp} />
+                        <span
+                            style={{
+                                fontSize: 11,
+                                color: "#9ca3af",
+                            }}
+                        >
+                            HP {enemyHp}/{enemyMon.maxHp}
+                        </span>
+                    </div>
+                </div>
+
+                {/* 하단: 버튼 줄 */}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: "0.5rem",
+                    }}
+                >
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        style={{
+                            padding: "0.35rem 0.8rem",
+                            borderRadius: 999,
+                            border: "1px solid #4b5563",
+                            background: "#020617",
+                            color: "#e5e7eb",
+                            fontSize: 13,
+                            cursor: "pointer",
+                        }}
+                    >
+                        닫기
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onRetry}
+                        style={{
+                            padding: "0.35rem 0.9rem",
+                            borderRadius: 999,
+                            border: "1px solid #b91c1c",
+                            background:
+                                "linear-gradient(90deg,#dc2626,#f97316)",
+                            color: "#f9fafb",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                        }}
+                    >
+                        다시 도전
+                    </button>
                 </div>
             </div>
         </div>
@@ -280,53 +525,48 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
+    // 결산 오버레이 표시 여부
+    const [showResult, setShowResult] = useState(false);
+
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
     const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
-    const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
-    const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.25배
-    const ENEMY_SCALE = 2.0;
-
-
-    // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
-        bulbasaurBackJson && bulbasaurBackPng ? (
-            <SpriteAnimation
-                jsonUrl={bulbasaurBackJson}
-                imageUrlOverride={bulbasaurBackPng}
-                fps={12}
-                frameFilter={(frame) => {
-                    const n = parseInt(frame.filename.replace(".png", ""), 10);
-                    return !Number.isNaN(n) && n >= 1 && n <= 20;
-                }}
-                style={{
-                    // 🔹 원근감: 플레이어 쪽만 더 크게
-                    transform: `scale(${PLAYER_SCALE})`,
-                    transformOrigin: "bottom left",
-                }}
-            />
-        ) : null;
-
-    const renderEnemySprite = () =>
         bulbasaurFrontJson && bulbasaurFrontPng ? (
             <SpriteAnimation
                 jsonUrl={bulbasaurFrontJson}
                 imageUrlOverride={bulbasaurFrontPng}
                 fps={12}
                 frameFilter={(frame) => {
-                    const n = parseInt(frame.filename.replace(".png", ""), 10);
+                    const n = parseInt(
+                        frame.filename.replace(".png", ""),
+                        10,
+                    );
                     return !Number.isNaN(n) && n >= 1 && n <= 20;
                 }}
                 style={{
-                    transform: `scale(${ENEMY_SCALE})`,
-                    transformOrigin: "bottom right",
+                    transform: "scale(2)",
+                    transformOrigin: "bottom left",
                 }}
             />
         ) : null;
 
-
+    const renderEnemySprite = () =>
+        bulbasaurBackPng ? (
+            <img
+                src={bulbasaurBackPng}
+                alt={enemyMon.name}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    imageRendering: "pixelated",
+                    transform: "scale(1.6)",
+                    transformOrigin: "bottom right",
+                }}
+            />
+        ) : null;
 
     /**
      * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
@@ -353,6 +593,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResult(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -368,6 +609,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResult(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -389,6 +631,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResult(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -408,6 +651,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResult(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -435,6 +679,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResult(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -462,6 +707,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(newState);
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
+            setShowResult(false);
             setQuestionIndex(0);
         } catch (err) {
             console.error(
@@ -471,6 +717,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(createInitialBattleState());
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
+            setShowResult(false);
             setQuestionIndex(0);
         }
     };
@@ -510,10 +757,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     }, [state.phase, state.pendingEnemyMove, enemyMon]);
 
-    // 배틀이 끝난 시점에 한 번만 onBattleEnd 호출
+    // 배틀이 끝난 시점에 한 번만 onBattleEnd 호출 + 결산 오버레이 표시
     useEffect(() => {
-        if (!onBattleEnd) return;
         if (state.phase !== "finished") return;
+        if (battleStats.total > 0) {
+            setShowResult(true);
+        }
+
+        if (!onBattleEnd) return;
         if (hasReportedEnd) return;
         if (battleStats.total <= 0) return; // 한 문제도 풀지 않았다면 스킵
 
@@ -579,6 +830,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onQuizAnswer?.(quizResult);
 
         // 🎯 Supabase game_events 로깅
+        // QDD 통계 파이프라인을 그대로 재사용할 수 있도록
+        // payload는 questionId / answerIndex / correct / timeMs 형태로 맞춘다.
         if (roomId && gameSessionId && studentId) {
             logGameEvent({
                 roomId,
@@ -593,10 +846,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     timeMs: quizResult.timeMs ?? null,
                 },
             }).catch((err) => {
-                console.warn(
-                    "[QuizMonGame] failed to log game event",
-                    err,
-                );
+                console.warn("[QuizMonGame] failed to log game event", err);
             });
         } else {
             console.warn("[QuizMonGame] skip logGameEvent – missing ids", {
@@ -741,6 +991,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(createInitialBattleState());
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
+            setShowResult(false);
             setQuestionIndex(0);
         }
     };
@@ -796,7 +1047,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     <div
                         style={{
                             width: "100%",
-                            paddingTop: "62.5%",
+                            paddingTop: "62.5%", // 16:10 비율 정도로 약간 더 세로
                             backgroundImage: `url(${BATTLE_BG_URL})`,
                             backgroundRepeat: "no-repeat",
                             backgroundSize: "cover",
@@ -919,7 +1170,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         </div>
                     </div>
 
-                    {/* 🔹 하단 명령 / 퀴즈 패널 – 필드 위에 오버레이 */}
+                    {/* 🔹 하단 명령 / 퀴즈 / 로그 패널 – 포켓몬처럼 필드 위에 오버레이 */}
                     <div
                         style={{
                             position: "absolute",
@@ -945,8 +1196,23 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             hasQuestions={questions.length > 0}
                             onSelectMove={handleSelectMove}
                             onAnswer={handleAnswer}
+                            logs={state.logs}
                         />
                     </div>
+
+                    {/* 🎉 배틀 종료 후 결산 오버레이 */}
+                    {showResult && (
+                        <ResultOverlay
+                            stats={battleStats}
+                            playerMon={playerMon}
+                            enemyMon={enemyMon}
+                            onRetry={() => {
+                                setShowResult(false);
+                                handleReset();
+                            }}
+                            onClose={() => setShowResult(false)}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -959,7 +1225,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
             >
                 <button
                     type="button"
-                    onClick={handleReset}
+                    onClick={() => {
+                        setShowResult(false);
+                        handleReset();
+                    }}
                     style={{
                         padding: "0.35rem 0.9rem",
                         borderRadius: 999,

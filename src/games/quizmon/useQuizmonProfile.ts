@@ -136,12 +136,10 @@ export function useQuizmonProfile(
 
             const { correct, total } = params;
             const damage = calcTurnDamage(correct, total);
-            const gainedExp = Math.max(1, damage); // 예: 데미지 ~= 경험치
-
-            // 🔹 코인 지급 규칙: 정답 1개당 1코인 (예시)
+            const gainedExp = Math.max(1, damage);
             const gainedCoins = correct;
 
-            // 1) 코인 지급은 RPC로만 처리 (동시성 안전)
+            // 1) 코인 지급 (RPC)
             try {
                 if (gainedCoins > 0 && classId) {
                     await grantQuizmonCoins({
@@ -152,14 +150,10 @@ export function useQuizmonProfile(
                     });
                 }
             } catch (e) {
-                console.error(
-                    "[useQuizmonProfile] grantQuizmonCoins error",
-                    e,
-                );
-                // 코인 지급 실패해도 레이드 기록 업데이트는 진행
+                console.error("[useQuizmonProfile] grantQuizmonCoins error", e);
             }
 
-            // 2) 파트너/누적 카운터만 quizmon_profiles UPDATE
+            // 2) 프로필 파트너 레벨업
             const newPartner = addExp(profile.partner, gainedExp);
 
             const { error } = await supabase
@@ -169,7 +163,6 @@ export function useQuizmonProfile(
                     total_raids: profile.total_raids + 1,
                     total_correct: profile.total_correct + correct,
                     total_questions: profile.total_questions + total,
-                    // ❌ coins는 여기서 건드리지 않음 (RPC 전용)
                 })
                 .eq("id", profile.id);
 
@@ -179,11 +172,30 @@ export function useQuizmonProfile(
                 return;
             }
 
-            // 3) 최신 값(코인 포함)을 다시 읽어오도록 트리거
+            // 3) 🔹 현재는 파티 1번 슬롯을 '파트너'로 간주하고 owned 몬스터도 동기화
+            try {
+                await supabase
+                    .from("quizmon_owned_monsters")
+                    .update({
+                        level: newPartner.level,
+                        exp: newPartner.exp,
+                    })
+                    .eq("profile_id", profile.id)
+                    .eq("party_slot", 1); // v1: 파티 1번 = 메인 파트너
+            } catch (e) {
+                console.error(
+                    "[useQuizmonProfile] update owned_monster level/exp error",
+                    e,
+                );
+                // 여기 실패해도 fatal은 아니고, 다음 리셋 때만 레벨이 안맞을 뿐이라 log만 남겨도 됨
+            }
+
+            // 4) 최신 값(코인 포함)을 다시 읽도록 트리거
             setReloadFlag((x) => x + 1);
         },
         [profile, studentKey, classId],
     );
+
 
 
 
