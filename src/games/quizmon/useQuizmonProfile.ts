@@ -130,7 +130,6 @@ export function useQuizmonProfile(
     }, []);
 
     // 레이드 끝났을 때 정답/문항 수를 반영해서 프로필 갱신
-    // 레이드 끝났을 때 정답/문항 수를 반영해서 프로필 갱신
     const applyRaidResult = useCallback(
         async (params: { correct: number; total: number }) => {
             if (!profile || !studentKey) return;

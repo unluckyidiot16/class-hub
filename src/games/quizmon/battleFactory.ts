@@ -6,6 +6,7 @@ import {
     type QuizmonSpeciesRow,
 } from "./types";
 import { getPokemonDimension } from "./pokemonDimensions";
+import { getMovesForSpeciesAndLevel } from "./moveData";
 
 /**
  * 기존 제네릭 코드와의 호환을 위해 alias 유지
@@ -36,9 +37,6 @@ export function buildBattleMonsterFromSpecies<
 
     // 🔢 아주 단순한 레벨 스케일링 – 숫자는 나중에 조정 가능
     const maxHp = species.base_hp + level * 5;
-    const atk = species.base_atk + level * 2;
-    const def = species.base_def + level * 2;
-    const spd = species.base_spd + Math.floor(level / 5); // 레벨 5마다 살짝 속도 증가
 
     const dim = getPokemonDimension(species.pokedex_no ?? null);
 
@@ -53,9 +51,11 @@ export function buildBattleMonsterFromSpecies<
 
         maxHp,
         hp: maxHp,
-        atk,
-        def,
-        spd,
+        atk: species.base_atk,
+        def: species.base_def,
+        spd: species.base_spd,
+
+        moves: getMovesForSpeciesAndLevel(species.id, level),
 
         accStage: 0,
         evaStage: 0,
@@ -65,7 +65,6 @@ export function buildBattleMonsterFromSpecies<
         heightM: dim?.heightM ?? null,
         weightKg: dim?.weightKg ?? null,
 
-        moves: [], // 실제 스킬 장착은 extra에서 주입
     };
 
     return {
