@@ -33,8 +33,7 @@ const BATTLE_BG_URL = getArenaSprite("forest_bg");
 const PLAYER_SPECIES_ID = "0001";
 
 function HpBar({ current, max }: { current: number; max: number }) {
-    const ratio =
-        max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
+    const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
 
     let color = "#22c55e"; // green
     if (ratio < 0.25) color = "#ef4444"; // red
@@ -280,15 +279,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
+    // 결산 오버레이 표시 여부
+    const [showResultOverlay, setShowResultOverlay] = useState(false);
+
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
     const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
     const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
-    const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.25배
+    const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.5배
     const ENEMY_SCALE = 2.0;
-
 
     // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
@@ -326,8 +327,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
             />
         ) : null;
 
-
-
     /**
      * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
      * 실제 전투용 Monster 배열을 만들고, 그걸로 배틀 상태를 리셋한다.
@@ -353,6 +352,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResultOverlay(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -368,6 +368,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResultOverlay(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -389,6 +390,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResultOverlay(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -408,6 +410,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResultOverlay(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -435,6 +438,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
+                setShowResultOverlay(false);
                 setQuestionIndex(0);
                 return;
             }
@@ -462,6 +466,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(newState);
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
+            setShowResultOverlay(false);
             setQuestionIndex(0);
         } catch (err) {
             console.error(
@@ -471,6 +476,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(createInitialBattleState());
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
+            setShowResultOverlay(false);
             setQuestionIndex(0);
         }
     };
@@ -520,6 +526,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onBattleEnd({ ...battleStats });
         setHasReportedEnd(true);
     }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
+
+    // 배틀 종료 시 결산 오버레이 표시
+    useEffect(() => {
+        if (state.phase === "finished") {
+            setShowResultOverlay(true);
+        }
+    }, [state.phase]);
 
     /** 현재 질문 선택 (없으면 null) */
     const getNextQuestion = (): QuizQuestionLite | null => {
@@ -742,6 +755,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
             setQuestionIndex(0);
+            setShowResultOverlay(false);
         }
     };
 
@@ -750,6 +764,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
         questions.length > 0 &&
         playerMon.hp > 0 &&
         enemyMon.hp > 0;
+
+    const accuracyPercent =
+        battleStats.total > 0
+            ? Math.round((battleStats.correct / battleStats.total) * 100)
+            : 0;
+
+    const battleFinished = state.phase === "finished";
+
+    let resultMessage = "접전 끝에 무승부!";
+    if (playerMon.hp > 0 && enemyMon.hp <= 0) {
+        resultMessage = `신난다! ${enemyMon.name}를 잡았다!`;
+    } else if (playerMon.hp <= 0 && enemyMon.hp > 0) {
+        resultMessage = "아쉽다… 패배했다!";
+    }
 
     return (
         <div
@@ -947,6 +975,204 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onAnswer={handleAnswer}
                         />
                     </div>
+
+                    {/* 🎉 배틀 결산 오버레이 */}
+                    {showResultOverlay && battleFinished && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                background: "rgba(0,0,0,0.72)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "1rem",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: "100%",
+                                    maxWidth: 480,
+                                    borderRadius: 8,
+                                    border: "2px solid #b91c1c",
+                                    background:
+                                        "linear-gradient(180deg,#111827 0%,#020617 100%)",
+                                    padding: "0.9rem 1rem 0.8rem",
+                                    color: "#f9fafb",
+                                    boxShadow:
+                                        "0 20px 40px rgba(0,0,0,0.6)",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 12,
+                                        color: "#fecaca",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    배틀 결과
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 16,
+                                        fontWeight: 700,
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    {resultMessage}
+                                </div>
+
+                                <div
+                                    style={{
+                                        fontSize: 13,
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    정답 {battleStats.correct} /{" "}
+                                    {battleStats.total} (
+                                    {accuracyPercent}
+                                    %)
+                                </div>
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 12,
+                                        fontSize: 12,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            padding: "0.4rem 0.5rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #1f2937",
+                                            background: "#020617",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            내 파트너
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontWeight: 600,
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            {playerMon.name}
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            HP {playerMon.hp}/
+                                            {playerMon.maxHp}
+                                        </div>
+                                        <HpBar
+                                            current={playerMon.hp}
+                                            max={playerMon.maxHp}
+                                        />
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            flex: 1,
+                                            padding: "0.4rem 0.5rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #1f2937",
+                                            background: "#020617",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            상대 포켓몬
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontWeight: 600,
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            {enemyMon.name}
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            HP {enemyMon.hp}/
+                                            {enemyMon.maxHp}
+                                        </div>
+                                        <HpBar
+                                            current={enemyMon.hp}
+                                            max={enemyMon.maxHp}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div
+                                    style={{
+                                        marginTop: 10,
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                        gap: 8,
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setShowResultOverlay(false)
+                                        }
+                                        style={{
+                                            padding:
+                                                "0.35rem 0.9rem",
+                                            borderRadius: 999,
+                                            border: "1px solid #4b5563",
+                                            background: "#020617",
+                                            color: "#e5e7eb",
+                                            fontSize: 12,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        닫기
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowResultOverlay(false);
+                                            handleReset();
+                                        }}
+                                        style={{
+                                            padding:
+                                                "0.35rem 0.9rem",
+                                            borderRadius: 999,
+                                            border: "1px solid #b91c1c",
+                                            background:
+                                                "linear-gradient(90deg,#b91c1c,#f97316)",
+                                            color: "#fef2f2",
+                                            fontSize: 12,
+                                            fontWeight: 600,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        다시 도전
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
