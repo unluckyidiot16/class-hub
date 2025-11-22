@@ -1,6 +1,8 @@
 // src/games/quizmon/QuizMonBattleSection.tsx
 import type { ReactNode } from "react";
 import { QuizMonGame } from "./QuizMonGame";
+import { SpriteAnimation } from "./SpriteAnimation";
+import { getMonsterAnimJson } from "./assets";
 import type { QuizAnswerResult } from "./types";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import type {
@@ -29,22 +31,25 @@ type QuizMonBattleSectionProps = {
     /** 실제 퀴즈팩 JSON (준비 안 되었으면 null) */
     quizpack: QuizPackJsonV1 | null;
     quizLoading?: boolean;
+
+    /** 에러 메시지 (있으면 상단에 표시) */
     errorMsg?: string | null;
 
-    /** Supabase game_events 로그용 식별자들 (있으면 로깅) */
+    /** 공통 공용 속성 */
     roomId?: string | null;
     gameSessionId?: string | null;
     studentId?: string | null;
 
-    /** 사용할 quizmon_profile.id (있으면 학생 파티 로딩) */
+    /** quizmon_profile.id – 있으면 이 프로필의 파티(1~3번)로 전투 시작 */
     profileId?: string | null;
-    
-    /** 정답 제출 시 호출 */
+
+    /** 정답 이벤트 핸들러 */
     onQuizAnswer?: (result: QuizAnswerResult) => void;
 
-    /** 배틀 종료 시 호출 */
+    /** 배틀 종료 콜백 (정답/전체 수 요약) */
     onBattleEnd?: (summary: { correct: number; total: number }) => void;
 };
+
 
 export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
     const {
@@ -53,8 +58,8 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         pack,
         session,
         quizpack,
-        quizLoading = false,
-        errorMsg = null,
+        quizLoading,
+        errorMsg,
         roomId,
         gameSessionId,
         studentId,
@@ -63,10 +68,34 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         onBattleEnd,
     } = props;
 
+    // Bulbasaur(0001) 앞모습 애니 JSON
+    const bulbasaurFrontJson = getMonsterAnimJson("0001", "front");
+
+
+    const renderBulbasaur = () =>
+        bulbasaurFrontJson ? (
+            <SpriteAnimation
+                jsonUrl={bulbasaurFrontJson}
+                fps={12}
+                // 실제 0001.json 프레임 이름이 "0001.png" ~ "0102.png" 형태라,
+                // 앞부분 1~20번만 사용 (0001~0020).
+                frameFilter={(frame) => {
+                    const n = parseInt(
+                        frame.filename.replace(".png", ""),
+                        10,
+                    );
+                    return !Number.isNaN(n) && n >= 1 && n <= 20;
+                }}
+                style={{
+                    transform: "scale(2)",
+                    transformOrigin: "bottom center",
+                }}
+            />
+        ) : null;
+
     let content: ReactNode = null;
 
     if (mode === "class") {
-        // === 수업 모드 (지금 QuizMonClassPanel 안 배틀 섹션 그대로 분리) ===
         if (!pack) {
             content = (
                 <p>
@@ -107,21 +136,32 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                 </p>
             );
         } else {
-            // session.status === "running" && quizpack 준비 완료
+            // running + quizpack 준비 완료
             content = (
-                <QuizMonGame
-                    quizpack={quizpack}
-                    roomId={mode === "class" ? roomId ?? null : null}
-                    gameSessionId={mode === "class" ? gameSessionId ?? null : null}
-                    studentId={mode === "class" ? studentId ?? null : null}
-                    profileId={profileId}
-                    onQuizAnswer={onQuizAnswer}
-                    onBattleEnd={onBattleEnd}
-                />
+                <div>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            marginBottom: "0.5rem",
+                        }}
+                    >
+                        {renderBulbasaur()}
+                    </div>
+                    <QuizMonGame
+                        quizpack={quizpack}
+                        onQuizAnswer={onQuizAnswer}
+                        roomId={roomId}
+                        gameSessionId={gameSessionId}
+                        studentId={studentId}
+                        profileId={profileId ?? null}
+                        onBattleEnd={onBattleEnd}
+                    />
+                </div>
             );
         }
     } else {
-        // === 자습/연습 모드 ===
+        // 연습 모드
         if (quizLoading || !quizpack) {
             content = <p>연습용 퀴즈를 불러오는 중입니다…</p>;
         } else if (errorMsg) {
@@ -135,14 +175,25 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
             );
         } else {
             content = (
-                <QuizMonGame
-                    quizpack={quizpack}
-                    onQuizAnswer={onQuizAnswer}
-                    roomId={roomId}
-                    gameSessionId={gameSessionId}
-                    studentId={studentId}
-                    onBattleEnd={onBattleEnd}
-                />
+                <div>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            marginBottom: "0.5rem",
+                        }}
+                    >
+                        {renderBulbasaur()}
+                    </div>
+                    <QuizMonGame
+                        quizpack={quizpack}
+                        onQuizAnswer={onQuizAnswer}
+                        roomId={roomId}
+                        gameSessionId={gameSessionId}
+                        studentId={studentId}
+                        onBattleEnd={onBattleEnd}
+                    />
+                </div>
             );
         }
     }

@@ -40,6 +40,8 @@ export function getMonsterSprite(
     return `${MONSTER_BASE}${folder}/${id}.png`;
 }
 
+
+
 /**
  * 도감/리스트 전용 아이콘 (variant "icon" 래퍼)
  */
@@ -93,4 +95,26 @@ export type UiSpriteKey =
  */
 export function getUiSprite(key: UiSpriteKey): string {
     return `${UI_BASE}${key}.png`;
+}
+
+// ===== 몬스터 애니메이션(TexturePacker json) =====
+
+export type MonsterAnimVariant = "front" | "back";
+
+/**
+ * 몬스터 애니메이션 JSON (TexturePacker) 경로
+ * 예)
+ *  - docs/games/quizmon/monster/front_anim/0001.json
+ *  - docs/games/quizmon/monster/back_anim/0001.json
+ */
+export function getMonsterAnimJson(
+    speciesId?: string | number | null,
+    variant: MonsterAnimVariant = "front",
+): string | null {
+    if (speciesId == null) return null;
+    const id = normalizeSpeciesId(speciesId);
+
+    const folder = variant === "front" ? "front_anim" : "back_anim";
+
+    return `${MONSTER_BASE}${folder}/${id}.json`;
 }

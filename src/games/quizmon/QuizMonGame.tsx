@@ -23,12 +23,12 @@ import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson"; // ← 기존 import 유지
+import { getArenaSprite } from "./assets";
 
 // =========================
 // 🌆 배틀 BG / 하단 패널용 헬퍼
 // =========================
-const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
-const BATTLE_BG_URL = `${BASE_URL}games/quizmon/arenas/forest_bg.png`;
+const BATTLE_BG_URL = getArenaSprite("forest_bg");
 
 function HpBar({ current, max }: { current: number; max: number }) {
     const ratio =
