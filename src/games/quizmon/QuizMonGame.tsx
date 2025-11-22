@@ -8,6 +8,7 @@ import type {
     Monster,
     QuizmonOwnedMonsterRow,
     QuizmonSpeciesRow,
+    QuizmonProfileRow,
 } from "./types";
 import { quizPackToLiteQuestions } from "./quizSource";
 import { logGameEvent } from "../../api/gameSessions";
@@ -272,7 +273,16 @@ type QuizMonGameProps = {
         correct: number;
         total: number;
     }) => void;
+
+    // 🔹 메인 메뉴 탭(몬스터 / 도감 / 프로필)에서 쓰는 데이터
+    profile?: QuizmonProfileRow | null;
+    monsters?: QuizmonOwnedMonsterRow[];
+    collectionLoading?: boolean;
+    collectionError?: string | null;
+    onPullFreeGacha?: () => void | Promise<void>;
+    lastRaidResult?: { correct: number; total: number } | null;
 };
+
 
 export function QuizMonGame(props: QuizMonGameProps) {
     const {
@@ -297,6 +307,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
+    const [menuTab, setMenuTab] = useState<"menu" | "monsters" | "dex" | "profile">("menu");
+
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
     const isBattleActive = viewState === "battle";
@@ -309,7 +321,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
     const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.5배
     const ENEMY_SCALE = 2.0;
-
+    
     // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
         bulbasaurBackJson && bulbasaurBackPng ? (
@@ -858,11 +870,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         resultMessage = "아쉽다… 패배했다!";
     }
 
-    const hasAnyProgress =
-        battleStats.total > 0 ||
-        state.turn > 1 ||
-        playerMon.hp < playerMon.maxHp ||
-        enemyMon.hp < enemyMon.maxHp;
 
     return (
         <div
@@ -1075,132 +1082,93 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 inset: 0,
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "center", // 가운데 배치 OK
-                                padding: "1rem",
-                                pointerEvents: "none",
+                                justifyContent: "center",
+                                background: "rgba(0,0,0,0.45)",
+                                zIndex: 30,
                             }}
                         >
                             <div
                                 style={{
-                                    width: 280,
-                                    borderRadius: 12,
-                                    background: "rgba(15,23,42,0.96)",
-                                    border: "2px solid #111827",
-                                    padding: "0.9rem 1.1rem",
-                                    boxShadow: "0 24px 40px rgba(0,0,0,0.75)",
-                                    pointerEvents: "auto",
+                                    width: 420,
+                                    maxWidth: "100%",
+                                    background: "#020617",
+                                    borderRadius: 24,
+                                    padding: "20px 24px 24px",
+                                    boxShadow: "0 18px 40px rgba(0,0,0,0.65)",
+                                    border: "1px solid rgba(148,163,184,0.3)",
                                 }}
                             >
-                                <div
-                                    style={{
-                                        fontSize: 11,
-                                        color: "#9ca3af",
-                                        marginBottom: 4,
-                                    }}
-                                >
-                                    QuizMon Class · Beta
+                                {/* 헤더 + 탭 */}
+                                <div style={{ marginBottom: 16 }}>
+                                    <div style={{ fontSize: 12, color: "#9ca3af" }}>QuizMon Class · Beta</div>
+                                    <div style={{ fontSize: 18, fontWeight: 600, color: "#e5e7eb" }}>메인 메뉴</div>
+
+                                    <div
+                                        style={{
+                                            marginTop: 12,
+                                            display: "flex",
+                                            gap: 8,
+                                            fontSize: 13,
+                                        }}
+                                    >
+                                        {[
+                                            { key: "menu", label: "메뉴" },
+                                            { key: "monsters", label: "몬스터" },
+                                            { key: "dex", label: "도감" },
+                                            { key: "profile", label: "프로필" },
+                                        ].map((tab) => (
+                                            <button
+                                                key={tab.key}
+                                                onClick={() => setMenuTab(tab.key as any)}
+                                                style={{
+                                                    padding: "4px 10px",
+                                                    borderRadius: 999,
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    background:
+                                                        menuTab === tab.key ? "rgba(59,130,246,0.2)" : "transparent",
+                                                    color: menuTab === tab.key ? "#bfdbfe" : "#9ca3af",
+                                                    fontWeight: menuTab === tab.key ? 600 : 500,
+                                                }}
+                                            >
+                                                {tab.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                                <div
-                                    style={{
-                                        fontSize: 16,
-                                        fontWeight: 700,
-                                        marginBottom: 10,
-                                    }}
-                                >
-                                    메인 메뉴
-                                </div>
 
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 6,
-                                    }}
-                                >
-                                    {/* ▶ 계속하기 (기존 배틀로 복귀) */}
-                                    <button
-                                        type="button"
-                                        disabled={!hasAnyProgress}
-                                        onClick={() => setViewState("battle")}
-                                        style={{
-                                            width: "100%",
-                                            textAlign: "left",
-                                            padding: "0.45rem 0.7rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #4b5563",
-                                            backgroundColor: hasAnyProgress
-                                                ? "#020617"
-                                                : "#02061780",
-                                            color: "#e5e7eb",
-                                            fontSize: 13,
-                                            cursor: hasAnyProgress ? "pointer" : "default",
-                                        }}
-                                    >
-                                        ▶ 계속하기
-                                    </button>
+                                {/* 탭별 내용 */}
+                                {menuTab === "menu" && (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                        <button /* 계속하기 */>▶ 계속하기</button>
+                                        <button /* 새 레이드 시작 */>새 레이드 시작 (던전)</button>
+                                        <button /* 가챠 */>가챠 (보상 뽑기)</button>
+                                        {/* 여기엔 더 이상 전체화면 관련 항목 없음 */}
+                                    </div>
+                                )}
 
-                                    {/* 🏰 던전 진입 → 배틀 앞단 씬 */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setViewState("dungeon")}
-                                        style={{
-                                            width: "100%",
-                                            textAlign: "left",
-                                            padding: "0.45rem 0.7rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #b91c1c",
-                                            background:
-                                                "linear-gradient(90deg,#b91c1c,#f97316)",
-                                            color: "#fef2f2",
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        새 레이드 시작 (던전)
-                                    </button>
+                                {menuTab === "monsters" && (
+                                    <MonstersTab
+                                        monsters={props.monsters}
+                                        collectionLoading={props.collectionLoading}
+                                        collectionError={props.collectionError}
+                                        onPullFreeGacha={props.onPullFreeGacha}
+                                    />
+                                )}
 
-                                    {/* 🎁 가챠 메뉴 (배틀과 독립) */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setViewState("gacha")}
-                                        style={{
-                                            width: "100%",
-                                            textAlign: "left",
-                                            padding: "0.45rem 0.7rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #4b5563",
-                                            backgroundColor: "#020617",
-                                            color: "#e5e7eb",
-                                            fontSize: 13,
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        가챠 (보상 뽑기)
-                                    </button>
+                                {menuTab === "dex" && (
+                                    <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                                        도감 기능은 아직 준비 중입니다. (Beta)
+                                    </div>
+                                )}
 
-                                    {/* 수업 화면만 보기: 그냥 배틀 화면만 띄우기 */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setViewState("battle")}
-                                        style={{
-                                            width: "100%",
-                                            textAlign: "left",
-                                            padding: "0.45rem 0.7rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #4b5563",
-                                            backgroundColor: "#020617",
-                                            color: "#e5e7eb",
-                                            fontSize: 13,
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        수업 화면만 보기
-                                    </button>
-                                </div>
+                                {menuTab === "profile" && (
+                                    <ProfileTab profile={props.profile} lastRaidResult={props.lastRaidResult} />
+                                )}
                             </div>
                         </div>
                     )}
+
 
                     {/* 🏰 던전 선택 오버레이 */}
                     {viewState === "dungeon" && (
@@ -1674,3 +1642,123 @@ export function QuizMonGame(props: QuizMonGameProps) {
         </div>
     );
 }
+
+// =========================
+// 📘 탭용 서브 컴포넌트
+// =========================
+
+type MonstersTabProps = {
+    monsters?: QuizmonOwnedMonsterRow[];
+    collectionLoading?: boolean;
+    collectionError?: string | null;
+    onPullFreeGacha?: () => void | Promise<void>;
+};
+
+function MonstersTab({
+                         monsters = [],
+                         collectionLoading,
+                         collectionError,
+                         onPullFreeGacha,
+                     }: MonstersTabProps) {
+    if (collectionLoading) {
+        return <div style={{ fontSize: 13, color: "#9ca3af" }}>몬스터 정보를 불러오는 중...</div>;
+    }
+    if (collectionError) {
+        return <div style={{ fontSize: 13, color: "#fca5a5" }}>{collectionError}</div>;
+    }
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <button
+                onClick={() => onPullFreeGacha?.()}
+                style={{
+                    alignSelf: "flex-start",
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    background: "#1d4ed8",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 13,
+                }}
+            >
+                무료 소환 1회
+            </button>
+
+            <div
+                style={{
+                    maxHeight: 220,
+                    overflowY: "auto",
+                    paddingRight: 4,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                    gap: 8,
+                }}
+            >
+                {monsters.map((m) => (
+                    <div
+                        key={m.id}
+                        style={{
+                            borderRadius: 12,
+                            padding: 8,
+                            background: "rgba(15,23,42,0.9)",
+                            border: "1px solid rgba(51,65,85,0.9)",
+                            fontSize: 12,
+                            color: "#e5e7eb",
+                        }}
+                    >
+                        <div>No.{m.species_id}</div>
+                        <div>Lv.{m.level}</div>
+                        {m.party_slot && (
+                            <div style={{ fontSize: 11, color: "#9ca3af" }}>파티 {m.party_slot}번</div>
+                        )}
+                    </div>
+                ))}
+                {monsters.length === 0 && (
+                    <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                        아직 보유한 몬스터가 없습니다.
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+type ProfileTabProps = {
+    profile?: any;
+    lastRaidResult?: { correct: number; total: number } | null;
+};
+
+function ProfileTab({ profile, lastRaidResult }: ProfileTabProps) {
+    if (!profile) {
+        return (
+            <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                프로필 정보를 불러오는 중이거나 아직 생성되지 않았습니다.
+            </div>
+        );
+    }
+
+    const accuracy =
+        lastRaidResult && lastRaidResult.total > 0
+            ? Math.round((lastRaidResult.correct / lastRaidResult.total) * 100)
+            : 0;
+
+    return (
+        <div style={{ fontSize: 13, color: "#e5e7eb", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div>
+                <strong>트레이너 이름:</strong> {profile.trainer_name ?? "(이름 없음)"}
+            </div>
+            <div>
+                <strong>총 전투 수:</strong> {profile.total_raids ?? 0}
+            </div>
+            <div>
+                <strong>총 정답 수:</strong> {profile.total_correct ?? 0}
+            </div>
+            <div>
+                <strong>최근 레이드:</strong>{" "}
+                {lastRaidResult ? `${lastRaidResult.correct}/${lastRaidResult.total} (${accuracy}%)` : "기록 없음"}
+            </div>
+        </div>
+    );
+}
+

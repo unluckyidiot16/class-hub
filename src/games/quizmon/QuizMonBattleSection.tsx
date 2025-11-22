@@ -7,6 +7,11 @@ import type {
     QuizPackRow,
 } from "../../pages/student/StudentPlayPackPage";
 
+import type {
+    QuizmonProfileRow,
+    QuizmonOwnedMonsterRow,
+} from "./types";
+
 // src/games/quizmon/QuizMonBattleSection.tsx
 
 type SessionRow = {
@@ -48,6 +53,14 @@ type QuizMonBattleSectionProps = {
 
     /** 배틀 종료 콜백 (정답/전체 수 요약) */
     onBattleEnd?: (summary: { correct: number; total: number }) => void;
+
+    profile?: QuizmonProfileRow | null;
+    monsters?: QuizmonOwnedMonsterRow[];
+    collectionLoading?: boolean;
+    collectionError?: string | null;
+    onPullFreeGacha?: () => void | Promise<void>;
+    lastRaidResult?: { correct: number; total: number } | null;
+    
 };
 
 export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
@@ -120,6 +133,12 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     studentId={studentId ?? null}
                     profileId={profileId ?? null}
                     onBattleEnd={onBattleEnd}
+                    profile={props.profile}
+                    monsters={props.monsters}
+                    collectionLoading={props.collectionLoading}
+                    collectionError={props.collectionError}
+                    onPullFreeGacha={props.onPullFreeGacha}
+                    lastRaidResult={props.lastRaidResult}
                 />
             );
         }
