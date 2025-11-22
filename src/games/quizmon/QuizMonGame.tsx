@@ -38,6 +38,16 @@ const PLAYER_SPECIES_ID = "0001";
 // - "result": 배틀 결산 오버레이
 type ViewState = "lobby" | "dungeon" | "gacha" | "battle" | "result";
 
+// 배열 셔플 유틸 (Fisher–Yates)
+function shuffleArray<T>(arr: T[]): T[] {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
 function HpBar({ current, max }: { current: number; max: number }) {
     const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
 
@@ -280,6 +290,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         createInitialBattleState(),
     );
     const [questionIndex, setQuestionIndex] = useState(0);
+    // 🔹 문제 순서를 랜덤으로 돌리기 위한 인덱스 배열
+    const [questionOrder, setQuestionOrder] = useState<number[]>([]);
 
     // 이번 배틀에서 학생이 푼 퀴즈 집계
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
@@ -494,6 +506,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
         [quizpack],
     );
 
+    // 🔹 quizpack이 준비되면 한 번 문제 순서를 섞어 둔다
+    useEffect(() => {
+        if (!questions.length) {
+            setQuestionOrder([]);
+            setQuestionIndex(0);
+            return;
+        }
+
+        const indices = questions.map((_, idx) => idx);
+        setQuestionOrder(shuffleArray(indices));
+        setQuestionIndex(0);
+    }, [questions]);
+
+
     const playerMon = useMemo(
         () => state.player.monsters[state.player.activeIndex],
         [state.player],
@@ -536,10 +562,39 @@ export function QuizMonGame(props: QuizMonGameProps) {
     }, [state.phase]);
 
     /** 현재 질문 선택 (없으면 null) */
+    /** 현재 질문 선택 (없으면 null)
+     *  - questions: 원본 질문 배열
+     *  - questionOrder: 랜덤으로 섞인 인덱스 배열
+     *  - 보기(option)도 매번 섞어서 반환
+     */
     const getNextQuestion = (): QuizQuestionLite | null => {
         if (!questions || questions.length === 0) return null;
-        return questions[questionIndex % questions.length];
+        if (!questionOrder.length) return null;
+
+        const orderIdx = questionIndex % questionOrder.length;
+        const baseIdx = questionOrder[orderIdx];
+        const baseQuestion = questions[baseIdx];
+        if (!baseQuestion) return null;
+
+        // 보기 인덱스를 셔플해서 옵션/정답 위치 함께 섞기
+        const optionIndices = baseQuestion.options.map((_, idx) => idx);
+        const shuffledOptionIndices = shuffleArray(optionIndices);
+
+        const shuffledOptions = shuffledOptionIndices.map(
+            (optIdx) => baseQuestion.options[optIdx],
+        );
+
+        const newAnswerIndex = shuffledOptionIndices.indexOf(
+            baseQuestion.answerIndex,
+        );
+
+        return {
+            ...baseQuestion,
+            options: shuffledOptions,
+            answerIndex: newAnswerIndex,
+        };
     };
+
 
     const handleSelectMove = (move: Move) => {
         if (!isBattleActive) return;
@@ -554,8 +609,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
 
         const question = getNextQuestion();
+        if (!question) {
+            // 이론상 거의 안 오지만, 방어 코드
+            setState((prev) =>
+                pushLog(prev, "[시스템] 문제를 불러오는 중 오류가 발생했습니다."),
+            );
+            return;
+        }
+
         const now = Date.now();
 
+        // 다음 문제로 진행
         setQuestionIndex((idx) => idx + 1);
 
         setState((prev) => ({
@@ -566,6 +630,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             lastQuizResult: null,
             phase: "quiz",
         }));
+
     };
 
     const handleAnswer = (optionIndex: number) => {
@@ -748,6 +813,16 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
     const handleReset = () => {
+        // 🔹 새 레이드마다 문제 순서도 다시 셔플
+        if (questions.length > 0) {
+            const indices = questions.map((_, idx) => idx);
+            setQuestionOrder(shuffleArray(indices));
+            setQuestionIndex(0);
+        } else {
+            setQuestionOrder([]);
+            setQuestionIndex(0);
+        }
+        
         if (profileId) {
             // 학생 프로필이 있으면 항상 "실제 파티" 기준으로 리셋
             void resetBattleWithProfileParty(profileId);
