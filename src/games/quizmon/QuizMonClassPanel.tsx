@@ -234,10 +234,10 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             );
         }
 
-        if (!profile || profileLoading) {
+        if (!profile) {
             return <p>프로필을 불러오는 중입니다...</p>;
         }
-
+        
         if (!profile.starter_chosen) {
             return (
                 <StarterSelectPanel
