@@ -286,6 +286,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
+    const PLAYER_SCALE = 2.5; // 적(2.0)보다 1.25배
+    const ENEMY_SCALE = 2.0;
+
+
     // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
         bulbasaurBackJson && bulbasaurBackPng ? (
@@ -294,21 +298,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 imageUrlOverride={bulbasaurBackPng}
                 fps={12}
                 frameFilter={(frame) => {
-                    const n = parseInt(
-                        frame.filename.replace(".png", ""),
-                        10,
-                    );
-                    // 1~20 프레임만 사용 (필요하면 숫자만 조정)
+                    const n = parseInt(frame.filename.replace(".png", ""), 10);
                     return !Number.isNaN(n) && n >= 1 && n <= 20;
                 }}
                 style={{
-                    transform: "scale(2)",
+                    // 🔹 원근감: 플레이어 쪽만 더 크게
+                    transform: `scale(${PLAYER_SCALE})`,
                     transformOrigin: "bottom left",
                 }}
             />
         ) : null;
 
-    // ✅ 적: 프론트 스프라이트 애니메이션 (오른쪽 위, 상대)
     const renderEnemySprite = () =>
         bulbasaurFrontJson && bulbasaurFrontPng ? (
             <SpriteAnimation
@@ -316,18 +316,16 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 imageUrlOverride={bulbasaurFrontPng}
                 fps={12}
                 frameFilter={(frame) => {
-                    const n = parseInt(
-                        frame.filename.replace(".png", ""),
-                        10,
-                    );
+                    const n = parseInt(frame.filename.replace(".png", ""), 10);
                     return !Number.isNaN(n) && n >= 1 && n <= 20;
                 }}
                 style={{
-                    transform: "scale(2)",
+                    transform: `scale(${ENEMY_SCALE})`,
                     transformOrigin: "bottom right",
                 }}
             />
         ) : null;
+
 
 
     /**
