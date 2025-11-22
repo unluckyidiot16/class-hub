@@ -32,8 +32,10 @@ import { SpriteAnimation } from "./SpriteAnimation";
 const BATTLE_BG_URL = getArenaSprite("forest_bg");
 const PLAYER_SPECIES_ID = "0001";
 
-
-// 상위 뷰 상태: 이후 로비/배틀/결과를 명확히 분리하기 위한 상태
+// viewState 는 던전 단위 상태(DungeonState) 역할
+// - "lobby": 메인 메뉴 오버레이
+// - "battle": 실제 전투 진행 화면
+// - "result": 배틀 결산 오버레이
 type ViewState = "lobby" | "battle" | "result";
 
 function HpBar({ current, max }: { current: number; max: number }) {
@@ -283,8 +285,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
-    // 상위 뷰 상태 (lobby/battle/result)
-    const [viewState, setViewState] = useState<ViewState>("battle");
+    // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
+    const [viewState, setViewState] = useState<ViewState>("lobby");
+    const isBattleActive = viewState === "battle";
 
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
@@ -545,6 +548,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
     const handleSelectMove = (move: Move) => {
+        if (!isBattleActive) return;
         if (state.phase !== "command") return;
         if (playerMon.hp <= 0 || enemyMon.hp <= 0) return;
         if (!questions.length) {
@@ -764,6 +768,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
     const canSelectMove =
+        isBattleActive &&
         state.phase === "command" &&
         questions.length > 0 &&
         playerMon.hp > 0 &&
@@ -775,8 +780,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             : 0;
 
     const battleFinished = state.phase === "finished";
-    const showResultOverlay =
-        viewState === "result" && battleFinished;
+    const showResultOverlay = viewState === "result" && battleFinished;
 
     let resultMessage = "접전 끝에 무승부!";
     if (playerMon.hp > 0 && enemyMon.hp <= 0) {
@@ -784,6 +788,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
     } else if (playerMon.hp <= 0 && enemyMon.hp > 0) {
         resultMessage = "아쉽다… 패배했다!";
     }
+
+    const hasAnyProgress =
+        battleStats.total > 0 ||
+        state.turn > 1 ||
+        playerMon.hp < playerMon.maxHp ||
+        enemyMon.hp < enemyMon.maxHp;
 
     return (
         <div
@@ -982,6 +992,124 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         />
                     </div>
 
+                    {/* 🏠 메인 메뉴 오버레이 (포켓로그풍) */}
+                    {viewState === "lobby" && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "flex-end",
+                                padding: "1rem",
+                                pointerEvents: "none",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 280,
+                                    borderRadius: 12,
+                                    background: "rgba(15,23,42,0.96)",
+                                    border: "2px solid #111827",
+                                    padding: "0.9rem 1.1rem",
+                                    boxShadow:
+                                        "0 24px 40px rgba(0,0,0,0.75)",
+                                    pointerEvents: "auto",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#9ca3af",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    QuizMon Class · Beta
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 16,
+                                        fontWeight: 700,
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    메인 메뉴
+                                </div>
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 6,
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        disabled={!hasAnyProgress}
+                                        onClick={() =>
+                                            setViewState("battle")
+                                        }
+                                        style={{
+                                            width: "100%",
+                                            textAlign: "left",
+                                            padding: "0.45rem 0.7rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #4b5563",
+                                            backgroundColor: hasAnyProgress
+                                                ? "#020617"
+                                                : "#02061780",
+                                            color: "#e5e7eb",
+                                            fontSize: 13,
+                                            cursor: hasAnyProgress
+                                                ? "pointer"
+                                                : "default",
+                                        }}
+                                    >
+                                        ▶ 계속하기
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleReset}
+                                        style={{
+                                            width: "100%",
+                                            textAlign: "left",
+                                            padding: "0.45rem 0.7rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #b91c1c",
+                                            background:
+                                                "linear-gradient(90deg,#b91c1c,#f97316)",
+                                            color: "#fef2f2",
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        새 레이드 시작
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setViewState("battle")
+                                        }
+                                        style={{
+                                            width: "100%",
+                                            textAlign: "left",
+                                            padding: "0.45rem 0.7rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #4b5563",
+                                            backgroundColor: "#020617",
+                                            color: "#e5e7eb",
+                                            fontSize: 13,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        수업 화면만 보기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* 🎉 배틀 결산 오버레이 */}
                     {showResultOverlay && (
                         <div
@@ -1139,8 +1267,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            // 결과만 보고 싶을 때: 전투는 finished 상태 유지
-                                            setViewState("battle");
+                                            // 메인 메뉴로 돌아가기 (던전 종료)
+                                            setViewState("lobby");
                                         }}
                                         style={{
                                             padding:
@@ -1153,13 +1281,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                             cursor: "pointer",
                                         }}
                                     >
-                                        닫기
+                                        메뉴로
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => {
                                             // 새 배틀 시작
-                                            setViewState("battle");
                                             handleReset();
                                         }}
                                         style={{
@@ -1193,6 +1320,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
             >
                 <button
                     type="button"
+                    onClick={() => setViewState("lobby")}
+                    style={{
+                        padding: "0.35rem 0.9rem",
+                        borderRadius: 999,
+                        border: "1px solid #4b5563",
+                        background: "#020617",
+                        color: "#e5e7eb",
+                        cursor: "pointer",
+                    }}
+                >
+                    메인 메뉴
+                </button>
+                <button
+                    type="button"
                     onClick={handleReset}
                     style={{
                         padding: "0.35rem 0.9rem",
@@ -1201,6 +1342,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         background: "#020617",
                         color: "#e5e7eb",
                         cursor: "pointer",
+                        marginLeft: "0.5rem",
                     }}
                 >
                     배틀 리셋
@@ -1211,7 +1353,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         color: "#9ca3af",
                     }}
                 >
-                    턴: {state.turn} · 단계: {state.phase}
+                    턴: {state.turn} · 단계: {state.phase} · 모드:{" "}
+                    {viewState}
                 </span>
             </section>
         </div>
