@@ -104,8 +104,8 @@ export type MonsterAnimVariant = "front" | "back";
 /**
  * 몬스터 애니메이션 JSON (TexturePacker) 경로
  * 예)
- *  - docs/games/quizmon/monster/front_anim/0001.json
- *  - docs/games/quizmon/monster/back_anim/0001.json
+ *  - /games/quizmon/monster/front/0001.json
+ *  - /games/quizmon/monster/back/0001.json
  */
 export function getMonsterAnimJson(
     speciesId?: string | number | null,
@@ -114,7 +114,8 @@ export function getMonsterAnimJson(
     if (speciesId == null) return null;
     const id = normalizeSpeciesId(speciesId);
 
-    const folder = variant === "front" ? "front_anim" : "back_anim";
+    // 실제 폴더 이름: front / back
+    const folder = variant === "front" ? "front" : "back";
 
     return `${MONSTER_BASE}${folder}/${id}.json`;
 }
