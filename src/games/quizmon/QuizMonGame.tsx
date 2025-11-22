@@ -280,28 +280,35 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
-    // Bulbasaur(0001) 임시 전투 스프라이트
+    // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
     const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
+    const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
     const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
 
-    // ✅ 플레이어: back 스프라이트 (왼쪽 아래, 우리 편)
+    // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
-        bulbasaurBackPng ? (
-            <img
-                src={bulbasaurBackPng}
-                alt={playerMon.name}
+        bulbasaurBackJson && bulbasaurBackPng ? (
+            <SpriteAnimation
+                jsonUrl={bulbasaurBackJson}
+                imageUrlOverride={bulbasaurBackPng}
+                fps={12}
+                frameFilter={(frame) => {
+                    const n = parseInt(
+                        frame.filename.replace(".png", ""),
+                        10,
+                    );
+                    // 1~20 프레임만 사용 (필요하면 숫자만 조정)
+                    return !Number.isNaN(n) && n >= 1 && n <= 20;
+                }}
                 style={{
-                    width: "100%",
-                    height: "100%",
-                    imageRendering: "pixelated",
-                    transform: "scale(1.6)",
+                    transform: "scale(2)",
                     transformOrigin: "bottom left",
                 }}
             />
         ) : null;
 
-    // ✅ 적: front 애니메이션 (오른쪽 위, 상대편)
+    // ✅ 적: 프론트 스프라이트 애니메이션 (오른쪽 위, 상대)
     const renderEnemySprite = () =>
         bulbasaurFrontJson && bulbasaurFrontPng ? (
             <SpriteAnimation
@@ -321,6 +328,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 }}
             />
         ) : null;
+
 
     /**
      * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
