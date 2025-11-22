@@ -1068,7 +1068,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         </>
                     )}
 
-                    {/* 🏠 메인 메뉴 오버레이 (포켓로그풍) */}
                     {viewState === "lobby" && (
                         <div
                             style={{
@@ -1076,7 +1075,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 inset: 0,
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "center",
+                                justifyContent: "center", // 가운데 배치 OK
                                 padding: "1rem",
                                 pointerEvents: "none",
                             }}
@@ -1088,8 +1087,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     background: "rgba(15,23,42,0.96)",
                                     border: "2px solid #111827",
                                     padding: "0.9rem 1.1rem",
-                                    boxShadow:
-                                        "0 24px 40px rgba(0,0,0,0.75)",
+                                    boxShadow: "0 24px 40px rgba(0,0,0,0.75)",
                                     pointerEvents: "auto",
                                 }}
                             >
@@ -1119,12 +1117,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                         gap: 6,
                                     }}
                                 >
+                                    {/* ▶ 계속하기 (기존 배틀로 복귀) */}
                                     <button
                                         type="button"
                                         disabled={!hasAnyProgress}
-                                        onClick={() =>
-                                            setViewState("battle")
-                                        }
+                                        onClick={() => setViewState("battle")}
                                         style={{
                                             width: "100%",
                                             textAlign: "left",
@@ -1136,16 +1133,16 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                 : "#02061780",
                                             color: "#e5e7eb",
                                             fontSize: 13,
-                                            cursor: hasAnyProgress
-                                                ? "pointer"
-                                                : "default",
+                                            cursor: hasAnyProgress ? "pointer" : "default",
                                         }}
                                     >
                                         ▶ 계속하기
                                     </button>
+
+                                    {/* 🏰 던전 진입 → 배틀 앞단 씬 */}
                                     <button
                                         type="button"
-                                        onClick={handleReset}
+                                        onClick={() => setViewState("dungeon")}
                                         style={{
                                             width: "100%",
                                             textAlign: "left",
@@ -1160,13 +1157,32 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                             cursor: "pointer",
                                         }}
                                     >
-                                        새 레이드 시작
+                                        새 레이드 시작 (던전)
                                     </button>
+
+                                    {/* 🎁 가챠 메뉴 (배틀과 독립) */}
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setViewState("battle")
-                                        }
+                                        onClick={() => setViewState("gacha")}
+                                        style={{
+                                            width: "100%",
+                                            textAlign: "left",
+                                            padding: "0.45rem 0.7rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #4b5563",
+                                            backgroundColor: "#020617",
+                                            color: "#e5e7eb",
+                                            fontSize: 13,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        가챠 (보상 뽑기)
+                                    </button>
+
+                                    {/* 수업 화면만 보기: 그냥 배틀 화면만 띄우기 */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewState("battle")}
                                         style={{
                                             width: "100%",
                                             textAlign: "left",
@@ -1185,6 +1201,228 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             </div>
                         </div>
                     )}
+
+                    {/* 🏰 던전 선택 오버레이 */}
+                    {viewState === "dungeon" && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "1rem",
+                                background: "rgba(0,0,0,0.6)",
+                                pointerEvents: "none",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 320,
+                                    borderRadius: 12,
+                                    background: "rgba(15,23,42,0.98)",
+                                    border: "2px solid #111827",
+                                    padding: "1rem 1.2rem",
+                                    boxShadow: "0 24px 40px rgba(0,0,0,0.8)",
+                                    pointerEvents: "auto",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#9ca3af",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    Raid Dungeon · Beta
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 16,
+                                        fontWeight: 700,
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    던전 선택
+                                </div>
+
+                                {/* 지금은 테스트 던전 하나만 – 나중에 리스트로 확장 */}
+                                <div
+                                    style={{
+                                        borderRadius: 8,
+                                        border: "1px solid #1f2937",
+                                        background: "#020617",
+                                        padding: "0.6rem 0.75rem",
+                                        fontSize: 13,
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontWeight: 600,
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        테스트 레이드 던전
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                                        단일 보스 · 난이도: 쉬움 ·
+                                        정답 1개당 코인 1개 획득
+                                    </div>
+                                </div>
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                        gap: 8,
+                                        marginTop: 6,
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewState("lobby")}
+                                        style={{
+                                            padding: "0.35rem 0.9rem",
+                                            borderRadius: 999,
+                                            border: "1px solid #4b5563",
+                                            background: "#020617",
+                                            color: "#e5e7eb",
+                                            fontSize: 12,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        ◀ 메인 메뉴
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            handleReset();          // 새 배틀 상태로 리셋
+                                            setViewState("battle"); // 배틀 화면으로 진입
+                                        }}
+                                        style={{
+                                            padding: "0.35rem 0.9rem",
+                                            borderRadius: 999,
+                                            border: "1px solid #b91c1c",
+                                            background:
+                                                "linear-gradient(90deg,#b91c1c,#f97316)",
+                                            color: "#fef2f2",
+                                            fontSize: 12,
+                                            fontWeight: 600,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        ▶ 이 던전으로 레이드 시작
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 🎁 가챠 오버레이 */}
+                    {viewState === "gacha" && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "1rem",
+                                background: "rgba(0,0,0,0.6)",
+                                pointerEvents: "none",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: 320,
+                                    borderRadius: 12,
+                                    background: "rgba(15,23,42,0.98)",
+                                    border: "2px solid #111827",
+                                    padding: "1rem 1.2rem",
+                                    boxShadow: "0 24px 40px rgba(0,0,0,0.8)",
+                                    pointerEvents: "auto",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#9ca3af",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    Gacha · Preview
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 16,
+                                        fontWeight: 700,
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    가챠 (수업 보상)
+                                </div>
+
+                                <p
+                                    style={{
+                                        fontSize: 13,
+                                        color: "#d1d5db",
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    수업에서 모은 코인으로 포켓몬을 뽑는 기능입니다.
+                                    지금은 연출/구조만 먼저 준비해 두고,
+                                    수업 후 단계에서 본격 연결할 예정입니다.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    disabled
+                                    style={{
+                                        width: "100%",
+                                        padding: "0.45rem 0.7rem",
+                                        borderRadius: 6,
+                                        border: "1px solid #4b5563",
+                                        backgroundColor: "#02061780",
+                                        color: "#6b7280",
+                                        fontSize: 13,
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    10회 소환 (준비중)
+                                </button>
+
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "flex-end",
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewState("lobby")}
+                                        style={{
+                                            padding: "0.35rem 0.9rem",
+                                            borderRadius: 999,
+                                            border: "1px solid #4b5563",
+                                            background: "#020617",
+                                            color: "#e5e7eb",
+                                            fontSize: 12,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        ◀ 메인 메뉴
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* 🎉 배틀 결산 오버레이 */}
                     {showResultOverlay && (
