@@ -131,28 +131,39 @@ export function StudentRoomPage() {
 
         const loadGameSession = async () => {
             const { data, error } = await supabase
-                .from("rooms")
+                .from("game_sessions")
                 .select(
-                    "id, class_id, code, title, game_key, status, created_at, quiz_pack_id",
+                    "id, room_id, game_id, quiz_pack_id, quiz_session_id, created_at",
                 )
-                .eq("id", roomId)
-                .single();
+                .eq("room_id", room.id)
+                .eq("game_id", room.game_key)
+                .eq("quiz_session_id", session.id)
+                .order("created_at", { ascending: false })
+                .limit(1)
+                .maybeSingle();
 
             if (error) {
-                console.error("[StudentRoom] load game_session error", error);
+                console.error(
+                    "[StudentRoom] load game_session error",
+                    error,
+                );
+                setGameSessionId(null);
                 return;
             }
 
             if (data) {
                 setGameSessionId(data.id);
             } else {
-                console.warn("[StudentRoom] game_session not found for this quiz_session");
+                console.warn(
+                    "[StudentRoom] game_session not found for this quiz_session",
+                );
                 setGameSessionId(null);
             }
         };
 
         void loadGameSession();
     }, [room?.id, room?.game_key, session?.id]);
+
 
 
     useEffect(() => {
