@@ -32,6 +32,10 @@ import { SpriteAnimation } from "./SpriteAnimation";
 const BATTLE_BG_URL = getArenaSprite("forest_bg");
 const PLAYER_SPECIES_ID = "0001";
 
+
+// 상위 뷰 상태: 이후 로비/배틀/결과를 명확히 분리하기 위한 상태
+type ViewState = "lobby" | "battle" | "result";
+
 function HpBar({ current, max }: { current: number; max: number }) {
     const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
 
@@ -279,8 +283,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
-    // 결산 오버레이 표시 여부
-    const [showResultOverlay, setShowResultOverlay] = useState(false);
+    // 상위 뷰 상태 (lobby/battle/result)
+    const [viewState, setViewState] = useState<ViewState>("battle");
 
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
@@ -352,8 +356,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
-                setShowResultOverlay(false);
                 setQuestionIndex(0);
+                setViewState("battle");
                 return;
             }
 
@@ -368,8 +372,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
-                setShowResultOverlay(false);
                 setQuestionIndex(0);
+                setViewState("battle");
                 return;
             }
 
@@ -390,8 +394,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
-                setShowResultOverlay(false);
                 setQuestionIndex(0);
+                setViewState("battle");
                 return;
             }
 
@@ -410,8 +414,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
-                setShowResultOverlay(false);
                 setQuestionIndex(0);
+                setViewState("battle");
                 return;
             }
 
@@ -438,8 +442,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setState(createInitialBattleState());
                 setBattleStats({ correct: 0, total: 0 });
                 setHasReportedEnd(false);
-                setShowResultOverlay(false);
                 setQuestionIndex(0);
+                setViewState("battle");
                 return;
             }
 
@@ -466,8 +470,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(newState);
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
-            setShowResultOverlay(false);
             setQuestionIndex(0);
+            setViewState("battle");
         } catch (err) {
             console.error(
                 "[QuizMonGame] resetBattleWithProfileParty unexpected error",
@@ -476,8 +480,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setState(createInitialBattleState());
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
-            setShowResultOverlay(false);
             setQuestionIndex(0);
+            setViewState("battle");
         }
     };
 
@@ -527,10 +531,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
         setHasReportedEnd(true);
     }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
 
-    // 배틀 종료 시 결산 오버레이 표시
+    // 배틀 종료 시 → viewState 를 result 로 전환 (결산 화면)
     useEffect(() => {
         if (state.phase === "finished") {
-            setShowResultOverlay(true);
+            setViewState("result");
         }
     }, [state.phase]);
 
@@ -755,7 +759,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setBattleStats({ correct: 0, total: 0 });
             setHasReportedEnd(false);
             setQuestionIndex(0);
-            setShowResultOverlay(false);
+            setViewState("battle");
         }
     };
 
@@ -771,6 +775,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
             : 0;
 
     const battleFinished = state.phase === "finished";
+    const showResultOverlay =
+        viewState === "result" && battleFinished;
 
     let resultMessage = "접전 끝에 무승부!";
     if (playerMon.hp > 0 && enemyMon.hp <= 0) {
@@ -977,7 +983,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     </div>
 
                     {/* 🎉 배틀 결산 오버레이 */}
-                    {showResultOverlay && battleFinished && (
+                    {showResultOverlay && (
                         <div
                             style={{
                                 position: "absolute",
@@ -1132,9 +1138,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 >
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            setShowResultOverlay(false)
-                                        }
+                                        onClick={() => {
+                                            // 결과만 보고 싶을 때: 전투는 finished 상태 유지
+                                            setViewState("battle");
+                                        }}
                                         style={{
                                             padding:
                                                 "0.35rem 0.9rem",
@@ -1151,7 +1158,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setShowResultOverlay(false);
+                                            // 새 배틀 시작
+                                            setViewState("battle");
                                             handleReset();
                                         }}
                                         style={{
