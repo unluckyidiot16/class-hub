@@ -1140,10 +1140,66 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 {/* 탭별 내용 */}
                                 {menuTab === "menu" && (
                                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                        <button /* 계속하기 */>▶ 계속하기</button>
-                                        <button /* 새 레이드 시작 */>새 레이드 시작 (던전)</button>
-                                        <button /* 가챠 */>가챠 (보상 뽑기)</button>
-                                        {/* 여기엔 더 이상 전체화면 관련 항목 없음 */}
+                                        {/* ▶ 계속하기 */}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                // 배틀이 끝난 상태면 결과 화면으로,
+                                                // 아니면 전투 화면으로 복귀
+                                                setViewState(state.phase === "finished" ? "result" : "battle");
+                                            }}
+                                            style={{
+                                                width: "100%",
+                                                padding: "0.5rem 0.75rem",
+                                                borderRadius: 6,
+                                                border: "1px solid #4b5563",
+                                                backgroundColor: "#e5e7eb0d",
+                                                color: "#e5e7eb",
+                                                fontSize: 13,
+                                                textAlign: "left",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            ▶ 계속하기
+                                        </button>
+
+                                        {/* 새 레이드 시작 (던전) */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewState("dungeon")}
+                                            style={{
+                                                width: "100%",
+                                                padding: "0.5rem 0.75rem",
+                                                borderRadius: 6,
+                                                border: "1px solid #4b5563",
+                                                backgroundColor: "#e5e7eb0d",
+                                                color: "#e5e7eb",
+                                                fontSize: 13,
+                                                textAlign: "left",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            새 레이드 시작 (던전)
+                                        </button>
+
+                                        {/* 가챠 (보상 뽑기) */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewState("gacha")}
+                                            style={{
+                                                width: "100%",
+                                                padding: "0.5rem 0.75rem",
+                                                borderRadius: 6,
+                                                border: "1px solid #4b5563",
+                                                backgroundColor: "#e5e7eb0d",
+                                                color: "#e5e7eb",
+                                                fontSize: 13,
+                                                textAlign: "left",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            가챠 (보상 뽑기)
+                                        </button>
                                     </div>
                                 )}
 
