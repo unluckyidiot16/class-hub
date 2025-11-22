@@ -335,6 +335,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
+    // 상태 선언 근처에 한 줄 추가 (선택 사항, 가독성용)
+    const canContinue = hasBattleInitialized;
 
     const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.5배
     const ENEMY_SCALE = 2.0;
@@ -1012,7 +1014,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 style={{
                                     position: "absolute",
                                     left: 16,
-                                    bottom: 112,
+                                    bottom: 128,
                                     display: "flex",
                                     alignItems: "flex-end",
                                     gap: 12,
@@ -1071,7 +1073,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     left: 0,
                                     right: 0,
                                     bottom: 0,
-                                    padding: "0.75rem",
+                                    padding: "0.6rem 0.75rem",
                                     background:
                                         "linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(15,23,42,1) 60%, #020617 100%)",
                                     borderTop: "1px solid #020617",
@@ -1159,25 +1161,33 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
                                 {/* 탭별 내용 */}
                                 {menuTab === "menu" && (
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                        {/* ▶ 계속하기 */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {handleContinue}}
-                                            style={{
-                                                width: "100%",
-                                                padding: "0.5rem 0.75rem",
-                                                borderRadius: 6,
-                                                border: "1px solid #4b5563",
-                                                backgroundColor: "#e5e7eb0d",
-                                                color: "#e5e7eb",
-                                                fontSize: 13,
-                                                textAlign: "left",
-                                                cursor: "pointer",
-                                            }}
-                                        >
-                                            ▶ 계속하기
-                                        </button>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 8,
+                                        }}
+                                    >
+                                        {/* ▶ 계속하기 : 진행 중인 배틀이 있을 때만 노출 */}
+                                        {canContinue && (
+                                            <button
+                                                type="button"
+                                                onClick={handleContinue}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "0.5rem 0.75rem",
+                                                    borderRadius: 6,
+                                                    border: "1px solid #4b5563",
+                                                    backgroundColor: "#e5e7eb0d",
+                                                    color: "#e5e7eb",
+                                                    fontSize: 13,
+                                                    textAlign: "left",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                ▶ 계속하기
+                                            </button>
+                                        )}
 
                                         {/* 새 레이드 시작 (던전) */}
                                         <button
