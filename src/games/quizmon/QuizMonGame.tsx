@@ -100,14 +100,25 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         onAnswer,
     } = props;
 
+    // 🔹 현재 퀴즈 풀이 단계인지
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
+    const isFinished = phase === "finished";
 
+    // 🔹 어떤 스킬 위에 마우스/포커스/터치가 올라가 있는지
+    const [hoveredMoveId, setHoveredMoveId] = useState<string | null>(null);
+
+    const hoveredMove =
+        !isQuizPhase && hoveredMoveId
+            ? playerMoves.find((m) => m.id === hoveredMoveId) ?? null
+            : null;
+
+    // 🔹 하단 메인 텍스트
     let mainText: string;
     if (isQuizPhase && currentQuestion) {
         mainText = currentQuestion.prompt;
     } else if (!hasQuestions) {
         mainText = "이 퀴즈팩에는 문제가 없습니다. (질문 0개)";
-    } else if (phase === "finished") {
+    } else if (isFinished) {
         mainText =
             "배틀이 종료되었습니다. 위의 결과를 확인한 뒤 리셋 버튼으로 다시 시작할 수 있어요.";
     } else {
@@ -115,9 +126,12 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         mainText = `${playerName}은(는) 무엇을 할까?`;
     }
 
+    const showSkillGrid = !isQuizPhase && !isFinished;
+
     return (
         <div
             style={{
+                position: "relative",
                 borderRadius: 8,
                 border: "1px solid #111827",
                 background:
@@ -186,7 +200,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                     )}
                 </div>
 
-                {/* 🔹 오른쪽: 명령 4개(기술) 그리드 – 포켓몬식 커맨드 패널 */}
+                {/* 🔹 오른쪽: 스킬 이름 4개 그리드 */}
                 <div
                     style={{
                         flex: 2,
@@ -194,7 +208,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                         alignItems: "stretch",
                     }}
                 >
-                    {!isQuizPhase && (
+                    {showSkillGrid && (
                         <div
                             style={{
                                 width: "100%",
@@ -214,46 +228,100 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                     type="button"
                                     disabled={!canSelectMove}
                                     onClick={() => onSelectMove(move)}
+                                    onMouseEnter={() =>
+                                        setHoveredMoveId(move.id)
+                                    }
+                                    onMouseLeave={() =>
+                                        setHoveredMoveId((prev) =>
+                                            prev === move.id ? null : prev,
+                                        )
+                                    }
+                                    onFocus={() =>
+                                        setHoveredMoveId(move.id)
+                                    }
+                                    onBlur={() =>
+                                        setHoveredMoveId((prev) =>
+                                            prev === move.id ? null : prev,
+                                        )
+                                    }
+                                    onTouchStart={() =>
+                                        setHoveredMoveId(move.id)
+                                    }
+                                    onTouchEnd={() =>
+                                        setHoveredMoveId((prev) =>
+                                            prev === move.id ? null : prev,
+                                        )
+                                    }
                                     style={{
-                                        textAlign: "left",
-                                        padding: "0.4rem 0.6rem",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        textAlign: "center",
+                                        padding: "0.45rem 0.4rem",
                                         borderRadius: 8,
                                         border: "1px solid #4b5563",
                                         background: canSelectMove
                                             ? "#020617"
                                             : "#020617aa",
                                         color: "#e5e7eb",
-                                        fontSize: 12,
+                                        fontSize: 13,
+                                        fontWeight: 600,
                                         cursor: canSelectMove
                                             ? "pointer"
                                             : "default",
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            fontWeight: 600,
-                                            marginBottom: 2,
-                                        }}
-                                    >
-                                        {move.name}
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 11,
-                                            opacity: 0.8,
-                                        }}
-                                    >
-                                        위력 {move.power} / 명중 {move.baseAcc}%
-                                    </div>
+                                    {move.name}
                                 </button>
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* 🔹 스킬 상세 모달(툴팁 카드) */}
+            {showSkillGrid && hoveredMove && (
+                <div
+                    style={{
+                        position: "absolute",
+                        right: "0.8rem",
+                        bottom: "4.5rem", // 스킬 박스 바로 위
+                        minWidth: 220,
+                        padding: "0.6rem 0.8rem",
+                        borderRadius: 12,
+                        background: "rgba(15,23,42,0.98)",
+                        border: "1px solid #4b5563",
+                        boxShadow: "0 18px 45px rgba(0, 0, 0, 0.75)",
+                        pointerEvents: "none",
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            marginBottom: 4,
+                        }}
+                    >
+                        {hoveredMove.name}
+                    </div>
+                    <div
+                        style={{
+                            fontSize: 12,
+                            opacity: 0.9,
+                        }}
+                    >
+                        위력 {hoveredMove.power} / 명중{" "}
+                        {hoveredMove.baseAcc}%
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
 
 // =========================
 // 🎮 Game 컴포넌트
