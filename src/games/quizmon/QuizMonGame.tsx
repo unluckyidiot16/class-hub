@@ -2376,50 +2376,62 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         )}
                         {selected && (
                             <>
+                                {/* 상단: 이름/레벨 + 우측 상단 제거 버튼 */}
                                 <div
                                     style={{
-                                        fontSize: "1rem",
-                                        fontWeight: 600,
-                                        marginBottom: "0.25rem",
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-start",
+                                        gap: "0.75rem",
+                                        marginBottom: "0.75rem",
                                     }}
                                 >
-                                    {selected.displayName}
-                                </div>
-                                <div
-                                    style={{
-                                        opacity: 0.8,
-                                        marginBottom: "0.5rem",
-                                    }}
-                                >
-                                    Lv.{(selected as any).level ?? 1} ·{" "}
-                                    {selected.statusText}
+                                    <div>
+                                        <div
+                                            style={{
+                                                fontSize: "1rem",
+                                                fontWeight: 600,
+                                                marginBottom: "0.25rem",
+                                            }}
+                                        >
+                                            {selected.displayName}
+                                        </div>
+                                        <div
+                                            style={{
+                                                opacity: 0.8,
+                                            }}
+                                        >
+                                            Lv.{(selected as any).level ?? 1} ·{" "}
+                                            {selected.statusText}
+                                        </div>
+                                    </div>
+
+                                    {selectedPartyIndex !== -1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handlePartySlotClick(selectedPartyIndex)
+                                            }
+                                            className="quizmon-button subtle"
+                                            style={{
+                                                fontSize: "0.8rem",
+                                                padding: "0.35rem 0.9rem",
+                                                borderRadius: "999px",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            파티 {selectedPartyIndex + 1}번에서 빼기
+                                        </button>
+                                    )}
                                 </div>
 
-                                {selectedPartyIndex !== -1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => handlePartySlotClick(selectedPartyIndex)}
-                                        className="quizmon-button subtle"
-                                        style={{
-                                            marginLeft: "0.5rem",   // LV 줄 오른쪽에 붙이고 싶으면
-                                            marginBottom: "0",      // 아래 간격 줄이기
-                                            fontSize: "0.8rem",
-                                            padding: "0.35rem 0.9rem",
-                                            borderRadius: "999px",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                        }}
-                                    >
-                                        파티 {selectedPartyIndex + 1}번에서 빼기
-                                    </button>
-                                )}
-
+                                {/* 설명 영역 */}
                                 <div style={{ opacity: 0.8 }}>
-                                    앞으로는 여기에서 개체 값, 성장, 레이드
-                                    기록 등을 자세히 보여 줄 예정입니다.
+                                    앞으로는 여기에서 개체 값, 성장, 레이드 기록 등을 자세히 보여 줄 예정입니다.
                                 </div>
                             </>
                         )}
+
 
                     </div>
                 </div>
