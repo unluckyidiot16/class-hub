@@ -369,9 +369,26 @@ export function QuizMonGame(props: QuizMonGameProps) {
         props.profile ?? null,
     );
 
+    // 🔹 화면 너비에 따라 배틀 연출 스케일 조정용
+    const [viewportWidth, setViewportWidth] = useState(
+        typeof window !== "undefined" ? window.innerWidth : 1024,
+    );
+
     useEffect(() => {
         setLocalProfile(props.profile ?? null);
     }, [props.profile]);
+
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const handleResize = () => {
+            setViewportWidth(window.innerWidth);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
 
     const {
         drawing: gachaDrawing,
@@ -428,8 +445,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
     // 상태 선언 근처에 한 줄 추가 (선택 사항, 가독성용)
     const canContinue = hasBattleInitialized;
 
-    const PLAYER_SCALE = 3.0; // 적(2.0)보다 1.5배
-    const ENEMY_SCALE = 2.0;
+    // 🔹 화면 너비에 따라 포켓몬 크기를 살짝 조정
+    const baseWidth = 1280; // 기준 해상도
+    const scaleFactorRaw = viewportWidth / baseWidth;
+    const globalScale = Math.min(1.5, Math.max(0.8, scaleFactorRaw));
+    
+    const PLAYER_SCALE = 3.0 * globalScale; // 적보다 크게
+    const ENEMY_SCALE = 2.0 * globalScale;
     
     // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
