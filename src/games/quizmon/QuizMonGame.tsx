@@ -1076,10 +1076,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     border: "1px solid #0f172a",
                     background: "#020617",
                     padding: "0.75rem",
+                    // 🔹 너무 넓어지는 것 방지: 최대 1200px
+                    maxWidth: 1200,
+                    marginLeft: "auto",
+                    marginRight: "auto",
                 }}
             >
-
-            {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
+                {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
                 <div
                     style={{
                         position: "relative",
@@ -1087,13 +1090,15 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         borderRadius: 8,
                         overflow: "hidden",
                         backgroundColor: "#000",
+                        // 브라우저 폭에 따라 자동 비율 유지 (16:9 정도)
+                        aspectRatio: "16 / 9",
                     }}
                 >
                     {/* BG 는 항상 보여주기 */}
                     <div
                         style={{
-                            width: "100%",
-                            paddingTop: "62.5%",
+                            position: "absolute",
+                            inset: 0,
                             backgroundImage: `url(${BATTLE_BG_URL})`,
                             backgroundRepeat: "no-repeat",
                             backgroundSize: "cover",

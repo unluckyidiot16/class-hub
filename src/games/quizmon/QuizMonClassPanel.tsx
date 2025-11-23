@@ -245,8 +245,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     }
 
     // =========================
-    // ✅ 3) 렌더링: 전체화면 + 게임 씬만
-    // =========================
+// ✅ 3) 렌더링: 전체화면 + 게임 씬만
+// =========================
 
     const wrapperStyle: CSSProperties = isFullscreen
         ? {
@@ -259,15 +259,26 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         }
         : {};
 
+// 👇 학생 / 교사 / 전체화면에 따라 내부 컨테이너 폭 분기
+    const innerStyle: CSSProperties = isFullscreen
+        ? {
+            maxWidth: 1280,
+            margin: "0 auto",
+        }
+        : isStudent
+            ? {
+                width: "100%",
+                maxWidth: "100%",
+                margin: 0,
+            }
+            : {
+                maxWidth: 960,
+                margin: "0 auto",
+            };
+
     return (
         <div style={wrapperStyle}>
-            <div
-                style={{
-                    width: "100%",
-                    maxWidth: "100%",
-                    margin: "0 auto",
-                }}
-            >
+            <div style={innerStyle}>
                 {/* 상단 헤더 + 전체화면 버튼 */}
                 <div
                     style={{
@@ -327,4 +338,5 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             </div>
         </div>
     );
+
 }
