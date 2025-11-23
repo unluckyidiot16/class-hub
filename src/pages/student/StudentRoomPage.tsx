@@ -656,6 +656,7 @@ export function StudentRoomPage() {
                         ? {
                             // 게임 방(QDD + QuizMon 등)은 페이지 폭 제한 풀기
                             maxWidth: "100%",
+                            margin: "0",
                             paddingInline: "1.5rem",
                         }
                         : undefined
@@ -683,12 +684,13 @@ export function StudentRoomPage() {
         <section
             className="page student-join"
             style={
-                isQddRoom
+                isGameRoom
                     ? {
-                        // 기본 .page의 max-width(보통 960px)를 덮어써서
-                        // QDD 카드가 1920px까지 넓어질 수 있게 함
+                        // 모든 게임 방(QDD, QuizMon 등)의 페이지 폭 제한 해제
                         maxWidth: "100%",
-                        // 좌우 여백 조금만 주기 (Chromebook 기준)
+                        // 가로 가운데 정렬용 margin: 0 auto 를 죽이고 싶으면 아예 0으로
+                        margin: "0",
+                        // 양쪽 여백만 살짝 남기기
                         paddingInline: "1.5rem",
                     }
                     : undefined

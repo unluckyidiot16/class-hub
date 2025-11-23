@@ -263,7 +263,8 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         <div style={wrapperStyle}>
             <div
                 style={{
-                    maxWidth: 960,
+                    width: "100%",
+                    maxWidth: "100%",
                     margin: "0 auto",
                 }}
             >

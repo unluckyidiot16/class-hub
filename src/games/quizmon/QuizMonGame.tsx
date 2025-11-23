@@ -987,7 +987,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         <div
             style={{
                 padding: "1.5rem",
-                maxWidth: 960,
+                width: "100%",
+                maxWidth: "100%",
                 margin: "0 auto",
                 color: "#e5e7eb",
             }}
