@@ -652,9 +652,9 @@ export function StudentRoomPage() {
             <section
                 className="page student-join"
                 style={
-                    isQddRoom
+                    isGameRoom
                         ? {
-                            // Chromebook(1366px)에서 가로폭 대부분 사용
+                            // 게임 방(QDD + QuizMon 등)은 페이지 폭 제한 풀기
                             maxWidth: "100%",
                             paddingInline: "1.5rem",
                         }
@@ -807,7 +807,7 @@ export function StudentRoomPage() {
             <div
                 className="card"
                 style={{
-                    maxWidth: isQddRoom ? "100%" : 720,
+                    maxWidth: isGameRoom ? "100%" : 720,
                     margin: "0 auto",
                 }}
             >
