@@ -450,8 +450,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const scaleFactorRaw = viewportWidth / baseWidth;
     const globalScale = Math.min(1.5, Math.max(0.8, scaleFactorRaw));
     
-    const PLAYER_SCALE = 6.0 * globalScale; // 적보다 크게
-    const ENEMY_SCALE = 4.0 * globalScale;
+    const PLAYER_SCALE = 5.0 * globalScale; // 적보다 크게
+    const ENEMY_SCALE = 2.5 * globalScale;
     
     // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
@@ -1300,6 +1300,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     background: "rgba(15,23,42,0.98)",
                                     border: "1px solid #1f2937",
                                     boxShadow: "0 22px 60px rgba(0,0,0,0.8)",
+                                    overflowY: "auto",
                                     display: "flex",
                                     flexDirection: "column",
                                 }}
