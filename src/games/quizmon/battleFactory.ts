@@ -38,6 +38,26 @@ export function buildBattleMonsterFromSpecies<
     // 🔢 아주 단순한 레벨 스케일링 – 숫자는 나중에 조정 가능
     const maxHp = species.base_hp + level * 5;
 
+    // ✅ DB에 저장된 HP/기절 정보 사용
+    // - current_hp: null 이면 "풀피"로 간주
+    // - is_fainted: true 면 무조건 0으로 시작
+    const storedHp = (owned as any).current_hp as number | null | undefined;
+    const storedFainted = (owned as any).is_fainted as boolean | null | undefined;
+
+    let initialHp: number;
+
+    if (storedFainted) {
+        // DB에서 기절 처리된 개체는 0으로 시작
+        initialHp = 0;
+    } else if (typeof storedHp === "number") {
+        // 숫자면 0~maxHp 범위로 클램프
+        const clamped = Math.max(0, Math.min(maxHp, storedHp));
+        initialHp = clamped;
+    } else {
+        // null/undefined → 아직 한번도 전투/회복 이력 없음 → 풀피
+        initialHp = maxHp;
+    }
+
     const dim = getPokemonDimension(species.pokedex_no ?? null);
 
     const baseMonster: Monster = {
@@ -50,7 +70,7 @@ export function buildBattleMonsterFromSpecies<
         exp: owned.exp ?? 0,
 
         maxHp,
-        hp: maxHp,
+        hp: initialHp,
         atk: species.base_atk,
         def: species.base_def,
         spd: species.base_spd,
@@ -64,7 +84,6 @@ export function buildBattleMonsterFromSpecies<
         pokedexNo: species.pokedex_no ?? null,
         heightM: dim?.heightM ?? null,
         weightKg: dim?.weightKg ?? null,
-
     };
 
     return {

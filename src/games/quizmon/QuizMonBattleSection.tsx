@@ -60,7 +60,7 @@ type QuizMonBattleSectionProps = {
     collectionError?: string | null;
     onPullFreeGacha?: () => void | Promise<void>;
     lastRaidResult?: { correct: number; total: number } | null;
-    
+    onHealAll?: () => void | Promise<void>;
 };
 
 export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {

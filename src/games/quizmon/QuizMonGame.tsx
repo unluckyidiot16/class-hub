@@ -350,6 +350,7 @@ type QuizMonGameProps = {
     collectionError?: string | null;
     onPullFreeGacha?: () => void | Promise<void>;
     lastRaidResult?: { correct: number; total: number } | null;
+    onHealAll?: () => void | Promise<void>;
 };
 
 
@@ -418,8 +419,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [viewState, setViewState] = useState<ViewState>("lobby");
     const isBattleActive = viewState === "battle";
     const canPaidGacha = !!localProfile && (localProfile.gacha_gems ?? 0) > 0 && !gachaDrawing;
-
-
+    
+    const [hpSynced, setHpSynced] = useState(false);
+    
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
     const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
@@ -701,12 +703,39 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
     // 배틀 종료 시 → viewState 를 result 로 전환 (결산 화면)
     useEffect(() => {
+        if (!state) return;
+
         if (state.phase === "finished") {
             setViewState("result");
-        }
-    }, [state.phase]);
 
-    /** 현재 질문 선택 (없으면 null) */
+            // ✅ 배틀 종료 시 한 번만 HP를 DB에 저장
+            if (!hpSynced && props.profileId) {
+                const snapshot = state.player.monsters.map((m) => ({
+                    id: m.id,
+                    current_hp: m.hp,
+                    is_fainted: m.hp <= 0,
+                }));
+
+                void (async () => {
+                    if (!snapshot.length) return;
+
+                    const { error } = await supabase
+                        .from("quizmon_owned_monsters")
+                        .upsert(snapshot); // PK(id) 기준으로 update
+
+                    if (error) {
+                        console.error("[QuizMonGame] HP sync error", error);
+                    }
+                    setHpSynced(true);
+                })();
+            }
+        } else {
+            // 새로운 전투 시작 대비
+            if (hpSynced) setHpSynced(false);
+        }
+    }, [state, hpSynced, props.profileId]);
+
+
     /** 현재 질문 선택 (없으면 null)
      *  - questions: 원본 질문 배열
      *  - questionOrder: 랜덤으로 섞인 인덱스 배열
@@ -1435,6 +1464,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                             collectionLoading={props.collectionLoading}
                                             collectionError={props.collectionError}
                                             onPullFreeGacha={props.onPullFreeGacha}
+                                            onHealAll={props.onHealAll}
                                         />
                                     )}
 
@@ -2110,6 +2140,7 @@ type PartyAndDexPanelProps = {
     collectionError?: string | null;
     /** 무료 소환 버튼 핸들러(있으면 상단에 표시) */
     onPullFreeGacha?: () => void | Promise<void>;
+    onHealAll?: () => void;
 };
 
 /**
@@ -2122,7 +2153,7 @@ type PartyAndDexPanelProps = {
  *   - 이미 3칸이 꽉 차 있으면 오른쪽 상세 정보만 갱신
  */
 function PartyAndDexPanel(props: PartyAndDexPanelProps) {
-    const { profile } = props;
+    const { profile, onHealAll } = props;
 
     // 원본 → 표시용으로 가공
     const enhancedMonsters = useMemo(
@@ -2602,6 +2633,29 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             파티 {selectedPartyIndex + 1}번에서 빼기
                                         </button>
                                     )}
+                                </div>
+
+
+                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                    {onHealAll && (
+                                        <button
+                                            type="button"
+                                            onClick={onHealAll}
+                                            style={{
+                                                padding: "0.35rem 0.9rem",
+                                                borderRadius: 999,
+                                                border: "1px solid #4ade80",
+                                                background: "#022c22",
+                                                color: "#bbf7d0",
+                                                fontSize: 12,
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            전체 회복
+                                        </button>
+                                    )}
+
+                                    {/* 기존 무료 소환 버튼 있으면 여기에 같이 배치 */}
                                 </div>
 
                                 {/* 설명 영역 */}

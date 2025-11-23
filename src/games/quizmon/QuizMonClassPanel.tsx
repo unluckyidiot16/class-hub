@@ -244,6 +244,43 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         }
     }
 
+    // 🔹 모든 보유 몬스터 전체 회복
+    const handleHealAllMonsters = async () => {
+        if (!profile?.id) return;
+
+        try {
+            setCollectionError(null);
+
+            // 1) DB에서 이 프로필의 모든 몬스터를 회복
+            const { error } = await supabase
+                .from("quizmon_owned_monsters")
+                .update({
+                    current_hp: null,    // null = 풀피로 간주
+                    is_fainted: false,
+                })
+                .eq("profile_id", profile.id);
+
+            if (error) {
+                console.error("[QuizMonClassPanel] heal all error", error);
+                setCollectionError("몬스터를 회복하는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            // 2) 로컬 state도 즉시 반영
+            setOwnedMonsters((prev) =>
+                prev.map((mon) => ({
+                    ...mon,
+                    current_hp: null,
+                    is_fainted: false,
+                })),
+            );
+        } catch (err) {
+            console.error("[QuizMonClassPanel] heal all exception", err);
+            setCollectionError("몬스터를 회복하는 중 알 수 없는 오류가 발생했습니다.");
+        }
+    };
+
+
     // =========================
 // ✅ 3) 렌더링: 전체화면 + 게임 씬만
 // =========================
@@ -344,6 +381,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         collectionError={collectionError}
                         onQuizAnswer={onQuizAnswer}
                         onBattleEnd={studentId ? handleBattleEnd : undefined}
+                        onHealAll={handleHealAllMonsters}
                     />
                 </div>
             </div>
