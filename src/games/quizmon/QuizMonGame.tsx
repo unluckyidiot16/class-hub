@@ -2398,17 +2398,16 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 {selectedPartyIndex !== -1 && (
                                     <button
                                         type="button"
-                                        onClick={() =>
-                                            handlePartySlotClick(
-                                                selectedPartyIndex,
-                                            )
-                                        }
+                                        onClick={() => handlePartySlotClick(selectedPartyIndex)}
                                         className="quizmon-button subtle"
                                         style={{
-                                            marginBottom: "0.75rem",
+                                            marginLeft: "0.5rem",   // LV 줄 오른쪽에 붙이고 싶으면
+                                            marginBottom: "0",      // 아래 간격 줄이기
                                             fontSize: "0.8rem",
                                             padding: "0.35rem 0.9rem",
                                             borderRadius: "999px",
+                                            display: "inline-flex",
+                                            alignItems: "center",
                                         }}
                                     >
                                         파티 {selectedPartyIndex + 1}번에서 빼기
