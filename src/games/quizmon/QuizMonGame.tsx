@@ -2129,6 +2129,19 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
     const trainerName = profile?.trainer_name ?? "미지의 트레이너";
 
+    // 선택된 몬스터가 파티 몇 번 슬롯에 있는지 (-1이면 파티 외)
+    const selectedPartyIndex = selected ? partyIds.indexOf(selected.id) : -1;
+
+    // 파티 슬롯 클릭 → 해당 슬롯 비우기 (옛 Delete 버튼 기능)
+    function handlePartySlotClick(index: number) {
+        setPartyIds((prev) => {
+            const next = [...prev];
+            next[index] = null;
+            return next;
+        });
+    }
+
+
     // 파티 슬롯 비우기 (예: 삭제 기능)
     function clearPartySlot(slotIndex: number, monId: string | null) {
         setPartyIds((prev) => {
@@ -2358,8 +2371,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     >
                         {!selected && (
                             <div style={{ opacity: 0.7 }}>
-                                왼쪽 파티 또는 아래 도감에서 파트너를 선택해
-                                주세요.
+                                왼쪽에서 파트너를 선택해 주세요.
                             </div>
                         )}
                         {selected && (
@@ -2382,12 +2394,34 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     Lv.{(selected as any).level ?? 1} ·{" "}
                                     {selected.statusText}
                                 </div>
+
+                                {selectedPartyIndex !== -1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handlePartySlotClick(
+                                                selectedPartyIndex,
+                                            )
+                                        }
+                                        className="quizmon-button subtle"
+                                        style={{
+                                            marginBottom: "0.75rem",
+                                            fontSize: "0.8rem",
+                                            padding: "0.35rem 0.9rem",
+                                            borderRadius: "999px",
+                                        }}
+                                    >
+                                        파티 {selectedPartyIndex + 1}번에서 빼기
+                                    </button>
+                                )}
+
                                 <div style={{ opacity: 0.8 }}>
                                     앞으로는 여기에서 개체 값, 성장, 레이드
                                     기록 등을 자세히 보여 줄 예정입니다.
                                 </div>
                             </>
                         )}
+
                     </div>
                 </div>
             </div>
