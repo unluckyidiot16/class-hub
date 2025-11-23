@@ -373,7 +373,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
         setLocalProfile(props.profile ?? null);
     }, [props.profile]);
 
-    const { drawing: gachaDrawing, error: gachaError, pullGacha } = useGachaDraw({
+    const {
+        drawing: gachaDrawing,
+        error: gachaError,
+        pullGacha,
+        lastResult: gachaLastResult,   // ✅ 최근 결과
+    } = useGachaDraw({
         profile: localProfile,
         onProfileUpdated: setLocalProfile,
     });
@@ -1611,6 +1616,70 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 >
                                     {gachaDrawing ? "소환 중..." : "1회 소환 (💎 1)"}
                                 </button>
+                                {gachaLastResult && (
+                                    <div
+                                        style={{
+                                            marginTop: 4,
+                                            padding: "0.6rem 0.75rem",
+                                            borderRadius: 8,
+                                            border: "1px solid #1f2937",
+                                            backgroundColor: "#02061780",
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: "#9ca3af",
+                                                marginBottom: 4,
+                                            }}
+                                        >
+                                            최근 가챠 결과
+                                        </div>
+
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                gap: 8,
+                                            }}
+                                        >
+                                            <div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 14,
+                                                        fontWeight: 700,
+                                                        color: "#e5e7eb",
+                                                    }}
+                                                >
+                                                    {gachaLastResult.species.name}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 12,
+                                                        color: "#9ca3af",
+                                                    }}
+                                                >
+                                                    레어도 ★{gachaLastResult.species.rarity}
+                                                </div>
+
+                                                {gachaLastResult.kind === "duplicate" && (
+                                                    <div
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: "#fbbf24",
+                                                            marginTop: 4,
+                                                        }}
+                                                    >
+                                                        중복 보상으로 Shards{" "}
+                                                        {gachaLastResult.starShardsGained}개를 획득했어요.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
 
                                 <div
