@@ -1271,13 +1271,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         >
                             <div
                                 style={{
-                                    width: 420,
-                                    maxWidth: "100%",
-                                    background: "#020617",
+                                    width: "min(1040px, 100%)",   // 🔹 넓게
+                                    maxHeight: "90vh",
+                                    padding: "1.1rem 1.3rem",
                                     borderRadius: 24,
-                                    padding: "20px 24px 24px",
-                                    boxShadow: "0 18px 40px rgba(0,0,0,0.65)",
-                                    border: "1px solid rgba(148,163,184,0.3)",
+                                    background: "rgba(15,23,42,0.98)",
+                                    border: "1px solid #1f2937",
+                                    boxShadow: "0 22px 60px rgba(0,0,0,0.8)",
                                 }}
                             >
                                 {/* 헤더 + 탭 */}
@@ -1390,8 +1390,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 )}
 
                                 {menuTab === "monsters" && (
-                                    <MonstersTab
-                                        monsters={props.monsters ?? []}
+                                    <PartyAndDexPanel
+                                        profile={localProfile}
+                                        monsters={props.monsters}
                                         collectionLoading={props.collectionLoading}
                                         collectionError={props.collectionError}
                                         onPullFreeGacha={props.onPullFreeGacha}
@@ -1399,8 +1400,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 )}
 
                                 {menuTab === "dex" && (
-                                    <div style={{ fontSize: 13, color: "#9ca3af" }}>
-                                        도감 기능은 아직 준비 중입니다. (Beta)
+                                    <div style={{ fontSize: 13, opacity: 0.8 }}>
+                                        도감 전용 보기(필요하면 남겨두고, 아니면 이 탭은 숨겨도 됨)
                                     </div>
                                 )}
 
@@ -1970,10 +1971,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
 // 📘 탭용 서브 컴포넌트
 // =========================
 
-// 기존 MonstersTabProps / MonstersTab 전부 삭제 후 이걸로 교체
-
-// 몬스터 탭용 타입
-
 // 보유 몬스터 + 표시용 메타 정보
 type OwnedMonsterWithStatus = QuizmonOwnedMonsterRow & {
     displayName: string;
@@ -2026,244 +2023,350 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): OwnedMonsterWithStatus {
     }
 
 
-// ==== 몬스터 탭 ====
+// =========================
+// 🧬 Party + Dex 패널
+// =========================
 
-type MonstersTabProps = {
-    profile?: QuizmonProfileRow | null;
-    monsters: QuizmonOwnedMonsterRow[];
+type PartyAndDexPanelProps = {
+    profile: QuizmonProfileRow | null | undefined;
+    monsters: QuizmonOwnedMonsterRow[] | undefined;
     collectionLoading?: boolean;
     collectionError?: string | null;
     onPullFreeGacha?: () => void | Promise<void>;
 };
 
+/** 파티/도감을 한 화면에서 관리하는 포켓로그 스타일 패널 */
+function PartyAndDexPanel(props: PartyAndDexPanelProps) {
+    const {
+        profile,
+        monsters = [],
+        collectionLoading,
+        collectionError,
+        onPullFreeGacha,
+    } = props;
 
-function MonstersTab(props: MonstersTabProps) {
-        const { monsters } = props;
-    
-            const enhancedMonsters = useMemo(
-                () => (monsters ?? []).map((m) => enhanceOwned(m)),
-                [monsters],
-            );
-    
-            const [selectedMonsterId, setSelectedMonsterId] = useState<string | null>(
-                enhancedMonsters[0]?.id ?? null,
-            );
-    
-            const hasMonsters = enhancedMonsters.length > 0;
-    
-            const selectedMonster =
-                enhancedMonsters.find((m) => m.id === selectedMonsterId) ?? null;
-    
-            const handleSelectMonster = (monsterId: string) => {
-                setSelectedMonsterId(monsterId);
-            };
-    
-            const handleFreeGachaClick = async () => {
-                if (!props.onPullFreeGacha) return;
-                try {
-                        await props.onPullFreeGacha();
-                    } catch (err) {
-                        console.error("[MonstersTab] onPullFreeGacha error", err);
-                    }
-            };
-    
-            if (props.collectionLoading) {
-                return (
-                        <div style={{ fontSize: 13, color: "#9ca3af" }}>
-                                보유 몬스터를 불러오는 중입니다…
-                            </div>
-                    );
-            }
-    
-            if (props.collectionError) {
-                return (
-                        <div style={{ fontSize: 13, color: "#f97373" }}>
-                                보유 몬스터를 불러오는 중 오류가 발생했습니다.
-                                <br />
-                                <span style={{ fontSize: 11, opacity: 0.8 }}>
-                    {props.collectionError}
-                                </span>
-                            </div>
-                    );
-            }
-    
-            if (!hasMonsters) {
-                return (
-                        <div style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.6 }}>
-                                아직 보유한 몬스터가 없습니다.
-                                <br />
-                                수업 중 레이드를 클리어하면 파트너를 얻을 수 있어요.
-                            </div>
-                    );
-            }
-    
-            return (
-                <div
-               style={{
-                        display: "flex",
-                            gap: "1rem",
-                            alignItems: "flex-start",
-                            width: "100%",
-                            minHeight: 220,
-                        }}
+    // 🔹 profile 을 간단히 UI에 사용 (TS6133 방지 + 정보 제공)
+    const trainerName =
+        (profile as any)?.trainer_name ??
+        (profile as any)?.nickname ??
+        "미지정 트레이너";
+
+    // 🔹 보유 몬스터에 표시용 필드를 붙인 버전
+    const enhancedMonsters = useMemo(
+        () => monsters.map((m) => enhanceOwned(m)),
+        [monsters],
+    );
+
+    // 🔹 선택된 몬스터 id
+    const [selectedId, setSelectedId] = useState<string | null>(
+        enhancedMonsters[0]?.id ?? null,
+    );
+
+    const selected = useMemo(
+        () => enhancedMonsters.find((m) => m.id === selectedId) ?? null,
+        [enhancedMonsters, selectedId],
+    );
+
+    // TODO: 실제 도감 데이터(소유 여부, 승리 수 등) 들어가면 여기서 가공
+    const dexEntries = useMemo(
+        () =>
+            enhancedMonsters.map((m) => ({
+                id: m.id,
+                speciesId: m.species_id,
+                level: m.level,
+            })),
+        [enhancedMonsters],
+    );
+
+    return (
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(260px, 320px) minmax(340px, 1fr)",
+                gap: "1.25rem",
+                alignItems: "stretch",
+                width: "100%",
+                minHeight: 320,
+            }}
+        >
+            {/* 🔹 좌측 : 파티 / 리스트 영역 */}
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.75rem",
+                }}
             >
-                {/* 좌측: 몬스터 목록 */}
                 <div
-                style={{
-                            flex: "1 1 0%",
-                                maxHeight: 260,
-                                overflowY: "auto",
-                                paddingRight: 4,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.35rem",
-                            }}
+                    style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        opacity: 0.8,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
                 >
-                    {enhancedMonsters.map((m) => {
-                                const isSelected = m.id === selectedMonsterId;
-                                const anyMon = m as any;
-                                const partySlot = anyMon.party_slot as number | null;
-            
-                                    return (
-                                        <button
-                            key={m.id}
-                                        type="button"
-                                        onClick={() => handleSelectMonster(m.id)}
-                                        style={{ 
-                                            textAlign: "left",
-                                                   width: "100%",
-                                                    borderRadius: 8,
-                                                    border: isSelected
-                                                    ? "1px solid rgba(96,165,250,0.8)"
-                                                        : "1px solid rgba(31,41,55,1)",
-                                                    backgroundColor: isSelected
-                                                    ? "rgba(30,64,175,0.7)"
-                                                        : "rgba(15,23,42,0.85)",
-                                                    padding: "0.4rem 0.6rem",
-                                                    display: "flex",
-                                                    justifyContent: "space-between",
-                                                    alignItems: "center",
-                                                    cursor: "pointer",
-                                                    gap: "0.5rem",
-                                                }}
-                                    >
-                                        <div>
-                                                <div
-                                                    className="text-sm"
-                                                    style={{ color: "#e5e7eb", fontWeight: 600 }}
-                                                >
-                                                    {m.displayName}
-                                                </div>
-                                            <div
-                                    className="text-xs"
-                                                style={{ color: "#9ca3af", marginTop: 2 }}
-                                            >
-                                                Lv.{m.level} · {m.statusText}
-                                            </div>
-                                        </div>
-                                        {partySlot && (
-                                                <div
-                                    className="text-xs"
-                                                style={{
-                                                        padding: "0.15rem 0.5rem",
-                                                            borderRadius: 999,
-                                                            border: "1px solid rgba(156,163,175,0.6)",
-                                                            color: "#e5e7eb",
-                                                        }}
-                                            >
-                                                파티 {partySlot}번
-                                            </div>
-                                        )}
-                                    </button>
-                                );
-                            })}
+                    <span>내 파트너 / 보유 몬스터</span>
+                    <span style={{ fontSize: 11, opacity: 0.7 }}>
+                        트레이너: {trainerName}
+                    </span>
                 </div>
-    
-                    {/* 우측: 선택한 몬스터 상세 + 무료 뽑기 버튼 */}
+
                 <div
-                style={{
-                            flex: "0 0 230px",
-                                borderRadius: 12,
-                                border: "1px solid rgba(31,41,55,1)",
-                                background:
-                                "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.8))",
-                                padding: "0.75rem 0.9rem",
+                    style={{
+                        borderRadius: 12,
+                        background: "#020617",
+                        border: "1px solid #1f2937",
+                        padding: "0.6rem 0.7rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.4rem",
+                        maxHeight: 260,
+                        overflowY: "auto",
+                    }}
+                >
+                    {collectionLoading && <p>보유 몬스터를 불러오는 중…</p>}
+                    {collectionError && (
+                        <p className="form-message error">{collectionError}</p>
+                    )}
+                    {!collectionLoading && !enhancedMonsters.length && (
+                        <p style={{ fontSize: 13, opacity: 0.8 }}>
+                            아직 파트너가 없습니다. 무료 소환으로 첫 파트너를
+                            뽑아보세요!
+                        </p>
+                    )}
+
+                    {enhancedMonsters.map((m) => (
+                        <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setSelectedId(m.id)}
+                            style={{
                                 display: "flex",
-                                flexDirection: "column",
-                                gap: "0.4rem",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                padding: "0.35rem 0.45rem",
+                                borderRadius: 8,
+                                border:
+                                    selectedId === m.id
+                                        ? "1px solid #3b82f6"
+                                        : "1px solid #1f2937",
+                                background:
+                                    selectedId === m.id
+                                        ? "rgba(37,99,235,0.16)"
+                                        : "#020617",
+                                color: "#e5e7eb",
+                                fontSize: 12,
+                                cursor: "pointer",
                             }}
+                        >
+                            <span
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    {m.displayName}
+                                </span>
+                                <span
+                                    style={{
+                                        opacity: 0.8,
+                                        fontSize: 11,
+                                    }}
+                                >
+                                    Lv.{m.level} · {m.statusText}
+                                </span>
+                            </span>
+                            <span
+                                style={{
+                                    fontSize: 11,
+                                    opacity: 0.7,
+                                }}
+                            >
+                                ID: {m.id.slice(0, 4)}…
+                            </span>
+                        </button>
+                    ))}
+                </div>
+
+                {!!onPullFreeGacha && (
+                    <button
+                        type="button"
+                        onClick={() => void onPullFreeGacha()}
+                        style={{
+                            marginTop: "0.25rem",
+                            alignSelf: "stretch",
+                            padding: "0.5rem 0.7rem",
+                            borderRadius: 999,
+                            border: "1px solid #4b5563",
+                            background:
+                                "linear-gradient(135deg,#1d4ed8,#22c55e)",
+                            color: "#e5e7eb",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                        }}
+                    >
+                        무료 소환 (테스트용)
+                    </button>
+                )}
+            </div>
+
+            {/* 🔹 우측 : 포켓로그 스타일 디테일 + 도감 그리드 */}
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateRows: "minmax(180px, 1fr) minmax(180px, 1fr)",
+                    gap: "0.75rem",
+                }}
+            >
+                {/* 상단: 선택 몬스터 상세 */}
+                <div
+                    style={{
+                        borderRadius: 12,
+                        background: "#020617",
+                        border: "1px solid #1f2937",
+                        padding: "0.9rem 0.95rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.35rem",
+                    }}
                 >
                     <div
-                    style={{
-                                display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    marginBottom: 4,
-                                }}
+                        style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            marginBottom: 2,
+                        }}
                     >
-                        <div
-                        className="text-xs"
-                            style={{ color: "#9ca3af", letterSpacing: 0.2 }}
-                        >
-                            선택한 파트너
-                        </div>
-                        {props.onPullFreeGacha && (
-                                    <button
-                            type="button"
-                                onClick={handleFreeGachaClick}
-                                style={{
-                                        padding: "0.25rem 0.6rem",
-                                            borderRadius: 999,
-                                            border: "1px solid rgba(96,165,250,0.8)",
-                                            backgroundColor: "rgba(30,64,175,0.6)",
-                                            color: "#e5e7eb", 
-                                            fontSize: 11,
-                                            cursor: "pointer",
-                                        }}
-                            >
-                                무료 소환
-                            </button>
-                        )}
+                        선택한 파트너
                     </div>
-    
-                        {!selectedMonster ? (
+                    {selected ? (
+                        <>
                             <div
-                        className="text-xs"
-                            style={{ color: "#9ca3af", lineHeight: 1.5 }}
-                        >
-                            왼쪽 목록에서 몬스터를 선택해 주세요.
-                        </div>
-                    ) : (
-                            <>
-                                <div
-                                    className="text-sm"
-                                    style={{
-                                            color: "#e5e7eb",
-                                                                               fontWeight: 600,
-                                                                               marginBottom: 2,
-                                                                           }}
-                                >
-                                    {selectedMonster.displayName}
-                                </div>
-                                <div
-                            className="text-xs"
-                                style={{ color: "#9ca3af", marginBottom: 4 }}
+                                style={{
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                }}
                             >
-                                Lv.{selectedMonster.level} · {selectedMonster.statusText}
+                                {selected.displayName} (#
+                                {selected.species_id})
                             </div>
                             <div
-                            className="text-xs"
-                                style={{ color: "#9ca3af", lineHeight: 1.5 }}
+                                style={{
+                                    fontSize: 12,
+                                    opacity: 0.85,
+                                }}
                             >
-                                앞으로는 여기에서 개체값, 기술, 레이드 기록 등을
+                                Lv.{selected.level} · {selected.statusText}
+                            </div>
+                            <div
+                                style={{
+                                    marginTop: 6,
+                                    fontSize: 12,
+                                    opacity: 0.8,
+                                }}
+                            >
+                                앞으로는 여기에서 개체 값, 성장, 레이드 기록 등을
                                 자세히 보여 줄 예정입니다.
                             </div>
                         </>
+                    ) : (
+                        <div
+                            style={{
+                                fontSize: 12,
+                                opacity: 0.8,
+                            }}
+                        >
+                            왼쪽에서 몬스터를 선택하면 상세 정보를 볼 수
+                            있습니다.
+                        </div>
                     )}
                 </div>
+
+                {/* 하단: 도감 그리드 */}
+                <div
+                    style={{
+                        borderRadius: 12,
+                        background: "#020617",
+                        border: "1px solid #1f2937",
+                        padding: "0.7rem 0.8rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.5rem",
+                    }}
+                >
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: 13,
+                                fontWeight: 600,
+                            }}
+                        >
+                            도감 / 파티 요약
+                        </div>
+                        <div
+                            style={{
+                                fontSize: 11,
+                                opacity: 0.7,
+                            }}
+                        >
+                            소유 {dexEntries.length}종
+                        </div>
+                    </div>
+
+                    <div
+                        style={{
+                            flex: 1,
+                            display: "grid",
+                            gridTemplateColumns:
+                                "repeat(auto-fill, minmax(32px, 1fr))",
+                            gap: 4,
+                            alignContent: "flex-start",
+                        }}
+                    >
+                        {dexEntries.map((e) => (
+                            <div
+                                key={e.id}
+                                style={{
+                                    height: 32,
+                                    borderRadius: 6,
+                                    border: "1px solid #1f2937",
+                                    background:
+                                        selectedId === e.id
+                                            ? "rgba(37,99,235,0.35)"
+                                            : "rgba(15,23,42,0.95)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: 10,
+                                    cursor: "pointer",
+                                }}
+                                onClick={() => setSelectedId(e.id)}
+                            >
+                                {e.speciesId}
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
-        );
-    }
+        </div>
+    );
+}
+
+
 
 type ProfileTabProps = {
     profile?: any;
