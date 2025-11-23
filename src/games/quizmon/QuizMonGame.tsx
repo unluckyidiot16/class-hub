@@ -26,6 +26,7 @@ import { buildBattleMonsterFromSpecies } from "./battleFactory";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import { getArenaSprite, getMonsterAnimJson, getMonsterSprite } from "./assets";
 import { SpriteAnimation } from "./SpriteAnimation";
+import { useGachaDraw } from "./useGachaDraw";
 
 // =========================
 // 🌆 배틀 BG / 하단 패널용 헬퍼
@@ -363,6 +364,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onBattleEnd,
     } = props;
 
+    // 🔹 가챠/재화용 프로필 로컬 상태 (부모 profile과 동기화)
+    const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(
+        props.profile ?? null,
+    );
+
+    useEffect(() => {
+        setLocalProfile(props.profile ?? null);
+    }, [props.profile]);
+
+    const { drawing: gachaDrawing, error: gachaError, pullGacha } = useGachaDraw({
+        profile: localProfile,
+        onProfileUpdated: setLocalProfile,
+    });
+
     // 1) 전투 상태
     const [state, setState] = useState<BattleState>(() =>
         createInitialBattleState(),
@@ -380,6 +395,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
     const isBattleActive = viewState === "battle";
+    const canPaidGacha = !!localProfile && (localProfile.gacha_gems ?? 0) > 0 && !gachaDrawing;
+
 
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
@@ -983,6 +1000,69 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 quizpackJson 기반 전투 코어 + 포켓로그풍 배틀 UI 테스트 버전입니다.
             </p>
 
+            {localProfile && (
+                <div
+                    style={{
+                        marginTop: "0.5rem",
+                        display: "flex",
+                        gap: 8,
+                        fontSize: 12,
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            border: "1px solid #1f2937",
+                            background: "rgba(15,23,42,0.9)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                        }}
+                    >
+                        <span style={{ marginRight: 2 }}>💰</span>
+                        <span style={{ color: "#9ca3af", marginRight: 4 }}>Gold</span>
+                        <span style={{ color: "#facc15", fontWeight: 600 }}>
+                {localProfile.gold ?? 0}
+            </span>
+                    </div>
+                    <div
+                        style={{
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            border: "1px solid #1f2937",
+                            background: "rgba(15,23,42,0.9)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                        }}
+                    >
+                        <span style={{ marginRight: 2 }}>💎</span>
+                        <span style={{ color: "#9ca3af", marginRight: 4 }}>Gems</span>
+                        <span style={{ color: "#a5b4fc", fontWeight: 600 }}>
+                {localProfile.gacha_gems ?? 0}
+            </span>
+                    </div>
+                    <div
+                        style={{
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            border: "1px solid #1f2937",
+                            background: "rgba(15,23,42,0.9)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                        }}
+                    >
+                        <span style={{ marginRight: 2 }}>⭐</span>
+                        <span style={{ color: "#9ca3af", marginRight: 4 }}>Shards</span>
+                        <span style={{ color: "#fed7aa", fontWeight: 600 }}>
+                {localProfile.star_shards ?? 0}
+            </span>
+                    </div>
+                </div>
+            )}
+
             <div
                 style={{
                     marginTop: "1rem",
@@ -992,7 +1072,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     padding: "0.75rem",
                 }}
             >
-                {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
+
+            {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
                 <div
                     style={{
                         position: "relative",
@@ -1498,22 +1579,39 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     수업 후 단계에서 본격 연결할 예정입니다.
                                 </p>
 
+                                {gachaError && (
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#fca5a5",
+                                            marginBottom: 6,
+                                        }}
+                                    >
+                                        {gachaError}
+                                    </div>
+                                )}
+
                                 <button
                                     type="button"
-                                    disabled
+                                    onClick={async () => {
+                                        await pullGacha("gems");
+                                    }}
+                                    disabled={!canPaidGacha}
                                     style={{
                                         width: "100%",
                                         padding: "0.45rem 0.7rem",
                                         borderRadius: 6,
                                         border: "1px solid #4b5563",
-                                        backgroundColor: "#02061780",
-                                        color: "#6b7280",
+                                        backgroundColor: canPaidGacha ? "#1d4ed8" : "#02061780",
+                                        color: canPaidGacha ? "#e5e7eb" : "#6b7280",
                                         fontSize: 13,
                                         marginBottom: 8,
+                                        cursor: canPaidGacha ? "pointer" : "not-allowed",
                                     }}
                                 >
-                                    10회 소환 (준비중)
+                                    {gachaDrawing ? "소환 중..." : "1회 소환 (💎 1)"}
                                 </button>
+
 
                                 <div
                                     style={{

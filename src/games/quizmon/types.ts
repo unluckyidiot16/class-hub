@@ -197,17 +197,21 @@ export type QuizmonProfileRow = {
     created_at: string | null;
     updated_at: string | null;
 
-    // 새로 추가한 컬럼들
+    // 메타 정보
+    class_id: string | null;
     trainer_name: string | null;
     starter_species_id: string | null;
     starter_chosen: boolean;
 
-    // 퀴즈몬 재화 (기본 코인)
-    coins: number;  // NOT NULL DEFAULT 0
+    // 경제 필드
+    gold: number;         // 전투/회복/강화용
+    gacha_gems: number;   // 가챠 전용 재화
+    star_shards: number;  // 돌파 MAX 중복 → 교환 재화
 
-    // Supabase 스키마에 있는 class_id (반 정보)
-    class_id?: string | null;
+    // 레거시 필드 (RPC 등에서 아직 쓰면 유지)
+    coins: number;
 };
+
 
 export type QuizmonOwnedMonsterRow = {
     id: string;
@@ -216,9 +220,16 @@ export type QuizmonOwnedMonsterRow = {
     level: number;
     exp: number;
     party_slot: number | null;
+
+    // 새 필드
+    current_hp: number | null;   // null = 아직 풀피 상태/미초기화
+    is_fainted: boolean;         // true면 전투/레이드 입장 불가
+    learned_moves: string[];     // jsonb 배열: ["tackle","growl",...]
+
     created_at: string | null;
     updated_at: string | null;
 };
+
 
 export const DEFAULT_PARTNER: QuizmonPartner = {
     speciesId: "poke-0001", // 이상해씨 (#001)

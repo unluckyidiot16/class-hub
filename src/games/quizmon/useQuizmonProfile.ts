@@ -93,10 +93,16 @@ export function useQuizmonProfile(
                             trainer_name: null,
                             starter_species_id: null,
                             starter_chosen: false,
-                            coins: 0,
+
+                            // 경제 필드 기본값
+                            coins: 0,        // 레거시
+                            gold: 0,
+                            gacha_gems: 0,
+                            star_shards: 0,
                         })
                         .select("*")
                         .single();
+
 
                     if (insertError) {
                         console.error("[useQuizmonProfile] insert error", insertError);
@@ -239,6 +245,11 @@ export function useQuizmonProfile(
                     level: starterPartner.level,
                     exp: starterPartner.exp,
                     party_slot: 1,
+
+                    // 새 필드
+                    current_hp: null,    // 전투 입장 시 종/레벨 기준으로 계산해서 채우기
+                    is_fainted: false,
+                    learned_moves: [],   // 나중에 moveData에서 기본 기술 채워도 됨
                 });
             } catch (e) {
                 // 여기 실패해도 치명적이지 않으니 콘솔만 남김

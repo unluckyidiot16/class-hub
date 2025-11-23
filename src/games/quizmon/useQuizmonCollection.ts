@@ -1,24 +1,17 @@
 // src/games/quizmon/useQuizmonCollection.ts
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import type { QuizmonOwnedMonsterRow } from "./types";
+import type { QuizmonOwnedMonsterRow, QuizmonProfileRow } from "./types";
+import { performSingleGachaDraw } from "./gacha";
 import {
     buildBattleMonsterFromSpecies,
     type BattleMonsterCore,
     type QuizmonSpeciesLike,
 } from "./battleFactory";
 
-
-// 아주 단순한 가챠 풀 (일단은 하드코딩)
-const GACHA_POOL = ["poke-0001", "poke-0004", "poke-0007"] as const;
-
-function rollSpeciesId(): string {
-    const idx = Math.floor(Math.random() * GACHA_POOL.length);
-    return GACHA_POOL[idx];
-}
-
 type UseQuizmonCollectionOptions = {
     profileId: string | null;
+    profile?: QuizmonProfileRow | null;   // ✅ 옵셔널로 변경
 };
 
 type UseQuizmonCollectionResult = {
@@ -40,7 +33,7 @@ export type BattlePartyMonster = BattleMonsterCore & {
 export function useQuizmonCollection(
     options: UseQuizmonCollectionOptions,
 ): UseQuizmonCollectionResult {
-    const { profileId } = options;
+    const { profileId, profile = null } = options;
 
     const [monsters, setMonsters] = useState<QuizmonOwnedMonsterRow[]>([]);
     const [loading, setLoading] = useState(false);
@@ -90,9 +83,9 @@ export function useQuizmonCollection(
         setReloadFlag((x) => x + 1);
     }, []);
 
-    // 무료 소환 1회
+    // 무료 소환 1회 (가챠 재화 소비 X, 중복이면 StarShard만 증가)
     const pullFreeGacha = useCallback(async () => {
-        if (!profileId) return null;
+        if (!profileId || !profile) return null;
 
         // ✅ 로딩 중에는 가챠 막기 (Race condition 방지)
         if (loading) {
@@ -102,50 +95,31 @@ export function useQuizmonCollection(
 
         setError(null);
 
-        // 1) 종족 뽑기
-        const speciesId = rollSpeciesId();
+        try {
+            const { result } = await performSingleGachaDraw({
+                profile,
+                costType: "free",
+            });
 
-        // 2) 현재 파티 슬롯 상황 확인
-        const currentPartySlots = new Set(
-            monsters
-                .map((m) => m.party_slot)
-                .filter((s): s is number => typeof s === "number"),
-        );
+            const owned = result.ownedMonster;
 
-        let newPartySlot: number | null = null;
-        for (let slot = 1; slot <= 3; slot++) {
-            if (!currentPartySlots.has(slot)) {
-                newPartySlot = slot;
-                break;
+            if (owned) {
+                // 기존에 없던 개체라면 로컬 상태에 추가
+                setMonsters((prev) => {
+                    const exists = prev.some((m) => m.id === owned.id);
+                    return exists ? prev : [...prev, owned];
+                });
+                return owned;
             }
-        }
-        // 처음 3마리까지는 자동 파티 편성, 이후는 벤치 (party_slot = null)
 
-        const { data, error } = await supabase
-            .from("quizmon_owned_monsters")
-            .insert({
-                profile_id: profileId,
-                species_id: speciesId,
-                level: 1,
-                exp: 0,
-                party_slot: newPartySlot,
-            })
-            .select("*")
-            .single();
-
-        if (error) {
-            console.error("[useQuizmonCollection] gacha insert error", error);
+            // 만약 result.ownedMonster가 null이면(이론상 거의 없음) 그냥 null 반환
+            return null;
+        } catch (e) {
+            console.error("[useQuizmonCollection] free gacha error", e);
             setError("몬스터를 소환하는 중 오류가 발생했습니다.");
             return null;
         }
-
-        const inserted = data as QuizmonOwnedMonsterRow;
-
-        // 로컬 상태도 즉시 반영
-        setMonsters((prev) => [...prev, inserted]);
-
-        return inserted;
-    }, [profileId, monsters]);
+    }, [profileId, profile, loading]);
 
     return {
         monsters,
@@ -155,9 +129,6 @@ export function useQuizmonCollection(
         pullFreeGacha,
     };
 }
-
-
-// 파일 맨 아래, useQuizmonCollection return 뒤에 추가
 
 /**
  * 특정 profileId에 대해
