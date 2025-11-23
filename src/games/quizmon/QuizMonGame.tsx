@@ -24,7 +24,7 @@ import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
-import { getArenaSprite, getMonsterAnimJson, getMonsterSprite } from "./assets";
+import { getArenaSprite, getMonsterAnimJson, getMonsterSprite, getMonsterIcon, } from "./assets";
 import { SpriteAnimation } from "./SpriteAnimation";
 import { useGachaDraw } from "./useGachaDraw";
 
@@ -1399,12 +1399,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     />
                                 )}
 
-                                {menuTab === "dex" && (
-                                    <div style={{ fontSize: 13, opacity: 0.8 }}>
-                                        도감 전용 보기(필요하면 남겨두고, 아니면 이 탭은 숨겨도 됨)
-                                    </div>
-                                )}
-
                                 {menuTab === "profile" && (
                                     <ProfileTab profile={props.profile} lastRaidResult={props.lastRaidResult} />
                                 )}
@@ -1647,12 +1641,53 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                         <div
                                             style={{
                                                 display: "flex",
-                                                justifyContent: "space-between",
                                                 alignItems: "center",
                                                 gap: 8,
                                             }}
                                         >
-                                            <div>
+                                            {/* 아이콘 박스 */}
+                                            <div
+                                                style={{
+                                                    width: 56,
+                                                    height: 56,
+                                                    borderRadius: 12,
+                                                    background: "#020617",
+                                                    border: "1px solid #1f2937",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                {(() => {
+                                                    const iconUrl = getMonsterIcon(gachaLastResult.speciesId);
+
+                                                    return iconUrl ? (
+                                                        <img
+                                                            src={iconUrl}
+                                                            alt={gachaLastResult.species.name}
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "100%",
+                                                                objectFit: "contain",
+                                                                imageRendering: "pixelated",
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <span
+                                                            style={{
+                                                                fontSize: 20,
+                                                                color: "#4b5563",
+                                                            }}
+                                                        >
+                            ?
+                        </span>
+                                                    );
+                                                })()}
+                                            </div>
+
+                                            {/* 텍스트 영역 */}
+                                            <div style={{ flex: 1 }}>
                                                 <div
                                                     style={{
                                                         fontSize: 14,
@@ -1680,13 +1715,15 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                         }}
                                                     >
                                                         중복 보상으로 Shards{" "}
-                                                        {gachaLastResult.starShardsGained}개를 획득했어요.
+                                                        {gachaLastResult.starShardsGained}개를
+                                                        획득했어요.
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
                                 )}
+
 
 
                                 <div
@@ -2493,19 +2530,15 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 <div
                     className="quizmon-dex-grid"
                     style={{
+                        marginTop: "0.5rem",
                         display: "grid",
-                        gridTemplateColumns:
-                            "repeat(auto-fill, minmax(5rem, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))",
                         gap: "0.5rem",
-                        minHeight: "7.5rem", // Y축 조금 더 키움
                     }}
                 >
                     {dexEntries.map((entry) => {
-                        const label = entry.speciesId.startsWith("poke-")
-                            ? entry.speciesId
-                            : `poke-${entry.speciesId
-                                .toString()
-                                .padStart(4, "0")}`;
+                        const iconUrl = getMonsterIcon(entry.speciesId);
+                        const label = entry.sample.displayName;
 
                         return (
                             <button
@@ -2513,29 +2546,74 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 type="button"
                                 onClick={() => handleDexClick(entry)}
                                 style={{
-                                    position: "relative",
-                                    borderRadius: "0.75rem",
-                                    padding: "0.45rem 0.35rem",
-                                    border:
-                                        "1px solid rgba(148,163,184,0.3)",
-                                    background:
-                                        "radial-gradient(circle at top, rgba(148,163,184,0.15), rgba(15,23,42,0.95))",
-                                    fontSize: "0.7rem",
-                                    textAlign: "left",
-                                    aspectRatio: "1 / 1", // 정사각형
+                                    borderRadius: 12,
+                                    border: "1px solid #1f2937",
+                                    background: "#020617",
+                                    padding: "0.4rem 0.45rem 0.5rem",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
                                     cursor: "pointer",
-                                    overflow: "hidden",
                                 }}
                             >
+                                {/* 아이콘 박스 */}
                                 <div
                                     style={{
-                                        fontWeight: 600,
-                                        marginBottom: "0.2rem",
+                                        width: 64,
+                                        height: 64,
+                                        borderRadius: 14,
+                                        background: "#020617",
+                                        border: "1px solid #111827",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                        marginBottom: "0.25rem",
+                                    }}
+                                >
+                                    {iconUrl ? (
+                                        <img
+                                            src={iconUrl}
+                                            alt={label}
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                objectFit: "contain",
+                                                imageRendering: "pixelated",
+                                            }}
+                                        />
+                                    ) : (
+                                        <span
+                                            style={{
+                                                fontSize: 18,
+                                                color: "#4b5563",
+                                            }}
+                                        >
+                                ?
+                            </span>
+                                    )}
+                                </div>
+
+                                {/* 이름 + 보유 수 */}
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#e5e7eb",
+                                        textAlign: "center",
+                                        maxWidth: "100%",
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
                                     }}
                                 >
                                     {label}
                                 </div>
-                                <div style={{ opacity: 0.8 }}>
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#9ca3af",
+                                    }}
+                                >
                                     x{entry.count}
                                 </div>
                             </button>

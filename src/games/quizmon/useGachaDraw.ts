@@ -9,6 +9,7 @@ export type GachaCostType = "free" | "gems" ;
 // UI에서 쓰기용 “가볍게 정리한 결과” 타입
 export type GachaResultLite = {
     kind: "new" | "duplicate";
+    speciesId: string;
     species: {
         name: string;
         rarity: number;
@@ -42,7 +43,7 @@ export function useGachaDraw(options: UseGachaDrawOptions): UseGachaDrawReturn {
                 return;
             }
 
-            if (drawing) return; // double-click 방지
+            if (drawing) return;
 
             setDrawing(true);
             setError(null);
@@ -53,18 +54,17 @@ export function useGachaDraw(options: UseGachaDrawOptions): UseGachaDrawReturn {
                     costType,
                 });
 
-                // 프로필 재화/스탯 갱신
                 if (onProfileUpdated && updatedProfile) {
                     onProfileUpdated(updatedProfile);
                 }
 
                 if (result) {
-                    // UI에서 필요한 부분만 뽑아서 저장
                     setLastResult({
                         kind: result.kind,
+                        speciesId: result.species.id, // ← 여기!
                         species: {
                             name: result.species.name,
-                            rarity: result.species.rarity,
+                            rarity: result.species.rarity ?? 1,
                         },
                         starShardsGained: result.starShardsGained ?? 0,
                     });
@@ -78,6 +78,7 @@ export function useGachaDraw(options: UseGachaDrawOptions): UseGachaDrawReturn {
         },
         [profile, drawing, onProfileUpdated],
     );
+
 
     return {
         drawing,
