@@ -1969,7 +1969,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
 // =========================
 // 📘 탭용 서브 컴포넌트
 // =========================
-
 // 보유 몬스터 + 표시용 메타 정보
 type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
     /** 리스트/파티에 표시할 이름 */
@@ -2035,13 +2034,11 @@ type PartyAndDexPanelProps = {
 /**
  * 몬스터 탭: 내 파트너/파티 + 도감/보유 몬스터
  *
- * - 파티 슬롯: 3개
- *   - 슬롯 클릭 시 해당 슬롯 해제
- * - 아래 도감(보유 몬스터 그리드):
- *   - 정사각형 그리드
- *   - 도감 칸 클릭 시
- *     - 빈 파티 슬롯이 있으면 첫 빈 슬롯에 배정
- *     - 이미 3칸이 꽉 차 있으면 오른쪽 상세 정보만 갱신
+ * - 왼쪽 상단: 파티 슬롯 3개만 세로 리스트로 표시
+ * - 아래: 도감/보유 몬스터 요약 그리드
+ * - 도감 칸 클릭 시:
+ *   - 빈 파티 슬롯이 있으면 첫 빈 슬롯에 배정
+ *   - 이미 3칸이 꽉 차 있으면 오른쪽 상세 정보만 갱신
  */
 function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const { profile } = props;
@@ -2098,21 +2095,10 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         });
     }, [enhancedMonsters]);
 
+    // 슬롯별 파티 몬스터 (최대 3개)
     const partyMonsters = partyIds.map(
         (id) => enhancedMonsters.find((m) => m.id === id) ?? null,
     );
-
-    // 리스트용 정렬: 파티에 들어간 친구들을 위로
-    const sortedMonsters = useMemo(() => {
-        return [...enhancedMonsters].sort((a, b) => {
-            const aSlot = partyIds.indexOf(a.id);
-            const bSlot = partyIds.indexOf(b.id);
-            const av = aSlot === -1 ? 99 : aSlot;
-            const bv = bSlot === -1 ? 99 : bSlot;
-            if (av !== bv) return av - bv;
-            return (a.created_at ?? "").localeCompare(b.created_at ?? "");
-        });
-    }, [enhancedMonsters, partyIds]);
 
     // 도감(보유 몬스터) – 종별 카운트 + 대표 개체
     const dexEntries = useMemo(() => {
@@ -2143,13 +2129,17 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
     const trainerName = profile?.trainer_name ?? "미지의 트레이너";
 
-    // 파티 슬롯 클릭 → 해당 슬롯 비우기 (옛 Delete 버튼 기능)
-    function handlePartySlotClick(index: number) {
+    // 파티 슬롯 비우기 (예: 삭제 기능)
+    function clearPartySlot(slotIndex: number, monId: string | null) {
         setPartyIds((prev) => {
             const next = [...prev];
-            next[index] = null;
+            next[slotIndex] = null;
             return next;
         });
+
+        if (monId) {
+            setSelectedId((prev) => (prev === monId ? null : prev));
+        }
     }
 
     // 도감 칸 클릭 → 빈 슬롯이 있으면 배정, 없으면 상세 정보만 변경
@@ -2185,7 +2175,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     minHeight: 0,
                 }}
             >
-                {/* 왼쪽: 파티 + 전체 보유 리스트 */}
+                {/* 왼쪽: 파티 3마리 리스트 */}
                 <div
                     className="quizmon-card"
                     style={{
@@ -2231,59 +2221,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         )}
                     </div>
 
-                    {/* 파티 슬롯 3개 (Change 이미지 위치) */}
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "0.5rem",
-                            marginBottom: "0.75rem",
-                        }}
-                    >
-                        {partyMonsters.map((mon, idx) => (
-                            <button
-                                key={idx}
-                                type="button"
-                                onClick={() => handlePartySlotClick(idx)}
-                                className="quizmon-chip"
-                                style={{
-                                    flex: 1,
-                                    padding: "0.4rem 0.5rem",
-                                    borderRadius: "999px",
-                                    border:
-                                        "1px solid rgba(255,255,255,0.06)",
-                                    background: mon
-                                        ? "linear-gradient(135deg, rgba(59,130,246,0.35), rgba(96,165,250,0.15))"
-                                        : "rgba(15,23,42,0.85)",
-                                    fontSize: "0.75rem",
-                                    textAlign: "left",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        fontWeight: 600,
-                                        marginBottom: "0.125rem",
-                                    }}
-                                >
-                                    파티 {idx + 1}번
-                                </div>
-                                <div
-                                    style={{
-                                        opacity: 0.8,
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                    }}
-                                >
-                                    {mon
-                                        ? mon.displayName
-                                        : "빈 슬롯 (클릭 시 해제)"}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* 전체 보유 몬스터 리스트 (Delete 버튼 제거, 표시만) */}
+                    {/* 파티 3마리만 세로 리스트로 노출 */}
                     <div
                         style={{
                             flex: "1 1 auto",
@@ -2294,26 +2232,32 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             padding: "0.5rem",
                         }}
                     >
-                        {sortedMonsters.length === 0 && (
-                            <div
-                                style={{
-                                    fontSize: "0.85rem",
-                                    opacity: 0.7,
-                                }}
-                            >
-                                아직 보유한 포켓몬이 없습니다.
-                            </div>
-                        )}
-
-                        {sortedMonsters.map((mon) => {
-                            const isSelected = selected?.id === mon.id;
-                            const partyIndex = partyIds.indexOf(mon.id);
+                        {partyMonsters.map((mon, idx) => {
+                            const slotLabel = `파티 ${idx + 1}번`;
+                            const isFilled = !!mon;
+                            const isSelected =
+                                isFilled && selected?.id === mon!.id;
 
                             return (
                                 <button
-                                    key={mon.id}
+                                    key={idx}
                                     type="button"
-                                    onClick={() => setSelectedId(mon.id)}
+                                    onClick={(e) => {
+                                        // Ctrl/Command + 클릭 시 해당 슬롯 비우기
+                                        if (
+                                            isFilled &&
+                                            (e.metaKey || e.ctrlKey)
+                                        ) {
+                                            clearPartySlot(
+                                                idx,
+                                                mon!.id as string,
+                                            );
+                                            return;
+                                        }
+                                        if (isFilled) {
+                                            setSelectedId(mon!.id as string);
+                                        }
+                                    }}
                                     style={{
                                         width: "100%",
                                         textAlign: "left",
@@ -2339,11 +2283,16 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                 marginBottom: "0.1rem",
                                             }}
                                         >
-                                            {mon.displayName}
+                                            {isFilled
+                                                ? mon!.displayName
+                                                : "빈 슬롯"}
                                         </div>
                                         <div style={{ opacity: 0.8 }}>
-                                            Lv.{(mon as any).level ?? 1} ·{" "}
-                                            {mon.statusText}
+                                            {isFilled
+                                                ? `Lv.${(mon as any).level ?? 1} · ${
+                                                    mon!.statusText
+                                                }`
+                                                : "도감에서 몬스터를 선택하면 자동으로 배치됩니다."}
                                         </div>
                                     </div>
                                     <div
@@ -2353,21 +2302,31 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             opacity: 0.85,
                                         }}
                                     >
-                                        {partyIndex !== -1 ? (
-                                            <div>파티 {partyIndex + 1}번</div>
-                                        ) : (
-                                            <div style={{ opacity: 0.7 }}>
-                                                대기 중
+                                        <div>{slotLabel}</div>
+                                        {isFilled && (
+                                            <div style={{ opacity: 0.6 }}>
+                                                ID: {mon!.id.slice(0, 4)}...
+                                                {mon!.id.slice(-4)}
                                             </div>
                                         )}
-                                        <div style={{ opacity: 0.6 }}>
-                                            ID: {mon.id.slice(0, 4)}...
-                                            {mon.id.slice(-4)}
-                                        </div>
                                     </div>
                                 </button>
                             );
                         })}
+
+                        {partyMonsters.every((m) => !m) && (
+                            <div
+                                style={{
+                                    fontSize: "0.8rem",
+                                    opacity: 0.7,
+                                    marginTop: "0.25rem",
+                                }}
+                            >
+                                아직 파티에 배치된 포켓몬이 없습니다.
+                                아래 도감에서 몬스터를 선택해 파티를 구성해
+                                보세요.
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -2399,7 +2358,8 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     >
                         {!selected && (
                             <div style={{ opacity: 0.7 }}>
-                                왼쪽에서 파트너를 선택해 주세요.
+                                왼쪽 파티 또는 아래 도감에서 파트너를 선택해
+                                주세요.
                             </div>
                         )}
                         {selected && (
@@ -2492,7 +2452,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         gridTemplateColumns:
                             "repeat(auto-fill, minmax(5rem, 1fr))",
                         gap: "0.5rem",
-                        minHeight: "6rem",
+                        minHeight: "7.5rem", // Y축 조금 더 키움
                     }}
                 >
                     {dexEntries.map((entry) => {
