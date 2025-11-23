@@ -314,8 +314,19 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     </button>
                 </div>
 
-                {/* 🔹 메인: 게임 씬만 (QuizMonBattleSection → QuizMonGame) */}
-                <div className="card">
+                {/* 🔹 메인: 게임 씬만 (QuizMonBattleSection → QuizMonGame)
+                → 카드 자체를 뷰포트로 쓰고 내부만 스크롤되도록 설정 */}
+                <div
+                    className="card"
+                    style={{
+                        // 화면 높이 기준으로 카드 최대 높이 제한
+                        maxHeight: isFullscreen
+                            ? "calc(100vh - 4rem)"   // 전체화면일 때는 조금 더 여유
+                            : "calc(100vh - 7rem)",  // 일반 모드(헤더 포함)에서의 뷰포트
+                        overflowY: "auto",           // 🔹 카드 내부 스크롤
+                        overflowX: "hidden",
+                    }}
+                >
                     <QuizMonBattleSection
                         mode="class"
                         pack={pack}
@@ -338,5 +349,6 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             </div>
         </div>
     );
+
 
 }
