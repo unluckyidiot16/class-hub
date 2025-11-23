@@ -11,7 +11,7 @@ import type {
     QuizPackQuestionV1,
 } from "../../types/quizPackJson";
 import { QuizMonBattleSection } from "./QuizMonBattleSection";
-import type { QuizAnswerResult } from "./types";
+import type { QuizAnswerResult, QuizmonOwnedMonsterRow } from "./types";
 import { useQuizmonProfile } from "./useQuizmonProfile";
 import { StarterSelectPanel } from "./StarterSelectPanel";
 
@@ -37,6 +37,7 @@ type QuizMonClassPanelProps = {
     onQuizAnswer?: (result: QuizAnswerResult) => void;
 };
 
+
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const {
         roomId,
@@ -57,6 +58,12 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
 
     const isStudent = !!studentId;
 
+    const [ownedMonsters, setOwnedMonsters] =
+        useState<QuizmonOwnedMonsterRow[]>([]);
+    const [collectionLoading, setCollectionLoading] = useState(false);
+    const [collectionError, setCollectionError] = useState<string | null>(null);
+
+
     // 🔹 QuizMon 프로필 (학생일 때만 의미 있음)
     const {
         profile,
@@ -69,12 +76,60 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         studentKey: studentId ?? null,
     });
 
+    // 🔹 학생 프로필이 준비되면 보유 몬스터 컬렉션 로딩
+        useEffect(() => {
+                if (!isStudent || !profile?.id) {
+                    setOwnedMonsters([]);
+                        setCollectionLoading(false);
+                        setCollectionError(null);
+                        return;
+                    }
+        
+                    let cancelled = false;
+        
+                    const loadOwnedMonsters = async () => {
+                        setCollectionLoading(true);
+                        setCollectionError(null);
+            
+                            const { data, error } = await supabase
+                            .from("quizmon_owned_monsters")
+                            .select("*")
+                            .eq("profile_id", profile.id)
+                            .order("created_at", { ascending: true });
+            
+                            if (cancelled) return;
+            
+                            if (error) {
+                                 console.error(
+                                        "[QuizMonClassPanel] load quizmon_owned_monsters error",
+                                        error,
+                                    );
+                                setCollectionError(
+                                        "보유 몬스터를 불러오는 중 오류가 발생했습니다.",
+                                    );
+                                setOwnedMonsters([]);
+                            } else {
+                                setOwnedMonsters((data ?? []) as QuizmonOwnedMonsterRow[]);
+                            }
+            
+                            setCollectionLoading(false);
+                    };
+        
+                    void loadOwnedMonsters();
+        
+                    return () => {
+                        cancelled = true;
+                    };
+            }, [isStudent, profile?.id]);
+    
+
     // 배틀 종료 → 프로필에 레이드 결과 반영 (레벨/EXP 업데이트)
     const handleBattleEnd = async (summary: { correct: number; total: number }) => {
         if (!studentId) return; // 교사 미리보기 방지
         await applyRaidResult(summary);
     };
-
+    
+    
     // 🎯 1) 퀴즈팩이 바뀔 때마다 quiz_questions → QuizPackJsonV1 로딩
     useEffect(() => {
         if (!pack?.id) {
@@ -261,6 +316,9 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         studentId={studentId}
                         profileId={profile?.id ?? null}
                         profile={profile ?? null}
+                        monsters={ownedMonsters}
+                        collectionLoading={collectionLoading}
+                        collectionError={collectionError}
                         onQuizAnswer={onQuizAnswer}
                         onBattleEnd={studentId ? handleBattleEnd : undefined}
                     />

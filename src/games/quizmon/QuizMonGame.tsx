@@ -1,5 +1,5 @@
 // src/games/quizmon/QuizMonGame.tsx
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
     BattleState,
     Move,
@@ -24,7 +24,7 @@ import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
-import { getArenaSprite, getMonsterAnimJson, getMonsterSprite, getMonsterIcon } from "./assets";
+import { getArenaSprite, getMonsterAnimJson, getMonsterSprite } from "./assets";
 import { SpriteAnimation } from "./SpriteAnimation";
 import { useGachaDraw } from "./useGachaDraw";
 
@@ -1967,554 +1967,297 @@ export function QuizMonGame(props: QuizMonGameProps) {
 // 기존 MonstersTabProps / MonstersTab 전부 삭제 후 이걸로 교체
 
 // 몬스터 탭용 타입
-type MonstersTabProps = {
-    // profile은 지금 안 쓰고 있어서 optional로 두고, 나중에 쓸 수 있게만 남겨둠
-    profile?: QuizmonProfileRow | null;
-    monsters: QuizmonOwnedMonsterRow[];
 
-    // 상위 QuizMonGameProps와 동일하게 optional
-    collectionLoading?: boolean;
-    collectionError?: string | null;
-
-    // 상위와 똑같이 void | Promise<void>
-    onPullFreeGacha?: () => void | Promise<void>;
-};
-
+// 보유 몬스터 + 표시용 메타 정보
 type OwnedMonsterWithStatus = QuizmonOwnedMonsterRow & {
     displayName: string;
     statusText: string;
 };
 
+/**
+ * DB에서 가져온 몬스터 한 마리를
+ * - 표시용 이름(displayName)
+ * - 상태 문자열(statusText)
+ * 을 붙인 형태로 변환
+ */
 function enhanceOwned(mon: QuizmonOwnedMonsterRow): OwnedMonsterWithStatus {
-    // 우선은 species_id 그대로 이름처럼 사용 (나중에 species 테이블 조인해서 이름/타입 넣자)
-    const displayName = mon.species_id ?? "???";
-
-    let statusText = "정상";
-    if (mon.is_fainted) {
-        statusText = "기절";
-    } else if (typeof mon.current_hp === "number") {
-        statusText = `HP ${mon.current_hp}`;
+        const anyMon = mon as any;
+    
+        const rawNickname = (anyMon.nickname as string | null) ?? undefined;
+        const rawDisplayName = (anyMon.display_name as string | null) ?? undefined;
+    
+            const displayName =
+                rawNickname ||
+                rawDisplayName ||
+                (mon.species_id ? `포켓몬 #${mon.species_id}` : "이름 없는 파트너");
+    
+            let statusText = "정상";
+    
+            if (
+                typeof anyMon.current_hp === "number" &&
+                typeof anyMon.max_hp === "number"
+            ) {
+                const hp = anyMon.current_hp;
+                const maxHp = anyMon.max_hp || 1;
+                const ratio = Math.max(0, Math.min(1, hp / maxHp));
+                
+                    if (hp <= 0 || anyMon.is_fainted) {
+                        statusText = "기절";
+                    } else if (ratio < 0.25) {
+                        statusText = `빈사 (${hp}/${maxHp})`;
+                    } else if (ratio < 0.6) {
+                        statusText = `부상 (${hp}/${maxHp})`;
+                    } else {
+                        statusText = `HP ${hp}/${maxHp}`;
+                    }
+            }
+    
+            return {
+                ...mon,
+                displayName,
+                statusText,
+            };
     }
 
-    return {
-        ...mon,
-        displayName,
-        statusText,
-    };
-}
+
+// ==== 몬스터 탭 ====
+
+type MonstersTabProps = {
+    profile?: QuizmonProfileRow | null;
+    monsters: QuizmonOwnedMonsterRow[];
+    collectionLoading?: boolean;
+    collectionError?: string | null;
+    onPullFreeGacha?: () => void | Promise<void>;
+};
+
 
 function MonstersTab(props: MonstersTabProps) {
-    const {
-        monsters,
-        collectionLoading = false,
-        collectionError = null,
-        onPullFreeGacha,
-    } = props;
-
-    const [localMonsters, setLocalMonsters] = useState<OwnedMonsterWithStatus[]>(
-        [],
-    );
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [gachaBusy, setGachaBusy] = useState(false);
-
-    // monsters → localMonsters 로 동기화
-    useEffect(() => {
-        const enhanced = monsters.map(enhanceOwned);
-        setLocalMonsters(enhanced);
-
-        // 선택된 몬스터가 목록에서 사라졌으면 첫 번째로 다시 선택
-        if (enhanced.length === 0) {
-            setSelectedId(null);
-        } else if (!enhanced.some((m) => m.id === selectedId)) {
-            setSelectedId(enhanced[0].id);
-        }
-    }, [monsters, selectedId]);
-
-    const handlePullFree = useCallback(async () => {
-        if (!onPullFreeGacha) return;   // 콜백이 안 들어온 경우 바로 반환
-        if (gachaBusy) return;
-        setGachaBusy(true);
-        try {
-            await onPullFreeGacha();
-            // 부모에서 monsters를 갱신해 주면 useEffect로 목록이 동기화됨
-        } finally {
-            setGachaBusy(false);
-        }
-    }, [gachaBusy, onPullFreeGacha]);
-
-
-    if (collectionLoading) {
-        return (
-            <div style={{ padding: "1rem", fontSize: "0.9rem", opacity: 0.8 }}>
-                몬스터 정보를 불러오는 중입니다…
-            </div>
-        );
-    }
-
-    if (collectionError) {
-        return (
-            <div style={{ padding: "1rem", color: "#ff8080", fontSize: "0.9rem" }}>
-                {collectionError}
-            </div>
-        );
-    }
-
-    const partySlots = [1, 2, 3] as const;
-
-    const partyBySlot: Record<number, OwnedMonsterWithStatus | undefined> = {};
-    for (const mon of localMonsters) {
-        if (mon.party_slot != null) {
-            partyBySlot[mon.party_slot] = mon;
-        }
-    }
-
-    const selected =
-        (selectedId && localMonsters.find((m) => m.id === selectedId)) ||
-        localMonsters[0] ||
-        null;
-
-    return (
-        <div
-            style={{
-                display: "flex",
-                gap: "1.5rem",
-                alignItems: "flex-start",
-                minHeight: 260,
-            }}
-        >
-            {/* 좌측: 가챠 + 파티 + 벤치 */}
-            <div
-                style={{
-                    flex: "0 0 320px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                }}
-            >
-                {/* 가챠 버튼 */}
+        const { monsters } = props;
+    
+            const enhancedMonsters = useMemo(
+                () => (monsters ?? []).map((m) => enhanceOwned(m)),
+                [monsters],
+            );
+    
+            const [selectedMonsterId, setSelectedMonsterId] = useState<string | null>(
+                enhancedMonsters[0]?.id ?? null,
+            );
+    
+            const hasMonsters = enhancedMonsters.length > 0;
+    
+            const selectedMonster =
+                enhancedMonsters.find((m) => m.id === selectedMonsterId) ?? null;
+    
+            const handleSelectMonster = (monsterId: string) => {
+                setSelectedMonsterId(monsterId);
+            };
+    
+            const handleFreeGachaClick = async () => {
+                if (!props.onPullFreeGacha) return;
+                try {
+                        await props.onPullFreeGacha();
+                    } catch (err) {
+                        console.error("[MonstersTab] onPullFreeGacha error", err);
+                    }
+            };
+    
+            if (props.collectionLoading) {
+                return (
+                        <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                                보유 몬스터를 불러오는 중입니다…
+                            </div>
+                    );
+            }
+    
+            if (props.collectionError) {
+                return (
+                        <div style={{ fontSize: 13, color: "#f97373" }}>
+                                보유 몬스터를 불러오는 중 오류가 발생했습니다.
+                                <br />
+                                <span style={{ fontSize: 11, opacity: 0.8 }}>
+                    {props.collectionError}
+                                </span>
+                            </div>
+                    );
+            }
+    
+            if (!hasMonsters) {
+                return (
+                        <div style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.6 }}>
+                                아직 보유한 몬스터가 없습니다.
+                                <br />
+                                수업 중 레이드를 클리어하면 파트너를 얻을 수 있어요.
+                            </div>
+                    );
+            }
+    
+            return (
                 <div
-                    style={{
-                        padding: "0.75rem 1rem",
-                        borderRadius: "0.75rem",
-                        background: "rgba(0,0,0,0.35)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "0.5rem",
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontSize: "0.85rem",
-                                opacity: 0.8,
-                            }}
-                        >
-                            가챠 (수업 보상)
-                        </div>
-                        <div
-                            style={{
-                                fontSize: "0.8rem",
-                                opacity: 0.6,
-                            }}
-                        >
-                            Gems / Shards 사용 예정
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handlePullFree}
-                        disabled={gachaBusy}
-                        style={{
+               style={{
+                        display: "flex",
+                            gap: "1rem",
+                            alignItems: "flex-start",
                             width: "100%",
-                            padding: "0.6rem 0.75rem",
-                            borderRadius: "999px",
-                            border: "none",
-                            fontSize: "0.9rem",
-                            fontWeight: 600,
-                            cursor: gachaBusy ? "default" : "pointer",
-                            background:
-                                "linear-gradient(135deg, #3b82f6, #2563eb, #0ea5e9)",
-                            color: "#fff",
-                            boxShadow:
-                                "0 8px 18px rgba(37,99,235,0.45), 0 0 0 1px rgba(255,255,255,0.05)",
+                            minHeight: 220,
                         }}
-                    >
-                        {gachaBusy ? "소환 중…" : "무료 소환 1회"}
-                    </button>
-                </div>
-
-                {/* 파티 1~3번 */}
+            >
+                {/* 좌측: 몬스터 목록 */}
                 <div
-                    style={{
-                        padding: "0.75rem 1rem",
-                        borderRadius: "0.75rem",
-                        background: "rgba(0,0,0,0.35)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                    }}
+                style={{
+                            flex: "1 1 0%",
+                                maxHeight: 260,
+                                overflowY: "auto",
+                                paddingRight: 4,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.35rem",
+                            }}
                 >
-                    <div
-                        style={{
-                            fontSize: "0.85rem",
-                            marginBottom: "0.4rem",
-                            opacity: 0.8,
-                        }}
-                    >
-                        파티 편성
-                    </div>
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "0.6rem",
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        {partySlots.map((slot) => {
-                            const mon = partyBySlot[slot];
-                            const iconUrl = mon
-                                ? getMonsterIcon(mon.species_id)
-                                : null;
-
-                            return (
-                                <button
-                                    key={slot}
-                                    type="button"
-                                    onClick={() => mon && setSelectedId(mon.id)}
-                                    style={{
-                                        flex: 1,
-                                        minHeight: 92,
-                                        borderRadius: "0.75rem",
-                                        border:
-                                            selected && mon && selected.id === mon.id
-                                                ? "1px solid rgba(96,165,250,0.9)"
-                                                : "1px solid rgba(255,255,255,0.06)",
-                                        background: mon
-                                            ? "radial-gradient(circle at 0% 0%, rgba(96,165,250,0.28), transparent 55%), rgba(15,23,42,0.85)"
-                                            : "rgba(15,23,42,0.8)",
-                                        padding: "0.4rem 0.5rem",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: "0.25rem",
-                                        cursor: mon ? "pointer" : "default",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            fontSize: "0.75rem",
-                                            opacity: 0.75,
-                                        }}
-                                    >
-                                        파티 {slot}번
-                                    </div>
-                                    {mon ? (
-                                        <>
-                                            {iconUrl && (
-                                                <div
-                                                    style={{
-                                                        width: 40,
-                                                        height: 40,
-                                                        borderRadius: 999,
-                                                        overflow: "hidden",
-                                                        background:
-                                                            "rgba(15,23,42,0.9)",
-                                                    }}
-                                                >
-                                                    <img
-                                                        src={iconUrl}
-                                                        alt={mon.displayName}
-                                                        style={{
-                                                            width: "100%",
-                                                            height: "100%",
-                                                            imageRendering:
-                                                                "pixelated",
-                                                            objectFit: "contain",
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-                                            <div
-                                                style={{
-                                                    fontSize: "0.8rem",
-                                                    marginTop: "0.1rem",
-                                                }}
-                                            >
-                                                {mon.displayName}
-                                            </div>
-                                            <div
-                                                style={{
-                                                    fontSize: "0.75rem",
-                                                    opacity: 0.7,
-                                                }}
-                                            >
-                                                Lv.{mon.level}
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div
-                                            style={{
-                                                fontSize: "0.8rem",
-                                                opacity: 0.6,
-                                                marginTop: "0.4rem",
-                                            }}
-                                        >
-                                            빈 슬롯
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* 벤치 몬스터 목록 */}
-                <div
-                    style={{
-                        padding: "0.75rem 1rem",
-                        borderRadius: "0.75rem",
-                        background: "rgba(0,0,0,0.35)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "0.4rem",
-                        }}
-                    >
-                        <div
-                            style={{
-                                fontSize: "0.85rem",
-                                opacity: 0.8,
-                            }}
-                        >
-                            몬스터 목록
-                        </div>
-                        <div
-                            style={{
-                                fontSize: "0.75rem",
-                                opacity: 0.6,
-                            }}
-                        >
-                            {localMonsters.length} 마리 보유
-                        </div>
-                    </div>
-
-                    {localMonsters.length === 0 ? (
-                        <div
-                            style={{
-                                fontSize: "0.8rem",
-                                opacity: 0.7,
-                                padding: "0.5rem 0.2rem",
-                            }}
-                        >
-                            아직 보유한 몬스터가 없습니다.
-                            <br />
-                            무료 소환으로 첫 파트너를 뽑아 보세요.
-                        </div>
-                    ) : (
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill,minmax(120px,1fr))",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            {localMonsters.map((mon) => {
-                                const iconUrl = getMonsterIcon(mon.species_id);
-                                const isSelected = selected && mon.id === selected.id;
-
-                                return (
-                                    <button
-                                        key={mon.id}
+                    {enhancedMonsters.map((m) => {
+                                const isSelected = m.id === selectedMonsterId;
+                                const anyMon = m as any;
+                                const partySlot = anyMon.party_slot as number | null;
+            
+                                    return (
+                                        <button
+                            key={m.id}
                                         type="button"
-                                        onClick={() => setSelectedId(mon.id)}
-                                        style={{
+                                        onClick={() => handleSelectMonster(m.id)}
+                                        style={{ 
                                             textAlign: "left",
-                                            borderRadius: "0.75rem",
-                                            border: isSelected
-                                                ? "1px solid rgba(96,165,250,0.95)"
-                                                : "1px solid rgba(255,255,255,0.06)",
-                                            background: isSelected
-                                                ? "radial-gradient(circle at 0% 0%, rgba(37,99,235,0.4), rgba(15,23,42,0.95))"
-                                                : "rgba(15,23,42,0.9)",
-                                            padding: "0.45rem 0.55rem",
-                                            display: "flex",
-                                            flexDirection: "row",
-                                            alignItems: "center",
-                                            gap: "0.4rem",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        {iconUrl && (
-                                            <div
-                                                style={{
-                                                    width: 40,
-                                                    height: 40,
-                                                    borderRadius: "0.65rem",
-                                                    overflow: "hidden",
-                                                    background:
-                                                        "radial-gradient(circle at 0% 0%, rgba(148,163,184,0.35), rgba(15,23,42,1))",
+                                                   width: "100%",
+                                                    borderRadius: 8,
+                                                    border: isSelected
+                                                    ? "1px solid rgba(96,165,250,0.8)"
+                                                        : "1px solid rgba(31,41,55,1)",
+                                                    backgroundColor: isSelected
+                                                    ? "rgba(30,64,175,0.7)"
+                                                        : "rgba(15,23,42,0.85)",
+                                                    padding: "0.4rem 0.6rem",
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    cursor: "pointer",
+                                                    gap: "0.5rem",
                                                 }}
+                                    >
+                                        <div>
+                                                <div
+                                                    className="text-sm"
+                                                    style={{ color: "#e5e7eb", fontWeight: 600 }}
+                                                >
+                                                    {m.displayName}
+                                                </div>
+                                            <div
+                                    className="text-xs"
+                                                style={{ color: "#9ca3af", marginTop: 2 }}
                                             >
-                                                <img
-                                                    src={iconUrl}
-                                                    alt={mon.displayName}
-                                                    style={{
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        imageRendering:
-                                                            "pixelated",
-                                                        objectFit: "contain",
-                                                    }}
-                                                />
+                                                Lv.{m.level} · {m.statusText}
+                                            </div>
+                                        </div>
+                                        {partySlot && (
+                                                <div
+                                    className="text-xs"
+                                                style={{
+                                                        padding: "0.15rem 0.5rem",
+                                                            borderRadius: 999,
+                                                            border: "1px solid rgba(156,163,175,0.6)",
+                                                            color: "#e5e7eb",
+                                                        }}
+                                            >
+                                                파티 {partySlot}번
                                             </div>
                                         )}
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: "0.1rem",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    fontSize: "0.8rem",
-                                                }}
-                                            >
-                                                {mon.displayName}
-                                            </div>
-                                            <div
-                                                style={{
-                                                    fontSize: "0.75rem",
-                                                    opacity: 0.75,
-                                                }}
-                                            >
-                                                Lv.{mon.level} · {mon.statusText}
-                                            </div>
-                                        </div>
                                     </button>
                                 );
                             })}
+                </div>
+    
+                    {/* 우측: 선택한 몬스터 상세 + 무료 뽑기 버튼 */}
+                <div
+                style={{
+                            flex: "0 0 230px",
+                                borderRadius: 12,
+                                border: "1px solid rgba(31,41,55,1)",
+                                background:
+                                "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.8))",
+                                padding: "0.75rem 0.9rem",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.4rem",
+                            }}
+                >
+                    <div
+                    style={{
+                                display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: 4,
+                                }}
+                    >
+                        <div
+                        className="text-xs"
+                            style={{ color: "#9ca3af", letterSpacing: 0.2 }}
+                        >
+                            선택한 파트너
                         </div>
+                        {props.onPullFreeGacha && (
+                                    <button
+                            type="button"
+                                onClick={handleFreeGachaClick}
+                                style={{
+                                        padding: "0.25rem 0.6rem",
+                                            borderRadius: 999,
+                                            border: "1px solid rgba(96,165,250,0.8)",
+                                            backgroundColor: "rgba(30,64,175,0.6)",
+                                            color: "#e5e7eb", 
+                                            fontSize: 11,
+                                            cursor: "pointer",
+                                        }}
+                            >
+                                무료 소환
+                            </button>
+                        )}
+                    </div>
+    
+                        {!selectedMonster ? (
+                            <div
+                        className="text-xs"
+                            style={{ color: "#9ca3af", lineHeight: 1.5 }}
+                        >
+                            왼쪽 목록에서 몬스터를 선택해 주세요.
+                        </div>
+                    ) : (
+                            <>
+                                <div
+                                    className="text-sm"
+                                    style={{
+                                            color: "#e5e7eb",
+                                                                               fontWeight: 600,
+                                                                               marginBottom: 2,
+                                                                           }}
+                                >
+                                    {selectedMonster.displayName}
+                                </div>
+                                <div
+                            className="text-xs"
+                                style={{ color: "#9ca3af", marginBottom: 4 }}
+                            >
+                                Lv.{selectedMonster.level} · {selectedMonster.statusText}
+                            </div>
+                            <div
+                            className="text-xs"
+                                style={{ color: "#9ca3af", lineHeight: 1.5 }}
+                            >
+                                앞으로는 여기에서 개체값, 기술, 레이드 기록 등을
+                                자세히 보여 줄 예정입니다.
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
-
-            {/* 우측: 선택된 몬스터 상세 프로필 */}
-            <div
-                style={{
-                    flex: "1 1 auto",
-                    borderRadius: "0.9rem",
-                    background:
-                        "radial-gradient(circle at 0% 0%, rgba(59,130,246,0.18), rgba(15,23,42,0.96))",
-                    border: "1px solid rgba(148,163,184,0.35)",
-                    padding: "1rem 1.25rem",
-                    minHeight: 220,
-                }}
-            >
-                <div
-                    style={{
-                        fontSize: "0.85rem",
-                        opacity: 0.8,
-                        marginBottom: "0.5rem",
-                    }}
-                >
-                    몬스터 프로필
-                </div>
-                {!selected ? (
-                    <div
-                        style={{
-                            fontSize: "0.9rem",
-                            opacity: 0.75,
-                            marginTop: "0.5rem",
-                        }}
-                    >
-                        왼쪽에서 몬스터를 선택하면 상세 정보가 표시됩니다.
-                    </div>
-                ) : (
-                    <div
-                        style={{
-                            display: "flex",
-                            gap: "1rem",
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 96,
-                                height: 96,
-                                borderRadius: "1rem",
-                                overflow: "hidden",
-                                background:
-                                    "radial-gradient(circle at 0% 0%, rgba(96,165,250,0.4), rgba(15,23,42,1))",
-                                boxShadow:
-                                    "0 12px 30px rgba(15,23,42,0.9), 0 0 0 1px rgba(148,163,184,0.6)",
-                            }}
-                        >
-                            {getMonsterIcon(selected.species_id) && (
-                                <img
-                                    src={getMonsterIcon(selected.species_id)!}
-                                    alt={selected.displayName}
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        imageRendering: "pixelated",
-                                        objectFit: "contain",
-                                    }}
-                                />
-                            )}
-                        </div>
-
-                        <div
-                            style={{
-                                flex: 1,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.25rem",
-                            }}
-                        >
-                            <div
-                                style={{
-                                    fontSize: "1rem",
-                                    fontWeight: 600,
-                                }}
-                            >
-                                {selected.displayName}
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: "0.85rem",
-                                    opacity: 0.8,
-                                }}
-                            >
-                                Lv.{selected.level} · {selected.statusText}
-                            </div>
-                            <div
-                                style={{
-                                    marginTop: "0.4rem",
-                                    fontSize: "0.8rem",
-                                    opacity: 0.75,
-                                }}
-                            >
-                                앞으로 레벨·진화·스킬 정보, 타입 상성 같은 상세 스탯은
-                                여기에서 확인할 수 있게 확장하면 좋을 것 같아.
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-
+        );
+    }
 
 type ProfileTabProps = {
     profile?: any;
