@@ -260,6 +260,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         gameSessionId={gameSessionId}
                         studentId={studentId}
                         profileId={profile?.id ?? null}
+                        profile={profile ?? null}
                         onQuizAnswer={onQuizAnswer}
                         onBattleEnd={studentId ? handleBattleEnd : undefined}
                     />
