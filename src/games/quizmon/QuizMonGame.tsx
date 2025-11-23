@@ -1278,12 +1278,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     background: "rgba(15,23,42,0.98)",
                                     border: "1px solid #1f2937",
                                     boxShadow: "0 22px 60px rgba(0,0,0,0.8)",
+                                    display: "flex",
+                                    flexDirection: "column",
                                 }}
                             >
                                 {/* 헤더 + 탭 */}
-                                <div style={{ marginBottom: 16 }}>
-                                    <div style={{ fontSize: 12, color: "#9ca3af" }}>QuizMon Class · Beta</div>
-                                    <div style={{ fontSize: 18, fontWeight: 600, color: "#e5e7eb" }}>메인 메뉴</div>
+                                <div style={{ marginBottom: 16, flex: "0 0 auto" }}>
+                                    <div style={{ fontSize: 12, color: "#9ca3af" }}>
+                                        QuizMon Class · Beta
+                                    </div>
+                                    <div style={{ fontSize: 18, fontWeight: 600, color: "#e5e7eb" }}>
+                                        메인 메뉴
+                                    </div>
 
                                     <div
                                         style={{
@@ -1308,8 +1314,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                     border: "none",
                                                     cursor: "pointer",
                                                     background:
-                                                        menuTab === tab.key ? "rgba(59,130,246,0.2)" : "transparent",
-                                                    color: menuTab === tab.key ? "#bfdbfe" : "#9ca3af",
+                                                        menuTab === tab.key
+                                                            ? "rgba(59,130,246,0.2)"
+                                                            : "transparent",
+                                                    color:
+                                                        menuTab === tab.key ? "#bfdbfe" : "#9ca3af",
                                                     fontWeight: menuTab === tab.key ? 600 : 500,
                                                 }}
                                             >
@@ -1319,20 +1328,47 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     </div>
                                 </div>
 
-                                {/* 탭별 내용 */}
-                                {menuTab === "menu" && (
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: 8,
-                                        }}
-                                    >
-                                        {/* ▶ 계속하기 : 진행 중인 배틀이 있을 때만 노출 */}
-                                        {canContinue && (
+                                {/* 탭별 내용: 여기만 세로 스크롤 */}
+                                <div
+                                    style={{
+                                        flex: "1 1 auto",
+                                        minHeight: 0,
+                                        overflowY: "auto",
+                                    }}
+                                >
+                                    {menuTab === "menu" && (
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 8,
+                                            }}
+                                        >
+                                            {/* ▶ 계속하기 : 진행 중인 배틀이 있을 때만 노출 */}
+                                            {canContinue && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleContinue}
+                                                    style={{
+                                                        width: "100%",
+                                                        padding: "0.5rem 0.75rem",
+                                                        borderRadius: 6,
+                                                        border: "1px solid #4b5563",
+                                                        backgroundColor: "#e5e7eb0d",
+                                                        color: "#e5e7eb",
+                                                        fontSize: 13,
+                                                        textAlign: "left",
+                                                        cursor: "pointer",
+                                                    }}
+                                                >
+                                                    ▶ 계속하기
+                                                </button>
+                                            )}
+
+                                            {/* 새 레이드 시작 (던전) */}
                                             <button
                                                 type="button"
-                                                onClick={handleContinue}
+                                                onClick={() => setViewState("dungeon")}
                                                 style={{
                                                     width: "100%",
                                                     padding: "0.5rem 0.75rem",
@@ -1345,66 +1381,51 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                     cursor: "pointer",
                                                 }}
                                             >
-                                                ▶ 계속하기
+                                                새 레이드 시작 (던전)
                                             </button>
-                                        )}
 
-                                        {/* 새 레이드 시작 (던전) */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setViewState("dungeon")}
-                                            style={{
-                                                width: "100%",
-                                                padding: "0.5rem 0.75rem",
-                                                borderRadius: 6,
-                                                border: "1px solid #4b5563",
-                                                backgroundColor: "#e5e7eb0d",
-                                                color: "#e5e7eb",
-                                                fontSize: 13,
-                                                textAlign: "left",
-                                                cursor: "pointer",
-                                            }}
-                                        >
-                                            새 레이드 시작 (던전)
-                                        </button>
+                                            {/* 가챠 (보상 뽑기) */}
+                                            <button
+                                                type="button"
+                                                onClick={() => setViewState("gacha")}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "0.5rem 0.75rem",
+                                                    borderRadius: 6,
+                                                    border: "1px solid #4b5563",
+                                                    backgroundColor: "#e5e7eb0d",
+                                                    color: "#e5e7eb",
+                                                    fontSize: 13,
+                                                    textAlign: "left",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                가챠 (보상 뽑기)
+                                            </button>
+                                        </div>
+                                    )}
 
-                                        {/* 가챠 (보상 뽑기) */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setViewState("gacha")}
-                                            style={{
-                                                width: "100%",
-                                                padding: "0.5rem 0.75rem",
-                                                borderRadius: 6,
-                                                border: "1px solid #4b5563",
-                                                backgroundColor: "#e5e7eb0d",
-                                                color: "#e5e7eb",
-                                                fontSize: 13,
-                                                textAlign: "left",
-                                                cursor: "pointer",
-                                            }}
-                                        >
-                                            가챠 (보상 뽑기)
-                                        </button>
-                                    </div>
-                                )}
+                                    {menuTab === "monsters" && (
+                                        <PartyAndDexPanel
+                                            profile={localProfile}
+                                            monsters={props.monsters}
+                                            collectionLoading={props.collectionLoading}
+                                            collectionError={props.collectionError}
+                                            onPullFreeGacha={props.onPullFreeGacha}
+                                        />
+                                    )}
 
-                                {menuTab === "monsters" && (
-                                    <PartyAndDexPanel
-                                        profile={localProfile}
-                                        monsters={props.monsters}
-                                        collectionLoading={props.collectionLoading}
-                                        collectionError={props.collectionError}
-                                        onPullFreeGacha={props.onPullFreeGacha}
-                                    />
-                                )}
-
-                                {menuTab === "profile" && (
-                                    <ProfileTab profile={props.profile} lastRaidResult={props.lastRaidResult} />
-                                )}
+                                    {menuTab === "profile" && (
+                                        <ProfileTab
+                                            profile={props.profile}
+                                            lastRaidResult={props.lastRaidResult}
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
+
 
 
                     {/* 🏰 던전 선택 오버레이 */}
