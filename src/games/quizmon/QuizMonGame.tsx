@@ -1,5 +1,5 @@
 // src/games/quizmon/QuizMonGame.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
     BattleState,
     Move,
@@ -1968,11 +1968,16 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
 // 몬스터 탭용 타입
 type MonstersTabProps = {
-    profile: QuizmonProfileRow | null;
+    // profile은 지금 안 쓰고 있어서 optional로 두고, 나중에 쓸 수 있게만 남겨둠
+    profile?: QuizmonProfileRow | null;
     monsters: QuizmonOwnedMonsterRow[];
-    collectionLoading: boolean;
-    collectionError: string | null;
-    onPullFreeGacha: () => Promise<QuizmonOwnedMonsterRow | null>;
+
+    // 상위 QuizMonGameProps와 동일하게 optional
+    collectionLoading?: boolean;
+    collectionError?: string | null;
+
+    // 상위와 똑같이 void | Promise<void>
+    onPullFreeGacha?: () => void | Promise<void>;
 };
 
 type OwnedMonsterWithStatus = QuizmonOwnedMonsterRow & {
@@ -2001,8 +2006,8 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): OwnedMonsterWithStatus {
 function MonstersTab(props: MonstersTabProps) {
     const {
         monsters,
-        collectionLoading,
-        collectionError,
+        collectionLoading = false,
+        collectionError = null,
         onPullFreeGacha,
     } = props;
 
@@ -2026,20 +2031,17 @@ function MonstersTab(props: MonstersTabProps) {
     }, [monsters, selectedId]);
 
     const handlePullFree = useCallback(async () => {
-        // 콜백이 아직 안 꽂혀 있는 경우 그냥 무시
-        if (!onPullFreeGacha) return;
-
+        if (!onPullFreeGacha) return;   // 콜백이 안 들어온 경우 바로 반환
         if (gachaBusy) return;
         setGachaBusy(true);
         try {
-            const inserted = await onPullFreeGacha();
-            if (inserted) {
-                setSelectedId(inserted.id);
-            }
+            await onPullFreeGacha();
+            // 부모에서 monsters를 갱신해 주면 useEffect로 목록이 동기화됨
         } finally {
             setGachaBusy(false);
         }
     }, [gachaBusy, onPullFreeGacha]);
+
 
     if (collectionLoading) {
         return (
