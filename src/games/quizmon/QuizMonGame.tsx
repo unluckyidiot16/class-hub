@@ -2429,7 +2429,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         )}
                                     </div>
 
-                                    {/* 오른쪽: 슬롯 라벨 + ID */}
+                                    {/* 오른쪽: 슬롯 라벨 + HP 정보 */}
                                     <div
                                         style={{
                                             textAlign: "right",
@@ -2440,9 +2440,20 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     >
                                         <div>{slotLabel}</div>
                                         {isFilled && (
-                                            <div style={{ opacity: 0.6 }}>
-                                                ID: {mon!.id.slice(0, 4)}...
-                                                {mon!.id.slice(-4)}
+                                            <div style={{ opacity: 0.8 }}>
+                                                {typeof hp === "number" &&
+                                                typeof maxHp === "number" &&
+                                                maxHp > 0 ? (
+                                                    <>
+                                                        HP{" "}
+                                                        {isFainted
+                                                            ? 0
+                                                            : hp}{" "}
+                                                        / {maxHp}
+                                                    </>
+                                                ) : (
+                                                    <>HP 정보 없음</>
+                                                )}
                                             </div>
                                         )}
                                     </div>
