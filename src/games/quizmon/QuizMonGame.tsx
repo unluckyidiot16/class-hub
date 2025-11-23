@@ -1964,11 +1964,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
 // 📘 탭용 서브 컴포넌트
 // =========================
 
+// 기존 MonstersTabProps / MonstersTab 전부 삭제 후 이걸로 교체
+
 type MonstersTabProps = {
     monsters?: QuizmonOwnedMonsterRow[];
     collectionLoading?: boolean;
     collectionError?: string | null;
     onPullFreeGacha?: () => void | Promise<void>;
+};
+
+// current_hp / is_fainted 같은 필드를 optional 로 확장해서 쓴다
+type OwnedMonsterWithStatus = QuizmonOwnedMonsterRow & {
+    current_hp?: number | null;
+    is_fainted?: boolean | null;
 };
 
 function MonstersTab({
@@ -1977,69 +1985,335 @@ function MonstersTab({
                          collectionError,
                          onPullFreeGacha,
                      }: MonstersTabProps) {
+    const baseMonsters = (monsters ?? []) as OwnedMonsterWithStatus[];
+
+    const [localMonsters, setLocalMonsters] =
+        useState<OwnedMonsterWithStatus[]>(baseMonsters);
+    const [selectedId, setSelectedId] = useState<string | null>(
+        baseMonsters[0]?.id ?? null,
+    );
+    const [savingParty, setSavingParty] = useState(false);
+
+    // 상위에서 monsters 가 갱신되면 로컬 상태도 동기화
+    useEffect(() => {
+        const next = (monsters ?? []) as OwnedMonsterWithStatus[];
+        setLocalMonsters(next);
+
+        if (!next.some((m) => m.id === selectedId)) {
+            setSelectedId(next[0]?.id ?? null);
+        }
+    }, [monsters]);
+
     if (collectionLoading) {
-        return <div style={{ fontSize: 13, color: "#9ca3af" }}>몬스터 정보를 불러오는 중...</div>;
+        return (
+            <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                몬스터 정보를 불러오는 중...
+            </div>
+        );
     }
     if (collectionError) {
-        return <div style={{ fontSize: 13, color: "#fca5a5" }}>{collectionError}</div>;
+        return (
+            <div style={{ fontSize: 13, color: "#fca5a5" }}>
+                {collectionError}
+            </div>
+        );
     }
 
-    return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <button
-                onClick={() => onPullFreeGacha?.()}
-                style={{
-                    alignSelf: "flex-start",
-                    padding: "6px 12px",
-                    borderRadius: 999,
-                    background: "#1d4ed8",
-                    color: "white",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 13,
-                }}
-            >
-                무료 소환 1회
-            </button>
+    const party = localMonsters
+        .filter((m) => m.party_slot)
+        .sort((a, b) => (a.party_slot ?? 0) - (b.party_slot ?? 0));
+    const bench = localMonsters.filter((m) => !m.party_slot);
+    const selected =
+        localMonsters.find((m) => m.id === selectedId) ?? party[0] ?? bench[0] ?? null;
 
+    const handleToggleParty = async (monster: OwnedMonsterWithStatus) => {
+        if (savingParty) return;
+        setSavingParty(true);
+
+        try {
+            const current = [...localMonsters];
+
+            const updates: { id: string; party_slot: number | null }[] = [];
+
+            if (monster.party_slot) {
+                // 이미 파티에 있으면 해제
+                updates.push({ id: monster.id, party_slot: null });
+            } else {
+                // 비어 있는 슬롯 1~3 중 하나 찾기
+                const usedSlots = new Set(
+                    current
+                        .filter((m) => m.party_slot != null)
+                        .map((m) => m.party_slot as number),
+                );
+
+                let freeSlot: number | null = null;
+                for (let slot = 1; slot <= 3; slot++) {
+                    if (!usedSlots.has(slot)) {
+                        freeSlot = slot;
+                        break;
+                    }
+                }
+
+                // 모두 찼으면 1번 슬롯과 교체
+                if (!freeSlot) {
+                    const first = current.find((m) => m.party_slot === 1);
+                    if (first) {
+                        updates.push({ id: first.id, party_slot: null });
+                    }
+                    freeSlot = 1;
+                }
+
+                updates.push({ id: monster.id, party_slot: freeSlot });
+            }
+
+            // DB 반영 (간단하게 개별 update)
+            for (const u of updates) {
+                const { error } = await supabase
+                    .from("quizmon_owned_monsters")
+                    .update({ party_slot: u.party_slot })
+                    .eq("id", u.id);
+
+                if (error) {
+                    console.error("[MonstersTab] update party_slot error", error);
+                    throw error;
+                }
+            }
+
+            // 로컬 상태도 갱신
+            setLocalMonsters((prev) =>
+                prev.map((m) => {
+                    const u = updates.find((x) => x.id === m.id);
+                    return u ? { ...m, party_slot: u.party_slot } : m;
+                }),
+            );
+        } catch (e) {
+            console.error("[MonstersTab] toggle party error", e);
+            // 필요하면 토스트/알럿으로 안내
+        } finally {
+            setSavingParty(false);
+        }
+    };
+
+    return (
+        <div
+            style={{
+                display: "flex",
+                gap: 16,
+            }}
+        >
+            {/* 좌측: 파티 요약 + 보유 몬스터 리스트 */}
             <div
                 style={{
-                    maxHeight: 220,
-                    overflowY: "auto",
-                    paddingRight: 4,
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-                    gap: 8,
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
                 }}
             >
-                {monsters.map((m) => (
-                    <div
-                        key={m.id}
-                        style={{
-                            borderRadius: 12,
-                            padding: 8,
-                            background: "rgba(15,23,42,0.9)",
-                            border: "1px solid rgba(51,65,85,0.9)",
-                            fontSize: 12,
-                            color: "#e5e7eb",
-                        }}
-                    >
-                        <div>No.{m.species_id}</div>
-                        <div>Lv.{m.level}</div>
-                        {m.party_slot && (
-                            <div style={{ fontSize: 11, color: "#9ca3af" }}>파티 {m.party_slot}번</div>
+                <button
+                    type="button"
+                    onClick={() => onPullFreeGacha?.()}
+                    style={{
+                        alignSelf: "flex-start",
+                        padding: "6px 12px",
+                        borderRadius: 999,
+                        background: "#1d4ed8",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: 13,
+                    }}
+                >
+                    무료 소환 1회
+                </button>
+
+                {/* 파티 1~3번 슬롯 요약 */}
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                        gap: 8,
+                        fontSize: 12,
+                    }}
+                >
+                    {[1, 2, 3].map((slot) => {
+                        const mon = party.find((m) => m.party_slot === slot);
+                        return (
+                            <div
+                                key={slot}
+                                style={{
+                                    borderRadius: 10,
+                                    padding: 8,
+                                    background: "rgba(15,23,42,0.9)",
+                                    border: "1px solid rgba(55,65,81,0.9)",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#9ca3af",
+                                        marginBottom: 4,
+                                    }}
+                                >
+                                    파티 {slot}번
+                                </div>
+                                {mon ? (
+                                    <>
+                                        <div>No.{mon.species_id}</div>
+                                        <div>Lv.{mon.level}</div>
+                                    </>
+                                ) : (
+                                    <div style={{ color: "#6b7280" }}>빈 슬롯</div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* 보유 몬스터 리스트 */}
+                <div
+                    style={{
+                        maxHeight: 220,
+                        overflowY: "auto",
+                        paddingRight: 4,
+                        display: "grid",
+                        gridTemplateColumns:
+                            "repeat(auto-fill, minmax(140px, 1fr))",
+                        gap: 8,
+                    }}
+                >
+                    {localMonsters.map((m) => {
+                        const isSelected = m.id === selectedId;
+                        const isInParty = !!m.party_slot;
+                        const isFainted = m.is_fainted ?? false;
+
+                        return (
+                            <div
+                                key={m.id}
+                                onClick={() => setSelectedId(m.id)}
+                                style={{
+                                    borderRadius: 12,
+                                    padding: 8,
+                                    background: isSelected
+                                        ? "rgba(30,64,175,0.7)"
+                                        : "rgba(15,23,42,0.9)",
+                                    border: isSelected
+                                        ? "1px solid rgba(129,140,248,0.9)"
+                                        : "1px solid rgba(51,65,85,0.9)",
+                                    fontSize: 12,
+                                    color: "#e5e7eb",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <div>No.{m.species_id}</div>
+                                <div>Lv.{m.level}</div>
+                                {typeof m.current_hp === "number" && (
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                                        HP {m.current_hp}
+                                        {isFainted ? " (기절)" : ""}
+                                    </div>
+                                )}
+                                {m.party_slot && (
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                                        파티 {m.party_slot}번
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        void handleToggleParty(m);
+                                    }}
+                                    disabled={savingParty}
+                                    style={{
+                                        marginTop: 6,
+                                        width: "100%",
+                                        padding: "4px 6px",
+                                        borderRadius: 6,
+                                        border: "1px solid #4b5563",
+                                        backgroundColor: isInParty
+                                            ? "rgba(15,23,42,0.9)"
+                                            : "rgba(30,64,175,0.9)",
+                                        color: "#e5e7eb",
+                                        fontSize: 11,
+                                        cursor: savingParty ? "default" : "pointer",
+                                    }}
+                                >
+                                    {isInParty ? "파티에서 제외" : "파티에 배치"}
+                                </button>
+                            </div>
+                        );
+                    })}
+
+                    {localMonsters.length === 0 && (
+                        <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                            아직 보유한 몬스터가 없습니다.
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 우측: 선택 몬스터 프로필 */}
+            <div
+                style={{
+                    width: 260,
+                    minWidth: 220,
+                    alignSelf: "stretch",
+                    borderRadius: 12,
+                    padding: 12,
+                    background: "rgba(15,23,42,0.95)",
+                    border: "1px solid rgba(55,65,81,0.9)",
+                    fontSize: 12,
+                }}
+            >
+                <div
+                    style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        marginBottom: 6,
+                    }}
+                >
+                    몬스터 프로필
+                </div>
+                {selected ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <div>No.{selected.species_id}</div>
+                        <div>레벨: {selected.level}</div>
+                        <div>경험치: {selected.exp}</div>
+                        {typeof selected.current_hp === "number" && (
+                            <div>현재 HP: {selected.current_hp}</div>
+                        )}
+                        {selected.party_slot && (
+                            <div>파티 슬롯: {selected.party_slot}번</div>
+                        )}
+                        {"is_fainted" in selected && (
+                            <div>
+                                상태:{" "}
+                                {selected.is_fainted ? "기절 (회복 필요)" : "정상"}
+                            </div>
                         )}
                     </div>
-                ))}
-                {monsters.length === 0 && (
-                    <div style={{ fontSize: 13, color: "#9ca3af" }}>
-                        아직 보유한 몬스터가 없습니다.
+                ) : (
+                    <div style={{ color: "#9ca3af" }}>
+                        왼쪽에서 몬스터를 선택하면 상세 정보가 표시됩니다.
                     </div>
                 )}
             </div>
         </div>
     );
 }
+
 
 type ProfileTabProps = {
     profile?: any;
