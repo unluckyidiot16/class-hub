@@ -1989,9 +1989,9 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     const displayId =
         (anyMon.display_id as string | null) ??
         (rawSpeciesId
-            ? (rawSpeciesId.startsWith("poke-")
+            ? rawSpeciesId.startsWith("poke-")
                 ? rawSpeciesId
-                : `poke-${rawSpeciesId.toString().padStart(4, "0")}`)
+                : `poke-${rawSpeciesId.toString().padStart(4, "0")}`
             : "????");
 
     const displayName = `포켓몬 #${displayId}`;
@@ -2115,40 +2115,35 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     }, [enhancedMonsters, partyIds]);
 
     // 도감(보유 몬스터) – 종별 카운트 + 대표 개체
-    const dexEntries = useMemo(
-        () => {
-            const bySpecies = new Map<
-                string,
-                { speciesId: string; count: number; sample: EnhancedOwnedMonster }
-            >();
+    const dexEntries = useMemo(() => {
+        const bySpecies = new Map<
+            string,
+            { speciesId: string; count: number; sample: EnhancedOwnedMonster }
+        >();
 
-            for (const mon of enhancedMonsters) {
-                const sid = String((mon as any).species_id ?? "");
-                if (!sid) continue;
-                const existing = bySpecies.get(sid);
-                if (existing) {
-                    existing.count += 1;
-                } else {
-                    bySpecies.set(sid, {
-                        speciesId: sid,
-                        count: 1,
-                        sample: mon,
-                    });
-                }
+        for (const mon of enhancedMonsters) {
+            const sid = String((mon as any).species_id ?? "");
+            if (!sid) continue;
+            const existing = bySpecies.get(sid);
+            if (existing) {
+                existing.count += 1;
+            } else {
+                bySpecies.set(sid, {
+                    speciesId: sid,
+                    count: 1,
+                    sample: mon,
+                });
             }
+        }
 
-            return Array.from(bySpecies.values()).sort((a, b) =>
-                a.speciesId.localeCompare(b.speciesId),
-            );
-        },
-        [enhancedMonsters],
-    );
+        return Array.from(bySpecies.values()).sort((a, b) =>
+            a.speciesId.localeCompare(b.speciesId),
+        );
+    }, [enhancedMonsters]);
 
-    const trainerName =
-        profile?.trainer_name ??
-        "미지의 트레이너";
+    const trainerName = profile?.trainer_name ?? "미지의 트레이너";
 
-    // 파티 슬롯 클릭 → 해당 슬롯 비우기
+    // 파티 슬롯 클릭 → 해당 슬롯 비우기 (옛 Delete 버튼 기능)
     function handlePartySlotClick(index: number) {
         setPartyIds((prev) => {
             const next = [...prev];
@@ -2158,9 +2153,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     }
 
     // 도감 칸 클릭 → 빈 슬롯이 있으면 배정, 없으면 상세 정보만 변경
-    function handleDexClick(entry: {
-        sample: EnhancedOwnedMonster;
-    }) {
+    function handleDexClick(entry: { sample: EnhancedOwnedMonster }) {
         setSelectedId(entry.sample.id);
         setPartyIds((prev) => {
             // 이미 파티에 있으면 그대로 두고 상세만 변경
@@ -2238,7 +2231,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         )}
                     </div>
 
-                    {/* 파티 슬롯 3개 */}
+                    {/* 파티 슬롯 3개 (Change 이미지 위치) */}
                     <div
                         style={{
                             display: "flex",
@@ -2290,7 +2283,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         ))}
                     </div>
 
-                    {/* 전체 보유 몬스터 리스트 */}
+                    {/* 전체 보유 몬스터 리스트 (Delete 버튼 제거, 표시만) */}
                     <div
                         style={{
                             flex: "1 1 auto",
@@ -2349,8 +2342,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             {mon.displayName}
                                         </div>
                                         <div style={{ opacity: 0.8 }}>
-                                            Lv.
-                                            {(mon as any).level ?? 1} ·{" "}
+                                            Lv.{(mon as any).level ?? 1} ·{" "}
                                             {mon.statusText}
                                         </div>
                                     </div>
@@ -2369,8 +2361,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             </div>
                                         )}
                                         <div style={{ opacity: 0.6 }}>
-                                            ID:{" "}
-                                            {mon.id.slice(0, 4)}...
+                                            ID: {mon.id.slice(0, 4)}...
                                             {mon.id.slice(-4)}
                                         </div>
                                     </div>
@@ -2441,8 +2432,14 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 </div>
             </div>
 
-            {/* 하단: 도감 / 보유 몬스터 (정사각형 그리드) */}
-            <div className="quizmon-card" style={{ flex: "0 0 auto" }}>
+            {/* 하단: 도감 / 보유 몬스터 (정사각형 그리드, Y축 살짝 확대) */}
+            <div
+                className="quizmon-card"
+                style={{
+                    flex: "0 0 auto",
+                    paddingBottom: "0.75rem",
+                }}
+            >
                 <div
                     className="quizmon-card-header"
                     style={{
@@ -2493,8 +2490,9 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     style={{
                         display: "grid",
                         gridTemplateColumns:
-                            "repeat(auto-fill, minmax(4.5rem, 1fr))",
-                        gap: "0.4rem",
+                            "repeat(auto-fill, minmax(5rem, 1fr))",
+                        gap: "0.5rem",
+                        minHeight: "6rem",
                     }}
                 >
                     {dexEntries.map((entry) => {
