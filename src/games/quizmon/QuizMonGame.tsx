@@ -2285,23 +2285,47 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         {partyMonsters.map((mon, idx) => {
                             const slotLabel = `파티 ${idx + 1}번`;
                             const isFilled = !!mon;
-                            const isSelected =
-                                isFilled && selected?.id === mon!.id;
+                            const isSelected = isFilled && selected?.id === mon!.id;
+
+                            // 아이콘용 speciesId → getMonsterIcon
+                            const speciesId = isFilled ? ((mon as any).species_id as string | null) : null;
+                            const iconUrl = speciesId ? getMonsterIcon(speciesId) : null;
+
+                            // HP 게이지 계산
+                            let hpRatio: number | null = null;
+                            let hp: number | null = null;
+                            let maxHp: number | null = null;
+                            let isFainted = false;
+
+                            if (isFilled) {
+                                const anyMon = mon as any;
+                                hp = (anyMon.current_hp as number | null) ?? null;
+                                maxHp = (anyMon.max_hp as number | null) ?? null;
+                                isFainted = Boolean(anyMon.is_fainted);
+
+                                if (typeof hp === "number" && typeof maxHp === "number" && maxHp > 0) {
+                                    hpRatio = Math.max(
+                                        0,
+                                        Math.min(1, isFainted ? 0 : hp / maxHp),
+                                    );
+                                }
+                            }
+
+                            let hpBarColor = "#22c55e";
+                            if (hpRatio !== null) {
+                                if (hpRatio <= 0) hpBarColor = "#ef4444";
+                                else if (hpRatio < 0.25) hpBarColor = "#ef4444";
+                                else if (hpRatio < 0.6) hpBarColor = "#facc15";
+                            }
 
                             return (
                                 <button
                                     key={idx}
                                     type="button"
                                     onClick={(e) => {
-                                        // Ctrl/Command + 클릭 시 해당 슬롯 비우기
-                                        if (
-                                            isFilled &&
-                                            (e.metaKey || e.ctrlKey)
-                                        ) {
-                                            clearPartySlot(
-                                                idx,
-                                                mon!.id as string,
-                                            );
+                                        // Ctrl/Command + 클릭 → 해당 슬롯 비우기
+                                        if (isFilled && (e.metaKey || e.ctrlKey)) {
+                                            clearPartySlot(idx, mon!.id as string);
                                             return;
                                         }
                                         if (isFilled) {
@@ -2313,43 +2337,105 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         textAlign: "left",
                                         padding: "0.5rem 0.75rem",
                                         borderRadius: "0.75rem",
-                                        border:
-                                            "1px solid rgba(148,163,184,0.25)",
+                                        border: "1px solid rgba(148,163,184,0.25)",
                                         background: isSelected
                                             ? "linear-gradient(135deg, rgba(59,130,246,0.45), rgba(37,99,235,0.25))"
                                             : "rgba(15,23,42,0.9)",
                                         marginBottom: "0.4rem",
                                         display: "flex",
-                                        justifyContent: "space-between",
                                         alignItems: "center",
+                                        justifyContent: "space-between",
+                                        gap: "0.6rem",
                                         cursor: "pointer",
                                         fontSize: "0.8rem",
                                     }}
                                 >
-                                    <div>
+                                    {/* 아이콘 영역 */}
+                                    <div
+                                        style={{
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: 999,
+                                            background: "rgba(15,23,42,0.9)",
+                                            border: "1px solid rgba(15,23,42,0.9)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            overflow: "hidden",
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        {isFilled && iconUrl ? (
+                                            <img
+                                                src={iconUrl}
+                                                alt={mon!.displayName}
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "contain",
+                                                    imageRendering: "pixelated",
+                                                }}
+                                            />
+                                        ) : (
+                                            <span
+                                                style={{
+                                                    fontSize: "1.1rem",
+                                                    opacity: 0.6,
+                                                }}
+                                            >
+                        +
+                    </span>
+                                        )}
+                                    </div>
+
+                                    {/* 가운데: 이름 + 상태 + HP바 */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
                                         <div
                                             style={{
                                                 fontWeight: 600,
                                                 marginBottom: "0.1rem",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
                                             }}
                                         >
-                                            {isFilled
-                                                ? mon!.displayName
-                                                : "빈 슬롯"}
+                                            {isFilled ? mon!.displayName : "빈 슬롯"}
                                         </div>
                                         <div style={{ opacity: 0.8 }}>
                                             {isFilled
-                                                ? `Lv.${(mon as any).level ?? 1} · ${
-                                                    mon!.statusText
-                                                }`
+                                                ? `Lv.${(mon as any).level ?? 1} · ${mon!.statusText}`
                                                 : "도감에서 몬스터를 선택하면 자동으로 배치됩니다."}
                                         </div>
+
+                                        {isFilled && hpRatio !== null && (
+                                            <div
+                                                style={{
+                                                    marginTop: 4,
+                                                    height: 6,
+                                                    borderRadius: 999,
+                                                    background: "rgba(15,23,42,1)",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: `${hpRatio * 100}%`,
+                                                        height: "100%",
+                                                        background: hpBarColor,
+                                                        transition: "width 0.2s ease",
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {/* 오른쪽: 슬롯 라벨 + ID */}
                                     <div
                                         style={{
                                             textAlign: "right",
                                             fontSize: "0.75rem",
                                             opacity: 0.85,
+                                            flexShrink: 0,
                                         }}
                                     >
                                         <div>{slotLabel}</div>
@@ -2363,6 +2449,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 </button>
                             );
                         })}
+
 
                         {partyMonsters.every((m) => !m) && (
                             <div
