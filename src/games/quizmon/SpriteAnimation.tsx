@@ -137,24 +137,40 @@ export function SpriteAnimation(props: SpriteAnimationProps) {
 
     // 애니메이션 타이머
     useEffect(() => {
-        if (!frames.length || fps <= 0) return;
+        if (!frames.length || fps <= 0) {
+            return;
+        }
+
+        // 새로운 스프라이트 시퀀스가 들어올 때는 첫 프레임부터
+        setFrameIndex(0);
 
         const intervalMs = 1000 / fps;
+        let stopped = false;
 
         const id = window.setInterval(() => {
             setFrameIndex((prev) => {
+                if (stopped) return prev;
+
                 const next = prev + 1;
+
                 if (next >= frames.length) {
-                    return loop ? 0 : prev;
+                    if (!loop) {
+                        // 마지막 프레임에서 멈추고 더 이상 증가시키지 않음
+                        stopped = true;
+                        return prev;
+                    }
+                    return 0;
                 }
+
                 return next;
             });
         }, intervalMs);
 
         return () => {
+            stopped = true;
             window.clearInterval(id);
         };
-    }, [frames.length, fps, loop]);
+    }, [frames, fps, loop]); // 🔁 frames 배열 전체에 반응
 
     if (error) {
         return null;

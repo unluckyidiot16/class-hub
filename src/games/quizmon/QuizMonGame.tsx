@@ -534,7 +534,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setHasReportedEnd(false);
                 setQuestionIndex(0);
                 setViewState("battle");
-                setHasBattleInitialized(true); // ⭐ 추가
+                setHasBattleInitialized(true);
                 return;
             }
 
@@ -2188,21 +2188,23 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
 
     const displayName = `포켓몬 #${displayId}`;
 
-    let statusText = "정상";
-
     const hp = anyMon.current_hp as number | null;
-    const maxHp = anyMon.max_hp as number | null;
     const isFainted = Boolean(anyMon.is_fainted);
 
-    if (typeof hp === "number" && typeof maxHp === "number" && maxHp > 0) {
-        if (hp <= 0 || isFainted) {
-            statusText = "기절";
-        } else {
-            const ratio = hp / maxHp;
-            if (ratio < 0.25) statusText = `빈사 (${hp}/${maxHp})`;
-            else if (ratio < 0.6) statusText = `부상 (${hp}/${maxHp})`;
-            else statusText = `HP ${hp}/${maxHp}`;
-        }
+    let statusText: string;
+
+    if (isFainted) {
+        statusText = "기절";
+    } else if (hp == null) {
+        // null = 풀피 가정
+        statusText = "HP 풀피";
+    } else if (hp <= 10) {
+        // 숫자 기준은 적당히 잡아도 됨 (레벨/스탯 정의에 따라 조정)
+        statusText = `빈사 (HP ${hp})`;
+    } else if (hp <= 30) {
+        statusText = `부상 (HP ${hp})`;
+    } else {
+        statusText = `HP ${hp}`;
     }
 
     return {
@@ -2211,6 +2213,7 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
         statusText,
     };
 }
+
 
 type PartyAndDexPanelProps = {
     /** 학생의 퀴즈몬 프로필 (트레이너 이름 표시에 사용) */
@@ -2222,11 +2225,12 @@ type PartyAndDexPanelProps = {
     collectionError?: string | null;
     /** 무료 소환 버튼 핸들러(있으면 상단에 표시) */
     onPullFreeGacha?: () => void | Promise<void>;
-    onHealAll?: () => void;
+    /** 전체 회복 버튼 핸들러 (동기/비동기 둘 다 허용) */
+    onHealAll?: () => void | Promise<void>;
     /** 파티 슬롯 변경 시 DB에 저장하고 싶을 때 사용 */
     onSaveParty?: (
         partyIds: (string | null)[],
-    ) => void | Promise<void>; // 🔹 추가
+    ) => void | Promise<void>;
 };
 
 /**
@@ -2376,17 +2380,21 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
     // 파티 배열이 바뀌었고, 수동 조정이 한 번이라도 일어났다면 onSaveParty 호출
     useEffect(() => {
-        if (!props.onSaveParty) return;
         if (!hasManualPartyChange) return;
+        if (!props.onSaveParty) return;
 
-        void (async () => {
-            try {
-                await props.onSaveParty!(partyIds);
-            } catch (err) {
-                console.error("[PartyAndDexPanel] onSaveParty error", err);
-            }
-        })();
+        // 300ms 안에 여러 번 바꾸면 한 번만 저장
+        const timeoutId = window.setTimeout(() => {
+            void props.onSaveParty!(partyIds);
+            // 저장 한 번 끝났으니 플래그 리셋
+            setHasManualPartyChange(false);
+        }, 300);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
     }, [partyIds, hasManualPartyChange, props.onSaveParty]);
+
 
 
     return (
@@ -2471,34 +2479,44 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             const isSelected = isFilled && selected?.id === mon!.id;
 
                             // 아이콘용 speciesId → getMonsterIcon
-                            const speciesId = isFilled ? ((mon as any).species_id as string | null) : null;
+                            const speciesId = isFilled
+                                ? ((mon as any).species_id as string | null)
+                                : null;
                             const iconUrl = speciesId ? getMonsterIcon(speciesId) : null;
 
-                            // HP 게이지 계산
+                            // HP 게이지 계산용 변수들
+                            let hpValue: number | null = null;
+                            let maxHpValue: number | null = null;
                             let hpRatio: number | null = null;
-                            let hp: number | null = null;
-                            let maxHp: number | null = null;
                             let isFainted = false;
 
                             if (isFilled) {
                                 const anyMon = mon as any;
-                                hp = (anyMon.current_hp as number | null) ?? null;
-                                maxHp = (anyMon.max_hp as number | null) ?? null;
+                                const dbHp = anyMon.current_hp as number | null;
+                                const dbMaxHp = anyMon.max_hp as number | null;
                                 isFainted = Boolean(anyMon.is_fainted);
 
-                                if (typeof hp === "number" && typeof maxHp === "number" && maxHp > 0) {
+                                // current_hp가 있으면 그걸 우선 사용, 없으면 max_hp를 그대로 HP로 사용
+                                if (typeof dbHp === "number") {
+                                    hpValue = dbHp;
+                                } else if (typeof dbMaxHp === "number") {
+                                    hpValue = dbMaxHp;
+                                }
+
+                                if (typeof dbMaxHp === "number") {
+                                    maxHpValue = dbMaxHp;
+                                }
+
+                                if (
+                                    typeof hpValue === "number" &&
+                                    typeof maxHpValue === "number" &&
+                                    maxHpValue > 0
+                                ) {
                                     hpRatio = Math.max(
                                         0,
-                                        Math.min(1, isFainted ? 0 : hp / maxHp),
+                                        Math.min(1, isFainted ? 0 : hpValue / maxHpValue),
                                     );
                                 }
-                            }
-
-                            let hpBarColor = "#22c55e";
-                            if (hpRatio !== null) {
-                                if (hpRatio <= 0) hpBarColor = "#ef4444";
-                                else if (hpRatio < 0.25) hpBarColor = "#ef4444";
-                                else if (hpRatio < 0.6) hpBarColor = "#facc15";
                             }
 
                             return (
@@ -2604,7 +2622,14 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                     style={{
                                                         width: `${hpRatio * 100}%`,
                                                         height: "100%",
-                                                        background: hpBarColor,
+                                                        background:
+                                                            hpRatio <= 0
+                                                                ? "#ef4444"
+                                                                : hpRatio < 0.25
+                                                                    ? "#ef4444"
+                                                                    : hpRatio < 0.6
+                                                                        ? "#facc15"
+                                                                        : "#22c55e",
                                                         transition: "width 0.2s ease",
                                                     }}
                                                 />
@@ -2624,15 +2649,11 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         <div>{slotLabel}</div>
                                         {isFilled && (
                                             <div style={{ opacity: 0.8 }}>
-                                                {typeof hp === "number" &&
-                                                typeof maxHp === "number" &&
-                                                maxHp > 0 ? (
+                                                {typeof hpValue === "number" &&
+                                                typeof maxHpValue === "number" &&
+                                                maxHpValue > 0 ? (
                                                     <>
-                                                        HP{" "}
-                                                        {isFainted
-                                                            ? 0
-                                                            : hp}{" "}
-                                                        / {maxHp}
+                                                        HP {isFainted ? 0 : hpValue} / {maxHpValue}
                                                     </>
                                                 ) : (
                                                     <>HP 정보 없음</>
@@ -2643,6 +2664,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 </button>
                             );
                         })}
+
 
 
                         {partyMonsters.every((m) => !m) && (
@@ -2748,7 +2770,13 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     {onHealAll && (
                                         <button
                                             type="button"
-                                            onClick={onHealAll}
+                                            onClick={async () => {
+                                                try {
+                                                    await onHealAll();
+                                                } catch (e) {
+                                                    console.error("[PartyAndDexPanel] onHealAll error", e);
+                                                }
+                                            }}
                                             style={{
                                                 padding: "0.35rem 0.9rem",
                                                 borderRadius: 999,
@@ -2762,6 +2790,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             전체 회복
                                         </button>
                                     )}
+
 
                                     {/* 기존 무료 소환 버튼 있으면 여기에 같이 배치 */}
                                 </div>
