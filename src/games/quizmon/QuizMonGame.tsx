@@ -501,7 +501,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
             const { data: ownedData, error: ownedError } = await supabase
                 .from("quizmon_owned_monsters")
                 .select(
-                    "id, profile_id, species_id, level, exp, party_slot, created_at, updated_at",
+                    [
+                        "id",
+                        "profile_id",
+                        "species_id",
+                        "level",
+                        "exp",
+                        "party_slot",
+                        "current_hp",
+                        "is_fainted",
+                        "learned_moves",
+                        "created_at",
+                        "updated_at",
+                    ].join(", ")
                 )
                 .eq("profile_id", profileId)
                 .in("party_slot", [1, 2, 3])
@@ -522,7 +534,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 return;
             }
 
-            const ownedRows = (ownedData ?? []) as QuizmonOwnedMonsterRow[];
+            const ownedRows = (ownedData ?? []) as unknown as QuizmonOwnedMonsterRow[];
 
             if (!ownedRows.length) {
                 console.warn(
