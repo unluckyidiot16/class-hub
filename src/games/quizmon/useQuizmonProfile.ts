@@ -185,15 +185,12 @@ export function useQuizmonProfile(
 
             try {
                 const { profile: updated } = await applyRaidResultService({
-                    profile,   // 타입 캐스팅 필요 없음
+                    profile,
                     summary,
                 });
 
                 setProfile(updated as QuizmonProfile);
                 setError(null);
-
-                // TODO: 나중에 토스트/결산 UI에 rewardedGold 보여주고 싶으면
-                // 여기에서 별도 상태로 올리면 됨.
             } catch (e) {
                 console.error("[useQuizmonProfile] applyRaidResult error", e);
                 setError("레이드 결과를 저장하는 중 오류가 발생했습니다.");

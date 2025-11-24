@@ -27,17 +27,14 @@ export type ApplyRaidResultOptions = {
     summary: RaidSummary;
 };
 
-
-/**
- * 레이드 결과를 quizmon_profiles에 반영하고, 기본 보상(gold 등)을 지급한다.
- *
- * ⚠️ 아래 상수만 바꿔서 보상 튜닝 가능
- */
 export type ApplyRaidResultResponse = {
     profile: QuizmonProfileRow;
     rewardedGold: number;
 };
 
+/**
+ * 레이드 결과를 quizmon_profiles 에 반영 + Gold 지급
+ */
 export async function applyRaidResultService(
     options: ApplyRaidResultOptions,
 ): Promise<ApplyRaidResultResponse> {
@@ -64,7 +61,7 @@ export async function applyRaidResultService(
             gold: nextGold,
         })
         .eq("id", profile.id)
-        // 🔴 여기! select 인자는 "*:1" 같은 거 없이 "*" 만
+        // 🔸 여기가 핵심: "*:1" 같은 거 절대 없음
         .select("*")
         .single();
 
@@ -116,7 +113,4 @@ export async function healAllMonstersService(
     }
 }
 
-// pullGacha 관련 Supabase 조작은 useGachaDraw 훅에서
-// 같은 패턴으로 빼면 됨.
-// 예:
-// export async function pullGachaService(options: { profile: QuizmonProfileRow; ... }) { ... }
+// pullGachaService 등은 같은 패턴으로 여기 아래에 추가 예정
