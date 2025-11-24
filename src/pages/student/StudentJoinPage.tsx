@@ -1,8 +1,9 @@
 // src/pages/student/StudentJoinPage.tsx
-import type { FormEvent } from "react"; 
+import type { FormEvent } from "react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import { ensurePlayStudentKey } from "../../utils/playStudentKey";
 
 type RoomRow = {
     id: string;
@@ -10,6 +11,7 @@ type RoomRow = {
     title: string;
     game_key: string;
     status: string;
+    class_id: string | null;
 };
 
 export function StudentJoinPage() {
@@ -42,7 +44,7 @@ export function StudentJoinPage() {
         try {
             const { data, error } = await supabase
                 .from("rooms")
-                .select("id, code, title, game_key, status")
+                .select("id, code, title, game_key, status, class_id")
                 .eq("code", code)
                 .maybeSingle();
 
@@ -64,6 +66,33 @@ export function StudentJoinPage() {
                 return;
             }
 
+            // 반 단위 학생 키 생성 + play_students upsert
+            const classId = room.class_id ?? null;
+            const studentKey = ensurePlayStudentKey(classId);
+
+            let playStudentId: string | null = null;
+            if (classId) {
+                const { data: ps, error: psErr } = await supabase
+                    .from("play_students")
+                    .upsert(
+                        {
+                            class_id: classId,
+                            student_key: studentKey,
+                            nickname: nick,
+                            last_seen_at: new Date().toISOString(),
+                        },
+                        { onConflict: "class_id,student_key" },
+                    )
+                    .select("id")
+                    .single();
+
+                if (psErr) {
+                    console.error("[StudentJoin] upsert play_students error", psErr);
+                } else if (ps) {
+                    playStudentId = (ps as { id: string }).id;
+                }
+            }
+
             try {
                 if (typeof window !== "undefined") {
                     const storageKey = `classhub:room:${room.id}:nickname`;
@@ -72,14 +101,17 @@ export function StudentJoinPage() {
             } catch {
                 // ignore
             }
-            
-            // 간단히 state로 정보 전달
+
+            // state로 정보 전달 (studentKey / classId 포함)
             navigate(`/student/room/${room.id}`, {
                 state: {
                     nickname: nick,
                     roomCode: room.code,
                     roomTitle: room.title,
                     gameKey: room.game_key,
+                    studentKey,
+                    classId,
+                    playStudentId,
                 },
             });
         } finally {

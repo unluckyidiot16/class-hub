@@ -54,6 +54,9 @@ type LocationState = {
     roomCode?: string;
     roomTitle?: string;
     gameKey?: string;
+    studentKey?: string;
+    classId?: string | null;
+    playStudentId?: string | null;
 };
 
 function formatTime(iso: string): string {
@@ -179,12 +182,15 @@ export function StudentRoomPage() {
     }, [isGameFullscreen]);
 
 
-    // 학생 식별 키 (초기에는 전역 키, 반 정보 로딩 후 반 단위 키로 전환)
+    // 학생 식별 키: StudentJoinPage에서 받은 값 우선 + 없으면 classId 기반 생성
     const [studentKey, setStudentKey] = useState<string>(() => {
+        // 1순위: StudentJoinPage에서 navigate state로 넘겨준 값
+        if (state.studentKey) return state.studentKey;
+
         try {
             if (typeof window !== "undefined") {
-                // 클래스 정보 로딩 전에는 global 스코프 사용
-                return ensurePlayStudentKey(null);
+                const initialClassId = state.classId ?? null;
+                return ensurePlayStudentKey(initialClassId);
             }
         } catch {
             // ignore
@@ -192,16 +198,18 @@ export function StudentRoomPage() {
         return "s-" + Math.random().toString(36).slice(2);
     });
 
-    // room.class_id 로딩 후 → 반 단위 키로 확정
+// room.class_id 로딩 후 → 아직 키가 없으면 생성/보정
     useEffect(() => {
-        if (!room?.class_id) return;
+        if (studentKey) return;
+
         try {
-            const key = ensurePlayStudentKey(room.class_id);
+            const classId = room?.class_id ?? state.classId ?? null;
+            const key = ensurePlayStudentKey(classId);
             setStudentKey(key);
         } catch (e) {
             console.error("[StudentRoom] ensurePlayStudentKey error", e);
         }
-    }, [room?.class_id]);
+    }, [studentKey, room?.class_id, state.classId]);
 
     // ✅ 브리지/퀴즈몬에 넘길 학생 ID
     const studentId = studentKey;
