@@ -351,7 +351,11 @@ type QuizMonGameProps = {
     onPullFreeGacha?: () => void | Promise<void>;
     lastRaidResult?: { correct: number; total: number } | null;
     onHealAll?: () => void | Promise<void>;
+
+    /** 배틀 종료 후 HP를 저장한 뒤 컬렉션을 다시 불러오는 콜백 */
+    onRefreshCollection?: () => void | Promise<void>;
 };
+
 
 
 export function QuizMonGame(props: QuizMonGameProps) {
@@ -659,6 +663,60 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
+    // 파티 3슬롯 구성이 변경되었을 때 DB에 반영 + 컬렉션 refresh
+    const handleSaveParty = async (partyIds: (string | null)[]) => {
+        if (!props.profileId) {
+            console.warn(
+                "[QuizMonGame] handleSaveParty called without profileId",
+            );
+            return;
+        }
+
+        try {
+            // 1) 이 프로필의 기존 파티 슬롯 전체 비우기
+            const { error: clearError } = await supabase
+                .from("quizmon_owned_monsters")
+                .update({ party_slot: null })
+                .eq("profile_id", props.profileId);
+
+            if (clearError) {
+                console.error(
+                    "[QuizMonGame] clear party_slot error",
+                    clearError,
+                );
+                return;
+            }
+
+            // 2) 새 파티 구성 반영
+            const updates = partyIds
+                .map((id, index) => ({ id, slot: index + 1 }))
+                .filter((x) => x.id) as { id: string; slot: number }[];
+
+            for (const u of updates) {
+                const { error } = await supabase
+                    .from("quizmon_owned_monsters")
+                    .update({ party_slot: u.slot })
+                    .eq("id", u.id);
+
+                if (error) {
+                    console.error(
+                        "[QuizMonGame] update party_slot error",
+                        error,
+                        u,
+                    );
+                }
+            }
+
+            // 3) 🔁 컬렉션 재로딩
+            if (props.onRefreshCollection) {
+                await props.onRefreshCollection();
+            }
+        } catch (err) {
+            console.error("[QuizMonGame] handleSaveParty exception", err);
+        }
+    };
+
+
     // 2) 퀴즈 소스: quizpackJson → Lite 배열
     const questions: QuizQuestionLite[] = useMemo(
         () => quizPackToLiteQuestions(quizpack),
@@ -713,14 +771,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
         setHasReportedEnd(true);
     }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
 
-    // 배틀 종료 시 → viewState 를 result 로 전환 (결산 화면)
+    // 배틀 종료 시 → viewState 를 result 로 전환 + HP DB 반영 + 컬렉션 refresh
+    // 배틀 종료 시 → viewState 를 result 로 전환 (결산 화면) + HP DB 저장 + 컬렉션 refresh
     useEffect(() => {
         if (!state) return;
 
         if (state.phase === "finished") {
             setViewState("result");
 
-            // ✅ 배틀 종료 시 한 번만 HP를 DB에 저장
             if (!hpSynced && props.profileId) {
                 const snapshot = state.player.monsters.map((m) => ({
                     id: m.id,
@@ -733,19 +791,30 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
                     const { error } = await supabase
                         .from("quizmon_owned_monsters")
-                        .upsert(snapshot); // PK(id) 기준으로 update
+                        .upsert(snapshot);
 
                     if (error) {
                         console.error("[QuizMonGame] HP sync error", error);
+                    } else if (props.onRefreshCollection) {
+                        try {
+                            await props.onRefreshCollection();
+                        } catch (refreshError) {
+                            console.error(
+                                "[QuizMonGame] onRefreshCollection error",
+                                refreshError,
+                            );
+                        }
                     }
+
                     setHpSynced(true);
                 })();
             }
         } else {
-            // 새로운 전투 시작 대비
             if (hpSynced) setHpSynced(false);
         }
-    }, [state, hpSynced, props.profileId]);
+    }, [state, hpSynced, props.profileId, props.onRefreshCollection]);
+
+
 
 
     /** 현재 질문 선택 (없으면 null)
@@ -1477,6 +1546,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                             collectionError={props.collectionError}
                                             onPullFreeGacha={props.onPullFreeGacha}
                                             onHealAll={props.onHealAll}
+                                            onSaveParty={handleSaveParty}
                                         />
                                     )}
 
@@ -2153,6 +2223,10 @@ type PartyAndDexPanelProps = {
     /** 무료 소환 버튼 핸들러(있으면 상단에 표시) */
     onPullFreeGacha?: () => void | Promise<void>;
     onHealAll?: () => void;
+    /** 파티 슬롯 변경 시 DB에 저장하고 싶을 때 사용 */
+    onSaveParty?: (
+        partyIds: (string | null)[],
+    ) => void | Promise<void>; // 🔹 추가
 };
 
 /**
@@ -2196,8 +2270,9 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         null,
         null,
     ]);
+    const [hasManualPartyChange, setHasManualPartyChange] = useState(false); // 🔹 추가
 
-    // 첫 로딩 시 서버의 party_slot 값을 기반으로 파티 초기화
+    // 초기 파티는 DB party_slot 기반으로 세팅
     useEffect(() => {
         if (!enhancedMonsters.length) {
             setPartyIds([null, null, null]);
@@ -2210,7 +2285,10 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
             const slots: (string | null)[] = [null, null, null];
             for (const mon of enhancedMonsters) {
-                const slot = (mon as any).party_slot as number | null | undefined;
+                const slot = (mon as any).party_slot as
+                    | number
+                    | null
+                    | undefined;
                 if (slot && slot >= 1 && slot <= 3 && !slots[slot - 1]) {
                     slots[slot - 1] = mon.id;
                 }
@@ -2218,6 +2296,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             return slots;
         });
     }, [enhancedMonsters]);
+    
 
     // 슬롯별 파티 몬스터 (최대 3개)
     const partyMonsters = partyIds.map(
@@ -2263,8 +2342,8 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             next[index] = null;
             return next;
         });
+        setHasManualPartyChange(true); // 🔹 추가
     }
-
 
     // 파티 슬롯 비우기 (예: 삭제 기능)
     function clearPartySlot(slotIndex: number, monId: string | null) {
@@ -2273,6 +2352,7 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             next[slotIndex] = null;
             return next;
         });
+        setHasManualPartyChange(true); // 🔹 추가
 
         if (monId) {
             setSelectedId((prev) => (prev === monId ? null : prev));
@@ -2291,7 +2371,23 @@ function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             next[emptyIndex] = entry.sample.id;
             return next;
         });
+        setHasManualPartyChange(true); // 🔹 추가
     }
+
+    // 파티 배열이 바뀌었고, 수동 조정이 한 번이라도 일어났다면 onSaveParty 호출
+    useEffect(() => {
+        if (!props.onSaveParty) return;
+        if (!hasManualPartyChange) return;
+
+        void (async () => {
+            try {
+                await props.onSaveParty!(partyIds);
+            } catch (err) {
+                console.error("[PartyAndDexPanel] onSaveParty error", err);
+            }
+        })();
+    }, [partyIds, hasManualPartyChange, props.onSaveParty]);
+
 
     return (
         <div

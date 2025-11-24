@@ -61,6 +61,7 @@ type QuizMonBattleSectionProps = {
     onPullFreeGacha?: () => void | Promise<void>;
     lastRaidResult?: { correct: number; total: number } | null;
     onHealAll?: () => void | Promise<void>;
+    onRefreshCollection?: () => void | Promise<void>;
 };
 
 export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
@@ -139,6 +140,8 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     collectionError={props.collectionError}
                     onPullFreeGacha={props.onPullFreeGacha}
                     lastRaidResult={props.lastRaidResult}
+                    onHealAll={props.onHealAll}
+                    onRefreshCollection={props.onRefreshCollection}
                 />
             );
         }

@@ -1,5 +1,5 @@
 // src/games/quizmon/QuizMonClassPanel.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type {
@@ -76,52 +76,48 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         studentKey: studentId ?? null,
     });
 
+    // 🔹 학생 프로필이 준비되면 보유 몬스터 컬렉션 로딩 / 새로고침
+    const refreshOwnedMonsters = useCallback(async () => {
+        if (!isStudent || !profile?.id) {
+            setOwnedMonsters([]);
+            setCollectionLoading(false);
+            setCollectionError(null);
+            return;
+        }
+
+        setCollectionLoading(true);
+        setCollectionError(null);
+
+        const { data, error } = await supabase
+            .from("quizmon_owned_monsters")
+            .select("*")
+            .eq("profile_id", profile.id)
+            .order("created_at", { ascending: true });
+
+        if (error) {
+            console.error(
+                "[QuizMonClassPanel] load quizmon_owned_monsters error",
+                error,
+            );
+            setCollectionError(
+                "보유 몬스터를 불러오는 중 오류가 발생했습니다.",
+            );
+            setOwnedMonsters([]);
+        } else {
+            setOwnedMonsters((data ?? []) as QuizmonOwnedMonsterRow[]);
+        }
+
+        setCollectionLoading(false);
+    }, [isStudent, profile?.id]);
+
+
     // 🔹 학생 프로필이 준비되면 보유 몬스터 컬렉션 로딩
-        useEffect(() => {
-                if (!isStudent || !profile?.id) {
-                    setOwnedMonsters([]);
-                        setCollectionLoading(false);
-                        setCollectionError(null);
-                        return;
-                    }
-        
-                    let cancelled = false;
-        
-                    const loadOwnedMonsters = async () => {
-                        setCollectionLoading(true);
-                        setCollectionError(null);
-            
-                            const { data, error } = await supabase
-                            .from("quizmon_owned_monsters")
-                            .select("*")
-                            .eq("profile_id", profile.id)
-                            .order("created_at", { ascending: true });
-            
-                            if (cancelled) return;
-            
-                            if (error) {
-                                 console.error(
-                                        "[QuizMonClassPanel] load quizmon_owned_monsters error",
-                                        error,
-                                    );
-                                setCollectionError(
-                                        "보유 몬스터를 불러오는 중 오류가 발생했습니다.",
-                                    );
-                                setOwnedMonsters([]);
-                            } else {
-                                setOwnedMonsters((data ?? []) as QuizmonOwnedMonsterRow[]);
-                            }
-            
-                            setCollectionLoading(false);
-                    };
-        
-                    void loadOwnedMonsters();
-        
-                    return () => {
-                        cancelled = true;
-                    };
-            }, [isStudent, profile?.id]);
-    
+    // 🔹 학생 프로필이 준비되면 1회 자동 로딩
+    useEffect(() => {
+        void refreshOwnedMonsters();
+    }, [refreshOwnedMonsters]);
+
+
 
     // 배틀 종료 → 프로필에 레이드 결과 반영 (레벨/EXP 업데이트)
     const handleBattleEnd = async (summary: { correct: number; total: number }) => {
@@ -245,6 +241,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     }
 
     // 🔹 모든 보유 몬스터 전체 회복
+    // 🔹 모든 보유 몬스터 전체 회복
     const handleHealAllMonsters = async () => {
         if (!profile?.id) return;
 
@@ -255,7 +252,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             const { error } = await supabase
                 .from("quizmon_owned_monsters")
                 .update({
-                    current_hp: null,    // null = 풀피로 간주
+                    current_hp: null, // null = 풀피로 간주
                     is_fainted: false,
                 })
                 .eq("profile_id", profile.id);
@@ -266,7 +263,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 return;
             }
 
-            // 2) 로컬 state도 즉시 반영
+            // 2) 로컬 state도 즉시 반영 (옵션, 체감용)
             setOwnedMonsters((prev) =>
                 prev.map((mon) => ({
                     ...mon,
@@ -274,11 +271,15 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     is_fainted: false,
                 })),
             );
+
+            // 3) 🔁 최종적으로 컬렉션 전체를 다시 읽어서 서버 상태와 동기화
+            await refreshOwnedMonsters();
         } catch (err) {
             console.error("[QuizMonClassPanel] heal all exception", err);
             setCollectionError("몬스터를 회복하는 중 알 수 없는 오류가 발생했습니다.");
         }
     };
+
 
 
     // =========================
@@ -382,6 +383,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         onQuizAnswer={onQuizAnswer}
                         onBattleEnd={studentId ? handleBattleEnd : undefined}
                         onHealAll={handleHealAllMonsters}
+                        onRefreshCollection={refreshOwnedMonsters}
                     />
                 </div>
             </div>
