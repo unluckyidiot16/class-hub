@@ -1,7 +1,6 @@
 // src/games/quizmon/useQuizmonProfile.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { applyRaidResultService } from "../../services/quizmonService";
 
 
 // 실제 테이블 스키마에 맞게 최소 필드만 정의
@@ -184,15 +183,50 @@ export function useQuizmonProfile(
             if (!hasKey || !profile) return;
 
             try {
-                const { profile: updated } = await applyRaidResultService({
-                    profile,
-                    summary,
-                });
+                const nextTotalRaids = (profile.total_raids ?? 0) + 1;
+                const nextTotalCorrect =
+                    (profile.total_correct ?? 0) + summary.correct;
+                const nextTotalQuestions =
+                    (profile.total_questions ?? 0) + summary.total;
 
-                setProfile(updated as QuizmonProfile);
+                // 🔸 여기서는 update만 하고, select / single 절대 안 씀
+                const { error } = await supabase
+                    .from("quizmon_profiles")
+                    .update({
+                        total_raids: nextTotalRaids,
+                        total_correct: nextTotalCorrect,
+                        total_questions: nextTotalQuestions,
+                        // gold까지 반영하려면 여기서 같이 올려주면 됨:
+                        // gold: (profile as any).gold ? (profile as any).gold + summary.correct * 10 : summary.correct * 10,
+                    })
+                    .eq("id", profile.id);
+
+                if (error) {
+                    console.error(
+                        "[useQuizmonProfile] applyRaidResult error",
+                        error,
+                    );
+                    setError("레이드 결과를 저장하는 중 오류가 발생했습니다.");
+                    return;
+                }
+
+                // DB에는 반영됐으니, 로컬 상태도 같이 올려서 UI 동기화
+                setProfile((prev) => {
+                    if (!prev) return prev;
+                    return {
+                        ...prev,
+                        total_raids: nextTotalRaids,
+                        total_correct: nextTotalCorrect,
+                        total_questions: nextTotalQuestions,
+                        // gold도 위에서 계산했다면 여기도 동일하게 맞춰주면 됨
+                    } as typeof prev;
+                });
                 setError(null);
             } catch (e) {
-                console.error("[useQuizmonProfile] applyRaidResult error", e);
+                console.error(
+                    "[useQuizmonProfile] applyRaidResult unexpected error",
+                    e,
+                );
                 setError("레이드 결과를 저장하는 중 오류가 발생했습니다.");
             }
         },
