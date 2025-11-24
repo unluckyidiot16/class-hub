@@ -284,39 +284,33 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     // =========================
     // ✅ 학생 프로필/스타터 선택 가드
     // =========================
-    if (isStudent && profileError) {
-        return (
-            <div style={{ padding: "1rem" }}>
-                <p>퀴즈몬 프로필을 불러오는 중 오류가 발생했습니다.</p>
-                <p
-                    style={{
-                        fontSize: "0.8rem",
-                        color: "#9ca3af",
-                        marginTop: "0.5rem",
-                        whiteSpace: "pre-wrap",
+    if (isStudent) {
+        if (profileError) {
+            return (
+                <div style={{ padding: "1rem" }}>
+                    <p>퀴즈몬 프로필을 불러오는 중 오류가 발생했습니다.</p>
+                    ...
+                </div>
+            );
+        }
+
+        if (!profile) {
+            return <p>프로필을 불러오는 중입니다...</p>;
+        }
+
+        if (!profile.starter_chosen) {
+            return (
+                <StarterSelectPanel
+                    disabled={profileLoading}
+                    onChooseStarter={async (speciesId) => {
+                        await chooseStarter(speciesId);
+                        // 필요하면 여기서 refresh() 추가 가능
                     }}
-                >
-                    {profileError}
-                </p>
-            </div>
-        );
+                />
+            );
+        }
     }
 
-    if (isStudent && !profile) {
-        return <p>프로필을 불러오는 중입니다...</p>;
-    }
-
-    if (isStudent && profile && !profile.starter_chosen) {
-        return (
-            <StarterSelectPanel
-                disabled={profileLoading}
-                onChooseStarter={async (speciesId) => {
-                    await chooseStarter(speciesId);
-                    await refreshOwnedMonsters();
-                }}
-            />
-        );
-    }
 
     // =========================
     // ✅  렌더링: 전체화면 + 게임 씬만

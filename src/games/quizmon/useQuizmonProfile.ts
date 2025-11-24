@@ -1,13 +1,12 @@
 // src/games/quizmon/useQuizmonProfile.ts
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
 // 실제 테이블 스키마에 맞게 최소 필드만 정의
-// (필요하면 나중에 필드 더 추가해도 됨)
 export type QuizmonProfile = {
     id: string;
     class_id: string;
-    student_key: string; // ← 만약 컬럼명이 student_key라면 여기와 아래 쿼리에서 이름만 바꿔주면 됨
+    student_key: string;
     trainer_name: string | null;
     starter_chosen: boolean;
     total_raids: number;
@@ -19,6 +18,7 @@ export type QuizmonProfile = {
 
 type UseQuizmonProfileParams = {
     classId: string | null;
+    /** StudentRoomPage에서 내려주는 원본 student_key */
     studentKey: string | null;
 };
 
@@ -40,18 +40,61 @@ type UseQuizmonProfileResult = {
 export function useQuizmonProfile(
     params: UseQuizmonProfileParams,
 ): UseQuizmonProfileResult {
-    const { classId, studentKey } = params;
+    const { classId, studentKey: rawStudentKey } = params;
 
     const [profile, setProfile] = useState<QuizmonProfile | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // 단순 플래그: Hook 호출 여부가 아니라 effect 안에서 분기할 때만 사용
-    const hasKey = !!classId && !!studentKey;
+    /**
+     * effectiveStudentKey
+     * - 실제 DB에 저장되는 student_key
+     * - 같은 학급(classId)에서는 항상 동일해야 한다.
+     * - localStorage("quizmon_profile_key:{classId}")에 보관
+     */
+    const [effectiveStudentKey, setEffectiveStudentKey] = useState<string | null>(
+        null,
+    );
+
+    // 동시에 여러 번 생성하는 것을 막기 위한 플래그
+    const creatingRef = useRef(false);
+
+    // 🔹 classId + rawStudentKey → effectiveStudentKey 정규화
+    useEffect(() => {
+        if (!classId || !rawStudentKey) {
+            setEffectiveStudentKey(null);
+            return;
+        }
+
+        if (typeof window === "undefined") {
+            // 브라우저 환경이 아니면 아무 것도 하지 않음
+            return;
+        }
+
+        const storageKey = `quizmon_profile_key:${classId}`;
+        const stored = window.localStorage.getItem(storageKey);
+
+        if (stored && stored.length > 0) {
+            // 이미 저장된 키가 있으면 그걸 계속 사용
+            if (stored !== rawStudentKey) {
+                console.log(
+                    "[useQuizmonProfile] student_key mismatch; keep stored key",
+                    { classId, stored, rawStudentKey },
+                );
+            }
+            setEffectiveStudentKey(stored);
+        } else {
+            // 처음 접속: 현재 rawStudentKey를 canonical 키로 저장
+            window.localStorage.setItem(storageKey, rawStudentKey);
+            setEffectiveStudentKey(rawStudentKey);
+        }
+    }, [classId, rawStudentKey]);
+
+    const hasKey = !!classId && !!effectiveStudentKey;
 
     // 프로필 로딩 / 생성
     const refresh = useCallback(async () => {
-        if (!hasKey) {
+        if (!hasKey || !classId || !effectiveStudentKey) {
             // 키가 없으면 그냥 비워주고 끝
             setProfile(null);
             setLoading(false);
@@ -63,13 +106,14 @@ export function useQuizmonProfile(
         setError(null);
 
         try {
-            // 1) 기존 프로필 조회
+            // 1) 기존 프로필 조회 (가장 오래된 1개만)
             const { data, error } = await supabase
                 .from("quizmon_profiles")
                 .select("*")
                 .eq("class_id", classId)
-                .eq("student_key", studentKey) // ← 컬럼명이 다르면 여기만 수정
-                .maybeSingle();
+                .eq("student_key", effectiveStudentKey)
+                .order("created_at", { ascending: true })
+                .limit(1);
 
             if (error) {
                 console.error("[useQuizmonProfile] load profile error", error);
@@ -77,39 +121,55 @@ export function useQuizmonProfile(
                 return;
             }
 
-            if (!data) {
-                // 2) 없으면 새로 생성
-                const { data: inserted, error: insertError } = await supabase
-                    .from("quizmon_profiles")
-                    .insert({
+            const row = (data?.[0] ?? null) as QuizmonProfile | null;
+
+            if (row) {
+                setProfile(row);
+                return;
+            }
+
+            // 2) 없으면 새로 생성 (upsert + onConflict 로 중복 방지)
+            if (creatingRef.current) {
+                // 이미 다른 refresh 가 생성 중이면 여기서는 그냥 종료
+                return;
+            }
+            creatingRef.current = true;
+
+            const { data: inserted, error: insertError } = await supabase
+                .from("quizmon_profiles")
+                .upsert(
+                    {
                         class_id: classId,
-                        student_key: studentKey,
+                        student_key: effectiveStudentKey,
                         trainer_name: null,
                         starter_chosen: false,
                         total_raids: 0,
                         total_correct: 0,
                         total_questions: 0,
-                    })
-                    .select("*")
-                    .single();
+                    },
+                    {
+                        // DB 에 유니크 제약 걸어둔 (class_id, student_key) 기준
+                        onConflict: "class_id,student_key",
+                    },
+                )
+                .select("*")
+                .single();
 
-                if (insertError) {
-                    console.error(
-                        "[useQuizmonProfile] insert profile error",
-                        insertError,
-                    );
-                    setError("퀴즈몬 프로필 생성 중 오류가 발생했습니다.");
-                    return;
-                }
-
-                setProfile(inserted as QuizmonProfile);
-            } else {
-                setProfile(data as QuizmonProfile);
+            if (insertError) {
+                console.error(
+                    "[useQuizmonProfile] insert/upsert profile error",
+                    insertError,
+                );
+                setError("퀴즈몬 프로필 생성 중 오류가 발생했습니다.");
+                return;
             }
+
+            setProfile(inserted as QuizmonProfile);
         } finally {
+            creatingRef.current = false;
             setLoading(false);
         }
-    }, [hasKey, classId, studentKey]);
+    }, [hasKey, classId, effectiveStudentKey]);
 
     // 최초 및 key 변경 시 프로필 로딩
     useEffect(() => {
@@ -213,6 +273,7 @@ export function useQuizmonProfile(
                             party_slot: 1,
                             current_hp: null, // null = 풀피
                             is_fainted: false,
+                            // jsonb 컬럼이므로 JS 배열 넣으면 자동으로 JSON 배열로 저장됨
                             learned_moves: [],
                         });
 
