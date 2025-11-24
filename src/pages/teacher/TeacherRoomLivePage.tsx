@@ -59,6 +59,18 @@ type StudentSummary = {
     lastAnsweredAt: string | null;
 };
 
+type PlayStudentRow = {
+    id: string;
+    class_id: string;
+    student_key: string;
+    nickname: string | null;
+    coins: number;
+    gems: number;
+    star_shards: number;
+    last_seen_at: string | null;
+};
+
+
 type MessageTargetType = "all" | "student";
 
 type RoomMessageRow = {
@@ -201,6 +213,7 @@ export function TeacherRoomLivePage() {
 
     const { members: presenceMembers, unfocused: presenceUnfocused } =
         usePresence(roomCodeForPresence, "teacher");
+    
 
     // 학생 목록 + 메시지 상태
     const [students, setStudents] = useState<StudentSummary[]>([]);
@@ -216,6 +229,121 @@ export function TeacherRoomLivePage() {
     const [personalMessageBody, setPersonalMessageBody] = useState("");
     const [personalMessageLink, setPersonalMessageLink] = useState("");
     const [sendingPersonalMessage, setSendingPersonalMessage] = useState(false);
+
+    // 🔹 반 단위 play_students 지갑 상태
+    const [playStudents, setPlayStudents] = useState<PlayStudentRow[]>([]);
+    const [playStudentsLoading, setPlayStudentsLoading] = useState(false);
+    const [selectedPlayStudentIds, setSelectedPlayStudentIds] = useState<string[]>([]);
+    const [walletCoinsDelta, setWalletCoinsDelta] = useState(0);
+    const [walletGemsDelta, setWalletGemsDelta] = useState(0);
+    const [walletStarShardsDelta, setWalletStarShardsDelta] = useState(0);
+    const [walletSaving, setWalletSaving] = useState(false);
+
+    // 🔹 play_students 재조회 함수
+    const reloadPlayStudents = async (classId: string) => {
+        setPlayStudentsLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from("play_students")
+                .select(
+                    "id, class_id, student_key, nickname, coins, gems, star_shards, last_seen_at",
+                )
+                .eq("class_id", classId)
+                .order("nickname", { ascending: true });
+
+            if (error) {
+                console.error("[TeacherRoomLive] load play_students error", error);
+                return;
+            }
+
+            setPlayStudents((data ?? []) as PlayStudentRow[]);
+        } finally {
+            setPlayStudentsLoading(false);
+        }
+    };
+
+    // 🔹 room.class_id 기준으로 play_students 로딩
+    useEffect(() => {
+        if (!room?.class_id) {
+            setPlayStudents([]);
+            setSelectedPlayStudentIds([]);
+            return;
+        }
+        void reloadPlayStudents(room.class_id);
+    }, [room?.class_id]);
+
+    // 🔹 play_students 선택 토글
+    const togglePlayStudentSelection = (id: string) => {
+        setSelectedPlayStudentIds((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+        );
+    };
+
+    const toggleSelectAllPlayStudents = () => {
+        if (playStudents.length === 0) return;
+        setSelectedPlayStudentIds((prev) =>
+            prev.length === playStudents.length
+                ? []
+                : playStudents.map((p) => p.id),
+        );
+    };
+
+    // 🔹 보상 지급 RPC 호출
+    const handleGrantWallet = async (e?: any) => {
+        if (e) e.preventDefault();
+        if (!room?.class_id) {
+            setErrorMsg("이 방은 반(class)에 연결되어 있지 않아 보상을 지급할 수 없습니다.");
+            return;
+        }
+
+        if (selectedPlayStudentIds.length === 0) {
+            setErrorMsg("보상을 줄 학생을 하나 이상 선택해주세요.");
+            return;
+        }
+
+        const coins = Math.max(0, walletCoinsDelta | 0);
+        const gems = Math.max(0, walletGemsDelta | 0);
+        const starShards = Math.max(0, walletStarShardsDelta | 0);
+
+        if (coins === 0 && gems === 0 && starShards === 0) {
+            setErrorMsg("지급할 코인/젬/조각 중 하나 이상을 1 이상으로 입력해주세요.");
+            return;
+        }
+
+        setWalletSaving(true);
+        setErrorMsg(null);
+
+        try {
+            const { error } = await supabase.rpc("grant_play_student_wallet", {
+                _class_id: room.class_id,
+                _targets: selectedPlayStudentIds,
+                _coins: coins,
+                _gems: gems,
+                _star_shards: starShards,
+            });
+
+            if (error) {
+                console.error(
+                    "[TeacherRoomLive] grant_play_student_wallet error",
+                    error,
+                );
+                setErrorMsg("보상을 지급하는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            // 지급 후 최신 지갑 상태 다시 로딩
+            await reloadPlayStudents(room.class_id);
+
+            // 입력값은 초기화
+            setWalletCoinsDelta(0);
+            setWalletGemsDelta(0);
+            setWalletStarShardsDelta(0);
+        } finally {
+            setWalletSaving(false);
+        }
+    };
+
+
 
     // 🔹 QDD용 game_events 기반 통계 (문제별 보기 분포)
     const [qddStats, setQddStats] =
@@ -636,6 +764,11 @@ export function TeacherRoomLivePage() {
             : session && totalCount > 0
                 ? session.current_index + 1
                 : 0;
+
+    const allPlayStudentsSelected =
+        playStudents.length > 0 &&
+        selectedPlayStudentIds.length === playStudents.length;
+
 
     const quizMonSession =
         session
@@ -1400,6 +1533,230 @@ export function TeacherRoomLivePage() {
                             </div>
                         )}
                     </div>
+                    {/* 반 학생 지갑 / 보상 지급 */}
+                    {room.class_id && (
+                        <div className="card">
+                            <h2>이 반 학생 지갑 / 보상 지급</h2>
+                            <p className="hint">
+                                이 반에서 한 번이라도 입장한 학생(기기) 목록입니다. 선택한 학생들에게
+                                코인/젬/조각을 한 번에 지급할 수 있습니다.
+                            </p>
+
+                            {playStudentsLoading ? (
+                                <p style={{ marginTop: "0.5rem" }}>
+                                    학생 지갑 정보를 불러오는 중입니다...
+                                </p>
+                            ) : playStudents.length === 0 ? (
+                                <p className="hint" style={{ marginTop: "0.5rem" }}>
+                                    아직 이 반에서 접속한 학생이 없습니다. 학생이 한 번이라도
+                                    입장하면 자동으로 목록에 나타납니다.
+                                </p>
+                            ) : (
+                                <>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            marginTop: "0.5rem",
+                                            marginBottom: "0.25rem",
+                                            fontSize: "0.85rem",
+                                        }}
+                                    >
+                                        <div>
+                                            선택된 학생:{" "}
+                                            <strong>
+                                                {selectedPlayStudentIds.length} / {playStudents.length}
+                                            </strong>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="secondary-btn"
+                                            onClick={toggleSelectAllPlayStudents}
+                                        >
+                                            {allPlayStudentsSelected ? "전체 해제" : "전체 선택"}
+                                        </button>
+                                    </div>
+
+                                    <ul
+                                        style={{
+                                            listStyle: "none",
+                                            padding: 0,
+                                            margin: 0,
+                                            maxHeight: "180px",
+                                            overflow: "auto",
+                                            borderRadius: "0.5rem",
+                                            border: "1px solid var(--border-subtle)",
+                                        }}
+                                    >
+                                        {playStudents.map((ps) => {
+                                            const checked = selectedPlayStudentIds.includes(ps.id);
+                                            return (
+                                                <li
+                                                    key={ps.id}
+                                                    style={{
+                                                        borderBottom:
+                                                            "1px solid var(--border-subtle)",
+                                                    }}
+                                                >
+                                                    <label
+                                                        style={{
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            gap: "0.5rem",
+                                                            padding: "0.3rem 0.5rem",
+                                                            fontSize: "0.8rem",
+                                                            cursor: "pointer",
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={checked}
+                                                            onChange={() =>
+                                                                togglePlayStudentSelection(ps.id)
+                                                            }
+                                                            style={{ margin: 0 }}
+                                                        />
+                                                        <div style={{ flex: 1 }}>
+                                                            <div>
+                                                                <strong>
+                                                                    {ps.nickname ?? "이름 없음"}
+                                                                </strong>{" "}
+                                                                (
+                                                                {ps.student_key.slice(-4)}
+                                                                )
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    gap: "0.5rem",
+                                                                    color: "var(--text-sub)",
+                                                                    marginTop: "0.1rem",
+                                                                }}
+                                                            >
+                                                                <span>코인 {ps.coins}</span>
+                                                                <span>젬 {ps.gems}</span>
+                                                                <span>
+                                                                    조각 {ps.star_shards}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+
+                                    <form
+                                        onSubmit={handleGrantWallet}
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "0.4rem",
+                                            marginTop: "0.6rem",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                gap: "0.5rem",
+                                                flexWrap: "wrap",
+                                            }}
+                                        >
+                                            <label
+                                                className="form-field"
+                                                style={{
+                                                    flex: "1 1 80px",
+                                                    minWidth: "80px",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
+                                                <span>코인 +</span>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={walletCoinsDelta}
+                                                    onChange={(e) =>
+                                                        setWalletCoinsDelta(
+                                                            Math.max(
+                                                                0,
+                                                                Number(e.target.value) || 0,
+                                                            ),
+                                                        )
+                                                    }
+                                                />
+                                            </label>
+                                            <label
+                                                className="form-field"
+                                                style={{
+                                                    flex: "1 1 80px",
+                                                    minWidth: "80px",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
+                                                <span>젬 +</span>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={walletGemsDelta}
+                                                    onChange={(e) =>
+                                                        setWalletGemsDelta(
+                                                            Math.max(
+                                                                0,
+                                                                Number(e.target.value) || 0,
+                                                            ),
+                                                        )
+                                                    }
+                                                />
+                                            </label>
+                                            <label
+                                                className="form-field"
+                                                style={{
+                                                    flex: "1 1 80px",
+                                                    minWidth: "80px",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
+                                                <span>조각 +</span>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={walletStarShardsDelta}
+                                                    onChange={(e) =>
+                                                        setWalletStarShardsDelta(
+                                                            Math.max(
+                                                                0,
+                                                                Number(e.target.value) || 0,
+                                                            ),
+                                                        )
+                                                    }
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            className="primary-btn"
+                                            disabled={
+                                                walletSaving ||
+                                                selectedPlayStudentIds.length === 0
+                                            }
+                                        >
+                                            {walletSaving
+                                                ? "보상 지급 중..."
+                                                : "선택한 학생에게 보상 지급"}
+                                        </button>
+                                        <p className="hint" style={{ marginTop: "0.2rem" }}>
+                                            * 이 버튼은 `grant_play_student_wallet` RPC를 호출해
+                                            DB의 <code>play_students</code> 지갑을 바로 업데이트합니다.
+                                        </p>
+                                    </form>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+
                 </div>
 
                 {/* 오른쪽: 현재 문제 미리보기 + 통계 */}
