@@ -148,6 +148,7 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     lastRaidResult={lastRaidResult ?? null}
                     onHealAll={onHealAll}
                     onRefreshCollection={onRefreshCollection}
+                    
                 />
             );
         }

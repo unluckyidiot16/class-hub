@@ -772,48 +772,78 @@ export function QuizMonGame(props: QuizMonGameProps) {
         setHasReportedEnd(true);
     }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
 
-    // 배틀 종료 시 → viewState 를 result 로 전환 + HP DB 반영 + 컬렉션 refresh
-    // 배틀 종료 시 → viewState 를 result 로 전환 (결산 화면) + HP DB 저장 + 컬렉션 refresh
+    // 배틀 종료 시 → viewState 를 result 로 전환 + HP DB 저장 + 컬렉션 refresh
     useEffect(() => {
-        if (!state) return;
+        // 배틀이 안 끝났으면 플래그만 리셋하고 종료
+        if (state.phase !== "finished") {
+            if (hpSynced) setHpSynced(false);
+            return;
+        }
 
-        if (state.phase === "finished") {
-            setViewState("result");
+        // 결과 오버레이 켜기
+        setViewState("result");
 
-            if (!hpSynced && props.profileId) {
-                const snapshot = state.player.monsters.map((m) => ({
-                    id: m.id,
-                    current_hp: m.hp,
-                    is_fainted: m.hp <= 0,
-                }));
+        // 이미 한 번 동기화했으면 재실행 방지
+        if (hpSynced) return;
 
-                void (async () => {
-                    if (!snapshot.length) return;
+        // 프로필 정보 없으면 HP 저장 스킵
+        if (!props.profileId) return;
 
+        // 🔹 현재 플레이어 몬스터들의 전투 종료 HP 스냅샷
+        const snapshot = state.player.monsters.map((m) => ({
+            id: m.id,
+            profile_id: props.profileId,
+            current_hp: Math.max(0, Math.min(m.maxHp, m.hp)),
+            is_fainted: m.hp <= 0,
+            updated_at: new Date().toISOString(),
+        }));
+
+        void (async () => {
+            if (!snapshot.length) return;
+
+            try {
+                // 개체별로 HP / 기절 상태 업데이트
+                for (const row of snapshot) {
                     const { error } = await supabase
                         .from("quizmon_owned_monsters")
-                        .upsert(snapshot);
+                        .update({
+                            current_hp: row.current_hp,
+                            is_fainted: row.is_fainted,
+                            updated_at: row.updated_at,
+                        })
+                        .eq("id", row.id)
+                        .eq("profile_id", row.profile_id);
 
                     if (error) {
-                        console.error("[QuizMonGame] HP sync error", error);
-                    } else if (props.onRefreshCollection) {
-                        try {
-                            await props.onRefreshCollection();
-                        } catch (refreshError) {
-                            console.error(
-                                "[QuizMonGame] onRefreshCollection error",
-                                refreshError,
-                            );
-                        }
+                        console.error("[QuizMonGame] HP sync error", error, row);
                     }
+                }
 
-                    setHpSynced(true);
-                })();
+                // 🔁 HP 저장이 끝났으면 컬렉션 다시 불러오기
+                if (props.onRefreshCollection) {
+                    try {
+                        await props.onRefreshCollection();
+                    } catch (refreshError) {
+                        console.error(
+                            "[QuizMonGame] onRefreshCollection error",
+                            refreshError,
+                        );
+                    }
+                }
+
+                setHpSynced(true);
+            } catch (e) {
+                console.error("[QuizMonGame] HP sync unexpected error", e);
             }
-        } else {
-            if (hpSynced) setHpSynced(false);
-        }
-    }, [state, hpSynced, props.profileId, props.onRefreshCollection]);
+        })();
+    }, [
+        state.phase,
+        state.player.monsters,
+        hpSynced,
+        props.profileId,
+        props.onRefreshCollection,
+    ]);
+
 
 
 
