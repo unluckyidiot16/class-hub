@@ -1,6 +1,8 @@
 // src/games/quizmon/useQuizmonProfile.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { applyRaidResultService } from "../../services/quizmonService";
+
 
 // 실제 테이블 스키마에 맞게 최소 필드만 정의
 export type QuizmonProfile = {
@@ -181,34 +183,20 @@ export function useQuizmonProfile(
         async (summary: { correct: number; total: number }) => {
             if (!hasKey || !profile) return;
 
-            const nextTotalRaids = (profile.total_raids ?? 0) + 1;
-            const nextTotalCorrect =
-                (profile.total_correct ?? 0) + summary.correct;
-            const nextTotalQuestions =
-                (profile.total_questions ?? 0) + summary.total;
+            try {
+                const { profile: updated } = await applyRaidResultService({
+                    profile,   // 타입 캐스팅 필요 없음
+                    summary,
+                });
 
-            const { data, error } = await supabase
-                .from("quizmon_profiles")
-                .update({
-                    total_raids: nextTotalRaids,
-                    total_correct: nextTotalCorrect,
-                    total_questions: nextTotalQuestions,
-                })
-                .eq("id", profile.id)
-                .select("*")
-                .single();
+                setProfile(updated as QuizmonProfile);
+                setError(null);
 
-            if (error) {
-                console.error(
-                    "[useQuizmonProfile] applyRaidResult error",
-                    error,
-                );
+                // TODO: 나중에 토스트/결산 UI에 rewardedGold 보여주고 싶으면
+                // 여기에서 별도 상태로 올리면 됨.
+            } catch (e) {
+                console.error("[useQuizmonProfile] applyRaidResult error", e);
                 setError("레이드 결과를 저장하는 중 오류가 발생했습니다.");
-                return;
-            }
-
-            if (data) {
-                setProfile(data as QuizmonProfile);
             }
         },
         [hasKey, profile],

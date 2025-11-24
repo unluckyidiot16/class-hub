@@ -11,6 +11,7 @@ import {
 import { supabase } from "../../lib/supabaseClient";
 import { useQuizmonProfile } from "./useQuizmonProfile";
 import type { QuizmonOwnedMonsterRow } from "./types";
+import { healAllMonstersService } from "../../services/quizmonService";
 
 // useQuizmonProfile 훅의 반환값에서 profile / error / 함수 타입을 추론
 type UseQuizmonProfileResult = ReturnType<typeof useQuizmonProfile>;
@@ -161,40 +162,22 @@ export function QuizmonProvider({
     /**
      * 모든 보유 몬스터 전체 회복
      */
+
     const healAllMonsters = useCallback(async () => {
         if (!profile?.id || !isStudent) return;
 
         setCollectionError(null);
         setCollectionLoading(true);
         try {
-            const { error } = await supabase
-                .from("quizmon_owned_monsters")
-                .update({
-                    current_hp: null, // null = 풀피로 간주
-                    is_fainted: false,
-                })
-                .eq("profile_id", profile.id);
-
-            if (error) {
-                console.error(
-                    "[QuizmonProvider] healAllMonsters error",
-                    error,
-                );
-                setCollectionError("몬스터를 회복하는 중 오류가 발생했습니다.");
-                return;
-            }
-
+            await healAllMonstersService(profile.id);
             await refreshMonsters();
         } catch (e) {
-            console.error(
-                "[QuizmonProvider] healAllMonsters unexpected error",
-                e,
-            );
+            console.error("[QuizmonProvider] healAllMonsters error", e);
             setCollectionError("몬스터를 회복하는 중 오류가 발생했습니다.");
         } finally {
             setCollectionLoading(false);
         }
-    }, [profile, isStudent, refreshMonsters]);
+    }, [profile?.id, isStudent, refreshMonsters]);
 
     const value: QuizmonContextValue = {
         profile,
