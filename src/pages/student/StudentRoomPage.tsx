@@ -7,6 +7,7 @@ import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
 import { ensurePlayStudentKey } from "../../utils/playStudentKey";
+import { QuizmonProvider } from "../../games/quizmon/QuizmonProvider";
 
 
 type RoomRow = {
@@ -939,16 +940,34 @@ export function StudentRoomPage() {
                         )
                 ) : gameSpec?.mode === "react-component" ? (
                     // 🔥 React 기반 게임 (QuizMon Class 등)
-                    <gameSpec.component
-                        roomId={room?.id ?? null}
-                        classId={room?.class_id ?? null}
-                        pack={pack}
-                        session={session}
-                        // QuizMon 등 React 게임에서도 game_events를 남길 수 있도록 전달
-                        gameSessionId={gameSessionId}
-                        studentId={studentId}
-                    />
+                    //    - QuizMon일 때만 QuizmonProvider로 감싸서 컨텍스트 제공
+                    effectiveGameKey === "quizmon" ? (
+                        <QuizmonProvider
+                            classId={room?.class_id ?? null}
+                            studentId={studentId}
+                        >
+                            <gameSpec.component
+                                roomId={room?.id ?? null}
+                                classId={room?.class_id ?? null}
+                                pack={pack}
+                                session={session}
+                                // QuizMon 등 React 게임에서도 game_events를 남길 수 있도록 전달
+                                gameSessionId={gameSessionId}
+                                studentId={studentId}
+                            />
+                        </QuizmonProvider>
+                    ) : (
+                        <gameSpec.component
+                            roomId={room?.id ?? null}
+                            classId={room?.class_id ?? null}
+                            pack={pack}
+                            session={session}
+                            gameSessionId={gameSessionId}
+                            studentId={studentId}
+                        />
+                    )
                 ) : !session || session.status === "ended" ? (
+
                     <p>
                         현재 진행 중인 퀴즈 세션이 없습니다. 선생님이 수업을
                         시작하면 문제가 자동으로 표시됩니다.

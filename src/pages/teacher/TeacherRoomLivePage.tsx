@@ -1978,14 +1978,17 @@ export function TeacherRoomLivePage() {
                             paddingTop: "0.75rem",
                         }}
                     >
-                        <QuizmonProvider classId={room.class_id ?? null} studentId={null}>
-                        <QuizMonClassPanel
-                            roomId={room.id}
-                            pack={pack}
-                            session={quizMonSession}
-                            classId={room.class_id}
-                            // onQuizAnswer는 나중에 game_events 연동할 때 여기서 넘겨줄 예정
-                        />
+                        <QuizmonProvider
+                            classId={room.class_id ?? null}
+                            studentId={null} // 교사 화면이라 학생 프로필 없음
+                        >
+                            <QuizMonClassPanel
+                                roomId={room.id}
+                                pack={pack}
+                                session={quizMonSession}
+                                classId={room.class_id}
+                                // onQuizAnswer는 나중에 game_events 연동할 때 여기서 넘겨줄 예정
+                            />
                         </QuizmonProvider>
                     </div>
                 </div>
