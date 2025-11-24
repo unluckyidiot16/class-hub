@@ -200,6 +200,37 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         };
     }, [pack?.id]);
 
+    // 🔹 모든 보유 몬스터 전체 회복
+    // ⚠️ 훅이기 때문에 위쪽 다른 훅들과 같이, 조건부 리턴보다 먼저 선언해야 함
+    const healAllMonsters = useCallback(async () => {
+        if (!profile?.id) return;
+
+        try {
+            const { error } = await supabase
+                .from("quizmon_owned_monsters")
+                .update({
+                    current_hp: null, // null = 풀피로 간주
+                    is_fainted: false,
+                })
+                .eq("profile_id", profile.id);
+
+            if (error) {
+                console.error(
+                    "[QuizMonClassPanel] healAllMonsters error",
+                    error,
+                );
+                return;
+            }
+
+            await refreshOwnedMonsters();
+        } catch (err) {
+            console.error(
+                "[QuizMonClassPanel] healAllMonsters exception",
+                err,
+            );
+        }
+    }, [profile?.id, refreshOwnedMonsters]);
+
     // =========================
     // ✅ 2) 학생 프로필/스타터 선택 가드
     // =========================
@@ -238,36 +269,6 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             );
         }
     }
-
-    // 🔹 모든 보유 몬스터 전체 회복
-    const healAllMonsters = useCallback(async () => {
-        if (!profile?.id) return;
-
-        try {
-            const { error } = await supabase
-                .from("quizmon_owned_monsters")
-                .update({
-                    current_hp: null, // null = 풀피로 간주
-                    is_fainted: false,
-                })
-                .eq("profile_id", profile.id);
-
-            if (error) {
-                console.error(
-                    "[QuizMonClassPanel] healAllMonsters error",
-                    error,
-                );
-                return;
-            }
-
-            await refreshOwnedMonsters();
-        } catch (err) {
-            console.error(
-                "[QuizMonClassPanel] healAllMonsters exception",
-                err,
-            );
-        }
-    }, [profile?.id, refreshOwnedMonsters]);
 
     // =========================
     // ✅ 3) 렌더링: 전체화면 + 게임 씬만
