@@ -182,25 +182,22 @@ export function StudentRoomPage() {
     }, [isGameFullscreen]);
 
 
-    // 학생 식별 키: StudentJoinPage에서 받은 값 우선 + 없으면 classId 기반 생성
+    // 학생 식별 키: StudentJoinPage에서 받은 값 우선
     const [studentKey, setStudentKey] = useState<string>(() => {
-        // 1순위: StudentJoinPage에서 navigate state로 넘겨준 값
+        // 1순위: StudentJoinPage에서 넘겨준 값
         if (state.studentKey) return state.studentKey;
-
-        try {
-            if (typeof window !== "undefined") {
-                const initialClassId = state.classId ?? null;
-                return ensurePlayStudentKey(initialClassId);
-            }
-        } catch {
-            // ignore
-        }
-        return "s-" + Math.random().toString(36).slice(2);
+        // 그 외에는 일단 빈 문자열 → 나중에 room.class_id 로 보정
+        return "";
     });
+
 
 // room.class_id 로딩 후 → 아직 키가 없으면 생성/보정
     useEffect(() => {
+        // 이미 키가 있으면 (StudentJoin에서 받은 경우) 아무 것도 안 함
         if (studentKey) return;
+
+        // 아직 방 정보를 로딩 중이면 기다리기
+        if (loadingRoom) return;
 
         try {
             const classId = room?.class_id ?? state.classId ?? null;
@@ -208,30 +205,12 @@ export function StudentRoomPage() {
             setStudentKey(key);
         } catch (e) {
             console.error("[StudentRoom] ensurePlayStudentKey error", e);
+            // 문제 생기면 일단 fallback 하나 생성
+            if (!studentKey) {
+                setStudentKey("s-" + Math.random().toString(36).slice(2));
+            }
         }
-    }, [studentKey, room?.class_id, state.classId]);
-
-    // ✅ 브리지/퀴즈몬에 넘길 학생 ID
-    const studentId = studentKey;
-
-    // 뷰포트 폭에 따라 QDD iframe 비율 전환 (<= 768px → 세로형)
-    const [, setIsNarrowViewport] = useState(false);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-
-        const mq = window.matchMedia("(max-width: 768px)");
-
-        const handleChange = (event: MediaQueryListEvent) => {
-            setIsNarrowViewport(event.matches);
-        };
-
-        // 최초 1회 반영
-        setIsNarrowViewport(mq.matches);
-
-        mq.addEventListener("change", handleChange);
-        return () => mq.removeEventListener("change", handleChange);
-    }, []);
+    }, [studentKey, loadingRoom, room?.class_id, state.classId]);
 
 
     // presence용 방 코드
@@ -256,6 +235,8 @@ export function StudentRoomPage() {
     const gameSpec = GAME_REGISTRY[effectiveGameKey];
     const isIframeGame = gameSpec?.mode === "iframe";
     const isQddRoom = effectiveGameKey === "qdd";
+
+    const studentId = studentKey;
 
     const isReactGame = gameSpec?.mode === "react-component";
     

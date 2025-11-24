@@ -3,16 +3,11 @@ import type { ReactNode } from "react";
 import { QuizMonGame } from "./QuizMonGame";
 import type { QuizAnswerResult } from "./types";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
-import type {
-    QuizPackRow,
-} from "../../pages/student/StudentPlayPackPage";
-
+import type { QuizPackRow } from "../../pages/student/StudentPlayPackPage";
 import type {
     QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
 } from "./types";
-
-// src/games/quizmon/QuizMonBattleSection.tsx
 
 type SessionRow = {
     id: string;
@@ -54,6 +49,7 @@ type QuizMonBattleSectionProps = {
     /** 배틀 종료 콜백 (정답/전체 수 요약) */
     onBattleEnd?: (summary: { correct: number; total: number }) => void;
 
+    /** QuizMon 컬렉션 / 프로필 관련 */
     profile?: QuizmonProfileRow | null;
     monsters?: QuizmonOwnedMonsterRow[];
     collectionLoading?: boolean;
@@ -79,6 +75,16 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         profileId,
         onQuizAnswer,
         onBattleEnd,
+
+        // QuizMon 컬렉션 관련
+        profile,
+        monsters,
+        collectionLoading = false,
+        collectionError,
+        onPullFreeGacha,
+        lastRaidResult,
+        onHealAll,
+        onRefreshCollection,
     } = props;
 
     let content: ReactNode = null;
@@ -134,14 +140,14 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     studentId={studentId ?? null}
                     profileId={profileId ?? null}
                     onBattleEnd={onBattleEnd}
-                    profile={props.profile}
-                    monsters={props.monsters}
-                    collectionLoading={props.collectionLoading}
-                    collectionError={props.collectionError}
-                    onPullFreeGacha={props.onPullFreeGacha}
-                    lastRaidResult={props.lastRaidResult}
-                    onHealAll={props.onHealAll}
-                    onRefreshCollection={props.onRefreshCollection}
+                    profile={profile ?? null}
+                    monsters={monsters ?? []}
+                    collectionLoading={collectionLoading}
+                    collectionError={collectionError ?? null}
+                    onPullFreeGacha={onPullFreeGacha}
+                    lastRaidResult={lastRaidResult ?? null}
+                    onHealAll={onHealAll}
+                    onRefreshCollection={onRefreshCollection}
                 />
             );
         }
@@ -166,7 +172,16 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     roomId={roomId ?? null}
                     gameSessionId={gameSessionId ?? null}
                     studentId={studentId ?? null}
+                    profileId={profileId ?? null}
                     onBattleEnd={onBattleEnd}
+                    profile={profile ?? null}
+                    monsters={monsters ?? []}
+                    collectionLoading={collectionLoading}
+                    collectionError={collectionError ?? null}
+                    onPullFreeGacha={onPullFreeGacha}
+                    lastRaidResult={lastRaidResult ?? null}
+                    onHealAll={onHealAll}
+                    onRefreshCollection={onRefreshCollection}
                 />
             );
         }

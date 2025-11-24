@@ -650,6 +650,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setHasReportedEnd(false);
             setQuestionIndex(0);
             setViewState("battle");
+            setHasBattleInitialized(true);
         } catch (err) {
             console.error(
                 "[QuizMonGame] resetBattleWithProfileParty unexpected error",
