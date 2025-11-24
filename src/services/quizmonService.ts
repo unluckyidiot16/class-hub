@@ -33,9 +33,6 @@ export type ApplyRaidResultOptions = {
  *
  * ⚠️ 아래 상수만 바꿔서 보상 튜닝 가능
  */
-const GOLD_PER_CORRECT = 10;
-const GOLD_CLEAR_BONUS = 0; // 던전 클리어 기본 보상 등 필요하면 사용
-
 export type ApplyRaidResultResponse = {
     profile: QuizmonProfileRow;
     rewardedGold: number;
@@ -51,6 +48,9 @@ export async function applyRaidResultService(
     const nextTotalQuestions =
         (profile.total_questions ?? 0) + summary.total;
 
+    const GOLD_PER_CORRECT = 10;
+    const GOLD_CLEAR_BONUS = 0;
+
     const rewardedGold =
         summary.correct * GOLD_PER_CORRECT + GOLD_CLEAR_BONUS;
     const nextGold = (profile.gold ?? 0) + rewardedGold;
@@ -64,6 +64,7 @@ export async function applyRaidResultService(
             gold: nextGold,
         })
         .eq("id", profile.id)
+        // 🔴 여기! select 인자는 "*:1" 같은 거 없이 "*" 만
         .select("*")
         .single();
 
