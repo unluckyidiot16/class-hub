@@ -37,7 +37,6 @@ type QuizMonClassPanelProps = {
     onQuizAnswer?: (result: QuizAnswerResult) => void;
 };
 
-
 export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const {
         roomId,
@@ -61,8 +60,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
     const [ownedMonsters, setOwnedMonsters] =
         useState<QuizmonOwnedMonsterRow[]>([]);
     const [collectionLoading, setCollectionLoading] = useState(false);
-    const [collectionError] = useState<string | null>(null);
-
+    const [collectionError, setCollectionError] = useState<string | null>(null);
 
     // 🔹 QuizMon 프로필 (학생일 때만 의미 있음)
     const {
@@ -76,12 +74,13 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         studentKey: studentId ?? null,
     });
 
-    // 컴포넌트 상단
+    // 중복 요청 방지용 ref
     const refreshingRef = useRef(false);
 
+    // 보유 몬스터 새로고침
     const refreshOwnedMonsters = useCallback(async () => {
         if (!profile?.id) return;
-        if (refreshingRef.current) return; // ✅ 이미 실행 중이면 무시
+        if (refreshingRef.current) return;
 
         refreshingRef.current = true;
         setCollectionLoading(true);
@@ -89,41 +88,43 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         try {
             const { data, error } = await supabase
                 .from("quizmon_owned_monsters")
-                .update({
-                    current_hp: null,      // null = 풀피로 간주
-                    is_fainted: false,
-                })
+                .select("*")
                 .eq("profile_id", profile.id)
                 .order("created_at", { ascending: true });
 
             if (error) {
-                console.error("[QuizMonClassPanel] refreshOwnedMonsters error", error);
+                console.error(
+                    "[QuizMonClassPanel] refreshOwnedMonsters error",
+                    error,
+                );
+                setCollectionError(
+                    "보유 몬스터를 불러오는 중 오류가 발생했습니다.",
+                );
                 return;
             }
 
-            setOwnedMonsters(data ?? []);
+            setCollectionError(null);
+            setOwnedMonsters((data ?? []) as QuizmonOwnedMonsterRow[]);
         } finally {
             refreshingRef.current = false;
             setCollectionLoading(false);
         }
     }, [profile?.id]);
 
-
-    // 🔹 학생 프로필이 준비되면 보유 몬스터 컬렉션 로딩
     // 🔹 학생 프로필이 준비되면 1회 자동 로딩
     useEffect(() => {
         void refreshOwnedMonsters();
     }, [refreshOwnedMonsters]);
 
-
-
     // 배틀 종료 → 프로필에 레이드 결과 반영 (레벨/EXP 업데이트)
-    const handleBattleEnd = async (summary: { correct: number; total: number }) => {
+    const handleBattleEnd = async (summary: {
+        correct: number;
+        total: number;
+    }) => {
         if (!studentId) return; // 교사 미리보기 방지
         await applyRaidResult(summary);
     };
-    
-    
+
     // 🎯 1) 퀴즈팩이 바뀔 때마다 quiz_questions → QuizPackJsonV1 로딩
     useEffect(() => {
         if (!pack?.id) {
@@ -231,41 +232,46 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     disabled={profileLoading}
                     onChooseStarter={async (speciesId) => {
                         await chooseStarter(speciesId);
-                        // 스타터 선택 후 보유 몬스터 컬렉션도 바로 갱신
-                        await refreshOwnedMonsters();
+                        // 필요하면 여기서도 refreshOwnedMonsters() 호출 가능
                     }}
                 />
             );
         }
-
     }
 
     // 🔹 모든 보유 몬스터 전체 회복
     const healAllMonsters = useCallback(async () => {
         if (!profile?.id) return;
 
-        const { data, error } = await supabase
-            .from("quizmon_owned_monsters")
-            .select("*")
-            .eq("profile_id", profile.id)
-            .order("created_at", { ascending: true });
+        try {
+            const { error } = await supabase
+                .from("quizmon_owned_monsters")
+                .update({
+                    current_hp: null, // null = 풀피로 간주
+                    is_fainted: false,
+                })
+                .eq("profile_id", profile.id);
 
-        if (error) {
-            console.error("[QuizMonClassPanel] refreshOwnedMonsters error", error);
-            return;
+            if (error) {
+                console.error(
+                    "[QuizMonClassPanel] healAllMonsters error",
+                    error,
+                );
+                return;
+            }
+
+            await refreshOwnedMonsters();
+        } catch (err) {
+            console.error(
+                "[QuizMonClassPanel] healAllMonsters exception",
+                err,
+            );
         }
-
-        // Supabase 타입 추론 대신 우리가 Row 타입으로 캐스팅
-        setOwnedMonsters((data ?? []) as QuizmonOwnedMonsterRow[]);
-
     }, [profile?.id, refreshOwnedMonsters]);
 
-
-
-
     // =========================
-// ✅ 3) 렌더링: 전체화면 + 게임 씬만
-// =========================
+    // ✅ 3) 렌더링: 전체화면 + 게임 씬만
+    // =========================
 
     const wrapperStyle: CSSProperties = isFullscreen
         ? {
@@ -278,7 +284,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         }
         : {};
 
-// 👇 학생 / 교사 / 전체화면에 따라 내부 컨테이너 폭 분기
+    // 👇 학생 / 교사 / 전체화면에 따라 내부 컨테이너 폭 분기
     const innerStyle: CSSProperties = isFullscreen
         ? {
             maxWidth: 1280,
@@ -334,15 +340,15 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                 </div>
 
                 {/* 🔹 메인: 게임 씬만 (QuizMonBattleSection → QuizMonGame)
-                → 카드 자체를 뷰포트로 쓰고 내부만 스크롤되도록 설정 */}
+                    → 카드 자체를 뷰포트로 쓰고 내부만 스크롤되도록 설정 */}
                 <div
                     className="card"
                     style={{
                         // 화면 높이 기준으로 카드 최대 높이 제한
                         maxHeight: isFullscreen
-                            ? "calc(100vh - 4rem)"   // 전체화면일 때는 조금 더 여유
-                            : "calc(100vh - 7rem)",  // 일반 모드(헤더 포함)에서의 뷰포트
-                        overflowY: "auto",           // 🔹 카드 내부 스크롤
+                            ? "calc(100vh - 4rem)" // 전체화면일 때는 조금 더 여유
+                            : "calc(100vh - 7rem)", // 일반 모드(헤더 포함)에서의 뷰포트
+                        overflowY: "auto",
                         overflowX: "hidden",
                     }}
                 >
@@ -357,12 +363,17 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         gameSessionId={gameSessionId}
                         studentId={studentId}
                         profileId={profile?.id ?? null}
-                        profile={profile ?? null}
+                        // 🔹 useQuizmonProfile의 profile 타입과
+                        // QuizMonBattleSection이 기대하는 QuizmonProfileRow 타입이
+                        // 조금 달라서 일단 any 캐스팅으로 연결
+                        profile={profile as any}
                         monsters={ownedMonsters}
                         collectionLoading={collectionLoading}
                         collectionError={collectionError}
                         onQuizAnswer={onQuizAnswer}
-                        onBattleEnd={studentId ? handleBattleEnd : undefined}
+                        onBattleEnd={
+                            studentId ? handleBattleEnd : undefined
+                        }
                         onHealAll={healAllMonsters}
                         onRefreshCollection={refreshOwnedMonsters}
                     />
@@ -370,6 +381,4 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             </div>
         </div>
     );
-
-
 }
