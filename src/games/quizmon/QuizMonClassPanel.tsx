@@ -1,5 +1,5 @@
 // src/games/quizmon/QuizMonClassPanel.tsx
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { CSSProperties } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type {
@@ -11,12 +11,9 @@ import type {
     QuizPackQuestionV1,
 } from "../../types/quizPackJson";
 import { QuizMonBattleSection } from "./QuizMonBattleSection";
-import type {
-    QuizAnswerResult,
-    QuizmonOwnedMonsterRow,
-} from "./types";
-import { useQuizmonProfile } from "./useQuizmonProfile";
+import type { QuizAnswerResult } from "./types";
 import { StarterSelectPanel } from "./StarterSelectPanel";
+import { useQuizmonContext } from "./QuizmonProvider";
 
 type SessionRow = {
     id: string;
@@ -45,7 +42,6 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         roomId,
         pack,
         session,
-        classId,
         gameSessionId,
         studentId,
         onQuizAnswer,
@@ -60,113 +56,19 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
 
     const isStudent = !!studentId;
 
-    const [ownedMonsters, setOwnedMonsters] =
-        useState<QuizmonOwnedMonsterRow[]>([]);
-    const [collectionLoading, setCollectionLoading] = useState(false);
-    const [collectionError, setCollectionError] = useState<string | null>(null);
-    const [healing, setHealing] = useState(false);
-
-    // 🔹 QuizMon 프로필 (학생일 때만 의미 있음)
+    // 중앙 상태(프로필/몬스터) 컨텍스트
     const {
         profile,
-        loading: profileLoading,
-        error: profileError,
+        profileLoading,
+        profileError,
         applyRaidResult,
         chooseStarter,
-    } = useQuizmonProfile({
-        classId: classId ?? null,
-        studentKey: studentId ?? null,
-    });
-
-    // 보유 몬스터 로딩 중복 방지용
-    const refreshingRef = useRef(false);
-
-    /**
-     * 보유 몬스터 컬렉션 로딩
-     * - 기존 owned_monsters가 없고, profile.partner / starter_species_id 만 있는
-     *   예전 데이터도 자동으로 마이그레이션해 줌.
-     */
-    const refreshOwnedMonsters = useCallback(async () => {
-        if (!profile?.id) return;
-        if (refreshingRef.current) return;
-
-        refreshingRef.current = true;
-        setCollectionLoading(true);
-        setCollectionError(null);
-
-        try {
-            let rows: QuizmonOwnedMonsterRow[] = [];
-
-            // 1) 현재 프로필 기준 owned_monsters 조회
-            const { data, error } = await supabase
-                .from("quizmon_owned_monsters")
-                .select("*")
-                .eq("profile_id", profile.id)
-                .order("created_at", { ascending: true });
-
-            if (error) {
-                console.error(
-                    "[QuizMonClassPanel] refreshOwnedMonsters error",
-                    error,
-                );
-                setCollectionError(
-                    "보유 몬스터를 불러오는 중 오류가 발생했습니다.",
-                );
-                setOwnedMonsters([]);
-                return;
-            }
-
-            rows = (data ?? []) as QuizmonOwnedMonsterRow[];
-
-            // 2) 마이그레이션: owned_monsters가 비었는데
-            //    profile.partner / starter_species_id 가 있으면
-            //    starter 개체를 1마리 생성해 준다.
-            if (!rows.length) {
-                const anyProfile = profile as any;
-                const fallbackSpeciesId =
-                    (anyProfile.partner as string | null) ??
-                    (anyProfile.starter_species_id as string | null) ??
-                    null;
-
-                if (fallbackSpeciesId) {
-                    const { data: inserted, error: insertError } =
-                        await supabase
-                            .from("quizmon_owned_monsters")
-                            .insert({
-                                profile_id: profile.id,
-                                species_id: fallbackSpeciesId,
-                                level: 1,
-                                exp: 0,
-                                party_slot: 1,
-                                current_hp: null,
-                                is_fainted: false,
-                                learned_moves: [] as string[],
-                            })
-                            .select("*")
-                            .single();
-
-                    if (insertError) {
-                        console.error(
-                            "[QuizMonClassPanel] create starter owned_monster error",
-                            insertError,
-                        );
-                    } else if (inserted) {
-                        rows = [inserted as QuizmonOwnedMonsterRow];
-                    }
-                }
-            }
-
-            setOwnedMonsters(rows);
-        } finally {
-            refreshingRef.current = false;
-            setCollectionLoading(false);
-        }
-    }, [profile]);
-
-    // 🔹 학생 프로필이 준비되면 1회 자동 로딩
-    useEffect(() => {
-        void refreshOwnedMonsters();
-    }, [refreshOwnedMonsters]);
+        monsters,
+        collectionLoading,
+        collectionError,
+        refreshMonsters,
+        healAllMonsters,
+    } = useQuizmonContext();
 
     // 배틀 종료 → 프로필에 레이드 결과 반영 (레벨/EXP 업데이트)
     const handleBattleEnd = useCallback(
@@ -252,35 +154,6 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
         };
     }, [pack?.id, pack?.title, pack?.subject, pack?.grade]);
 
-    // 🔹 모든 보유 몬스터 전체 회복
-    const healAllMonsters = useCallback(async () => {
-        if (!profile?.id) return;
-
-        setHealing(true);
-        try {
-            const { error } = await supabase
-                .from("quizmon_owned_monsters")
-                .update({
-                    current_hp: null, // null = 풀피로 간주
-                    is_fainted: false,
-                })
-                .eq("profile_id", profile.id);
-
-            if (error) {
-                console.error(
-                    "[QuizMonClassPanel] healAllMonsters error",
-                    error,
-                );
-                setCollectionError("몬스터 회복 중 오류가 발생했습니다.");
-                return;
-            }
-
-            await refreshOwnedMonsters();
-        } finally {
-            setHealing(false);
-        }
-    }, [profile?.id, refreshOwnedMonsters]);
-
     // =========================
     // ✅ 학생 프로필/스타터 선택 가드
     // =========================
@@ -289,7 +162,7 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             return (
                 <div style={{ padding: "1rem" }}>
                     <p>퀴즈몬 프로필을 불러오는 중 오류가 발생했습니다.</p>
-                    ...
+                    <p>{String(profileError)}</p>
                 </div>
             );
         }
@@ -304,13 +177,12 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                     disabled={profileLoading}
                     onChooseStarter={async (speciesId) => {
                         await chooseStarter(speciesId);
-                        // 필요하면 여기서 refresh() 추가 가능
+                        await refreshMonsters();
                     }}
                 />
             );
         }
     }
-
 
     // =========================
     // ✅  렌더링: 전체화면 + 게임 씬만
@@ -409,13 +281,13 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
                         // useQuizmonProfile 이 반환하는 프로필 타입이
                         // QuizmonProfileRow 와 1:1 은 아니라서 any 캐스팅
                         profile={profile as any}
-                        monsters={ownedMonsters}
-                        collectionLoading={collectionLoading || healing}
+                        monsters={monsters}
+                        collectionLoading={collectionLoading}
                         collectionError={collectionError}
                         onQuizAnswer={onQuizAnswer}
                         onBattleEnd={studentId ? handleBattleEnd : undefined}
                         onHealAll={isStudent ? healAllMonsters : undefined}
-                        onRefreshCollection={refreshOwnedMonsters}
+                        onRefreshCollection={refreshMonsters}
                     />
                 </div>
             </div>

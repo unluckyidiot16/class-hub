@@ -10,6 +10,7 @@ import PresenceSidebar from "../../components/PresenceSidebar";
 import {ensureGameSession, endGameSession } from "../../api/gameSessions";
 
 import { QuizMonClassPanel } from "../../games/quizmon/QuizMonClassPanel";
+import {QuizmonProvider} from "../../games/quizmon/QuizmonProvider";
 
 
 
@@ -1977,6 +1978,7 @@ export function TeacherRoomLivePage() {
                             paddingTop: "0.75rem",
                         }}
                     >
+                        <QuizmonProvider classId={room.class_id ?? null} studentId={null}>
                         <QuizMonClassPanel
                             roomId={room.id}
                             pack={pack}
@@ -1984,6 +1986,7 @@ export function TeacherRoomLivePage() {
                             classId={room.class_id}
                             // onQuizAnswer는 나중에 game_events 연동할 때 여기서 넘겨줄 예정
                         />
+                        </QuizmonProvider>
                     </div>
                 </div>
             )}
