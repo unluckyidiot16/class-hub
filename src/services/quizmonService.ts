@@ -1,7 +1,6 @@
 // src/services/quizmonService.ts
 import { supabase } from "../lib/supabaseClient";
 import type {
-    QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
 } from "../games/quizmon/types";
 
@@ -28,12 +27,13 @@ export type ApplyRaidResultOptions = {
 };
 
 export type ApplyRaidResultResponse = {
-    profile: QuizmonProfileRow;
     rewardedGold: number;
 };
 
 /**
  * 레이드 결과를 quizmon_profiles 에 반영 + Gold 지급
+ * - UPDATE만 수행하고, 다시 SELECT해서 읽어오지는 않는다.
+ * - UI 쪽 로컬 상태 업데이트는 호출한 쪽에서 처리.
  */
 export async function applyRaidResultService(
     options: ApplyRaidResultOptions,
@@ -52,7 +52,7 @@ export async function applyRaidResultService(
         summary.correct * GOLD_PER_CORRECT + GOLD_CLEAR_BONUS;
     const nextGold = (profile.gold ?? 0) + rewardedGold;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from("quizmon_profiles")
         .update({
             total_raids: nextTotalRaids,
@@ -60,19 +60,13 @@ export async function applyRaidResultService(
             total_questions: nextTotalQuestions,
             gold: nextGold,
         })
-        .eq("id", profile.id)
-        // 🔸 여기가 핵심: "*:1" 같은 거 절대 없음
-        .select("*")
-        .single();
+        .eq("id", profile.id);
 
-    if (error || !data) {
-        throw error ?? new Error("applyRaidResultService: empty response");
+    if (error) {
+        throw error;
     }
 
-    return {
-        profile: data as QuizmonProfileRow,
-        rewardedGold,
-    };
+    return { rewardedGold };
 }
 
 /**

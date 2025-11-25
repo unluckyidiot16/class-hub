@@ -7,8 +7,7 @@ import { useGameHostBridge } from "../../hooks/useGameHostBridge";
 import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
 import { ensurePlayStudentKey } from "../../utils/playStudentKey";
-import { QuizmonProvider } from "../../games/quizmon/QuizmonProvider";
-
+import { StudentGamePanel } from "./components/StudentGamePanel";
 
 type RoomRow = {
     class_id: string | null;
@@ -100,7 +99,7 @@ export function StudentRoomPage() {
     // "내 정보" 토글
     const [showProfile, setShowProfile] = useState(false);
 
-    // 🔥 QDD 전체화면 토글
+    // QDD 전체화면 토글
     const [isGameFullscreen, setIsGameFullscreen] = useState(false);
 
     // 메시지
@@ -125,6 +124,14 @@ export function StudentRoomPage() {
 
     const [gameSessionId, setGameSessionId] = useState<string | null>(null);
     const quizpackJson: any = null;
+
+    // 학생 식별 키: StudentJoinPage에서 받은 값 우선
+    const [studentKey, setStudentKey] = useState<string>(() => {
+        // 1순위: StudentJoinPage에서 넘겨준 값
+        if (state.studentKey) return state.studentKey;
+        // 그 외에는 일단 빈 문자열 → 나중에 room.class_id 로 보정
+        return "";
+    });
 
     // room / session / game_key 준비되면 game_sessions 조회
     useEffect(() => {
@@ -168,8 +175,7 @@ export function StudentRoomPage() {
         void loadGameSession();
     }, [room?.id, room?.game_key, session?.id]);
 
-
-
+    // 전체화면 시 body 스크롤 잠금
     useEffect(() => {
         if (typeof document === "undefined") return;
 
@@ -182,17 +188,7 @@ export function StudentRoomPage() {
         }
     }, [isGameFullscreen]);
 
-
-    // 학생 식별 키: StudentJoinPage에서 받은 값 우선
-    const [studentKey, setStudentKey] = useState<string>(() => {
-        // 1순위: StudentJoinPage에서 넘겨준 값
-        if (state.studentKey) return state.studentKey;
-        // 그 외에는 일단 빈 문자열 → 나중에 room.class_id 로 보정
-        return "";
-    });
-
-
-// room.class_id 로딩 후 → 아직 키가 없으면 생성/보정
+    // room.class_id 로딩 후 → 아직 키가 없으면 생성/보정
     useEffect(() => {
         // 이미 키가 있으면 (StudentJoin에서 받은 경우) 아무 것도 안 함
         if (studentKey) return;
@@ -213,7 +209,6 @@ export function StudentRoomPage() {
         }
     }, [studentKey, loadingRoom, room?.class_id, state.classId]);
 
-
     // presence용 방 코드
     const roomCodeForPresence =
         room?.code ?? state.roomCode ?? roomId ?? "";
@@ -232,30 +227,27 @@ export function StudentRoomPage() {
         ((room?.game_key as GameKey) ??
             (state.gameKey as GameKey) ??
             "quiz-only");
-    
+
     const gameSpec = GAME_REGISTRY[effectiveGameKey];
     const isIframeGame = gameSpec?.mode === "iframe";
+    const isReactGame = gameSpec?.mode === "react-component";
     const isQddRoom = effectiveGameKey === "qdd";
 
     const studentId = studentKey;
 
-    const isReactGame = gameSpec?.mode === "react-component";
-    
     // ✅ iframe 게임용 세션 ID는 "game_sessions.id"를 사용
     const effectiveGameSessionId =
         isIframeGame && gameSessionId ? gameSessionId : "";
 
-
     useGameHostBridge({
         iframeRef,
         gameId: effectiveGameKey,
-        gameSessionId: effectiveGameSessionId,   // ⬅ 여기만 살짝 교체
+        gameSessionId: effectiveGameSessionId,
         roomId: room?.id ?? "",
         quizpackJson,
         studentId,
     });
 
-    
     // 1) 방 기본 정보 로드
     useEffect(() => {
         if (!roomId) return;
@@ -335,7 +327,10 @@ export function StudentRoomPage() {
                 .eq("pack_id", room.quiz_pack_id);
 
             if (error) {
-                console.error("[StudentRoom] load question count error", error);
+                console.error(
+                    "[StudentRoom] load question count error",
+                    error,
+                );
                 return;
             }
 
@@ -350,7 +345,6 @@ export function StudentRoomPage() {
             cancelled = true;
         };
     }, [room?.quiz_pack_id, isQddRoom]);
-
 
     // 2) 현재 세션/문제 폴링 (3초마다)
     useEffect(() => {
@@ -436,8 +430,6 @@ export function StudentRoomPage() {
             window.clearInterval(timer);
         };
     }, [roomId, lastQuestionId, isQddRoom]);
-
-
 
     // 2-3) 현재 문제에 대한 기존 답안 여부 체크
     useEffect(() => {
@@ -540,8 +532,6 @@ export function StudentRoomPage() {
         };
     }, [roomId, studentKey]);
 
-    
-    
     const handleSubmitAnswer = async (choiceIdx: number) => {
         if (!room || !session || !currentQuestion) return;
         if (hasAnswered || submitting) return;
@@ -585,7 +575,6 @@ export function StudentRoomPage() {
         }
     };
 
-
     if (loadingRoom) {
         return (
             <section className="page student-join">
@@ -612,30 +601,32 @@ export function StudentRoomPage() {
     const roomTitle = state.roomTitle ?? room.title;
     const roomCode = state.roomCode ?? room.code;
 
-
-    const currentGameSpec = gameSpec;
-    const gameLabel = currentGameSpec?.label ?? "게임";
     const isGameRoom = isIframeGame || isReactGame;
-    
+
     // iframe 게임일 때 기본 URL 생성 (QDD, Pixel 등)
+    const currentGameSpec = gameSpec;
     const baseGameUrl =
-            isIframeGame && room && pack && currentGameSpec?.mode === "iframe"
-                ? currentGameSpec.buildUrl({
-                        pack,
-                        roomId: room.id,
-                })
-                : null;
-    
-            // QDD만 sessionId를 쿼리 스트링으로 전달 (Pixel은 필요 없음)
-                const gameUrl = 
-                    baseGameUrl && 
-                    effectiveGameSessionId && 
-                    currentGameSpec?.key === "qdd" 
-                        ? `${baseGameUrl}${
-                                  baseGameUrl.includes("?") ? "&" : "?"
-                                  }sessionId=${encodeURIComponent(effectiveGameSessionId)}`
-                        : baseGameUrl;
-    
+        isIframeGame &&
+        room &&
+        pack &&
+        currentGameSpec &&
+        currentGameSpec.mode === "iframe"
+            ? currentGameSpec.buildUrl({
+                pack,
+                roomId: room.id,
+            })
+            : null;
+
+    // QDD만 sessionId를 쿼리 스트링으로 전달 (Pixel은 필요 없음)
+    const gameUrl =
+        baseGameUrl &&
+        effectiveGameSessionId &&
+        currentGameSpec &&
+        currentGameSpec.key === "qdd"
+            ? `${baseGameUrl}${
+                baseGameUrl.includes("?") ? "&" : "?"
+            }sessionId=${encodeURIComponent(effectiveGameSessionId)}`
+            : baseGameUrl;
 
     if (!roomId) {
         return (
@@ -678,9 +669,7 @@ export function StudentRoomPage() {
                     ? {
                         // 모든 게임 방(QDD, QuizMon 등)의 페이지 폭 제한 해제
                         maxWidth: "100%",
-                        // 가로 가운데 정렬용 margin: 0 auto 를 죽이고 싶으면 아예 0으로
                         margin: "0",
-                        // 양쪽 여백만 살짝 남기기
                         paddingInline: "1.5rem",
                     }
                     : undefined
@@ -795,267 +784,35 @@ export function StudentRoomPage() {
                 </div>
             )}
 
-            {/* 현재 문제 / 게임 영역 */}
-            <div
-                className="card"
-                style={{
-                    maxWidth: isGameRoom ? "100%" : 720,
-                    margin: "0 auto",
-                }}
-            >
-                {/* 카드 상단: 제목 + (QDD일 때만) 게임만 보기 버튼 */}
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: "0.5rem",
-                        marginBottom: "0.5rem",
-                    }}
-                >
-                    <h2 style={{ margin: 0 }}>
-                        {isGameRoom ? "현재 게임" : "현재 문제"}
-                    </h2>
+            {/* 현재 문제 / 게임 영역: StudentGamePanel로 위임 */}
+            <StudentGamePanel
+                gameKey={effectiveGameKey}
+                roomId={room.id}
+                pack={pack}
+                session={session as any}
+                currentQuestion={currentQuestion as any}
+                totalQuestions={questionCount ?? 0}
+                currentIndex={session?.current_index ?? 0}
+                selectedIndex={selectedIndex}
+                isCorrect={null}
+                submitting={submitting}
+                // 라이브 세션용 builtin-quiz 브랜치
+                hasAnswered={hasAnswered}
+                submitMessage={submitMessage}
+                onAnswerClick={handleSubmitAnswer}
+                // React 기반 게임(QuizMon)용 메타
+                classId={room.class_id}
+                gameSessionId={gameSessionId}
+                studentId={studentId}
+                // iframe 게임(QDD / Pixel)용 설정
+                iframeSrc={gameUrl ?? null}
+                iframeRef={iframeRef}
+                isGameFullscreen={isGameFullscreen}
+                onToggleFullscreen={setIsGameFullscreen}
+            />
 
-                    {isIframeGame &&
-                        session &&
-                        session.status === "running" &&
-                        gameUrl && (
-                            <button
-                                type="button"
-                                className="secondary-btn"
-                                style={{
-                                    fontSize: "0.8rem",
-                                    padding: "0.25rem 0.5rem",
-                                }}
-                                onClick={() => setIsGameFullscreen(true)}
-                            >
-                                게임만 보기
-                            </button>
-                        )}
-                </div>
-
-                {/* iframe 게임 / React 게임 / 기본 퀴즈 분기 */}
-                {isIframeGame ? (
-                    !pack ? (
-                        <p>
-                            이 방의 퀴즈팩 정보를 불러오지 못했습니다. 잠시 후
-                            다시 시도해 주세요.
-                        </p>
-                    ) : !session ||
-                    session.status !== "running" ||
-                    !gameUrl ? (
-                        <>
-                            <p
-                                style={{
-                                    fontSize: "0.9rem",
-                                    marginBottom: "0.5rem",
-                                    color: "var(--text-sub)",
-                                }}
-                            >
-                                이 방은{" "}
-                                <strong>{gameLabel}</strong>{" "}
-                                게임용 방입니다.
-                            </p>
-                            <p
-                                style={{
-                                    fontSize: "0.9rem",
-                                    marginBottom: "0.5rem",
-                                }}
-                            >
-                                선생님이 게임을 시작하면 지정된 게임 화면에서
-                                플레이하게 됩니다.
-                                <br />
-                                <span
-                                    style={{
-                                        fontSize: "0.8rem",
-                                        color: "var(--text-sub)",
-                                    }}
-                                >
-                                    (게임이 시작되면 이 위치에 {gameLabel} 게임
-                                    화면이 표시됩니다)
-                                </span>
-                            </p>
-                        </>
-                    ) : (
-                        <div
-                            className="qdd-frame-wrapper"
-                            style={{
-                                position: isGameFullscreen
-                                    ? "fixed"
-                                    : "relative",
-                                inset: isGameFullscreen ? 0 : undefined,
-                                top: isGameFullscreen ? 0 : undefined,
-                                left: isGameFullscreen ? 0 : undefined,
-                                width: isGameFullscreen ? "100vw" : "100%",
-                                height: isGameFullscreen
-                                    ? "100vh"
-                                    : undefined,
-                                // 전체화면 아닐 때는 비율로 높이 확보
-                                aspectRatio: isGameFullscreen
-                                    ? undefined
-                                    : "16 / 10",
-                                borderRadius: isGameFullscreen ? 0 : 12,
-                                overflow: "hidden",
-                                backgroundColor: "#000",
-                                zIndex: isGameFullscreen ? 1000 : "auto",
-                            }}
-                        >
-                            <iframe
-                                title="퀴즈 다이스 디펜스(QDD)"
-                                src={gameUrl ?? undefined}
-                                ref={iframeRef}
-                                style={{
-                                    position: "absolute",
-                                    inset: 0,
-                                    width: "100%",
-                                    height: "100%",
-                                    border: "none",
-                                }}
-                                allowFullScreen
-                            />
-
-                            {isGameFullscreen && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsGameFullscreen(false)}
-                                    style={{
-                                        position: "absolute",
-                                        top: 8,
-                                        right: 8,
-                                        zIndex: 1001,
-                                        padding: "0.4rem 0.6rem",
-                                        borderRadius: 999,
-                                        border: "none",
-                                        fontSize: "0.8rem",
-                                        background:
-                                            "rgba(15, 23, 42, 0.75)",
-                                        color: "#fff",
-                                    }}
-                                >
-                                    ✕ 수업 화면
-                                </button>
-                            )}
-                        </div>
-                        )
-                ) : gameSpec?.mode === "react-component" ? (
-                    // 🔥 React 기반 게임 (QuizMon Class 등)
-                    //    - QuizMon일 때만 QuizmonProvider로 감싸서 컨텍스트 제공
-                    effectiveGameKey === "quizmon" ? (
-                        <QuizmonProvider
-                            classId={room?.class_id ?? null}
-                            studentId={studentId}
-                        >
-                            <gameSpec.component
-                                roomId={room?.id ?? null}
-                                classId={room?.class_id ?? null}
-                                pack={pack}
-                                session={session}
-                                // QuizMon 등 React 게임에서도 game_events를 남길 수 있도록 전달
-                                gameSessionId={gameSessionId}
-                                studentId={studentId}
-                            />
-                        </QuizmonProvider>
-                    ) : (
-                        <gameSpec.component
-                            roomId={room?.id ?? null}
-                            classId={room?.class_id ?? null}
-                            pack={pack}
-                            session={session}
-                            gameSessionId={gameSessionId}
-                            studentId={studentId}
-                        />
-                    )
-                ) : !session || session.status === "ended" ? (
-
-                    <p>
-                        현재 진행 중인 퀴즈 세션이 없습니다. 선생님이 수업을
-                        시작하면 문제가 자동으로 표시됩니다.
-                    </p>
-                ) : !currentQuestion ? (
-                    <p>현재 인덱스에 해당하는 문제를 불러오지 못했습니다.</p>
-                ) : (
-                    <>
-                        <p
-                            style={{
-                                fontSize: "0.9rem",
-                                marginBottom: "0.5rem",
-                                color: "var(--text-sub)",
-                            }}
-                        >
-                            선생님이 진행하는 문제에 맞춰 보기 중 하나를 선택해
-                            주세요.
-                        </p>
-                        <p
-                            style={{
-                                whiteSpace: "pre-wrap",
-                                marginBottom: "0.75rem",
-                            }}
-                        >
-                            {currentQuestion.prompt}
-                        </p>
-
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.4rem",
-                            }}
-                        >
-                            {(currentQuestion.options ?? []).map((opt, idx) => (
-                                <button
-                                    key={idx}
-                                    type="button"
-                                    className={
-                                        selectedIndex === idx
-                                            ? "primary-btn"
-                                            : "secondary-btn"
-                                    }
-                                    disabled={
-                                        hasAnswered || submitting || !opt
-                                    }
-                                    onClick={() => handleSubmitAnswer(idx)}
-                                    style={{ textAlign: "left" }}
-                                >
-                                    <strong
-                                        style={{
-                                            marginRight: "0.4rem",
-                                        }}
-                                    >
-                                        {String.fromCharCode(65 + idx)}.
-                                    </strong>
-                                    {opt || "(빈 보기)"}
-                                </button>
-                            ))}
-                        </div>
-
-                        {submitMessage && (
-                            <p
-                                className="form-message"
-                                style={{ marginTop: "0.75rem" }}
-                            >
-                                {submitMessage}
-                            </p>
-                        )}
-
-                        {!hasAnswered && (
-                            <p
-                                className="hint"
-                                style={{
-                                    marginTop: "0.5rem",
-                                    fontSize: "0.85rem",
-                                }}
-                            >
-                                보기 버튼을 누르면 곧바로 답이 제출됩니다.
-                                제출 후에는 다시 바꿀 수 없습니다.
-                            </p>
-                        )}
-                    </>
-                )}
-            </div>
-
-            {/* 선생님 알림 카드: 기본은 마지막 메시지 1개만, 버튼으로 전체 보기 */}
-            {lastMessage && (
+            {/* 선생님 알림 카드 */}
+            {messages.length > 0 && (
                 <div
                     className="card"
                     style={{ maxWidth: 720, margin: "1rem auto 0" }}
@@ -1064,93 +821,87 @@ export function StudentRoomPage() {
 
                     {!showAllMessages ? (
                         <>
-                            <ul
-                                style={{
-                                    listStyle: "none",
-                                    padding: 0,
-                                    margin: 0,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "0.4rem",
-                                }}
-                            >
-                                <li
-                                    key={lastMessage.id}
+                            {lastMessage && (
+                                <ul
                                     style={{
-                                        paddingTop: "0.25rem",
-                                        borderTop:
-                                            "1px solid var(--border-subtle)",
-                                        fontSize: "0.9rem",
+                                        listStyle: "none",
+                                        padding: 0,
+                                        margin: 0,
                                     }}
                                 >
-                                    <div
+                                    <li
+                                        key={lastMessage.id}
                                         style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            gap: "0.5rem",
-                                            marginBottom: "0.15rem",
+                                            paddingTop: "0.25rem",
+                                            borderTop:
+                                                "1px solid var(--border-subtle)",
+                                            fontSize: "0.9rem",
                                         }}
                                     >
-                                        <span>
-                                            {lastMessage.target_type === "all"
-                                                ? "전체 알림"
-                                                : "개인 알림"}
-                                        </span>
-                                        <span
+                                        <div
                                             style={{
-                                                fontSize: "0.8rem",
-                                                color: "var(--text-sub)",
+                                                display: "flex",
+                                                justifyContent:
+                                                    "space-between",
+                                                gap: "0.5rem",
+                                                marginBottom: "0.15rem",
                                             }}
                                         >
-                                            {formatTime(lastMessage.created_at)}
-                                        </span>
-                                    </div>
-                                    {lastMessage.body && (
-                                        <div>{lastMessage.body}</div>
-                                    )}
-                                    {lastMessage.link_url && (
-                                        <button
-                                            type="button"
-                                            className="secondary-btn"
-                                            onClick={() => {
-                                                window.location.href =
-                                                    lastMessage.link_url!;
-                                            }}
-                                            style={{
-                                                marginTop: "0.25rem",
-                                                fontSize: "0.8rem",
-                                                padding:
-                                                    "0.25rem 0.5rem",
-                                            }}
-                                        >
-                                            링크 열기
-                                        </button>
-                                    )}
-                                </li>
-                            </ul>
+                                            <span>
+                                                {lastMessage.target_type ===
+                                                "all"
+                                                    ? "전체 알림"
+                                                    : "개인 알림"}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    color: "var(--text-sub)",
+                                                }}
+                                            >
+                                                {formatTime(
+                                                    lastMessage.created_at,
+                                                )}
+                                            </span>
+                                        </div>
+                                        {lastMessage.body && (
+                                            <div>{lastMessage.body}</div>
+                                        )}
+                                        {lastMessage.link_url && (
+                                            <button
+                                                type="button"
+                                                className="secondary-btn"
+                                                onClick={() => {
+                                                    window.location.href =
+                                                        lastMessage.link_url!;
+                                                }}
+                                                style={{
+                                                    marginTop: "0.25rem",
+                                                    fontSize: "0.8rem",
+                                                    padding:
+                                                        "0.25rem 0.5rem",
+                                                }}
+                                            >
+                                                링크 열기
+                                            </button>
+                                        )}
+                                    </li>
+                                </ul>
+                            )}
 
                             {messages.length > 1 && (
-                                <div
+                                <button
+                                    type="button"
+                                    className="secondary-btn"
                                     style={{
-                                        marginTop: "0.5rem",
-                                        textAlign: "right",
+                                        marginTop: "0.75rem",
+                                        fontSize: "0.8rem",
+                                        padding: "0.25rem 0.5rem",
                                     }}
+                                    onClick={() => setShowAllMessages(true)}
                                 >
-                                    <button
-                                        type="button"
-                                        className="secondary-btn"
-                                        style={{
-                                            fontSize: "0.8rem",
-                                            padding:
-                                                "0.25rem 0.5rem",
-                                        }}
-                                        onClick={() =>
-                                            setShowAllMessages(true)
-                                        }
-                                    >
-                                        모든 알림 보기 ({messages.length})
-                                    </button>
-                                </div>
+                                    이전 메시지 모두 보기
+                                </button>
                             )}
                         </>
                     ) : (
@@ -1178,7 +929,8 @@ export function StudentRoomPage() {
                                         <div
                                             style={{
                                                 display: "flex",
-                                                justifyContent: "space-between",
+                                                justifyContent:
+                                                    "space-between",
                                                 gap: "0.5rem",
                                                 marginBottom: "0.15rem",
                                             }}
@@ -1220,27 +972,18 @@ export function StudentRoomPage() {
                                 ))}
                             </ul>
 
-                            <div
+                            <button
+                                type="button"
+                                className="secondary-btn"
                                 style={{
-                                    marginTop: "0.5rem",
-                                    textAlign: "right",
+                                    marginTop: "0.75rem",
+                                    fontSize: "0.8rem",
+                                    padding: "0.25rem 0.5rem",
                                 }}
+                                onClick={() => setShowAllMessages(false)}
                             >
-                                <button
-                                    type="button"
-                                    className="secondary-btn"
-                                    style={{
-                                        fontSize: "0.8rem",
-                                        padding:
-                                            "0.25rem 0.5rem",
-                                    }}
-                                    onClick={() =>
-                                        setShowAllMessages(false)
-                                    }
-                                >
-                                    최근 알림만 보기
-                                </button>
-                            </div>
+                                마지막 메시지만 보기
+                            </button>
                         </>
                     )}
                 </div>
