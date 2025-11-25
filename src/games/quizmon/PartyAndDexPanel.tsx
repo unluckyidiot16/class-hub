@@ -1,28 +1,24 @@
 // src/games/quizmon/PartyAndDexPanel.tsx
 import { useEffect, useMemo, useState } from "react";
-import type { QuizmonProfileRow, QuizmonOwnedMonsterRow } from "./types";
+import type {
+    QuizmonProfileRow,
+    QuizmonOwnedMonsterRow,
+} from "./types";
 import { getMonsterIcon } from "./assets";
 
 type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
-    /** 리스트/파티에 표시할 이름 */
     displayName: string;
-    /** HP 상태 등 간단 상태 텍스트 */
     statusText: string;
 };
 
-/**
- * DB에서 가져온 quizmon_owned_monsters 1마리를
- * UI에서 쓰기 좋은 형태로 가공
- */
+/** quizmon_owned_monsters 1마리를 UI용으로 가공 */
 function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     const anyMon = mon as any;
 
     const rawSpeciesId = (anyMon.species_id as string | null) ?? "";
-    const displayId =
-        (anyMon.display_id as string | null) ??
-        (rawSpeciesId.startsWith("poke-")
-            ? rawSpeciesId.slice("poke-".length)
-            : rawSpeciesId.padStart(4, "0") || "????");
+    const displayId = rawSpeciesId.startsWith("poke-")
+        ? rawSpeciesId
+        : `0000${rawSpeciesId}`.slice(-4); // poke-0001 / 0001 둘 다 커버용
 
     const displayName = `포켓몬 #${displayId}`;
 
@@ -30,11 +26,9 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     const isFainted = Boolean(anyMon.is_fainted);
 
     let statusText: string;
-
     if (isFainted) {
         statusText = "기절";
     } else if (hp == null) {
-        // null = 풀피 가정
         statusText = "HP 풀피";
     } else {
         statusText = `HP ${hp}`;
@@ -47,27 +41,36 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     };
 }
 
+/** monsters.party_slot 기준으로 초기 파티 슬롯 구성 */
+function buildInitialPartyIds(
+    monsters?: QuizmonOwnedMonsterRow[],
+): (string | null)[] {
+    const base: (string | null)[] = [null, null, null];
+    if (!monsters) return base;
+
+    for (const m of monsters) {
+        const anyMon = m as any;
+        const slot = (anyMon.party_slot as number | null) ?? null;
+        if (slot && slot >= 1 && slot <= 3) {
+            base[slot - 1] = m.id;
+        }
+    }
+    return base;
+}
+
 export type PartyAndDexPanelProps = {
-    /** 학생의 퀴즈몬 프로필 (트레이너 이름 표시에 사용) */
     profile: QuizmonProfileRow | null;
-    /** 보유 몬스터 목록 (Supabase에서 그대로 내려온 값) */
     monsters?: QuizmonOwnedMonsterRow[];
-    /** 로딩/에러 표시용 */
     collectionLoading?: boolean;
     collectionError?: string | null;
-    /** 무료 소환 버튼 핸들러(있으면 상단에 표시) */
     onPullFreeGacha?: () => void | Promise<void>;
     onHealAll?: () => void;
-    /** 파티 슬롯 변경 시 DB에 저장하고 싶을 때 사용 */
-    onSaveParty?: (
-        partyIds: (string | null)[],
-    ) => void | Promise<void>;
+    onSaveParty?: (partyIds: (string | null)[]) => void | Promise<void>;
 };
 
 export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
-    const { profile, onHealAll } = props;
+    const { profile } = props;
 
-    // 원본 → 표시용으로 가공
     const enhancedMonsters = useMemo(
         () => (props.monsters ?? []).map((m) => enhanceOwned(m)),
         [props.monsters],
@@ -81,43 +84,42 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             setSelectedId(null);
             return;
         }
-
         if (
             selectedId &&
             enhancedMonsters.some((m) => m.id === selectedId)
         ) {
             return;
         }
-
         setSelectedId(enhancedMonsters[0].id);
     }, [enhancedMonsters, selectedId]);
 
-    const selected = enhancedMonsters.find((m) => m.id === selectedId) ?? null;
+    const selected =
+        enhancedMonsters.find((m) => m.id === selectedId) ?? null;
 
-    // 파티 슬롯(3인 고정)
-    const [partyIds, setPartyIds] = useState<(string | null)[]>(() => {
-        const anyProfile = profile as any;
-        const slot1 = (anyProfile.party_slot_1 as string | null) ?? null;
-        const slot2 = (anyProfile.party_slot_2 as string | null) ?? null;
-        const slot3 = (anyProfile.party_slot_3 as string | null) ?? null;
-        return [slot1, slot2, slot3];
-    });
+    // 파티 슬롯 (PokéRogue 스타일 3칸)
+    const [partyIds, setPartyIds] = useState<(string | null)[]>(() =>
+        buildInitialPartyIds(props.monsters),
+    );
 
-    // partyIds 변경 시 onSaveParty 콜백 호출
+    // partyIds 변경 시 DB에 저장
     useEffect(() => {
         if (!props.onSaveParty) return;
         void props.onSaveParty(partyIds);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [partyIds]);
 
-    // 파티 슬롯 클릭 시: 선택된 몬스터 배치 / 제거
+    function getMonsterInSlot(slotIndex: number): EnhancedOwnedMonster | null {
+        const id = partyIds[slotIndex];
+        if (!id) return null;
+        return enhancedMonsters.find((m) => m.id === id) ?? null;
+    }
+
+    /** 슬롯 클릭: 선택된 몬스터 배치 / 제거 */
     function handlePartySlotClick(index: number) {
         const current = partyIds[index];
-
-        // 선택된 몬스터가 없으면 아무 것도 하지 않음
         if (!selected) return;
 
-        // 이미 해당 슬롯에 같은 몬스터가 있으면 제거
+        // 이미 같은 몬스터 ⇒ 제거
         if (current === selected.id) {
             setPartyIds((prev) => {
                 const next = [...prev];
@@ -127,10 +129,12 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             return;
         }
 
-        // 다른 슬롯에 들어 있는지 확인 후 제거
+        // 다른 슬롯에 있으면 먼저 제거 후 이 슬롯에 배치
         setPartyIds((prev) => {
             const next = [...prev];
-            const existingIndex = next.findIndex((id) => id === selected.id);
+            const existingIndex = next.findIndex(
+                (id) => id === selected.id,
+            );
             if (existingIndex !== -1) {
                 next[existingIndex] = null;
             }
@@ -139,7 +143,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         });
     }
 
-    // 파티에서 제거 버튼 (슬롯 비우기)
+    /** 지정 슬롯 비우기 */
     function handleRemoveFromParty(index: number) {
         setPartyIds((prev) => {
             const next = [...prev];
@@ -148,19 +152,24 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         });
     }
 
-    // 하단 도감 리스트에서 특정 몬스터 클릭 시 선택
+    /** 도감 카드 클릭 → 선택만 변경 */
     function handleDexClick(mon: EnhancedOwnedMonster) {
         setSelectedId(mon.id);
     }
 
-    // 파티 슬롯에 배치된 몬스터 찾기
-    function getMonsterInSlot(slotIndex: number): EnhancedOwnedMonster | null {
-        const id = partyIds[slotIndex];
-        if (!id) return null;
-        return enhancedMonsters.find((m) => m.id === id) ?? null;
+    /** 선택된 몬스터가 몇 번 슬롯에 있는지 */
+    function findSelectedSlotIndex(): number | null {
+        if (!selected) return null;
+        const idx = partyIds.findIndex((id) => id === selected.id);
+        return idx === -1 ? null : idx;
     }
 
     const dexEntries = enhancedMonsters;
+    const trainerName =
+        profile?.trainer_name ?? "미지의 트레이너";
+    const ownedCount = dexEntries.length;
+
+    const selectedSlotIndex = findSelectedSlotIndex();
 
     return (
         <div
@@ -171,23 +180,23 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 height: "100%",
             }}
         >
-            {/* 상단: 파티 3인 + 파트너 상세 */}
+            {/* 상단: 파티(좌) + 선택한 파트너(우) */}
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "1.1fr 1fr",
+                    gridTemplateColumns: "1.2fr 1fr",
                     gap: "0.75rem",
                     minHeight: 220,
                 }}
             >
-                {/* 왼쪽: 파티 슬롯 3개 */}
+                {/* 왼쪽: PokéRogue 스타일 파티 리스트 */}
                 <div
                     style={{
                         borderRadius: 12,
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        padding: "0.75rem",
+                        border: "1px solid rgba(148,163,184,0.5)",
+                        padding: "0.75rem 0.75rem 0.5rem",
                         background:
-                            "linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,64,175,0.6))",
+                            "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,64,175,0.75))",
                         display: "flex",
                         flexDirection: "column",
                         gap: "0.5rem",
@@ -197,176 +206,251 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         style={{
                             fontSize: "0.85rem",
                             color: "#e5e7eb",
-                            marginBottom: 4,
                         }}
                     >
                         내 파트너 / 파티
                     </div>
                     <div
                         style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(3, 1fr)",
-                            gap: "0.5rem",
+                            fontSize: "0.75rem",
+                            color: "#9ca3af",
+                            marginBottom: 4,
                         }}
                     >
-                        {partyIds.map((_, idx) => {
-                            const mon = getMonsterInSlot(idx);
-                            const label = `슬롯 ${idx + 1}`;
+                        트레이너: {trainerName}
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.4rem",
+                        }}
+                    >
+                        {[0, 1, 2].map((slotIndex) => {
+                            const mon =
+                                getMonsterInSlot(slotIndex);
+                            const label = mon
+                                ? mon.displayName
+                                : "빈 슬롯";
+                            const subtitle = mon
+                                ? `Lv.${mon.level} · ${mon.statusText}`
+                                : "도감에서 몬스터를 선택하면 자동으로 배치됩니다.";
                             const iconUrl = mon
                                 ? getMonsterIcon(mon.species_id)
                                 : null;
-                            const isEmpty = !mon;
+
+                            const isSelected =
+                                mon && mon.id === selectedId;
 
                             return (
                                 <button
-                                    key={idx}
+                                    key={slotIndex}
                                     type="button"
                                     onClick={() =>
-                                        handlePartySlotClick(idx)
+                                        handlePartySlotClick(
+                                            slotIndex,
+                                        )
                                     }
                                     style={{
-                                        borderRadius: 10,
-                                        border: isEmpty
-                                            ? "1px dashed rgba(148,163,184,0.6)"
-                                            : "1px solid rgba(252,211,77,0.9)",
-                                        padding: "0.5rem",
-                                        background: isEmpty
-                                            ? "rgba(15,23,42,0.8)"
-                                            : "linear-gradient(145deg, rgba(30,64,175,0.9), rgba(129,140,248,0.8))",
-                                        color: isEmpty
-                                            ? "#9ca3af"
-                                            : "#fefce8",
-                                        fontSize: "0.8rem",
+                                        width: "100%",
+                                        borderRadius: 999,
+                                        padding:
+                                            "0.4rem 0.75rem",
+                                        border: mon
+                                            ? isSelected
+                                                ? "2px solid rgba(252,211,77,0.95)"
+                                                : "1px solid rgba(55,65,81,0.9)"
+                                            : "1px dashed rgba(75,85,99,0.9)",
+                                        background: mon
+                                            ? "linear-gradient(90deg, rgba(30,64,175,0.95), rgba(17,24,39,0.95))"
+                                            : "rgba(15,23,42,0.9)",
                                         display: "flex",
-                                        flexDirection: "column",
                                         alignItems: "center",
-                                        justifyContent: "center",
-                                        gap: "0.25rem",
+                                        justifyContent:
+                                            "space-between",
+                                        gap: "0.75rem",
+                                        color: "#e5e7eb",
                                     }}
                                 >
-                                    <div>{label}</div>
-                                    {iconUrl && (
-                                        <img
-                                            src={iconUrl}
-                                            alt={mon?.displayName}
-                                            style={{
-                                                width: 40,
-                                                height: 40,
-                                                imageRendering: "pixelated",
-                                            }}
-                                        />
-                                    )}
+                                    {/* 왼쪽: 아이콘 + 이름/HP */}
                                     <div
                                         style={{
-                                            fontSize: "0.7rem",
-                                            opacity: 0.9,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
                                         }}
                                     >
-                                        {mon
-                                            ? mon.displayName
-                                            : "비어 있음"}
-                                    </div>
-                                    {mon && (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemoveFromParty(idx);
-                                            }}
+                                        {iconUrl && (
+                                            <img
+                                                src={iconUrl}
+                                                alt={label}
+                                                style={{
+                                                    width: 36,
+                                                    height: 36,
+                                                    imageRendering:
+                                                        "pixelated",
+                                                }}
+                                            />
+                                        )}
+                                        {!iconUrl && (
+                                            <div
+                                                style={{
+                                                    width: 30,
+                                                    height: 30,
+                                                    borderRadius:
+                                                        999,
+                                                    border:
+                                                        "1px dashed rgba(75,85,99,0.9)",
+                                                    display:
+                                                        "flex",
+                                                    alignItems:
+                                                        "center",
+                                                    justifyContent:
+                                                        "center",
+                                                    fontSize:
+                                                        "0.9rem",
+                                                    color: "#9ca3af",
+                                                }}
+                                            >
+                                                +
+                                            </div>
+                                        )}
+                                        <div
                                             style={{
-                                                marginTop: 4,
-                                                padding:
-                                                    "2px 6px",
-                                                borderRadius: 999,
-                                                border: "none",
-                                                fontSize: "0.7rem",
-                                                background:
-                                                    "rgba(15,23,42,0.8)",
-                                                color: "#e5e7eb",
+                                                textAlign: "left",
                                             }}
                                         >
-                                            파티에서 빼기
-                                        </button>
-                                    )}
+                                            <div
+                                                style={{
+                                                    fontSize:
+                                                        "0.85rem",
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                {label}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    fontSize:
+                                                        "0.75rem",
+                                                    opacity: 0.9,
+                                                }}
+                                            >
+                                                {subtitle}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 오른쪽: 파티 n번 텍스트 */}
+                                    <div
+                                        style={{
+                                            fontSize:
+                                                "0.7rem",
+                                            color: "#cbd5f5",
+                                            whiteSpace:
+                                                "nowrap",
+                                        }}
+                                    >
+                                        파티 {slotIndex + 1}
+                                        번
+                                    </div>
                                 </button>
                             );
                         })}
                     </div>
-                    {onHealAll && (
-                        <button
-                            type="button"
-                            onClick={onHealAll}
-                            style={{
-                                marginTop: "0.5rem",
-                                alignSelf: "flex-end",
-                                padding:
-                                    "0.35rem 0.75rem",
-                                fontSize: "0.75rem",
-                                borderRadius: 999,
-                                border: "none",
-                                background:
-                                    "linear-gradient(90deg, #22c55e, #16a34a)",
-                                color: "white",
-                            }}
-                        >
-                            파티 전체 회복
-                        </button>
-                    )}
                 </div>
 
-                {/* 오른쪽: 선택된 파트너 상세 */}
+                {/* 오른쪽: 선택한 파트너 상세 + 전체 회복/빼기 */}
                 <div
                     style={{
                         borderRadius: 12,
                         border: "1px solid rgba(148,163,184,0.5)",
                         padding: "0.75rem",
                         background:
-                            "radial-gradient(circle at top, rgba(55,65,81,0.9), rgba(15,23,42,0.95))",
+                            "radial-gradient(circle at top, rgba(55,65,81,0.9), rgba(15,23,42,0.96))",
                         color: "#e5e7eb",
                         display: "flex",
                         flexDirection: "column",
-                        gap: "0.3rem",
+                        gap: "0.45rem",
                     }}
                 >
                     <div
                         style={{
-                            fontSize: "0.85rem",
-                            marginBottom: 4,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                         }}
                     >
-                        선택된 파트너
+                        <div
+                            style={{
+                                fontSize: "0.85rem",
+                            }}
+                        >
+                            선택한 파트너
+                        </div>
+                        {selectedSlotIndex !== null && (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    handleRemoveFromParty(
+                                        selectedSlotIndex,
+                                    )
+                                }
+                                style={{
+                                    padding:
+                                        "0.25rem 0.9rem",
+                                    borderRadius: 999,
+                                    border: "none",
+                                    fontSize: "0.7rem",
+                                    background:
+                                        "rgba(156,163,175,0.25)",
+                                    color: "#e5e7eb",
+                                }}
+                            >
+                                파티 {selectedSlotIndex + 1}
+                                번에서 빼기
+                            </button>
+                        )}
                     </div>
+
                     {!selected && (
                         <div
                             style={{
                                 fontSize: "0.8rem",
-                                opacity: 0.7,
+                                opacity: 0.75,
                             }}
                         >
-                            아래 도감에서 몬스터를 선택해 주세요.
+                            아래 도감에서 몬스터를 선택하면
+                            상세 정보를 볼 수 있습니다.
                         </div>
                     )}
+
                     {selected && (
                         <>
                             <div
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: "0.5rem",
+                                    gap: "0.75rem",
+                                    marginTop: 4,
                                 }}
                             >
                                 {(() => {
-                                    const iconUrl = getMonsterIcon(
-                                        selected.species_id,
-                                    );
+                                    const iconUrl =
+                                        getMonsterIcon(
+                                            selected.species_id,
+                                        );
                                     return (
                                         iconUrl && (
                                             <img
                                                 src={iconUrl}
-                                                alt={selected.displayName}
+                                                alt={
+                                                    selected.displayName
+                                                }
                                                 style={{
-                                                    width: 48,
-                                                    height: 48,
+                                                    width: 56,
+                                                    height: 56,
                                                     imageRendering:
                                                         "pixelated",
                                                 }}
@@ -377,7 +461,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 <div>
                                     <div
                                         style={{
-                                            fontSize: "0.9rem",
+                                            fontSize: "0.95rem",
                                             fontWeight: 600,
                                         }}
                                     >
@@ -385,8 +469,8 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     </div>
                                     <div
                                         style={{
-                                            fontSize: "0.75rem",
-                                            opacity: 0.85,
+                                            fontSize: "0.8rem",
+                                            opacity: 0.9,
                                         }}
                                     >
                                         Lv.{selected.level} ·{" "}
@@ -394,23 +478,55 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     </div>
                                 </div>
                             </div>
+
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent:
+                                        "flex-start",
+                                    gap: "0.5rem",
+                                    marginTop: 8,
+                                }}
+                            >
+                                {props.onHealAll && (
+                                    <button
+                                        type="button"
+                                        onClick={
+                                            props.onHealAll
+                                        }
+                                        style={{
+                                            padding:
+                                                "0.35rem 0.95rem",
+                                            borderRadius: 999,
+                                            border: "none",
+                                            fontSize: "0.75rem",
+                                            background:
+                                                "linear-gradient(90deg, #22c55e, #16a34a)",
+                                            color: "white",
+                                        }}
+                                    >
+                                        전체 회복
+                                    </button>
+                                )}
+                            </div>
+
                             <div
                                 style={{
                                     fontSize: "0.75rem",
                                     opacity: 0.9,
-                                    marginTop: 4,
+                                    marginTop: 6,
                                 }}
                             >
-                                앞으로는 여기에서 개체 값, 성장,
-                                레이드 기록 등을 자세히 보여 줄
-                                예정입니다.
+                                앞으로는 여기에서 개체 값,
+                                성장, 레이드 기록 등을 자세히
+                                보여 줄 예정입니다.
                             </div>
                         </>
                     )}
                 </div>
             </div>
 
-            {/* 하단: 도감 리스트 */}
+            {/* 하단: 도감 / 보유 몬스터 */}
             <div
                 style={{
                     flex: 1,
@@ -418,7 +534,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     border: "1px solid rgba(148,163,184,0.6)",
                     padding: "0.75rem",
                     background:
-                        "linear-gradient(180deg, rgba(15,23,42,0.95), rgba(30,64,175,0.75))",
+                        "linear-gradient(180deg, rgba(15,23,42,0.97), rgba(30,64,175,0.8))",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.5rem",
@@ -435,35 +551,23 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     }}
                 >
                     <div>도감 / 보유 몬스터</div>
-                    {props.onPullFreeGacha && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                props.onPullFreeGacha?.()
-                            }
-                            style={{
-                                padding:
-                                    "0.3rem 0.7rem",
-                                borderRadius: 999,
-                                border: "none",
-                                fontSize: "0.75rem",
-                                background:
-                                    "linear-gradient(90deg, #facc15, #f97316)",
-                                color: "#171717",
-                            }}
-                        >
-                            무료 소환 1회
-                        </button>
-                    )}
+                    <div
+                        style={{
+                            fontSize: "0.75rem",
+                            color: "#9ca3af",
+                        }}
+                    >
+                        소유 {ownedCount}종
+                    </div>
                 </div>
+
                 <div
                     style={{
                         flex: 1,
-                        overflow: "auto",
-                        padding: "0.25rem",
                         borderRadius: 8,
-                        background:
-                            "rgba(15,23,42,0.85)",
+                        background: "rgba(15,23,42,0.9)",
+                        padding: "0.35rem",
+                        overflow: "auto",
                     }}
                 >
                     {props.collectionLoading && (
@@ -486,22 +590,28 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             {props.collectionError}
                         </div>
                     )}
+
                     {!props.collectionLoading &&
-                        !props.collectionError && (
+                        !props.collectionError &&
+                        dexEntries.length > 0 && (
                             <div
                                 style={{
                                     display: "grid",
                                     gridTemplateColumns:
-                                        "repeat(auto-fill, minmax(96px, 1fr))",
+                                        "repeat(auto-fill, minmax(110px, 1fr))",
                                     gap: "0.5rem",
                                 }}
                             >
                                 {dexEntries.map((entry) => {
-                                    const iconUrl = getMonsterIcon(
-                                        entry.species_id,
-                                    );
+                                    const iconUrl =
+                                        getMonsterIcon(
+                                            entry.species_id,
+                                        );
                                     const label =
                                         entry.displayName;
+
+                                    const isSelected =
+                                        entry.id === selectedId;
 
                                     return (
                                         <button
@@ -514,14 +624,12 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             }
                                             style={{
                                                 borderRadius: 10,
-                                                border:
-                                                    selectedId ===
-                                                    entry.id
-                                                        ? "1px solid rgba(252,211,77,0.9)"
-                                                        : "1px solid rgba(55,65,81,0.9)",
+                                                border: isSelected
+                                                    ? "1px solid rgba(252,211,77,0.95)"
+                                                    : "1px solid rgba(55,65,81,0.9)",
                                                 padding: "0.35rem",
                                                 background:
-                                                    "linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,64,175,0.8))",
+                                                    "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,64,175,0.85))",
                                                 color: "#e5e7eb",
                                                 display: "flex",
                                                 flexDirection:
@@ -537,8 +645,8 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                     src={iconUrl}
                                                     alt={label}
                                                     style={{
-                                                        width: 40,
-                                                        height: 40,
+                                                        width: 44,
+                                                        height: 44,
                                                         imageRendering:
                                                             "pixelated",
                                                     }}
@@ -553,7 +661,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                 <div>{label}</div>
                                                 <div
                                                     style={{
-                                                        opacity: 0.85,
+                                                        opacity: 0.9,
                                                     }}
                                                 >
                                                     Lv.
@@ -568,16 +676,20 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 })}
                             </div>
                         )}
-                    {dexEntries.length === 0 && (
-                        <div
-                            style={{
-                                fontSize: "0.8rem",
-                                opacity: 0.7,
-                            }}
-                        >
-                            아직 도감에 등록된 몬스터가 없습니다.
-                        </div>
-                    )}
+
+                    {!props.collectionLoading &&
+                        !props.collectionError &&
+                        dexEntries.length === 0 && (
+                            <div
+                                style={{
+                                    fontSize: "0.8rem",
+                                    opacity: 0.7,
+                                }}
+                            >
+                                아직 도감에 등록된 몬스터가
+                                없습니다.
+                            </div>
+                        )}
                 </div>
             </div>
         </div>
