@@ -910,6 +910,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         fontSize: 12,
                     }}
                 >
+                    {/* Gold → coins */}
                     <div
                         style={{
                             padding: "4px 8px",
@@ -927,6 +928,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 {localProfile.gold ?? 0}
             </span>
                     </div>
+
+                    {/* Gems → gems */}
                     <div
                         style={{
                             padding: "4px 8px",
@@ -944,6 +947,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 {localProfile.gacha_gems ?? 0}
             </span>
                     </div>
+
+                    {/* Shards → star_shards (이미 맞게 쓰고 있던 부분) */}
                     <div
                         style={{
                             padding: "4px 8px",
@@ -963,6 +968,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     </div>
                 </div>
             )}
+
 
             <div
                 style={{

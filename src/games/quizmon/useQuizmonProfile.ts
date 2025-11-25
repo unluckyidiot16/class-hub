@@ -13,6 +13,12 @@ export type QuizmonProfile = {
     total_raids: number;
     total_correct: number;
     total_questions: number;
+
+    // 🔸 새로 추가되는 재화 필드들
+    coins: number;        // QuizMon 전용 골드
+    gems: number;         // QuizMon 전용 가챠 젬
+    star_shards: number;  // QuizMon 전용 샤드
+    
     created_at: string | null;
     updated_at: string | null;
 };
@@ -189,15 +195,17 @@ export function useQuizmonProfile(
                 const nextTotalQuestions =
                     (profile.total_questions ?? 0) + summary.total;
 
-                // 🔸 여기서는 update만 하고, select / single 절대 안 씀
+                // 🔸 간단한 골드 보상 규칙 (정답 1개당 10골드)
+                const rewardCoins = summary.correct * 10;
+                const nextCoins = (profile.coins ?? 0) + rewardCoins;
+
                 const { error } = await supabase
                     .from("quizmon_profiles")
                     .update({
                         total_raids: nextTotalRaids,
                         total_correct: nextTotalCorrect,
                         total_questions: nextTotalQuestions,
-                        // gold까지 반영하려면 여기서 같이 올려주면 됨:
-                        // gold: (profile as any).gold ? (profile as any).gold + summary.correct * 10 : summary.correct * 10,
+                        coins: nextCoins, // 🔸 골드만 반영 (젬/샤드는 그대로)
                     })
                     .eq("id", profile.id);
 
@@ -218,8 +226,8 @@ export function useQuizmonProfile(
                         total_raids: nextTotalRaids,
                         total_correct: nextTotalCorrect,
                         total_questions: nextTotalQuestions,
-                        // gold도 위에서 계산했다면 여기도 동일하게 맞춰주면 됨
-                    } as typeof prev;
+                        coins: nextCoins,
+                    } as QuizmonProfile;
                 });
                 setError(null);
             } catch (e) {
@@ -232,6 +240,7 @@ export function useQuizmonProfile(
         },
         [hasKey, profile],
     );
+
 
     // 스타터 선택 + 첫 포켓몬 지급
     const chooseStarter = useCallback(
