@@ -28,6 +28,7 @@ import { getArenaSprite, getMonsterAnimJson, getMonsterSprite, getMonsterIcon, }
 import { SpriteAnimation } from "./SpriteAnimation";
 import { useGachaDraw } from "./useGachaDraw";
 import { PartyAndDexPanel } from "./PartyAndDexPanel";
+import { ProfileTab } from "./ProfileTab";
 
 
 // =========================
@@ -1585,7 +1586,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
                                     {menuTab === "profile" && (
                                         <ProfileTab
-                                            profile={props.profile}
+                                            profile={localProfile}
                                             lastRaidResult={props.lastRaidResult}
                                         />
                                     )}
@@ -2193,43 +2194,4 @@ export function QuizMonGame(props: QuizMonGameProps) {
     );
 }
 
-
-
-type ProfileTabProps = {
-    profile?: any;
-    lastRaidResult?: { correct: number; total: number } | null;
-};
-
-function ProfileTab({ profile, lastRaidResult }: ProfileTabProps) {
-    if (!profile) {
-        return (
-            <div style={{ fontSize: 13, color: "#9ca3af" }}>
-                프로필 정보를 불러오는 중이거나 아직 생성되지 않았습니다.
-            </div>
-        );
-    }
-
-    const accuracy =
-        lastRaidResult && lastRaidResult.total > 0
-            ? Math.round((lastRaidResult.correct / lastRaidResult.total) * 100)
-            : 0;
-
-    return (
-        <div style={{ fontSize: 13, color: "#e5e7eb", display: "flex", flexDirection: "column", gap: 8 }}>
-            <div>
-                <strong>트레이너 이름:</strong> {profile.trainer_name ?? "(이름 없음)"}
-            </div>
-            <div>
-                <strong>총 전투 수:</strong> {profile.total_raids ?? 0}
-            </div>
-            <div>
-                <strong>총 정답 수:</strong> {profile.total_correct ?? 0}
-            </div>
-            <div>
-                <strong>최근 레이드:</strong>{" "}
-                {lastRaidResult ? `${lastRaidResult.correct}/${lastRaidResult.total} (${accuracy}%)` : "기록 없음"}
-            </div>
-        </div>
-    );
-}
 
