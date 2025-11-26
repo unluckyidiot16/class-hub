@@ -287,6 +287,45 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 return;
             }
 
+            // 🔹 1차 필터: 기절하지 않은 몬스터만 전투에 사용
+            const aliveOwnedRows = ownedRows.filter((o) => !o.is_fainted);
+
+            if (!aliveOwnedRows.length) {
+                console.warn(
+                    "[QuizMonGame] all party monsters are fainted for profile",
+                    profileId,
+                );
+                // MVP에선 간단히 alert + 로비 복귀로 처리
+                window.alert(
+                    "모든 몬스터가 기절해서 레이드에 참가할 수 없습니다.\n메인 메뉴에서 회복한 뒤 다시 도전해 주세요!",
+                );
+
+                // 안전하게 상태 초기화 + 로비로 되돌리기
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                setViewState("lobby");
+                setHasBattleInitialized(false);
+                return;
+            }
+
+
+            if (!ownedRows.length) {
+                console.warn(
+                    "[QuizMonGame] no party monsters (slot 1~3) for profile",
+                    profileId,
+                );
+                // 파티가 없으면 mock 상태로
+                setState(createInitialBattleState());
+                setBattleStats({ correct: 0, total: 0 });
+                setHasReportedEnd(false);
+                setQuestionIndex(0);
+                setViewState("battle");
+                setHasBattleInitialized(true);
+                return;
+            }
+
             // 2) 필요한 종 정보 모아서 quizmon_species 조회
             const speciesIds = Array.from(
                 new Set(
@@ -335,7 +374,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             );
 
             // 3) battleFactory로 Monster 빌드
-            const partyMonsters: Monster[] = ownedRows
+            const partyMonsters: Monster[] = aliveOwnedRows
                 .map((owned) => {
                     const species = speciesMap.get(owned.species_id);
                     if (!species) return null;
