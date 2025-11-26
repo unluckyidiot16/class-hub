@@ -2164,11 +2164,12 @@ export function TeacherRoomLivePage() {
                 <div className="card" style={{ marginTop: "1rem" }}>
                     <h2>PEM 토너먼트 관전</h2>
                     <p className="hint">
-                        학생들이 PEM을 끝까지 플레이하면, 그 결과가 이곳에
-                        저장됩니다. 아래 버튼으로 자동 토너먼트를 편성하고,
-                        아래 PEM 화면에서 경기를 보여줄 수 있습니다.
+                        학생들이 PEM을 끝까지 플레이하면, 그 결과가 이곳에 저장됩니다.
+                        아래 버튼으로 자동 토너먼트를 편성하고, 왼쪽 화면에서는 전투 씬을,
+                        오른쪽에서는 현재 경기와 토너먼트 구성을 함께 볼 수 있습니다.
                     </p>
 
+                    {/* 상단 요약 + 편성 버튼 */}
                     <div
                         style={{
                             marginTop: "0.5rem",
@@ -2182,9 +2183,7 @@ export function TeacherRoomLivePage() {
                             PEM 클리어 데이터:{" "}
                             <strong>{pemRuns.length}</strong>명
                             {pemRunsLoading && (
-                                <span style={{ marginLeft: "0.5rem" }}>
-                                    (불러오는 중...)
-                                </span>
+                                <span style={{ marginLeft: "0.5rem" }}>(불러오는 중...)</span>
                             )}
                         </div>
                         <button
@@ -2196,118 +2195,287 @@ export function TeacherRoomLivePage() {
                         </button>
                     </div>
 
-                    {pemBracket.length > 0 && (
+                    {/* 🔹 메인 영역: 왼쪽 = 전투 씬, 오른쪽 = 현재 경기 + 브래킷 */}
+                    <div
+                        style={{
+                            marginTop: "0.75rem",
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "1rem",
+                            alignItems: "stretch",
+                        }}
+                    >
+                        {/* 왼쪽: 관전용 PEM iframe */}
                         <div
                             style={{
-                                marginTop: "0.75rem",
+                                flex: "1 1 360px",
+                                minWidth: 0,
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "0.5rem",
                             }}
                         >
                             <div
                                 style={{
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.8rem",
+                                    marginBottom: "0.25rem",
                                     color: "var(--text-sub)",
                                 }}
                             >
-                                편성된 경기 수:{" "}
-                                <strong>{pemBracket.length}</strong>
+                                왼쪽 화면에 PEM 게임(관전 모드)을 띄워주세요.
                             </div>
-                            <ul
+                            <iframe
+                                ref={pemIframeRef}
+                                src="https://unluckyidiot16.github.io/WebGames/PEM/PEM.html"
                                 style={{
-                                    listStyle: "none",
-                                    padding: 0,
-                                    margin: 0,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "0.25rem",
+                                    width: "100%",
+                                    maxWidth: "640px",
+                                    border: "none",
+                                    borderRadius: "1rem",
+                                    aspectRatio: "16 / 9",
+                                    background: "#000",
+                                    marginTop: "0.25rem",
                                 }}
-                            >
-                                {pemBracket.map((m, idx) => {
-                                    const leftName =
-                                        m.left.nickname ??
-                                        m.left.student_key;
-                                    const rightName =
-                                        m.right.nickname ??
-                                        m.right.student_key;
-                                    const isCurrent =
-                                        currentPemMatchIndex === idx;
-
-                                    return (
-                                        <li
-                                            key={m.id}
-                                            style={{
-                                                padding: "0.35rem 0.5rem",
-                                                borderRadius: "0.5rem",
-                                                border:
-                                                    "1px solid var(--border-subtle, #eee)",
-                                                backgroundColor: isCurrent
-                                                    ? "rgba(79,70,229,0.06)"
-                                                    : "transparent",
-                                                display: "flex",
-                                                justifyContent:
-                                                    "space-between",
-                                                alignItems: "center",
-                                                gap: "0.5rem",
-                                            }}
-                                        >
-                                            <span
-                                                style={{
-                                                    fontSize: "0.85rem",
-                                                    flex: "1 1 auto",
-                                                }}
-                                            >
-                                                <strong>{m.round}</strong> ·{" "}
-                                                {leftName} vs {rightName}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className="secondary-btn"
-                                                style={{
-                                                    fontSize: "0.8rem",
-                                                    padding:
-                                                        "0.3rem 0.6rem",
-                                                }}
-                                                onClick={() =>
-                                                    handleStartPemMatch(idx)
-                                                }
-                                            >
-                                                이 경기 시작
-                                            </button>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
+                                allow="fullscreen"
+                            />
                         </div>
-                    )}
 
-                    {/* 🔹 PEM 관전용 iframe */}
-                    <div style={{ marginTop: "0.75rem" }}>
+                        {/* 오른쪽: 현재 경기 카드 + 토너먼트 리스트 */}
                         <div
                             style={{
-                                fontSize: "0.8rem",
-                                marginBottom: "0.25rem",
-                                color: "var(--text-sub)",
+                                flex: "1 1 320px",
+                                minWidth: 0,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.75rem",
                             }}
                         >
-                            아래 화면에 PEM 게임(관전 모드)을 띄워주세요.
-                        </div>
-                        <iframe
-                            ref={pemIframeRef}
-                            src="https://unluckyidiot16.github.io/WebGames/PEM/PEM.html"
-                            style={{
-                                width: "100%",
-                                maxWidth: "640px",
-                                border: "none",
-                                borderRadius: "1rem",
-                                aspectRatio: "16 / 9",
-                                background: "#000",
-                                marginTop: "0.25rem",
-                            }}
-                            allow="fullscreen"
-                        />
+                            {/* 현재 경기 카드 */}
+                            {pemBracket.length > 0 && (
+                                (() => {
+                                    const safeIndex =
+                                        currentPemMatchIndex != null
+                                            ? currentPemMatchIndex
+                                            : 0;
+                                    const current = pemBracket[safeIndex];
+                                    if (!current) return null;
 
+                                    const leftName =
+                                        current.left.nickname ?? current.left.student_key;
+                                    const rightName =
+                                        current.right.nickname ?? current.right.student_key;
+
+                                    return (
+                                        <div
+                                            style={{
+                                                padding: "0.75rem 0.85rem",
+                                                borderRadius: "0.9rem",
+                                                background:
+                                                    "linear-gradient(135deg, rgba(59,130,246,0.12), rgba(129,140,248,0.18))",
+                                                border:
+                                                    "1px solid rgba(129,140,248,0.5)",
+                                                boxShadow:
+                                                    "0 14px 30px rgba(15,23,42,0.35)",
+                                                transform: "translateY(-2px)",
+                                                transition:
+                                                    "transform 0.25s ease-out, box-shadow 0.25s ease-out",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    color: "var(--text-sub)",
+                                                    marginBottom: "0.25rem",
+                                                }}
+                                            >
+                                                현재 경기
+                                            </div>
+                                            <div
+                                                style={{
+                                                    fontSize: "0.95rem",
+                                                    fontWeight: 700,
+                                                    marginBottom: "0.35rem",
+                                                }}
+                                            >
+                                                {current.round}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    gap: "0.5rem",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        flex: "1 1 0",
+                                                        textAlign: "left",
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={{
+                                                            fontSize: "0.75rem",
+                                                            opacity: 0.7,
+                                                            marginBottom: "0.1rem",
+                                                        }}
+                                                    >
+                                                        플레이어 1
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontWeight: 700,
+                                                            fontSize: "0.9rem",
+                                                        }}
+                                                    >
+                                                        {leftName}
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        padding: "0 0.5rem",
+                                                        fontSize: "0.8rem",
+                                                        opacity: 0.8,
+                                                    }}
+                                                >
+                                                    VS
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        flex: "1 1 0",
+                                                        textAlign: "right",
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={{
+                                                            fontSize: "0.75rem",
+                                                            opacity: 0.7,
+                                                            marginBottom: "0.1rem",
+                                                        }}
+                                                    >
+                                                        플레이어 2
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontWeight: 700,
+                                                            fontSize: "0.9rem",
+                                                        }}
+                                                    >
+                                                        {rightName}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()
+                            )}
+
+                            {/* 토너먼트 매치 리스트 (간단 브래킷 + 상승 느낌 애니메이션) */}
+                            {pemBracket.length > 0 && (
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "0.5rem",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            color: "var(--text-sub)",
+                                        }}
+                                    >
+                                        편성된 경기 수:{" "}
+                                        <strong>{pemBracket.length}</strong>
+                                    </div>
+                                    <ul
+                                        style={{
+                                            listStyle: "none",
+                                            padding: 0,
+                                            margin: 0,
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "0.25rem",
+                                        }}
+                                    >
+                                        {pemBracket.map((m, idx) => {
+                                            const leftName =
+                                                m.left.nickname ?? m.left.student_key;
+                                            const rightName =
+                                                m.right.nickname ?? m.right.student_key;
+                                            const isCurrent =
+                                                currentPemMatchIndex === idx;
+
+                                            return (
+                                                <li
+                                                    key={m.id}
+                                                    style={{
+                                                        padding: "0.45rem 0.6rem",
+                                                        borderRadius: "0.6rem",
+                                                        border:
+                                                            "1px solid var(--border-subtle, #1f2937)",
+                                                        backgroundColor: isCurrent
+                                                            ? "rgba(79,70,229,0.12)"
+                                                            : "rgba(15,23,42,0.55)",
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        gap: "0.5rem",
+                                                        boxShadow: isCurrent
+                                                            ? "0 10px 24px rgba(15,23,42,0.45)"
+                                                            : "none",
+                                                        transform: isCurrent
+                                                            ? "translateY(-4px)"
+                                                            : "translateY(0)",
+                                                        transition:
+                                                            "transform 0.25s ease-out, box-shadow 0.25s ease-out, background-color 0.25s ease-out, border-color 0.25s ease-out",
+                                                    }}
+                                                >
+                                        <span
+                                            style={{
+                                                fontSize: "0.82rem",
+                                                flex: "1 1 auto",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                        >
+                                            <strong>{m.round}</strong> ·{" "}
+                                            {leftName} vs {rightName}
+                                        </span>
+                                                    <button
+                                                        type="button"
+                                                        className="secondary-btn"
+                                                        style={{
+                                                            fontSize: "0.8rem",
+                                                            padding: "0.3rem 0.6rem",
+                                                            flexShrink: 0,
+                                                        }}
+                                                        onClick={() =>
+                                                            handleStartPemMatch(idx)
+                                                        }
+                                                    >
+                                                        이 경기 시작
+                                                    </button>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {pemBracket.length === 0 && (
+                                <div
+                                    style={{
+                                        fontSize: "0.8rem",
+                                        color: "var(--text-sub)",
+                                    }}
+                                >
+                                    아직 편성된 경기가 없습니다. 위의{" "}
+                                    <strong>토너먼트 자동 편성</strong> 버튼을 눌러
+                                    경기를 만들어 주세요.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
