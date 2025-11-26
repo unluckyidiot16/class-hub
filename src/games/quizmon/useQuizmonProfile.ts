@@ -15,7 +15,7 @@ export type QuizmonProfile = {
     total_questions: number;
 
     // 🔸 새로 추가되는 재화 필드들
-    coins: number;        // QuizMon 전용 골드
+    gold: number;        // QuizMon 전용 골드
     gems: number;         // QuizMon 전용 가챠 젬
     star_shards: number;  // QuizMon 전용 샤드
     
@@ -197,7 +197,7 @@ export function useQuizmonProfile(
 
                 // 🔸 간단한 골드 보상 규칙 (정답 1개당 10골드)
                 const rewardCoins = summary.correct * 10;
-                const nextCoins = (profile.coins ?? 0) + rewardCoins;
+                const nextCoins = (profile.gold ?? 0) + rewardCoins;
 
                 const { error } = await supabase
                     .from("quizmon_profiles")
