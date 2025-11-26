@@ -101,8 +101,6 @@ type PlayStudentRow = {
     student_key: string;
     nickname: string | null;
     coins: number;
-    gems: number;
-    star_shards: number;
     last_seen_at: string | null;
 };
 
@@ -291,7 +289,7 @@ export function TeacherRoomLivePage() {
             const { data, error } = await supabase
                 .from("play_students")
                 .select(
-                    "id, class_id, student_key, nickname, coins, gems, star_shards, last_seen_at",
+                    "id, class_id, student_key, nickname, coins, last_seen_at",
                 )
                 .eq("class_id", classId)
                 .order("nickname", { ascending: true });
@@ -1807,10 +1805,6 @@ export function TeacherRoomLivePage() {
                                                                 }}
                                                             >
                                                                 <span>코인 {ps.coins}</span>
-                                                                <span>젬 {ps.gems}</span>
-                                                                <span>
-                                                                    조각 {ps.star_shards}
-                                                                </span>
                                                             </div>
                                                         </div>
                                                     </label>
@@ -2301,9 +2295,7 @@ export function TeacherRoomLivePage() {
                         </div>
                         <iframe
                             ref={pemIframeRef}
-                            // TODO: 실제 빌드 경로에 맞게 조정
-                            // 예: `${import.meta.env.BASE_URL}games/pem/PEM.html`
-                            src="/games/pem/PEM.html"
+                            src="https://unluckyidiot16.github.io/WebGames/PEM/PEM.html"
                             style={{
                                 width: "100%",
                                 maxWidth: "640px",
@@ -2315,6 +2307,7 @@ export function TeacherRoomLivePage() {
                             }}
                             allow="fullscreen"
                         />
+
                     </div>
                 </div>
             )}
