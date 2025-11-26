@@ -1,5 +1,5 @@
 // src/pages/teacher/TeacherRoomLivePage.tsx
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
@@ -12,6 +12,41 @@ import {ensureGameSession, endGameSession } from "../../api/gameSessions";
 import { QuizMonClassPanel } from "../../games/quizmon/QuizMonClassPanel";
 import {QuizmonProvider} from "../../games/quizmon/QuizmonProvider";
 
+
+// 🔹 PEM 한 판 클리어 기록 (pem_runs 테이블)
+type PemRunRow = {
+    id: string;
+    run_id: string;
+    class_id: string;
+    room_id: string;
+    student_key: string;
+    nickname: string | null;
+
+    starter: "grass" | "fire" | "water";
+    pokemon_name: string;
+    stage: number;
+
+    atk: number;
+    def: number;
+    skl: number;
+    hp: number;
+
+    total_correct: number;
+    total_questions: number;
+    week_reached: number;
+
+    ended_at: string;
+    run_version: string | null;
+    raw_payload: any;
+};
+
+// 🔹 토너먼트 매치 단위
+type PemMatch = {
+    id: string;
+    round: string; // "예선", "8강", "준결승", ...
+    left: PemRunRow;
+    right: PemRunRow;
+};
 
 
 type RoomRow = {
@@ -240,6 +275,15 @@ export function TeacherRoomLivePage() {
     const [walletStarShardsDelta, setWalletStarShardsDelta] = useState(0);
     const [walletSaving, setWalletSaving] = useState(false);
 
+    // 🔹 PEM runs & 토너먼트 상태
+    const [pemRuns, setPemRuns] = useState<PemRunRow[]>([]);
+    const [pemRunsLoading, setPemRunsLoading] = useState(false);
+    const [pemBracket, setPemBracket] = useState<PemMatch[]>([]);
+    const [currentPemMatchIndex, setCurrentPemMatchIndex] = useState<number | null>(null);
+
+    const pemIframeRef = useRef<HTMLIFrameElement | null>(null);
+
+
     // 🔹 play_students 재조회 함수
     const reloadPlayStudents = async (classId: string) => {
         setPlayStudentsLoading(true);
@@ -272,6 +316,38 @@ export function TeacherRoomLivePage() {
         }
         void reloadPlayStudents(room.class_id);
     }, [room?.class_id]);
+
+    // 🔹 pem_runs 로딩 (이 반/방에서 PEM 클리어한 기록)
+    useEffect(() => {
+        if (!room?.id || !room.class_id) {
+            setPemRuns([]);
+            return;
+        }
+
+        const loadPemRuns = async () => {
+            setPemRunsLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from("pem_runs")
+                    .select("*")
+                    .eq("class_id", room.class_id)
+                    .eq("room_id", room.id)
+                    .order("ended_at", { ascending: true });
+
+                if (error) {
+                    console.error("[TeacherRoomLive] load pem_runs error", error);
+                    return;
+                }
+
+                setPemRuns((data ?? []) as PemRunRow[]);
+            } finally {
+                setPemRunsLoading(false);
+            }
+        };
+
+        void loadPemRuns();
+    }, [room?.id, room?.class_id]);
+
 
     // 🔹 play_students 선택 토글
     const togglePlayStudentSelection = (id: string) => {
@@ -506,7 +582,9 @@ export function TeacherRoomLivePage() {
             const roomData = roomRow as RoomRow;
             setRoom(roomData);
 
-            if (!roomData.quiz_pack_id) {
+            const requiresPack = roomData.game_key !== "pem";
+
+            if (requiresPack && !roomData.quiz_pack_id) {
                 setLoading(false);
                 setErrorMsg(
                     "이 방에는 아직 퀴즈팩이 연결되어 있지 않습니다. 방 관리 화면에서 먼저 퀴즈팩을 선택해주세요.",
@@ -734,6 +812,97 @@ export function TeacherRoomLivePage() {
         activeGameSessionId,
     ]);
 
+    // 🔹 PEM 토너먼트 자동 편성 (단순 셔플 + 순서대로 매칭)
+    const handleBuildPemTournament = () => {
+        if (!pemRuns.length) {
+            alert("PEM을 끝낸 학생 데이터가 아직 없습니다.");
+            return;
+        }
+
+        // 예시: 정답 수 기준 내림차순 정렬 → 가볍게 셔플
+        const sorted = [...pemRuns].sort(
+            (a, b) => (b.total_correct ?? 0) - (a.total_correct ?? 0),
+        );
+        const shuffled = sorted.sort(() => Math.random() - 0.5);
+
+        const matches: PemMatch[] = [];
+        for (let i = 0; i + 1 < shuffled.length; i += 2) {
+            const left = shuffled[i];
+            const right = shuffled[i + 1];
+
+            matches.push({
+                id: `match-${i / 2}`,
+                round: "예선",
+                left,
+                right,
+            });
+        }
+
+        if (!matches.length) {
+            alert("경기를 만들 수 있을 만큼 학생이 충분하지 않습니다.");
+            return;
+        }
+
+        setPemBracket(matches);
+        setCurrentPemMatchIndex(0);
+    };
+
+
+    // 🔹 현재 선택된 매치를 PEM iframe에 전달 → 관전 모드 시작
+    const handleStartPemMatch = (index: number) => {
+        const match = pemBracket[index];
+        if (!match) return;
+        if (!pemIframeRef.current) {
+            alert("PEM 관전용 화면이 아직 로딩되지 않았습니다.");
+            return;
+        }
+
+        const left = match.left;
+        const right = match.right;
+
+        const payload = {
+            player: {
+                starter: left.starter,
+                pokemonName: left.pokemon_name,
+                stage: left.stage,
+                stats: {
+                    atk: left.atk,
+                    def: left.def,
+                    skl: left.skl,
+                    hp: left.hp,
+                },
+            },
+            enemy: {
+                starter: right.starter,
+                pokemonName: right.pokemon_name,
+                stage: right.stage,
+                stats: {
+                    atk: right.atk,
+                    def: right.def,
+                    skl: right.skl,
+                    hp: right.hp,
+                },
+            },
+            meta: {
+                title: `${match.round} · ${left.nickname ?? left.student_key} vs ${
+                    right.nickname ?? right.student_key
+                }`,
+                week: left.week_reached ?? 8,
+            },
+        };
+
+        // 🔸 PEM.html 안에는, 아래 메시지를 받아서 Game.startSpectatorBattle(payload)를 호출하는
+        // window.addEventListener("message", ...) 핸들러가 필요함
+        pemIframeRef.current.contentWindow?.postMessage(
+            {
+                type: "PEM_START_SPECTATOR_BATTLE",
+                payload,
+            },
+            "*",
+        );
+
+        setCurrentPemMatchIndex(index);
+    };
 
 
 
@@ -1044,6 +1213,8 @@ export function TeacherRoomLivePage() {
             );
         }
     };
+    
+    
 
     // ✅ QR 모달 열기
     const handleOpenQrModal = () => {
@@ -1994,7 +2165,162 @@ export function TeacherRoomLivePage() {
                 </div>
             )}
 
-                {/* 🔹 세션 전체 요약 (문항별 정답률 표) */}
+            {/* 🔹 PEM 토너먼트 관전 섹션 */}
+            {room && (
+                <div className="card" style={{ marginTop: "1rem" }}>
+                    <h2>PEM 토너먼트 관전</h2>
+                    <p className="hint">
+                        학생들이 PEM을 끝까지 플레이하면, 그 결과가 이곳에
+                        저장됩니다. 아래 버튼으로 자동 토너먼트를 편성하고,
+                        아래 PEM 화면에서 경기를 보여줄 수 있습니다.
+                    </p>
+
+                    <div
+                        style={{
+                            marginTop: "0.5rem",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        <div style={{ fontSize: "0.9rem" }}>
+                            PEM 클리어 데이터:{" "}
+                            <strong>{pemRuns.length}</strong>명
+                            {pemRunsLoading && (
+                                <span style={{ marginLeft: "0.5rem" }}>
+                                    (불러오는 중...)
+                                </span>
+                            )}
+                        </div>
+                        <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={handleBuildPemTournament}
+                        >
+                            토너먼트 자동 편성
+                        </button>
+                    </div>
+
+                    {pemBracket.length > 0 && (
+                        <div
+                            style={{
+                                marginTop: "0.75rem",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontSize: "0.85rem",
+                                    color: "var(--text-sub)",
+                                }}
+                            >
+                                편성된 경기 수:{" "}
+                                <strong>{pemBracket.length}</strong>
+                            </div>
+                            <ul
+                                style={{
+                                    listStyle: "none",
+                                    padding: 0,
+                                    margin: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.25rem",
+                                }}
+                            >
+                                {pemBracket.map((m, idx) => {
+                                    const leftName =
+                                        m.left.nickname ??
+                                        m.left.student_key;
+                                    const rightName =
+                                        m.right.nickname ??
+                                        m.right.student_key;
+                                    const isCurrent =
+                                        currentPemMatchIndex === idx;
+
+                                    return (
+                                        <li
+                                            key={m.id}
+                                            style={{
+                                                padding: "0.35rem 0.5rem",
+                                                borderRadius: "0.5rem",
+                                                border:
+                                                    "1px solid var(--border-subtle, #eee)",
+                                                backgroundColor: isCurrent
+                                                    ? "rgba(79,70,229,0.06)"
+                                                    : "transparent",
+                                                display: "flex",
+                                                justifyContent:
+                                                    "space-between",
+                                                alignItems: "center",
+                                                gap: "0.5rem",
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    fontSize: "0.85rem",
+                                                    flex: "1 1 auto",
+                                                }}
+                                            >
+                                                <strong>{m.round}</strong> ·{" "}
+                                                {leftName} vs {rightName}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="secondary-btn"
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    padding:
+                                                        "0.3rem 0.6rem",
+                                                }}
+                                                onClick={() =>
+                                                    handleStartPemMatch(idx)
+                                                }
+                                            >
+                                                이 경기 시작
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* 🔹 PEM 관전용 iframe */}
+                    <div style={{ marginTop: "0.75rem" }}>
+                        <div
+                            style={{
+                                fontSize: "0.8rem",
+                                marginBottom: "0.25rem",
+                                color: "var(--text-sub)",
+                            }}
+                        >
+                            아래 화면에 PEM 게임(관전 모드)을 띄워주세요.
+                        </div>
+                        <iframe
+                            ref={pemIframeRef}
+                            // TODO: 실제 빌드 경로에 맞게 조정
+                            // 예: `${import.meta.env.BASE_URL}games/pem/PEM.html`
+                            src="/games/pem/PEM.html"
+                            style={{
+                                width: "100%",
+                                maxWidth: "640px",
+                                border: "none",
+                                borderRadius: "1rem",
+                                aspectRatio: "16 / 9",
+                                background: "#000",
+                                marginTop: "0.25rem",
+                            }}
+                            allow="fullscreen"
+                        />
+                    </div>
+                </div>
+            )}
+
+
+            {/* 🔹 세션 전체 요약 (문항별 정답률 표) */}
             {session && (
                 <div className="card" style={{ marginTop: "1rem" }}>
                     <SessionSummaryPanel

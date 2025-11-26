@@ -6,7 +6,7 @@ import { buildQddUrlForPack } from "../utils/qddLink";
 import { QuizMonClassPanel } from "./quizmon/QuizMonClassPanel";
 
 // 🔥 quizmon 추가
-export type GameKey = "quiz-only" | "qdd" | "pixel" | "quizmon";
+export type GameKey = "quiz-only" | "qdd" | "pixel" | "quizmon"  | "pem";
 
 export type GameMode = "builtin-quiz" | "iframe" | "react-component";
 
@@ -82,6 +82,24 @@ export const GAME_REGISTRY: Record<GameKey, GameSpec> = {
         label: "퀴즈몬 Class",
         mode: "react-component",
         component: QuizMonClassPanel,
+    },
+
+    pem: {
+        key: "pem",
+        label: "PEM 포켓몬 육성",
+        mode: "iframe",
+        buildUrl: ({ pack, roomId }) => {
+            const base =
+                "https://unluckyidiot16.github.io/WebGames/PEM/PEM.html";
+            const params = new URLSearchParams();
+
+            // 🔸 pack은 지금은 안 써도 되지만, 나중을 위해 남겨둬도 됨
+            if (pack?.id) params.set("packId", pack.id);
+            if (roomId) params.set("roomId", roomId);
+
+            const qs = params.toString();
+            return qs ? `${base}?${qs}` : base;
+        },
     },
 };
 

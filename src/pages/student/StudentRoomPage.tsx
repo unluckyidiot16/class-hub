@@ -59,6 +59,26 @@ type LocationState = {
     playStudentId?: string | null;
 };
 
+// PEM 엔딩에서 넘어오는 요약 데이터 타입 (PEM.html에서 postMessage로 보냄)
+type PemRunSummary = {
+    runId: string;
+    version: string;
+    starter: "grass" | "fire" | "water";
+    pokemonName: string;
+    stage: number;
+    stats: {
+        atk: number;
+        def: number;
+        skl: number;
+        hp: number;
+    };
+    totalCorrect: number;
+    totalQuestions: number;
+    weekReached: number;
+    endedAt: string;
+};
+
+
 function formatTime(iso: string): string {
     try {
         const d = new Date(iso);
@@ -175,6 +195,74 @@ export function StudentRoomPage() {
         void loadGameSession();
     }, [room?.id, room?.game_key, session?.id]);
 
+    // 🔹 PEM 엔딩 → ClassHub로 결과 전송 → Supabase pem_runs 저장
+    useEffect(() => {
+        if (!room?.id || !room.class_id || !studentKey) return;
+
+        const handler = async (event: MessageEvent) => {
+            const data = event.data;
+            if (!data || typeof data !== "object") return;
+            if (data.type !== "PEM_RUN_COMPLETE") return;
+
+            const summary = data.payload as PemRunSummary | undefined;
+            if (!summary) return;
+
+            try {
+                // console.log("[PEM] run summary:", summary);
+
+                const row = {
+                    run_id: summary.runId,
+                    run_version: summary.version ?? "pem-v1",
+
+                    class_id: room.class_id,
+                    room_id: room.id,
+
+                    student_key: studentKey,
+                    nickname,
+
+                    starter: summary.starter,
+                    pokemon_name: summary.pokemonName,
+                    stage: summary.stage,
+
+                    atk: summary.stats?.atk ?? 0,
+                    def: summary.stats?.def ?? 0,
+                    skl: summary.stats?.skl ?? 0,
+                    hp: summary.stats?.hp ?? 0,
+
+                    total_correct: summary.totalCorrect ?? 0,
+                    total_questions: summary.totalQuestions ?? 0,
+                    week_reached: summary.weekReached ?? 0,
+
+                    ended_at: summary.endedAt ?? new Date().toISOString(),
+
+                    raw_payload: summary,
+                };
+
+                const { error } = await supabase
+                    .from("pem_runs")
+                    // 같은 run_id로 여러 번 들어오면 덮어쓰기
+                    .upsert(row, { onConflict: "run_id" });
+
+                if (error) {
+                    console.error("[StudentRoom] save pem_runs error", error);
+                    // 여기서 alert까지 띄우면 아이들 UX가 깨질 수 있어서 일단 로그만
+                    return;
+                }
+
+                // 필요하면 로컬 피드백도 가능 (지금은 PEM.html 안에서 alert 띄우고 있음)
+                // console.log("[StudentRoom] pem_runs saved");
+            } catch (e) {
+                console.error("[StudentRoom] pem_runs insert exception", e);
+            }
+        };
+
+        window.addEventListener("message", handler);
+        return () => {
+            window.removeEventListener("message", handler);
+        };
+    }, [room?.id, room?.class_id, studentKey, nickname]);
+
+
     // 전체화면 시 body 스크롤 잠금
     useEffect(() => {
         if (typeof document === "undefined") return;
@@ -232,7 +320,8 @@ export function StudentRoomPage() {
     const isIframeGame = gameSpec?.mode === "iframe";
     const isReactGame = gameSpec?.mode === "react-component";
     const isQddRoom = effectiveGameKey === "qdd";
-
+    const isPemRoom = effectiveGameKey === "pem";
+    
     const studentId = studentKey;
 
     // ✅ iframe 게임용 세션 ID는 "game_sessions.id"를 사용
@@ -313,7 +402,7 @@ export function StudentRoomPage() {
     // 1-2) 전체 문항 수 로드 (진행도 바용)
     useEffect(() => {
         // ✅ QDD 방에서는 Supabase 질문 카운트 사용 안 함
-        if (!room?.quiz_pack_id || isQddRoom) {
+        if (!room?.quiz_pack_id || isQddRoom || isPemRoom) {
             setQuestionCount(null);
             return;
         }
@@ -344,7 +433,7 @@ export function StudentRoomPage() {
         return () => {
             cancelled = true;
         };
-    }, [room?.quiz_pack_id, isQddRoom]);
+    }, [room?.quiz_pack_id, isQddRoom, isPemRoom]);
 
     // 2) 현재 세션/문제 폴링 (3초마다)
     useEffect(() => {
