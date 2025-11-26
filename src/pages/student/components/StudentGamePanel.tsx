@@ -132,8 +132,7 @@ export function StudentGamePanel(props: Props) {
             >
                 <h2 style={{ margin: 0 }}>{title}</h2>
 
-                {spec.mode === "iframe" &&
-                    gameKey === "qdd" &&
+                {isIframeGame &&
                     session &&
                     session.status === "running" &&
                     iframeSrc &&
