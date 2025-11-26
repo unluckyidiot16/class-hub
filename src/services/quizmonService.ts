@@ -1,8 +1,6 @@
 // src/services/quizmonService.ts
 import { supabase } from "../lib/supabaseClient";
-import type {
-    QuizmonOwnedMonsterRow,
-} from "../games/quizmon/types";
+import type { QuizmonOwnedMonsterRow } from "../games/quizmon/types";
 
 /**
  * 레이드/배틀 1회 결과 요약
@@ -89,21 +87,101 @@ export async function fetchOwnedMonstersService(
 }
 
 /**
+ * 전투 종료 후 HP/기절 상태 저장용 타입
+ */
+export type BattleHpResult = {
+    ownedId: string;   // quizmon_owned_monsters.id
+    currentHp: number; // 전투 종료 시점 HP (0 이상)
+    maxHp: number;     // 안전하게 clamp 하기 위함
+};
+
+/**
+ * 전투 종료 후 HP/기절 상태를 quizmon_owned_monsters 에 반영
+ * - current_hp <= 0 이면 0으로 고정 + is_fainted = true
+ * - 그 외에는 1 ~ maxHp 사이로 clamp
+ */
+export async function saveBattleHpResultsService(
+    profileId: string,
+    results: BattleHpResult[],
+): Promise<void> {
+    if (!profileId || !results.length) return;
+
+    const rows = results.map((r) => {
+        const hp = r.currentHp <= 0 ? 0 : Math.min(r.currentHp, r.maxHp);
+        return {
+            id: r.ownedId,
+            profile_id: profileId,
+            current_hp: hp,
+            is_fainted: hp <= 0,
+        };
+    });
+
+    const { error } = await supabase
+        .from("quizmon_owned_monsters")
+        .upsert(rows, { onConflict: "id" });
+
+    if (error) {
+        throw error;
+    }
+}
+
+/**
+ * 파티 전체 회복 비용 (골드)
+ * - 필요하면 나중에 난이도나 진행도에 따라 조정 가능
+ */
+export const HEAL_ALL_COST_GOLD = 10;
+
+/**
  * 보유 몬스터 전체 회복
+ * - quizmon_profiles.gold 에서 HEAL_ALL_COST_GOLD 차감
+ * - quizmon_owned_monsters.current_hp / is_fainted 초기화
  */
 export async function healAllMonstersService(
     profileId: string,
 ): Promise<void> {
-    const { error } = await supabase
+    if (!profileId) return;
+
+    // 1) 현재 골드 확인
+    const { data: profile, error: profileError } = await supabase
+        .from("quizmon_profiles")
+        .select("id, gold")
+        .eq("id", profileId)
+        .single();
+
+    if (profileError || !profile) {
+        throw profileError ?? new Error("프로필 정보를 불러올 수 없습니다.");
+    }
+
+    const currentGold: number = profile.gold ?? 0;
+
+    if (currentGold < HEAL_ALL_COST_GOLD) {
+        // Provider 쪽에서 e.message 를 그대로 보여줄 수 있게 깔끔한 메시지로 던짐
+        throw new Error("골드가 부족해서 파티를 회복할 수 없습니다.");
+    }
+
+    const nextGold = currentGold - HEAL_ALL_COST_GOLD;
+
+    // 2) 골드 차감
+    const { error: updateProfileError } = await supabase
+        .from("quizmon_profiles")
+        .update({ gold: nextGold })
+        .eq("id", profileId);
+
+    if (updateProfileError) {
+        throw updateProfileError;
+    }
+
+    // 3) 몬스터 전체 회복/부활
+    const { error: updateMonstersError } = await supabase
         .from("quizmon_owned_monsters")
         .update({
-            current_hp: null,
-            is_fainted: false,
+            current_hp: null,  // null = 풀피 상태로 간주
+            is_fainted: false, // 기절 해제
         })
         .eq("profile_id", profileId);
 
-    if (error) {
-        throw error;
+    if (updateMonstersError) {
+        throw updateMonstersError;
     }
 }
 

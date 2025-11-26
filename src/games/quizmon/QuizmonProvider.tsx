@@ -163,21 +163,28 @@ export function QuizmonProvider({
      * 모든 보유 몬스터 전체 회복
      */
 
-    const healAllMonsters = useCallback(async () => {
-        if (!profile?.id || !isStudent) return;
+        // QuizmonProvider.tsx 안 healAllMonsters 부분만 교체
 
-        setCollectionError(null);
-        setCollectionLoading(true);
-        try {
-            await healAllMonstersService(profile.id);
-            await refreshMonsters();
-        } catch (e) {
-            console.error("[QuizmonProvider] healAllMonsters error", e);
-            setCollectionError("몬스터를 회복하는 중 오류가 발생했습니다.");
-        } finally {
-            setCollectionLoading(false);
-        }
-    }, [profile?.id, isStudent, refreshMonsters]);
+    const healAllMonsters = useCallback(async () => {
+            if (!profile?.id || !isStudent) return;
+
+            setCollectionError(null);
+            setCollectionLoading(true);
+            try {
+                await healAllMonstersService(profile.id);
+                await refreshMonsters();
+            } catch (e) {
+                console.error("[QuizmonProvider] healAllMonsters error", e);
+                let message = "몬스터를 회복하는 중 오류가 발생했습니다.";
+                if (e instanceof Error && e.message) {
+                    message = e.message;
+                }
+                setCollectionError(message);
+            } finally {
+                setCollectionLoading(false);
+            }
+        }, [profile?.id, isStudent, refreshMonsters]);
+
 
     const value: QuizmonContextValue = {
         profile,
