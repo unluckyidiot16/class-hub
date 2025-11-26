@@ -349,6 +349,13 @@ export function StudentGamePanel(props: Props) {
                                 overflow: "hidden",
                                 backgroundColor: "#000",
                                 zIndex: fullscreenActive ? 1000 : "auto",
+                                // 🔹 전체화면일 때 모바일 safe-area 보호
+                                ...(fullscreenActive
+                                    ? {
+                                        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+                                        paddingTop: "env(safe-area-inset-top, 0px)",
+                                    }
+                                    : {}),
                             }}
                         >
                             <iframe
