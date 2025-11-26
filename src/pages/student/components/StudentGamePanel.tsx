@@ -120,7 +120,7 @@ export function StudentGamePanel(props: Props) {
                 margin: "0 auto",
             }}
         >
-            {/* 카드 상단: 제목 + QDD 전체화면 버튼 */}
+            {/* 카드 상단: 제목 + 전체화면 버튼 */}
             <div
                 style={{
                     display: "flex",
