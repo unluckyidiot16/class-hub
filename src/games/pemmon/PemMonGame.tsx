@@ -3,11 +3,32 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+/**
+ * 최소한으로 쓰는 퀴즈팩 / 문제 타입
+ * - Supabase 실제 스키마보다 필드가 적어도 괜찮음 (우리가 쓰는 것만 정의)
+ */
+type QuizPackRow = {
+    id: string;
+    title: string;
+    subject: string | null;
+    grade: string | null;
+};
+
+type QuizQuestionRow = {
+    id: string;
+    pack_id: string;
+    text: string;
+    options: string[] | null;
+    answer_index: number | null;
+    // 필요하면 나중에 difficulty, subject 등 추가 가능
+};
+
 type PemMonGameProps = {
     classId: string | null;
     roomId: string;
     /** StudentRoomPage → StudentGamePanel → 여기로 전달되는 학생 식별자 */
     studentId: string | null;
+    pack: QuizPackRow | null;
 };
 
 // 간단한 포켓몬 스펙 (나중에 8~9세대 추가 가능)
@@ -51,7 +72,12 @@ type SubmissionRow = {
 
 type ViewState = "intro" | "lobby" | "pvp";
 
-export function PemMonGame({ classId, roomId, studentId }: PemMonGameProps) {
+export function PemMonGame({
+                               classId,
+                               roomId,
+                               studentId,
+                               pack,
+                           }: PemMonGameProps) {
     const [view, setView] = useState<ViewState>("intro");
     const [trainerName, setTrainerName] = useState("");
     const [partner, setPartner] = useState<PartnerState | null>(null);
@@ -64,9 +90,62 @@ export function PemMonGame({ classId, roomId, studentId }: PemMonGameProps) {
     // PVP 배틀 상태
     const [pvpEnemy, setPvpEnemy] = useState<SubmissionRow | null>(null);
     const [pvpLog, setPvpLog] = useState<string[]>([]);
-    const [pvpResult, setPvpResult] = useState<"idle" | "fighting" | "win" | "lose">("idle");
+    const [pvpResult, setPvpResult] = useState<
+        "idle" | "fighting" | "win" | "lose"
+    >("idle");
 
-    // 로컬 세이브/로드
+    // 현재 방에 연결된 퀴즈팩에서 불러온 문제들
+    const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
+
+    /**
+     * 1) 현재 room에 연결된 quiz_pack 기반으로 문제 로드
+     */
+    useEffect(() => {
+        if (!pack?.id) {
+            setQuestions([]);
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadQuestions = async () => {
+            const { data, error } = await supabase
+                .from("quiz_questions")
+                .select("*")
+                .eq("pack_id", pack.id)
+                .order("index_in_pack", { ascending: true });
+
+            if (cancelled) return;
+
+            if (error) {
+                console.error("[PemMon] load questions error", error);
+                setQuestions([]);
+                return;
+            }
+
+            const normalized = (data ?? []).map((q: any) => ({
+                id: q.id,
+                pack_id: q.pack_id,
+                text: q.text ?? "",
+                options: (q.options ?? null) as string[] | null,
+                answer_index:
+                    typeof q.answer_index === "number"
+                        ? q.answer_index
+                        : null,
+            })) as QuizQuestionRow[];
+
+            setQuestions(normalized);
+        };
+
+        void loadQuestions();
+        return () => {
+            cancelled = true;
+        };
+    }, [pack?.id]);
+
+    /**
+     * 2) 로컬 세이브/로드
+     */
     useEffect(() => {
         try {
             const raw = localStorage.getItem("pemmon_state");
@@ -331,6 +410,14 @@ export function PemMonGame({ classId, roomId, studentId }: PemMonGameProps) {
                                 HP {partner.maxHp} / ATK {partner.species.atk} /
                                 DEF {partner.species.def}
                             </div>
+                            {pack && (
+                                <div className="mt-1 text-[11px] text-gray-400">
+                                    퀴즈팩: {pack.title}{" "}
+                                    {questions.length > 0
+                                        ? `(${questions.length}문제)`
+                                        : "(문제 로딩 중 또는 0문제)"}
+                                </div>
+                            )}
                         </div>
                         <button
                             className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs flex items-center gap-1"
@@ -348,9 +435,23 @@ export function PemMonGame({ classId, roomId, studentId }: PemMonGameProps) {
                         title="훈련"
                         desc="퀴즈로 경험치"
                         onClick={() => {
-                            // TODO: PEM 국어/수학 퀴즈 로직 연결
+                            // TODO: 퀴즈 모달 UI로 교체
+                            if (!pack?.id) {
+                                alert(
+                                    "이 방에는 아직 퀴즈팩이 연결되어 있지 않아서 훈련을 할 수 없어요.",
+                                );
+                                return;
+                            }
+                            if (questions.length === 0) {
+                                alert(
+                                    "퀴즈를 불러오는 중이거나, 문제 수가 0개입니다.",
+                                );
+                                return;
+                            }
                             gainExp(20);
-                            alert("임시: 훈련 완료! 경험치 +20");
+                            alert(
+                                `임시: "${pack.title}"에서 ${questions.length}문제를 불러왔어요. 경험치 +20`,
+                            );
                         }}
                     />
                     <MenuCard
