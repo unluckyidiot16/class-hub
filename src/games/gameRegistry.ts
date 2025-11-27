@@ -8,7 +8,7 @@ import { PemMonGame } from "./pemmon/PemMonGame";
 
 
 // 🔥 quizmon 추가
-export type GameKey = "quiz-only" | "qdd" | "pixel" | "quizmon"  | "pem" | "pemmon";
+export type GameKey = "quiz-only" | "qdd" | "pixel" | "quizmon"  | "pem";
 
 export type GameMode = "builtin-quiz" | "iframe" | "react-component";
 
@@ -86,25 +86,26 @@ export const GAME_REGISTRY: Record<GameKey, GameSpec> = {
         component: QuizMonClassPanel,
     },
 
+    // pem: {
+    //     key: "pem",
+    //     label: "PEM 포켓몬 육성",
+    //     mode: "iframe",
+    //     buildUrl: ({ pack, roomId }) => {
+    //         const base =
+    //             "https://unluckyidiot16.github.io/WebGames/PEM/PEM.html";
+    //         const params = new URLSearchParams();
+    //
+    //         // 🔸 pack은 지금은 안 써도 되지만, 나중을 위해 남겨둬도 됨
+    //         if (pack?.id) params.set("packId", pack.id);
+    //         if (roomId) params.set("roomId", roomId);
+    //
+    //         const qs = params.toString();
+    //         return qs ? `${base}?${qs}` : base;
+    //     },
+    // },
+    
     pem: {
         key: "pem",
-        label: "PEM 포켓몬 육성",
-        mode: "iframe",
-        buildUrl: ({ pack, roomId }) => {
-            const base =
-                "https://unluckyidiot16.github.io/WebGames/PEM/PEM.html";
-            const params = new URLSearchParams();
-
-            // 🔸 pack은 지금은 안 써도 되지만, 나중을 위해 남겨둬도 됨
-            if (pack?.id) params.set("packId", pack.id);
-            if (roomId) params.set("roomId", roomId);
-
-            const qs = params.toString();
-            return qs ? `${base}?${qs}` : base;
-        },
-    },
-    pemmon: {
-        key: "pemmon",
         label: "포켓몬 맞춤법 탐험대",
         mode: "react-component",
         component: PemMonGame,
