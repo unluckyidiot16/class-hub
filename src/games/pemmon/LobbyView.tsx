@@ -368,8 +368,13 @@ export function LobbyView({
                 <div className="flex items-center gap-4 relative z-10">
                     {/* 파트너 아이콘 */}
                     <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center shadow-inner border-2 border-white/30">
-                        <PokemonSprite species={partner.species} size={80} />
+                        <PokemonSprite
+                            species={partner.species}
+                            size={80}
+                            variant="avatar"
+                        />
                     </div>
+
 
                     {/* 정보 영역 */}
                     <div className="flex-1">
