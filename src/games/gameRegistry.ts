@@ -4,9 +4,11 @@ import type { QuizPackRow } from "../pages/student/StudentPlayPackPage";
 import { buildQddUrlForPack } from "../utils/qddLink";
 // ✅ 새로 추가
 import { QuizMonClassPanel } from "./quizmon/QuizMonClassPanel";
+import { PemMonGame } from "./pemmon/PemMonGame";
+
 
 // 🔥 quizmon 추가
-export type GameKey = "quiz-only" | "qdd" | "pixel" | "quizmon"  | "pem";
+export type GameKey = "quiz-only" | "qdd" | "pixel" | "quizmon"  | "pem" | "pemmon";
 
 export type GameMode = "builtin-quiz" | "iframe" | "react-component";
 
@@ -100,6 +102,12 @@ export const GAME_REGISTRY: Record<GameKey, GameSpec> = {
             const qs = params.toString();
             return qs ? `${base}?${qs}` : base;
         },
+    },
+    pemmon: {
+        key: "pemmon",
+        label: "포켓몬 맞춤법 탐험대",
+        mode: "react-component",
+        component: PemMonGame,
     },
 };
 
