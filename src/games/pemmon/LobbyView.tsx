@@ -1,7 +1,6 @@
 // src/games/pemmon/LobbyView.tsx
-
 import { useState, type ReactNode } from "react";
-import { BookOpen, Map, Sword, ShoppingBag, Users } from "lucide-react";
+import { BookOpen, Map, Sword, ShoppingBag, Users, Settings, Send } from "lucide-react";
 import type {
     PartnerState,
     QuizPackRow,
@@ -167,9 +166,7 @@ function TrainingQuizOverlay({
     if (training.phase !== "quiz") return null;
 
     const current = training.questions[training.index];
-    const progress = `${training.index + 1} / ${
-        training.questions.length
-    }`;
+    const progress = `${training.index + 1} / ${training.questions.length}`;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -203,8 +200,7 @@ function TrainingQuizOverlay({
                     {/* 보기 */}
                     <div className="space-y-2 mb-4">
                         {(current.options ?? []).map((opt, idx) => {
-                            const isSelected =
-                                training.selectedIndex === idx;
+                            const isSelected = training.selectedIndex === idx;
                             const isCorrect =
                                 training.isAnswered &&
                                 current.answer_index === idx;
@@ -230,9 +226,7 @@ function TrainingQuizOverlay({
                                 <button
                                     key={idx}
                                     type="button"
-                                    onClick={() =>
-                                        onSelectOption(idx)
-                                    }
+                                    onClick={() => onSelectOption(idx)}
                                     className={`w-full text-left px-3 py-2 rounded-2xl border ${border} ${bg} text-sm active:scale-[0.99] transition`}
                                     disabled={training.isAnswered}
                                 >
@@ -250,8 +244,7 @@ function TrainingQuizOverlay({
                             className="px-4 py-2 rounded-2xl bg-blue-500 text-white text-sm font-bold disabled:bg-slate-300 disabled:text-slate-100 active:scale-[0.98] transition"
                             disabled={!training.isAnswered}
                         >
-                            {training.index + 1 ===
-                            training.questions.length
+                            {training.index + 1 === training.questions.length
                                 ? "결과 보기"
                                 : "다음 문제"}
                         </button>
@@ -294,15 +287,11 @@ function TrainingResultOverlay({
                     </div>
                     <div>
                         경험치:{" "}
-                        <span className="font-bold">
-                            +{training.expGain}
-                        </span>
+                        <span className="font-bold">+{training.expGain}</span>
                     </div>
                     <div>
                         코인:{" "}
-                        <span className="font-bold">
-                            +{training.coinGain}
-                        </span>
+                        <span className="font-bold">+{training.coinGain}</span>
                     </div>
                 </div>
                 <button
@@ -318,7 +307,7 @@ function TrainingResultOverlay({
 }
 
 /* ───────────────────────
-   메인 로비 뷰
+   메인 로비 뷰 (PEMV2 스타일)
 ─────────────────────── */
 
 export function LobbyView({
@@ -338,11 +327,7 @@ export function LobbyView({
                               onGoPvp,
                               onGoDex,
                           }: LobbyViewProps) {
-    const xpRatio = Math.max(
-        0,
-        Math.min(1, partner.exp / 100 || 0),
-    );
-
+    const xpRatio = Math.max(0, Math.min(1, partner.exp / 100 || 0));
     const [showTrainingMenu, setShowTrainingMenu] = useState(false);
 
     const quizPackLabel = pack
@@ -350,31 +335,17 @@ export function LobbyView({
         : "연결된 퀴즈팩 없음";
 
     return (
-        <div className="flex flex-col h-full bg-slate-50 pb-6 relative">
-            {/* 상단 파트너 카드 */}
+        <div className="flex flex-col h-full bg-gray-50 pb-20 relative">
+            {/* 상단 파트너 카드 (PEMV2 메인 카드와 동일한 스타일) */}
             <div className="bg-blue-600 p-6 pt-8 rounded-b-[2.5rem] shadow-xl relative overflow-hidden text-white">
-                {/* 도감 버튼 */}
-                <button
-                    type="button"
-                    onClick={onGoDex}
-                    className="absolute top-4 right-5 text-xs bg-white/15 px-3 py-1 rounded-full border border-white/20 font-semibold hover:bg-white/25"
-                >
-                    도감 보기
-                </button>
-
                 {/* 장식용 원형 빛 */}
                 <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-white/10 rounded-full blur-2xl" />
 
                 <div className="flex items-center gap-4 relative z-10">
                     {/* 파트너 아이콘 */}
                     <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center shadow-inner border-2 border-white/30">
-                        <PokemonSprite
-                            species={partner.species}
-                            size={80}
-                            // variant="avatar"
-                        />
+                        <PokemonSprite species={partner.species} size={80} variant="avatar" />
                     </div>
-
 
                     {/* 정보 영역 */}
                     <div className="flex-1">
@@ -397,45 +368,29 @@ export function LobbyView({
                         </div>
                         <div className="flex justify-between text-[11px] mt-1 text-blue-100/80 font-mono">
                             <span>HP {partner.maxHp}</span>
-                            <span>
-                                XP {partner.exp}/100
-                            </span>
+                            <span>XP {partner.exp}/100</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 내 지갑 + 퀴즈팩 정보 */}
+            {/* 내 지갑 + 퀴즈팩 정보 (PEMV2 '내 지갑' 카드 + 퀴즈팩 라벨만 추가) */}
             <div className="mx-6 -mt-4 bg-white p-3 rounded-2xl shadow-lg flex justify-between items-center relative z-20">
-                <div className="flex flex-col gap-1 ml-2">
-                    <span className="text-gray-500 font-bold text-sm">
-                        내 지갑
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                        {quizPackLabel}
-                    </span>
+                <div className="flex flex-col gap-[2px] ml-2">
+                    <span className="text-gray-500 font-bold text-sm">내 지갑</span>
+                    <span className="text-[10px] text-slate-400">{quizPackLabel}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                    {/* 출전 업로드 버튼 */}
-                    <button
-                        type="button"
-                        onClick={onUploadSubmission}
-                        className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition"
-                    >
-                        출전 데이터 업로드
-                    </button>
-                    <span className="text-xl font-bold text-yellow-500 mr-2 flex items-center gap-1">
-                        <span className="text-sm">🪙</span>
-                        {coins}
-                    </span>
-                </div>
+                <span className="text-xl font-bold text-yellow-500 mr-2 flex items-center gap-1">
+                    <span className="text-sm">🪙</span>
+                    {coins}
+                </span>
             </div>
 
             {/* 메뉴 그리드 */}
             <div className="p-6 grid grid-cols-2 gap-4 mt-2">
                 <MenuCard
                     title="훈련하기"
-                    desc="지식 쌓기"
+                    desc="국어 · 수학 연습"
                     icon={<BookOpen size={28} />}
                     colorClass="bg-green-500"
                     onClick={() => setShowTrainingMenu(true)}
@@ -460,7 +415,6 @@ export function LobbyView({
                     icon={<ShoppingBag size={28} />}
                     colorClass="bg-purple-500"
                     onClick={() => {
-                        // 상점 뷰는 이후 단계에서 별도 view로 분리
                         alert("상점은 곧 업데이트될 예정이에요!");
                     }}
                 />
@@ -473,17 +427,37 @@ export function LobbyView({
                 />
             </div>
 
+            {/* 하단 네비게이션 (PEMV2와 동일한 구조) */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-2 flex justify-around pb-4 pt-3 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+                <button
+                    onClick={onGoDex}
+                    className="flex flex-col items-center text-gray-400 hover:text-blue-600 transition-colors"
+                >
+                    <Settings size={24} />
+                    <span className="text-[10px] font-bold mt-1">도감/파트너</span>
+                </button>
+                <button
+                    onClick={onUploadSubmission}
+                    className="flex flex-col items-center text-blue-600"
+                >
+                    <div className="bg-blue-100 p-2 rounded-full mb-1">
+                        <Send size={20} />
+                    </div>
+                    <span className="text-[10px] font-bold">선생님께</span>
+                </button>
+            </div>
+
             {/* 훈련 과목 선택 오버레이 */}
             {showTrainingMenu && training.phase === "idle" && (
                 <TrainingMenuOverlay
                     onClose={() => setShowTrainingMenu(false)}
                     onStartKorean={() => {
                         setShowTrainingMenu(false);
-                        onStartTraining(); // TODO: 나중에 subject: "ko"로 확장
+                        onStartTraining(); // subject: "ko"는 상위에서 확장
                     }}
                     onStartMath={() => {
                         setShowTrainingMenu(false);
-                        onStartTraining(); // TODO: 나중에 subject: "math"로 확장
+                        onStartTraining(); // subject: "math"도 동일
                     }}
                 />
             )}

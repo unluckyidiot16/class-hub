@@ -23,9 +23,9 @@ export function MyPokemonView({
                                   onSelectPartner,
                               }: MyPokemonViewProps) {
     return (
-        <div className="w-full h-full flex flex-col bg-[#f6f8fb]">
-            {/* 헤더 */}
-            <div className="flex items-center gap-2 px-4 py-4 bg-[#f6f8fb]">
+        <div className="w-full h-full flex flex-col bg-gray-50">
+            {/* 헤더 (PEMV2 Header 느낌) */}
+            <div className="flex items-center gap-2 px-4 py-4 bg-white shadow-sm">
                 <button
                     type="button"
                     onClick={onBack}
@@ -33,52 +33,46 @@ export function MyPokemonView({
                 >
                     <ChevronLeft size={20} />
                 </button>
-                <h1 className="text-lg font-bold text-slate-800">
-                    내 포켓몬
-                </h1>
+                <h1 className="text-lg font-bold text-slate-800">내 포켓몬</h1>
             </div>
 
-            {/* 리스트 */}
-            <div className="flex-1 px-4 pt-2 pb-6">
+            {/* 내용 */}
+            <div className="flex-1 px-4 pb-4">
                 {mons.length === 0 ? (
                     <div className="h-full flex items-center justify-center text-xs text-slate-400">
                         아직 포켓몬이 없어요.
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {mons.map((mon) => (
-                            <button
-                                key={mon.id}
-                                type="button"
-                                onClick={() =>
-                                    onSelectPartner?.(mon.id)
-                                }
-                                className={`bg-white rounded-3xl px-3 py-3 shadow-sm text-left flex flex-col items-center border-2 ${
-                                    mon.isPartner
-                                        ? "border-blue-400 shadow-blue-100"
-                                        : "border-transparent"
-                                }`}
-                            >
-                                <div className="w-full flex justify-between items-start mb-1">
-                                    <span className="text-[11px] text-slate-400">
-                                        Lv.{mon.level}
-                                    </span>
-                                    {mon.isPartner && (
-                                        <Star
-                                            size={14}
-                                            className="text-blue-400 fill-blue-400"
-                                        />
+                    <div className="grid grid-cols-3 gap-3 mt-2 overflow-y-auto pb-4">
+                        {mons.map((mon) => {
+                            const isPartner = mon.isPartner;
+                            return (
+                                <button
+                                    key={mon.id}
+                                    type="button"
+                                    onClick={() => onSelectPartner?.(mon.id)}
+                                    className={`bg-white p-2 rounded-xl border-2 relative flex flex-col items-center shadow-sm cursor-pointer transition-all
+                                        ${
+                                        isPartner
+                                            ? "border-blue-500 ring-2 ring-blue-100 bg-blue-50"
+                                            : "border-transparent hover:border-gray-200"
+                                    }`}
+                                >
+                                    {isPartner && (
+                                        <div className="absolute top-1 right-1 text-blue-500">
+                                            <Star size={12} className="fill-current" />
+                                        </div>
                                     )}
-                                </div>
-                                <PokemonSprite
-                                    species={mon.species}
-                                    size={64}
-                                />
-                                <div className="mt-2 text-sm font-bold text-slate-800">
-                                    {mon.species.name}
-                                </div>
-                            </button>
-                        ))}
+                                    <PokemonSprite species={mon.species} size={64} />
+                                    <div className="font-bold text-xs text-center text-gray-800 truncate w-full mt-1">
+                                        {mon.species.name}
+                                    </div>
+                                    <div className="text-[10px] text-gray-400">
+                                        Lv.{mon.level}
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 )}
             </div>
