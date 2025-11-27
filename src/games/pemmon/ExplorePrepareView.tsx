@@ -1,6 +1,6 @@
 // src/games/pemmon/ExplorePrepareView.tsx
 
-import { ChevronLeft, Map } from "lucide-react";
+import { ChevronLeft, Map, Sparkles } from "lucide-react";
 
 type ExplorePrepareViewProps = {
     onBack: () => void;
@@ -18,70 +18,96 @@ export function ExplorePrepareView({
                                        onStartExplore,
                                    }: ExplorePrepareViewProps) {
     return (
-        <div className="w-full h-full flex flex-col bg-[#e9f9ee]">
-            {/* 헤더 */}
-            <div className="flex items-center gap-2 px-4 py-4 bg-[#e9f9ee]">
+        <div className="w-full h-full flex flex-col bg-gradient-to-b from-green-50 to-white">
+            {/* 헤더 - PEMV2 스타일 */}
+            <div className="flex items-center gap-2 px-4 py-4 bg-white shadow-sm border-b border-green-100">
                 <button
                     type="button"
                     onClick={onBack}
-                    className="p-1 rounded-full hover:bg-green-100"
+                    className="p-2 rounded-xl hover:bg-green-50 transition-colors"
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={20} className="text-gray-600" />
                 </button>
-                <h1 className="text-lg font-bold text-slate-800">탐험 준비</h1>
+                <h1 className="text-xl font-bold text-gray-800">탐험 준비</h1>
             </div>
 
-            {/* 적용 아이템 */}
-            <div className="px-4">
-                <div className="bg-white rounded-3xl shadow-sm px-5 py-4 mb-4">
-                    <div className="text-xs font-bold text-slate-500 mb-3">
-                        현재 적용된 아이템
+            {/* 적용 아이템 카드 */}
+            <div className="px-4 mt-4">
+                <div className="bg-white rounded-3xl shadow-lg border border-green-100 px-5 py-4">
+                    <div className="text-sm font-bold text-gray-600 mb-4 flex items-center gap-2">
+                        <Sparkles size={16} className="text-yellow-500" />
+                        현재 적용된 버프
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-[#f3faf6] rounded-2xl px-3 py-3 flex flex-col justify-between">
-                            <div className="text-2xl mb-1">🍀</div>
-                            <div className="text-sm font-bold text-slate-800">
+                        <div className={`
+                            bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl px-4 py-4 
+                            border ${luckyCharmUses > 0 ? 'border-green-300' : 'border-gray-200 opacity-50'}
+                        `}>
+                            <div className="text-3xl mb-2">🍀</div>
+                            <div className="text-sm font-bold text-gray-800">
                                 행운부적
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">
-                                {luckyCharmUses}회 남음
+                            <div className="text-xs text-gray-500 mt-1">
+                                {luckyCharmUses > 0 
+                                    ? <span className="text-green-600 font-bold">{luckyCharmUses}회 남음</span>
+                                    : <span>미적용</span>
+                                }
                             </div>
                         </div>
-                        <div className="bg-[#f3faf6] rounded-2xl px-3 py-3 flex flex-col justify-between">
-                            <div className="text-2xl mb-1">🚫🐛</div>
-                            <div className="text-sm font-bold text-slate-800">
+                        <div className={`
+                            bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl px-4 py-4
+                            border ${repelUses > 0 ? 'border-purple-300' : 'border-gray-200 opacity-50'}
+                        `}>
+                            <div className="text-3xl mb-2">🚫</div>
+                            <div className="text-sm font-bold text-gray-800">
                                 기피제
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">
-                                {repelUses}회 남음
+                            <div className="text-xs text-gray-500 mt-1">
+                                {repelUses > 0 
+                                    ? <span className="text-purple-600 font-bold">{repelUses}회 남음</span>
+                                    : <span>미적용</span>
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 지도 아이콘 + 볼 개수 */}
-            <div className="px-4 flex-1 flex flex-col items-center mt-2">
-                <div className="w-40 h-40 rounded-full bg-[#d3f2dd] flex flex-col items-center justify-center text-green-700 shadow-inner mb-3">
-                    <Map size={56} />
-                    <div className="text-xs mt-2 opacity-80">
-                        몬스터를 찾아볼까요?
+            {/* 중앙 지도 아이콘 */}
+            <div className="flex-1 flex flex-col items-center justify-center px-4">
+                <div className="relative mb-6">
+                    <div className="absolute inset-0 bg-green-200 rounded-full blur-3xl opacity-40 animate-pulse"></div>
+                    <div className="relative w-40 h-40 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 
+                                  shadow-2xl flex flex-col items-center justify-center text-white">
+                        <Map size={60} className="mb-2" />
+                        <div className="text-xs font-bold opacity-90">
+                            탐험 준비 완료!
+                        </div>
                     </div>
                 </div>
-                <div className="text-xs text-slate-500 mb-6">
-                    몬스터볼:{" "}
-                    <span className="font-bold text-slate-700">
-                        {monsterBallCount}개
-                    </span>
+                
+                {/* 몬스터볼 상태 */}
+                <div className="bg-white rounded-2xl shadow-md px-6 py-3 border border-green-100">
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">⚪</span>
+                        <div>
+                            <div className="text-xs text-gray-500">보유 중인 몬스터볼</div>
+                            <div className="text-xl font-bold text-gray-800">
+                                {monsterBallCount}개
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* 버튼 */}
+            {/* 하단 버튼 */}
             <div className="px-4 pb-6">
                 <button
                     type="button"
                     onClick={onStartExplore}
-                    className="w-full py-4 rounded-3xl bg-green-500 text-white text-base font-bold shadow-md active:scale-[0.98] transition"
+                    className="w-full py-4 rounded-3xl bg-gradient-to-r from-green-500 to-emerald-600 
+                             text-white text-lg font-bold shadow-xl active:scale-[0.98] transition-all
+                             hover:from-green-600 hover:to-emerald-700"
                 >
                     숲으로 떠나기
                 </button>

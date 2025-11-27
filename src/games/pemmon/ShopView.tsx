@@ -7,7 +7,7 @@ export type ShopItem = {
     name: string;
     desc: string;
     price: number;
-    badge?: string; // "10원" 같은 표시용
+    badge?: string;
     emoji?: string;
 };
 
@@ -25,30 +25,32 @@ export function ShopView({
                              onBuy,
                          }: ShopViewProps) {
     return (
-        <div className="w-full h-full flex flex-col bg-[#f6ecff]">
-            {/* 헤더 */}
-            <div className="flex items-center gap-2 px-4 py-4 bg-[#f6ecff]">
+        <div className="w-full h-full flex flex-col bg-gradient-to-b from-purple-50 to-white">
+            {/* 헤더 - PEMV2 스타일 */}
+            <div className="flex items-center gap-2 px-4 py-4 bg-white shadow-sm border-b border-purple-100">
                 <button
                     type="button"
                     onClick={onBack}
-                    className="p-1 rounded-full hover:bg-purple-100"
+                    className="p-2 rounded-xl hover:bg-purple-50 transition-colors"
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={20} className="text-gray-600" />
                 </button>
-                <h1 className="text-lg font-bold text-slate-800">
-                    포켓상점
+                <h1 className="text-xl font-bold text-gray-800">
+                    포켓샵
                 </h1>
             </div>
 
-            {/* 내 지갑 */}
-            <div className="px-4 mt-1">
-                <div className="bg-white rounded-3xl px-4 py-3 shadow-sm flex justify-between items-center">
-                    <div className="text-xs text-slate-500 font-bold">
+            {/* 내 지갑 - PEMV2 스타일 카드 */}
+            <div className="px-4 mt-4">
+                <div className="bg-white rounded-2xl px-5 py-4 shadow-lg border border-purple-100 flex justify-between items-center">
+                    <div className="text-sm font-bold text-gray-500">
                         내 지갑
                     </div>
-                    <div className="flex items-center gap-1 text-xl font-bold text-yellow-500">
-                        <span className="text-sm">🪙</span>
-                        {coins}
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">🪙</span>
+                        <span className="text-2xl font-bold text-yellow-500">
+                            {coins}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -61,23 +63,29 @@ export function ShopView({
                             key={item.id}
                             type="button"
                             onClick={() => onBuy(item.id)}
-                            className="w-full bg-white rounded-3xl px-4 py-3 shadow-sm flex items-center justify-between active:scale-[0.99] transition"
+                            className="w-full bg-white rounded-2xl px-5 py-4 shadow-md border border-gray-100
+                                     flex items-center justify-between active:scale-[0.98] transition-all
+                                     hover:shadow-lg hover:border-purple-200 group"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-xl">
-                                    {item.emoji ?? "⭕️"}
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 
+                                              flex items-center justify-center text-2xl shadow-sm
+                                              group-hover:from-purple-200 group-hover:to-purple-100 transition-colors">
+                                    {item.emoji || "📦"}
                                 </div>
                                 <div className="text-left">
-                                    <div className="text-sm font-bold text-slate-900">
+                                    <div className="text-base font-bold text-gray-800">
                                         {item.name}
                                     </div>
-                                    <div className="text-xs text-purple-500 mt-1">
+                                    <div className="text-xs text-purple-600 mt-1 font-medium">
                                         {item.desc}
                                     </div>
                                 </div>
                             </div>
-                            <div className="px-3 py-1 rounded-full bg-purple-50 text-[11px] text-purple-600 font-bold">
-                                {item.badge ?? `${item.price}원`}
+                            <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 
+                                          text-white text-sm font-bold shadow-md
+                                          group-hover:from-purple-600 group-hover:to-purple-700 transition-all">
+                                {item.badge || `${item.price}원`}
                             </div>
                         </button>
                     ))}

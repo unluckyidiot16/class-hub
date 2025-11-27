@@ -25,6 +25,8 @@ export type Species = {
     generation?: string | null;
     isLegendary?: boolean;
     spriteUrl?: string | null;
+
+    type1?: string | null;
 };
 
 
