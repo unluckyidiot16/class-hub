@@ -1,92 +1,24 @@
 // src/games/pemmon/PemMonGame.tsx
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-
-/**
- * 최소한으로 쓰는 퀴즈팩 / 문제 타입
- */
-type QuizPackRow = {
-    id: string;
-    title: string;
-    subject: string | null;
-    grade: string | null;
-};
-
-type QuizQuestionRow = {
-    id: string;
-    pack_id: string;
-    text: string;
-    options: string[] | null;
-    answer_index: number | null;
-};
+import type {
+    QuizPackRow,
+    QuizQuestionRow,
+    PartnerState,
+    SubmissionRow,
+    TrainingState,
+    ViewState,
+} from "./pemmonTypes";
+import { IntroView } from "./IntroView";
+import { LobbyView } from "./LobbyView";
+import { PvpView } from "./PvpView";
 
 type PemMonGameProps = {
     classId: string | null;
     roomId: string;
-    /** StudentRoomPage → StudentGamePanel → 여기로 전달되는 학생 식별자 */
     studentId: string | null;
     pack: QuizPackRow | null;
-};
-
-// 간단한 포켓몬 스펙 (나중에 8~9세대 추가 가능)
-type Species = {
-    id: number;
-    name: string;
-    maxHp: number;
-    atk: number;
-    def: number;
-};
-
-// 스타팅 3종만 일단 사용
-const STARTERS: Species[] = [
-    { id: 1, name: "이상해씨", maxHp: 45, atk: 49, def: 49 },
-    { id: 4, name: "파이리", maxHp: 39, atk: 52, def: 43 },
-    { id: 7, name: "꼬부기", maxHp: 44, atk: 48, def: 65 },
-];
-
-type PartnerState = {
-    species: Species;
-    level: number;
-    exp: number;
-    maxHp: number;
-};
-
-type SubmissionRow = {
-    id: string;
-    class_id: string;
-    student_key: string;
-    trainer_name: string;
-    partner_species: number;
-    partner_level: number;
-    partner_stats: {
-        maxHp: number;
-        atk: number;
-        def: number;
-    };
-    coins: number;
-    updated_at: string;
-};
-
-type ViewState = "intro" | "lobby" | "pvp";
-
-type TrainingState =
-    | { phase: "idle" }
-    | {
-    phase: "quiz";
-    questions: QuizQuestionRow[];
-    index: number;
-    correctCount: number;
-    selectedIndex: number | null;
-    isAnswered: boolean;
-    isCorrect: boolean | null;
-}
-    | {
-    phase: "result";
-    total: number;
-    correct: number;
-    expGain: number;
-    coinGain: number;
 };
 
 export function PemMonGame({
@@ -100,26 +32,25 @@ export function PemMonGame({
     const [partner, setPartner] = useState<PartnerState | null>(null);
     const [coins, setCoins] = useState(0);
 
-    // PVP 상대 목록
     const [opponents, setOpponents] = useState<SubmissionRow[]>([]);
     const [loadingOpponents, setLoadingOpponents] = useState(false);
-
-    // PVP 배틀 상태
     const [pvpEnemy, setPvpEnemy] = useState<SubmissionRow | null>(null);
     const [pvpLog, setPvpLog] = useState<string[]>([]);
     const [pvpResult, setPvpResult] = useState<
         "idle" | "fighting" | "win" | "lose"
     >("idle");
 
-    // 현재 방에 연결된 퀴즈팩에서 불러온 문제들
     const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
-
-    // 훈련 모달 상태
     const [training, setTraining] = useState<TrainingState>({ phase: "idle" });
 
-    /**
-     * 1) 현재 room에 연결된 quiz_pack 기반으로 문제 로드
-     */
+    const hasKey = useMemo(
+        () => !!classId && !!studentId,
+        [classId, studentId],
+    );
+
+    /* ───────────────────────
+       퀴즈 로딩
+    ─────────────────────── */
     useEffect(() => {
         if (!pack?.id) {
             setQuestions([]);
@@ -163,9 +94,9 @@ export function PemMonGame({
         };
     }, [pack?.id]);
 
-    /**
-     * 2) 로컬 세이브/로드
-     */
+    /* ───────────────────────
+       로컬 세이브/로드
+    ─────────────────────── */
     useEffect(() => {
         try {
             const raw = localStorage.getItem("pemmon_state");
@@ -189,14 +120,9 @@ export function PemMonGame({
         }
     }, [trainerName, coins, partner]);
 
-    const hasKey = useMemo(
-        () => !!classId && !!studentId,
-        [classId, studentId],
-    );
-
-    /**
-     * 경험치/레벨업 로직 (간단 버전)
-     */
+    /* ───────────────────────
+       경험치 / 레벨업
+    ─────────────────────── */
     const gainExp = (amount: number) => {
         if (!partner) return;
         let level = partner.level;
@@ -212,10 +138,62 @@ export function PemMonGame({
         setPartner({ ...partner, level, exp, maxHp });
     };
 
-    /**
-     * 출전 데이터 업로드 (upsert)
-     * - 같은 class_id + student_key 조합이면 항상 덮어쓰기 → 중복 업로드 방지
-     */
+    /* ───────────────────────
+       훈련 통계 기록
+    ─────────────────────── */
+    const recordTrainingStats = async (total: number, correct: number) => {
+        if (!hasKey || !classId || !studentId) return;
+
+        try {
+            const { data, error } = await supabase
+                .from("pem_mon_submissions")
+                .select(
+                    "id, total_training_sessions, total_training_questions, total_training_correct",
+                )
+                .eq("class_id", classId)
+                .eq("student_key", studentId)
+                .maybeSingle();
+
+            if (error) {
+                console.error(
+                    "[PemMon] recordTrainingStats select error",
+                    error,
+                );
+                return;
+            }
+            if (!data) {
+                // 아직 출전 데이터가 없으면 통계는 기록하지 않음
+                return;
+            }
+
+            const nextSessions = (data.total_training_sessions ?? 0) + 1;
+            const nextQuestions = (data.total_training_questions ?? 0) + total;
+            const nextCorrect = (data.total_training_correct ?? 0) + correct;
+
+            const { error: updateError } = await supabase
+                .from("pem_mon_submissions")
+                .update({
+                    total_training_sessions: nextSessions,
+                    total_training_questions: nextQuestions,
+                    total_training_correct: nextCorrect,
+                    last_training_at: new Date().toISOString(),
+                })
+                .eq("id", data.id);
+
+            if (updateError) {
+                console.error(
+                    "[PemMon] recordTrainingStats update error",
+                    updateError,
+                );
+            }
+        } catch (e) {
+            console.error("[PemMon] recordTrainingStats exception", e);
+        }
+    };
+
+    /* ───────────────────────
+       출전 데이터 업로드
+    ─────────────────────── */
     const uploadSubmission = async () => {
         if (!hasKey) {
             alert("classId / studentId가 아직 준비되지 않았어요.");
@@ -229,7 +207,7 @@ export function PemMonGame({
         const payload = {
             class_id: classId!,
             room_id: roomId,
-            student_key: studentId!, // StudentRoomPage에서 만든 키
+            student_key: studentId!,
             trainer_name: trainerName.trim(),
             partner_species: partner.species.id,
             partner_level: partner.level,
@@ -239,7 +217,7 @@ export function PemMonGame({
                 def: partner.species.def,
             },
             coins,
-            monsters: null, // TODO: 나중에 보유 몬스터 전체를 넣고 싶으면 여기에
+            monsters: null,
             updated_at: new Date().toISOString(),
         };
 
@@ -256,9 +234,9 @@ export function PemMonGame({
         alert("출전 데이터가 서버에 저장되었어요! (선생님/친구가 볼 수 있어요)");
     };
 
-    /**
-     * 같은 반 친구들의 출전 데이터 목록 불러오기
-     */
+    /* ───────────────────────
+       PVP: 상대 목록
+    ─────────────────────── */
     const fetchOpponents = async () => {
         if (!hasKey) return;
         setLoadingOpponents(true);
@@ -266,7 +244,7 @@ export function PemMonGame({
             .from("pem_mon_submissions")
             .select("*")
             .eq("class_id", classId!)
-            .neq("student_key", studentId!); // 나 자신은 제외
+            .neq("student_key", studentId!);
 
         setLoadingOpponents(false);
 
@@ -278,10 +256,9 @@ export function PemMonGame({
         setOpponents((data || []) as SubmissionRow[]);
     };
 
-    /**
-     * 간단 PVP 배틀 시뮬레이션
-     * - 서버에는 아무것도 안 쓰고, 클라이언트에서만 계산
-     */
+    /* ───────────────────────
+       PVP: 배틀 시뮬
+    ─────────────────────── */
     const startPvpBattle = (enemy: SubmissionRow) => {
         if (!partner) return;
 
@@ -289,7 +266,6 @@ export function PemMonGame({
         setPvpResult("fighting");
         setPvpLog([`VS ${enemy.trainer_name}의 포켓몬! 전투 시작!`]);
 
-        // 간단 턴 배틀 (동기 시뮬레이션)
         let myHp = partner.maxHp;
         let enemyHp = enemy.partner_stats.maxHp;
 
@@ -341,12 +317,12 @@ export function PemMonGame({
             gainExp(5);
         }
 
-        setPvpLog(log.slice(-6)); // 최근 6줄만
+        setPvpLog(log.slice(-6));
     };
 
-    /**
-     * 훈련 시작 (퀴즈 모달 오픈)
-     */
+    /* ───────────────────────
+       훈련(퀴즈) 관련
+    ─────────────────────── */
     const startTraining = () => {
         if (!pack?.id) {
             alert(
@@ -366,7 +342,6 @@ export function PemMonGame({
             alert("이 퀴즈팩에는 선택형 문제 데이터가 없어요.");
             return;
         }
-        // 한 번 훈련당 최대 5문제
         const shuffled = [...mcQuestions].sort(() => Math.random() - 0.5);
         const selected = shuffled.slice(0, Math.min(5, shuffled.length));
 
@@ -383,7 +358,7 @@ export function PemMonGame({
 
     const handleSelectOption = (optionIndex: number) => {
         if (training.phase !== "quiz") return;
-        if (training.isAnswered) return; // 한 문제당 한 번만 답변
+        if (training.isAnswered) return;
 
         const current = training.questions[training.index];
         const isCorrect = current.answer_index === optionIndex;
@@ -401,18 +376,15 @@ export function PemMonGame({
         if (training.phase !== "quiz") return;
         const nextIndex = training.index + 1;
         if (nextIndex >= training.questions.length) {
-            // 퀴즈 종료 → 보상 계산
             const total = training.questions.length;
             const correct = training.correctCount;
             const expGain = correct * 10;
             const coinGain = correct * 2;
 
-            if (expGain > 0) {
-                gainExp(expGain);
-            }
-            if (coinGain > 0) {
-                setCoins((c) => c + coinGain);
-            }
+            if (expGain > 0) gainExp(expGain);
+            if (coinGain > 0) setCoins((c) => c + coinGain);
+
+            void recordTrainingStats(total, correct);
 
             setTraining({
                 phase: "result",
@@ -436,429 +408,85 @@ export function PemMonGame({
         setTraining({ phase: "idle" });
     };
 
-    /**
-     * 화면 렌더링
-     */
-
-    // 0) 입장 / 스타팅 선택 화면
+    /* ───────────────────────
+       View 분기
+    ─────────────────────── */
     if (view === "intro") {
         return (
-            <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-blue-100 to-white">
-                <h1 className="text-2xl font-bold mb-4 text-blue-800">
-                    포켓몬 맞춤법 탐험대
-                </h1>
-                <input
-                    className="w-full max-w-xs p-3 border rounded-xl mb-4"
-                    placeholder="트레이너 이름"
-                    value={trainerName}
-                    onChange={(e) => setTrainerName(e.target.value)}
-                />
-                <p className="mb-2 text-gray-600 text-sm">
-                    파트너 포켓몬을 선택하세요
-                </p>
-                <div className="grid grid-cols-3 gap-3 w-full max-w-xs mb-4">
-                    {STARTERS.map((s) => (
-                        <button
-                            key={s.id}
-                            className="bg-white rounded-xl shadow p-2 flex flex-col items-center hover:bg-blue-50"
-                            onClick={() => {
-                                if (!trainerName.trim()) {
-                                    alert(
-                                        "먼저 트레이너 이름을 입력해 주세요.",
-                                    );
-                                    return;
-                                }
-                                setPartner({
-                                    species: s,
-                                    level: 1,
-                                    exp: 0,
-                                    maxHp: s.maxHp,
-                                });
-                                setView("lobby");
-                            }}
-                        >
-                            <div className="w-12 h-12 bg-gray-100 rounded-full mb-1 flex items-center justify-center text-xl">
-                                {s.id === 1
-                                    ? "🌱"
-                                    : s.id === 4
-                                        ? "🔥"
-                                        : "💧"}
-                            </div>
-                            <div className="text-xs font-bold">{s.name}</div>
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <IntroView
+                trainerName={trainerName}
+                onChangeTrainerName={setTrainerName}
+                onSelectStarter={(species) => {
+                    if (!trainerName.trim()) {
+                        alert("먼저 트레이너 이름을 입력해 주세요.");
+                        return;
+                    }
+                    setPartner({
+                        species,
+                        level: 1,
+                        exp: 0,
+                        maxHp: species.maxHp,
+                    });
+                    setView("lobby");
+                }}
+            />
         );
     }
 
-    // 1) 로비 화면 (메인 메뉴)
     if (view === "lobby" && partner) {
         return (
-            <div className="relative flex flex-col h-full bg-gray-50">
-                <div className="p-4 bg-blue-600 text-white flex items-center justify-between">
-                    <div>
-                        <div className="text-xs opacity-80">트레이너</div>
-                        <div className="text-lg font-bold">
-                            {trainerName || "이름 없음"}
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xs opacity-80">코인</div>
-                        <div className="text-lg font-bold">🪙 {coins}</div>
-                    </div>
-                </div>
-
-                <div className="p-4 bg-white border-b">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="text-xs text-gray-400">
-                                파트너
-                            </div>
-                            <div className="font-bold text-gray-800">
-                                {partner.species.name} (Lv.{partner.level})
-                            </div>
-                            <div className="text-xs text-gray-500">
-                                HP {partner.maxHp} / ATK {partner.species.atk} /
-                                DEF {partner.species.def}
-                            </div>
-                            {pack && (
-                                <div className="mt-1 text-[11px] text-gray-400">
-                                    퀴즈팩: {pack.title}{" "}
-                                    {questions.length > 0
-                                        ? `(${questions.length}문제)`
-                                        : "(문제 로딩 중 또는 0문제)"}
-                                </div>
-                            )}
-                        </div>
-                        <button
-                            className="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs flex items-center gap-1"
-                            onClick={uploadSubmission}
-                        >
-                            <span>⬆️</span>
-                            출전 데이터 업로드
-                        </button>
-                    </div>
-                </div>
-
-                <div className="flex-1 grid grid-cols-2 gap-3 p-4">
-                    <MenuCard
-                        icon="📖"
-                        title="훈련"
-                        desc="퀴즈로 경험치"
-                        onClick={startTraining}
-                    />
-                    <MenuCard
-                        icon="🗺️"
-                        title="탐험"
-                        desc="포켓몬 발견"
-                        onClick={() => {
-                            // TODO: 탐험/포획 로직 연결
-                            setCoins((c) => c + 5);
-                            alert("임시: 탐험 완료! 코인 +5");
-                        }}
-                    />
-                    <MenuCard
-                        icon="⚔️"
-                        title="도전"
-                        desc="PVE 배틀"
-                        onClick={() => {
-                            // TODO: PVE 배틀 화면 연결
-                            gainExp(10);
-                            setCoins((c) => c + 3);
-                            alert("임시: 도전 승리! 경험치 +10, 코인 +3");
-                        }}
-                    />
-                    <MenuCard
-                        icon="🛒"
-                        title="상점"
-                        desc="아이템 구매"
-                        onClick={() => {
-                            // TODO: 상점 UI 연결
-                            alert("상점은 이후 업데이트 예정!");
-                        }}
-                    />
-                    <MenuCard
-                        icon="👥"
-                        title="대전 (PVP)"
-                        desc="친구와 대결"
-                        onClick={() => {
-                            setView("pvp");
-                            fetchOpponents();
-                        }}
-                    />
-                </div>
-
-                {training.phase !== "idle" && (
-                    <TrainingModal
-                        state={training}
-                        onSelectOption={handleSelectOption}
-                        onNext={goNextQuestion}
-                        onClose={closeTraining}
-                    />
-                )}
-            </div>
+            <LobbyView
+                trainerName={trainerName}
+                partner={partner}
+                coins={coins}
+                pack={pack}
+                questionsCount={questions.length}
+                training={training}
+                onUploadSubmission={uploadSubmission}
+                onStartTraining={startTraining}
+                onSelectOption={handleSelectOption}
+                onNextQuestion={goNextQuestion}
+                onCloseTraining={closeTraining}
+                onStartExplore={() => {
+                    // TODO: 실제 탐험 로직
+                    setCoins((c) => c + 5);
+                    alert("임시: 탐험 완료! 코인 +5");
+                }}
+                onStartChallenge={() => {
+                    // TODO: 실제 도전(PVE) 로직
+                    gainExp(10);
+                    setCoins((c) => c + 3);
+                    alert("임시: 도전 승리! 경험치 +10, 코인 +3");
+                }}
+                onGoPvp={() => {
+                    setView("pvp");
+                    fetchOpponents();
+                }}
+            />
         );
     }
 
-    // 2) PVP 화면
     if (view === "pvp" && partner) {
         return (
-            <div className="flex flex-col h-full bg-slate-900 text-white">
-                <div className="p-3 flex items-center justify-between border-b border-slate-700">
-                    <button
-                        className="px-3 py-1 bg-slate-700 rounded-full text-xs"
-                        onClick={() => setView("lobby")}
-                    >
-                        ← 돌아가기
-                    </button>
-                    <div className="text-xs text-slate-300">
-                        {classId
-                            ? `CLASS: ${classId.slice(0, 4)}...`
-                            : "CLASS: -"}
-                    </div>
-                </div>
-
-                <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-                    <div>
-                        <div className="text-xs text-slate-400">내 포켓몬</div>
-                        <div className="font-bold">
-                            {partner.species.name} (Lv.{partner.level})
-                        </div>
-                    </div>
-                    <div className="text-right text-xs text-slate-400">
-                        🪙 {coins} 코인
-                    </div>
-                </div>
-
-                {/* 상대 선택 영역 */}
-                <div className="flex-1 flex flex-col md:flex-row">
-                    <div className="flex-1 p-4 border-r border-slate-800 overflow-auto">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="font-bold text-sm">
-                                출전한 친구들
-                            </div>
-                            <button
-                                className="text-xs px-2 py-1 bg-slate-700 rounded-full"
-                                onClick={fetchOpponents}
-                                disabled={loadingOpponents}
-                            >
-                                새로고침
-                            </button>
-                        </div>
-                        {loadingOpponents && (
-                            <div className="text-xs text-slate-400">
-                                불러오는 중...
-                            </div>
-                        )}
-                        {opponents.length === 0 && !loadingOpponents && (
-                            <div className="text-xs text-slate-500">
-                                아직 출전한 친구가 없어요. (친구들에게 업로드
-                                버튼을 눌러달라고 해보세요!)
-                            </div>
-                        )}
-                        <div className="mt-2 space-y-2">
-                            {opponents.map((o) => (
-                                <button
-                                    key={o.id}
-                                    className={`w-full text-left p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs ${
-                                        pvpEnemy?.id === o.id
-                                            ? "ring-2 ring-yellow-400"
-                                            : ""
-                                    }`}
-                                    onClick={() => startPvpBattle(o)}
-                                >
-                                    <div className="font-bold text-sm">
-                                        {o.trainer_name} 님의 포켓몬
-                                    </div>
-                                    <div className="text-slate-300">
-                                        종:{o.partner_species} / Lv.
-                                        {o.partner_level}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400">
-                                        HP {o.partner_stats.maxHp} · ATK{" "}
-                                        {o.partner_stats.atk} · DEF{" "}
-                                        {o.partner_stats.def}
-                                    </div>
-                                    <div className="text-[10px] text-slate-500 mt-1">
-                                        업데이트:{" "}
-                                        {new Date(
-                                            o.updated_at,
-                                        ).toLocaleTimeString()}
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* 배틀 로그 영역 */}
-                    <div className="flex-1 p-4 flex flex-col">
-                        <div className="font-bold text-sm mb-2">
-                            배틀 로그
-                        </div>
-                        <div className="flex-1 bg-black/40 rounded-xl p-3 text-xs overflow-auto border border-slate-700">
-                            {pvpLog.length === 0 && (
-                                <div className="text-slate-500">
-                                    왼쪽에서 대전할 친구를 선택하세요.
-                                </div>
-                            )}
-                            {pvpLog.map((l, idx) => (
-                                <div key={idx} className="mb-1">
-                                    {l}
-                                </div>
-                            ))}
-                        </div>
-
-                        {pvpResult !== "idle" && (
-                            <div className="mt-3 text-center">
-                                {pvpResult === "win" ? (
-                                    <div className="text-yellow-300 font-bold">
-                                        승리! 경험치 +20 / 코인 +10
-                                    </div>
-                                ) : (
-                                    <div className="text-red-300 font-bold">
-                                        패배... 경험치 +5
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+            <PvpView
+                classId={classId}
+                coins={coins}
+                partner={partner}
+                opponents={opponents}
+                loadingOpponents={loadingOpponents}
+                pvpEnemy={pvpEnemy}
+                pvpLog={pvpLog}
+                pvpResult={pvpResult}
+                onBackToLobby={() => setView("lobby")}
+                onRefreshOpponents={fetchOpponents}
+                onStartBattle={startPvpBattle}
+            />
         );
     }
 
-    // 예외적으로 partner가 null인데 lobby/pvp로 온 경우 방어
     return (
         <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
             초기화 오류가 발생했어요. 새로고침 후 다시 시도해 주세요.
         </div>
-    );
-}
-
-/** 훈련 모달 컴포넌트 */
-function TrainingModal(props: {
-    state: TrainingState;
-    onSelectOption: (index: number) => void;
-    onNext: () => void;
-    onClose: () => void;
-}) {
-    const { state, onSelectOption, onNext, onClose } = props;
-
-    if (state.phase === "idle") return null;
-
-    if (state.phase === "result") {
-        return (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
-                <div className="w-full max-w-sm bg-white rounded-2xl p-4 shadow-lg">
-                    <div className="text-lg font-bold mb-2 text-center">
-                        훈련 결과
-                    </div>
-                    <div className="text-sm text-gray-700 mb-1 text-center">
-                        정답 {state.correct} / {state.total} 문제
-                    </div>
-                    <div className="text-sm text-gray-700 mb-4 text-center">
-                        경험치 +{state.expGain} · 코인 +{state.coinGain}
-                    </div>
-                    <button
-                        className="w-full py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold"
-                        onClick={onClose}
-                    >
-                        닫기
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // phase === "quiz"
-    const q = state.questions[state.index];
-    const total = state.questions.length;
-    const currentNo = state.index + 1;
-
-    return (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
-            <div className="w-full max-w-sm bg-white rounded-2xl p-4 shadow-lg flex flex-col gap-3">
-                <div className="text-xs text-gray-400">
-                    훈련 문제 {currentNo} / {total}
-                </div>
-                <div className="text-base font-bold text-gray-900 whitespace-pre-wrap">
-                    {q.text}
-                </div>
-                <div className="mt-2 flex flex-col gap-2">
-                    {q.options?.map((opt, idx) => {
-                        const isSelected = state.selectedIndex === idx;
-                        const isCorrectOpt = q.answer_index === idx;
-                        let bg = "bg-gray-100";
-                        let border = "border-transparent";
-                        if (state.isAnswered) {
-                            if (isCorrectOpt) {
-                                bg = "bg-green-100";
-                                border = "border-green-500";
-                            } else if (isSelected && !isCorrectOpt) {
-                                bg = "bg-red-100";
-                                border = "border-red-500";
-                            }
-                        } else if (isSelected) {
-                            bg = "bg-blue-100";
-                            border = "border-blue-400";
-                        }
-
-                        return (
-                            <button
-                                key={idx}
-                                className={`w-full text-left px-3 py-2 rounded-xl border ${bg} ${border} text-sm`}
-                                onClick={() => onSelectOption(idx)}
-                            >
-                                {opt}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                <div className="mt-2 flex items-center justify-between">
-                    <div className="text-xs text-gray-500">
-                        {state.isAnswered
-                            ? state.isCorrect
-                                ? "정답이에요! 🎉"
-                                : "아쉬워요. 다시 도전해볼까요?"
-                            : "정답이라고 생각하는 답을 눌러보세요."}
-                    </div>
-                    {state.isAnswered && (
-                        <button
-                            className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold"
-                            onClick={onNext}
-                        >
-                            {currentNo === total ? "결과 보기" : "다음 문제"}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/** 메뉴 카드 작은 컴포넌트 */
-function MenuCard(props: {
-    icon: ReactNode;
-    title: string;
-    desc: string;
-    onClick: () => void;
-}) {
-    return (
-        <button
-            className="bg-white rounded-2xl shadow p-3 flex flex-col justify-between hover:bg-gray-50 active:scale-95 transition"
-            onClick={props.onClick}
-        >
-            <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center mb-2 text-lg">
-                {props.icon}
-            </div>
-            <div>
-                <div className="text-sm font-bold">{props.title}</div>
-                <div className="text-[11px] text-gray-500">
-                    {props.desc}
-                </div>
-            </div>
-        </button>
     );
 }
