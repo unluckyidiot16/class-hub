@@ -3,36 +3,35 @@ import type { Species } from "./pemmonTypes";
 
 type PokemonSpriteProps = {
     species: Species;
-    /** 한 변 길이(px). 카드/아이콘에서 고정 박스 크기 */
+    /** 표시 박스 한 변 길이 (px). 기본 96 */
     size?: number;
-    /** 둥근 아바타로 쓸지 여부 (기본: 사각 카드) */
-    variant?: "card" | "avatar";
+    /** 추가로 Tailwind 클래스를 주고 싶을 때 */
+    className?: string;
 };
 
 /**
- * 포켓몬 스프라이트 컴포넌트
+ * 포켓몬 스프라이트 (height 스케일링 잠시 OFF 버전)
  *
- * - PEM V2처럼 "정해진 박스(size)" 안에서만 그리기
- * - height 기반 스케일은 여기서 하지 않고,
- *   정말 크게 보여주고 싶은 곳(히어로/배너)에서만 부모가 직접 처리
- * - species.spriteUrl 이 있으면 우선 사용
- * - 없으면 PokeAPI official-artwork 로 fallback
+ * - 주어진 size × size 박스 안에서만 object-contain 으로 그립니다.
+ * - species.spriteUrl 이 있으면 우선 사용,
+ *   없으면 PokeAPI official-artwork 로 fallback 합니다.
+ * - transform / scale 은 전혀 사용하지 않습니다.
  */
 export function PokemonSprite({
                                   species,
                                   size = 96,
-                                  variant = "card",
+                                  className = "",
                               }: PokemonSpriteProps) {
     const url =
         species.spriteUrl ??
         `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${species.id}.png`;
 
-    const roundedClass =
-        variant === "avatar" ? "rounded-full" : "rounded-xl";
-
     return (
         <div
-            className={`relative flex items-center justify-center ${roundedClass} overflow-hidden bg-white/0`}
+            className={
+                "relative flex items-center justify-center overflow-hidden " +
+                className
+            }
             style={{
                 width: `${size}px`,
                 height: `${size}px`,

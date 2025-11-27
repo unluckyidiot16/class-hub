@@ -371,7 +371,7 @@ export function LobbyView({
                         <PokemonSprite
                             species={partner.species}
                             size={80}
-                            variant="avatar"
+                            // variant="avatar"
                         />
                     </div>
 
