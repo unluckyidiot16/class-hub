@@ -2,6 +2,7 @@
 
 import type { Species } from "./pemmonTypes";
 import speciesData from "./pemmonSpecies.json";
+import { PokemonSprite } from "./PokemonSprite";
 
 type IntroViewProps = {
     trainerName: string;
@@ -12,7 +13,7 @@ type IntroViewProps = {
 // JSON → 타입캐스팅
 const ALL_SPECIES = speciesData as Species[];
 
-// 스타팅 후보 (id 기반)
+// 스타팅 후보 (id 기반: 1,4,7 + 8세대/9세대 스타터 예시)
 const STARTER_IDS = [1, 4, 7, 810, 813, 816];
 const STARTERS: Species[] = ALL_SPECIES.filter((s) =>
     STARTER_IDS.includes(s.id),
@@ -44,11 +45,8 @@ export function IntroView({
                         className="bg-white rounded-xl shadow p-2 flex flex-col items-center hover:bg-blue-50"
                         onClick={() => onSelectStarter(s)}
                     >
-                        <div className="w-12 h-12 bg-gray-100 rounded-full mb-1 flex items-center justify-center text-base">
-                            {/* 나중에 실제 스프라이트로 교체 가능 */}
-                            <span>⭐</span>
-                        </div>
-                        <div className="text-xs font-bold">{s.name}</div>
+                        <PokemonSprite species={s} size={64} />
+                        <div className="text-xs font-bold mt-1">{s.name}</div>
                         <div className="text-[10px] text-gray-500">
                             HP {s.maxHp} · ATK {s.atk} · DEF {s.def}
                         </div>

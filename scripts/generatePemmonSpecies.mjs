@@ -9,10 +9,10 @@ const POKE_API_BASE = "https://pokeapi.co/api/v2";
 // 이 배열만 바꾸면 포함할 포켓몬을 조정 가능
 // 1,4,7 (이상해씨/파이리/꼬부기) + 예시로 몇 마리 추가
 const POKEMON_IDS = [
-    1, 4, 7,      // 1세대 스타팅
-    25,           // 피카츄
-    133,          // 이브이
-    810, 813, 816 // 8세대 스타팅 (사불, 염버니, 울머기) 예시
+    1, 4, 7, // 1세대 스타팅
+    25, // 피카츄
+    133, // 이브이
+    810, 813, 816, // 8세대 스타팅 (사불, 염버니, 울머기) 예시
     // TODO: 8~9세대에서 1학년이 좋아하는 애들 id 추가
 ];
 
@@ -50,12 +50,26 @@ async function fetchSpecies(id) {
     );
     const name = koEntry?.name ?? species.name ?? pokemon.name;
 
+    // 공식 일러스트 → 기본 front 스프라이트 순으로 fallback
+    const official =
+        pokemon.sprites?.other?.["official-artwork"]?.front_default ??
+        pokemon.sprites?.front_default ??
+        null;
+
+    // 세대/전설 여부
+    const generation = species.generation?.name ?? null;
+    const isLegendary = !!(species.is_legendary || species.is_mythical);
+
     return {
         id: pokemon.id,
         name,
         maxHp: hp,
         atk,
         def,
+        height: pokemon.height, // decimeters
+        generation,
+        isLegendary,
+        spriteUrl: official,
     };
 }
 

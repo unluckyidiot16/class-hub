@@ -21,14 +21,12 @@ export type Species = {
     maxHp: number;
     atk: number;
     def: number;
-
-    // PokeAPI pokemon.height (decimeters)
     height: number;
-
-    // 옵션 필드들: 도감/탐험에만 사용
     generation?: string | null;
     isLegendary?: boolean;
+    spriteUrl?: string | null;
 };
+
 
 export type PartnerState = {
     species: Species;

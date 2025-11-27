@@ -4,55 +4,87 @@
     "name": "이상해씨",
     "maxHp": 45,
     "atk": 49,
-    "def": 49
+    "def": 49,
+    "height": 7,
+    "generation": "generation-i",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png"
   },
   {
     "id": 4,
     "name": "파이리",
     "maxHp": 39,
     "atk": 52,
-    "def": 43
+    "def": 43,
+    "height": 6,
+    "generation": "generation-i",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png"
   },
   {
     "id": 7,
     "name": "꼬부기",
     "maxHp": 44,
     "atk": 48,
-    "def": 65
+    "def": 65,
+    "height": 5,
+    "generation": "generation-i",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png"
   },
   {
     "id": 25,
     "name": "피카츄",
     "maxHp": 35,
     "atk": 55,
-    "def": 40
+    "def": 40,
+    "height": 4,
+    "generation": "generation-i",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
   },
   {
     "id": 133,
     "name": "이브이",
     "maxHp": 55,
     "atk": 55,
-    "def": 50
+    "def": 50,
+    "height": 3,
+    "generation": "generation-i",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png"
   },
   {
     "id": 810,
     "name": "흥나숭",
     "maxHp": 50,
     "atk": 65,
-    "def": 50
+    "def": 50,
+    "height": 3,
+    "generation": "generation-viii",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/810.png"
   },
   {
     "id": 813,
     "name": "염버니",
     "maxHp": 50,
     "atk": 71,
-    "def": 40
+    "def": 40,
+    "height": 3,
+    "generation": "generation-viii",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/813.png"
   },
   {
     "id": 816,
     "name": "울머기",
     "maxHp": 50,
     "atk": 40,
-    "def": 40
+    "def": 40,
+    "height": 3,
+    "generation": "generation-viii",
+    "isLegendary": false,
+    "spriteUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/816.png"
   }
 ]
