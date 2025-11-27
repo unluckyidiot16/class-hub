@@ -5,7 +5,6 @@ import { supabase } from "../../lib/supabaseClient";
 
 /**
  * 최소한으로 쓰는 퀴즈팩 / 문제 타입
- * - Supabase 실제 스키마보다 필드가 적어도 괜찮음 (우리가 쓰는 것만 정의)
  */
 type QuizPackRow = {
     id: string;
@@ -20,7 +19,6 @@ type QuizQuestionRow = {
     text: string;
     options: string[] | null;
     answer_index: number | null;
-    // 필요하면 나중에 difficulty, subject 등 추가 가능
 };
 
 type PemMonGameProps = {
@@ -72,6 +70,25 @@ type SubmissionRow = {
 
 type ViewState = "intro" | "lobby" | "pvp";
 
+type TrainingState =
+    | { phase: "idle" }
+    | {
+    phase: "quiz";
+    questions: QuizQuestionRow[];
+    index: number;
+    correctCount: number;
+    selectedIndex: number | null;
+    isAnswered: boolean;
+    isCorrect: boolean | null;
+}
+    | {
+    phase: "result";
+    total: number;
+    correct: number;
+    expGain: number;
+    coinGain: number;
+};
+
 export function PemMonGame({
                                classId,
                                roomId,
@@ -96,6 +113,9 @@ export function PemMonGame({
 
     // 현재 방에 연결된 퀴즈팩에서 불러온 문제들
     const [questions, setQuestions] = useState<QuizQuestionRow[]>([]);
+
+    // 훈련 모달 상태
+    const [training, setTraining] = useState<TrainingState>({ phase: "idle" });
 
     /**
      * 1) 현재 room에 연결된 quiz_pack 기반으로 문제 로드
@@ -325,6 +345,98 @@ export function PemMonGame({
     };
 
     /**
+     * 훈련 시작 (퀴즈 모달 오픈)
+     */
+    const startTraining = () => {
+        if (!pack?.id) {
+            alert(
+                "이 방에는 아직 퀴즈팩이 연결되어 있지 않아서 훈련을 할 수 없어요.",
+            );
+            return;
+        }
+        const mcQuestions = questions.filter(
+            (q) =>
+                Array.isArray(q.options) &&
+                q.options.length > 0 &&
+                q.answer_index !== null &&
+                q.answer_index >= 0 &&
+                q.answer_index < q.options.length,
+        );
+        if (mcQuestions.length === 0) {
+            alert("이 퀴즈팩에는 선택형 문제 데이터가 없어요.");
+            return;
+        }
+        // 한 번 훈련당 최대 5문제
+        const shuffled = [...mcQuestions].sort(() => Math.random() - 0.5);
+        const selected = shuffled.slice(0, Math.min(5, shuffled.length));
+
+        setTraining({
+            phase: "quiz",
+            questions: selected,
+            index: 0,
+            correctCount: 0,
+            selectedIndex: null,
+            isAnswered: false,
+            isCorrect: null,
+        });
+    };
+
+    const handleSelectOption = (optionIndex: number) => {
+        if (training.phase !== "quiz") return;
+        if (training.isAnswered) return; // 한 문제당 한 번만 답변
+
+        const current = training.questions[training.index];
+        const isCorrect = current.answer_index === optionIndex;
+
+        setTraining({
+            ...training,
+            selectedIndex: optionIndex,
+            isAnswered: true,
+            isCorrect,
+            correctCount: training.correctCount + (isCorrect ? 1 : 0),
+        });
+    };
+
+    const goNextQuestion = () => {
+        if (training.phase !== "quiz") return;
+        const nextIndex = training.index + 1;
+        if (nextIndex >= training.questions.length) {
+            // 퀴즈 종료 → 보상 계산
+            const total = training.questions.length;
+            const correct = training.correctCount;
+            const expGain = correct * 10;
+            const coinGain = correct * 2;
+
+            if (expGain > 0) {
+                gainExp(expGain);
+            }
+            if (coinGain > 0) {
+                setCoins((c) => c + coinGain);
+            }
+
+            setTraining({
+                phase: "result",
+                total,
+                correct,
+                expGain,
+                coinGain,
+            });
+        } else {
+            setTraining({
+                ...training,
+                index: nextIndex,
+                selectedIndex: null,
+                isAnswered: false,
+                isCorrect: null,
+            });
+        }
+    };
+
+    const closeTraining = () => {
+        setTraining({ phase: "idle" });
+    };
+
+    /**
      * 화면 렌더링
      */
 
@@ -383,7 +495,7 @@ export function PemMonGame({
     // 1) 로비 화면 (메인 메뉴)
     if (view === "lobby" && partner) {
         return (
-            <div className="flex flex-col h-full bg-gray-50">
+            <div className="relative flex flex-col h-full bg-gray-50">
                 <div className="p-4 bg-blue-600 text-white flex items-center justify-between">
                     <div>
                         <div className="text-xs opacity-80">트레이너</div>
@@ -434,25 +546,7 @@ export function PemMonGame({
                         icon="📖"
                         title="훈련"
                         desc="퀴즈로 경험치"
-                        onClick={() => {
-                            // TODO: 퀴즈 모달 UI로 교체
-                            if (!pack?.id) {
-                                alert(
-                                    "이 방에는 아직 퀴즈팩이 연결되어 있지 않아서 훈련을 할 수 없어요.",
-                                );
-                                return;
-                            }
-                            if (questions.length === 0) {
-                                alert(
-                                    "퀴즈를 불러오는 중이거나, 문제 수가 0개입니다.",
-                                );
-                                return;
-                            }
-                            gainExp(20);
-                            alert(
-                                `임시: "${pack.title}"에서 ${questions.length}문제를 불러왔어요. 경험치 +20`,
-                            );
-                        }}
+                        onClick={startTraining}
                     />
                     <MenuCard
                         icon="🗺️"
@@ -494,6 +588,15 @@ export function PemMonGame({
                         }}
                     />
                 </div>
+
+                {training.phase !== "idle" && (
+                    <TrainingModal
+                        state={training}
+                        onSelectOption={handleSelectOption}
+                        onNext={goNextQuestion}
+                        onClose={closeTraining}
+                    />
+                )}
             </div>
         );
     }
@@ -629,6 +732,108 @@ export function PemMonGame({
     return (
         <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
             초기화 오류가 발생했어요. 새로고침 후 다시 시도해 주세요.
+        </div>
+    );
+}
+
+/** 훈련 모달 컴포넌트 */
+function TrainingModal(props: {
+    state: TrainingState;
+    onSelectOption: (index: number) => void;
+    onNext: () => void;
+    onClose: () => void;
+}) {
+    const { state, onSelectOption, onNext, onClose } = props;
+
+    if (state.phase === "idle") return null;
+
+    if (state.phase === "result") {
+        return (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+                <div className="w-full max-w-sm bg-white rounded-2xl p-4 shadow-lg">
+                    <div className="text-lg font-bold mb-2 text-center">
+                        훈련 결과
+                    </div>
+                    <div className="text-sm text-gray-700 mb-1 text-center">
+                        정답 {state.correct} / {state.total} 문제
+                    </div>
+                    <div className="text-sm text-gray-700 mb-4 text-center">
+                        경험치 +{state.expGain} · 코인 +{state.coinGain}
+                    </div>
+                    <button
+                        className="w-full py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold"
+                        onClick={onClose}
+                    >
+                        닫기
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // phase === "quiz"
+    const q = state.questions[state.index];
+    const total = state.questions.length;
+    const currentNo = state.index + 1;
+
+    return (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+            <div className="w-full max-w-sm bg-white rounded-2xl p-4 shadow-lg flex flex-col gap-3">
+                <div className="text-xs text-gray-400">
+                    훈련 문제 {currentNo} / {total}
+                </div>
+                <div className="text-base font-bold text-gray-900 whitespace-pre-wrap">
+                    {q.text}
+                </div>
+                <div className="mt-2 flex flex-col gap-2">
+                    {q.options?.map((opt, idx) => {
+                        const isSelected = state.selectedIndex === idx;
+                        const isCorrectOpt = q.answer_index === idx;
+                        let bg = "bg-gray-100";
+                        let border = "border-transparent";
+                        if (state.isAnswered) {
+                            if (isCorrectOpt) {
+                                bg = "bg-green-100";
+                                border = "border-green-500";
+                            } else if (isSelected && !isCorrectOpt) {
+                                bg = "bg-red-100";
+                                border = "border-red-500";
+                            }
+                        } else if (isSelected) {
+                            bg = "bg-blue-100";
+                            border = "border-blue-400";
+                        }
+
+                        return (
+                            <button
+                                key={idx}
+                                className={`w-full text-left px-3 py-2 rounded-xl border ${bg} ${border} text-sm`}
+                                onClick={() => onSelectOption(idx)}
+                            >
+                                {opt}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-2 flex items-center justify-between">
+                    <div className="text-xs text-gray-500">
+                        {state.isAnswered
+                            ? state.isCorrect
+                                ? "정답이에요! 🎉"
+                                : "아쉬워요. 다시 도전해볼까요?"
+                            : "정답이라고 생각하는 답을 눌러보세요."}
+                    </div>
+                    {state.isAnswered && (
+                        <button
+                            className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold"
+                            onClick={onNext}
+                        >
+                            {currentNo === total ? "결과 보기" : "다음 문제"}
+                        </button>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
