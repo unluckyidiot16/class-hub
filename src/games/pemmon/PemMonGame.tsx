@@ -13,6 +13,8 @@ import type {
 import { IntroView } from "./IntroView";
 import { LobbyView } from "./LobbyView";
 import { PvpView } from "./PvpView";
+import { DexView } from "./DexView";
+import { pickRandomEncounter } from "./exploreLogic";
 
 type PemMonGameProps = {
     classId: string | null;
@@ -448,12 +450,21 @@ export function PemMonGame({
                 onNextQuestion={goNextQuestion}
                 onCloseTraining={closeTraining}
                 onStartExplore={() => {
-                    // TODO: 실제 탐험 로직
-                    setCoins((c) => c + 5);
-                    alert("임시: 탐험 완료! 코인 +5");
+                    const encounter = pickRandomEncounter();
+                    if (!encounter) {
+                        alert("아직 탐험에서 만날 포켓몬이 없어요.");
+                        return;
+                    }
+
+                    // 일단은 발견 메시지 + 약간의 보상만 (나중에 포획/배틀 연결)
+                    alert(
+                        `탐험 성공! ${encounter.name} (키 ${
+                            (encounter.height ?? 10) / 10
+                        }m)를 발견했어요!`,
+                    );
+                    setCoins((c) => c + 2);
                 }}
                 onStartChallenge={() => {
-                    // TODO: 실제 도전(PVE) 로직
                     gainExp(10);
                     setCoins((c) => c + 3);
                     alert("임시: 도전 승리! 경험치 +10, 코인 +3");
@@ -462,9 +473,13 @@ export function PemMonGame({
                     setView("pvp");
                     fetchOpponents();
                 }}
+                onGoDex={() => {
+                    setView("dex");
+                }}
             />
         );
     }
+
 
     if (view === "pvp" && partner) {
         return (
@@ -483,6 +498,11 @@ export function PemMonGame({
             />
         );
     }
+
+    if (view === "dex") {
+        return <DexView onBackToLobby={() => setView("lobby")} />;
+    }
+
 
     return (
         <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 text-sm">

@@ -1,18 +1,22 @@
 // src/games/pemmon/IntroView.tsx
 
 import type { Species } from "./pemmonTypes";
-
-const STARTERS: Species[] = [
-    { id: 1, name: "이상해씨", maxHp: 45, atk: 49, def: 49 },
-    { id: 4, name: "파이리", maxHp: 39, atk: 52, def: 43 },
-    { id: 7, name: "꼬부기", maxHp: 44, atk: 48, def: 65 },
-];
+import speciesData from "./pemmonSpecies.json";
 
 type IntroViewProps = {
     trainerName: string;
     onChangeTrainerName: (name: string) => void;
     onSelectStarter: (species: Species) => void;
 };
+
+// JSON → 타입캐스팅
+const ALL_SPECIES = speciesData as Species[];
+
+// 스타팅 후보 (id 기반)
+const STARTER_IDS = [1, 4, 7, 810, 813, 816];
+const STARTERS: Species[] = ALL_SPECIES.filter((s) =>
+    STARTER_IDS.includes(s.id),
+);
 
 export function IntroView({
                               trainerName,
@@ -40,10 +44,14 @@ export function IntroView({
                         className="bg-white rounded-xl shadow p-2 flex flex-col items-center hover:bg-blue-50"
                         onClick={() => onSelectStarter(s)}
                     >
-                        <div className="w-12 h-12 bg-gray-100 rounded-full mb-1 flex items-center justify-center text-xl">
-                            {s.id === 1 ? "🌱" : s.id === 4 ? "🔥" : "💧"}
+                        <div className="w-12 h-12 bg-gray-100 rounded-full mb-1 flex items-center justify-center text-base">
+                            {/* 나중에 실제 스프라이트로 교체 가능 */}
+                            <span>⭐</span>
                         </div>
                         <div className="text-xs font-bold">{s.name}</div>
+                        <div className="text-[10px] text-gray-500">
+                            HP {s.maxHp} · ATK {s.atk} · DEF {s.def}
+                        </div>
                     </button>
                 ))}
             </div>

@@ -23,6 +23,7 @@ type LobbyViewProps = {
     onStartExplore: () => void;
     onStartChallenge: () => void;
     onGoPvp: () => void;
+    onGoDex: () => void;
 };
 
 export function LobbyView({
@@ -40,6 +41,7 @@ export function LobbyView({
                               onStartExplore,
                               onStartChallenge,
                               onGoPvp,
+                              onGoDex,
                           }: LobbyViewProps) {
     return (
         <div className="relative flex flex-col h-full bg-gray-50">
@@ -118,6 +120,12 @@ export function LobbyView({
                     title="대전 (PVP)"
                     desc="친구와 대결"
                     onClick={onGoPvp}
+                />
+                <MenuCard
+                    icon="📚"
+                    title="도감"
+                    desc="포켓몬 목록"
+                    onClick={onGoDex}
                 />
             </div>
 
