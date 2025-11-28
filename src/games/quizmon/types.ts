@@ -90,6 +90,7 @@ export type Monster = {
     // 🔹 전투 스탯 (calcDerivedStats 결과)
     //   - maxHp/atk/def/spd는 DB base_*가 아니라 "종 + 레벨"에서 계산된 값
     maxHp: number;
+    currentHp?: number;  // ✅ optional 처리
     hp: number;
     atk: number;
     def: number;
@@ -231,15 +232,16 @@ export type QuizmonOwnedMonsterRow = {
     level: number;
     exp: number;
     party_slot: number | null;
+    current_hp: number | null;
+    is_fainted: boolean;
 
-    // 새 필드
-    current_hp: number | null;   // null = 아직 풀피 상태/미초기화
-    is_fainted: boolean;         // true면 전투/레이드 입장 불가
-    learned_moves: string[];     // jsonb 배열: ["tackle","growl",...]
+    learned_moves: string[];   // TM/레벨업으로 배운 전체 기술
+    equipped_moves: string[];  // 실제 전투에서 사용하는 1~4개 기술
 
     created_at: string | null;
     updated_at: string | null;
 };
+
 
 
 export const DEFAULT_PARTNER: QuizmonPartner = {

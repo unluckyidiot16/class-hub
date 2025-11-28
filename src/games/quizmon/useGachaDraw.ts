@@ -144,7 +144,7 @@ export function useGachaDraw(options: UseGachaDrawOptions) {
                                 current_hp: null,
                                 is_fainted: false,
                                 learned_moves: [],
-                                abilityId,
+                                ability_id: abilityId,
                             })
                             .select("id")
                             .maybeSingle();

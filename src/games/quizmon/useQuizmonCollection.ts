@@ -165,8 +165,12 @@ export async function loadBattlePartyForProfile(
             },
         );
 
-        result.push(battleMon);
+        // ✅ null 가드 + BattlePartyMonster로 캐스팅
+        if (battleMon) {
+            result.push(battleMon as BattlePartyMonster);
+        }
     }
+
 
     return result;
 }

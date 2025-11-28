@@ -247,9 +247,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         "current_hp",
                         "is_fainted",
                         "learned_moves",
+                        "equipped_moves",      // ✅ 추가
                         "created_at",
                         "updated_at",
-                    ].join(", ")
+                    ].join(", "),
                 )
                 .eq("profile_id", profileId)
                 .in("party_slot", [1, 2, 3])

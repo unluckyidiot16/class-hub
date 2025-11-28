@@ -1,92 +1,85 @@
 // src/games/quizmon/battleFactory.ts
-import {
-    type ElementType,
-    type Monster,
-    type QuizmonOwnedMonsterRow,
-    type QuizmonSpeciesRow,
+import type {
+    Monster,
+    Move,
+    QuizmonOwnedMonsterRow,
+    QuizmonSpeciesRow,
 } from "./types";
-import { getPokemonDimension } from "./pokemonDimensions";
-import { getMovesForSpeciesAndLevel } from "./moveData";
 import { calcDerivedStats } from "./stats";
+import { MOVE_DB } from "./moveData"; // <- 실제 프로젝트에 맞는 move 데이터 소스 사용
 
-/**
- * 기존 제네릭 코드와의 호환을 위해 alias 유지
- */
-export type QuizmonSpeciesLike = QuizmonSpeciesRow;
-export type QuizmonOwnedMonsterLike = QuizmonOwnedMonsterRow;
-
-/**
- * 전투용 몬스터의 코어 타입
- * - Monster 타입을 그대로 재사용
- */
 export type BattleMonsterCore = Monster;
+export type QuizmonSpeciesLike = QuizmonSpeciesRow;
+
+const MAX_EQUIPPED_MOVES = 4;
 
 /**
- * quizmon_species + quizmon_owned_monsters → 전투용 몬스터로 변환
- *
- * TExtra로 Monster 외에 필요한 필드를 추가로 주입할 수 있게 해 둠.
- *   예: moves, statusEffects, partySlot 등
+ * species + owned 정보를 기반으로 전투용 Monster 빌드
+ * - owned.equipped_moves에 적힌 move id만 실제 moves에 반영
+ * - equipped_moves가 비어 있으면 default move로 채움
  */
-export function buildBattleMonsterFromSpecies<
-    TExtra extends object = {},
->(
-    species: QuizmonSpeciesLike,
-    owned: QuizmonOwnedMonsterLike,
-    extra?: TExtra,
-): BattleMonsterCore & TExtra {
-    const level = owned.level ?? 1;
+export function buildBattleMonsterFromSpecies(
+    species: QuizmonSpeciesRow,
+    owned?: QuizmonOwnedMonsterRow | null,
+    extra?: any,
+): Monster | null {
+    if (!species) return null;
+    const anySpecies = species as any;
 
-    // ✅ 종 + 레벨 → 파생 스탯 계산 (이 함수만 믿고 가기)
-    const stats = calcDerivedStats(species, level);
+    const level = owned?.level ?? 1;
+    const derived = calcDerivedStats(species, level);
 
-    const maxHp = stats.maxHp;
+    // 🔹 장착 기술 선택
+    const equippedIds: string[] =
+        (owned as any)?.equipped_moves && Array.isArray((owned as any).equipped_moves)
+            ? ((owned as any).equipped_moves as string[])
+            : [];
 
-    const storedHp = (owned as any).current_hp as number | null | undefined;
-    const storedFainted = (owned as any).is_fainted as boolean | null | undefined;
+    let moves: Move[] = [];
 
-    let initialHp: number;
-
-    if (storedFainted) {
-        initialHp = 0;
-    } else if (typeof storedHp === "number") {
-        const clamped = Math.max(0, Math.min(maxHp, storedHp));
-        initialHp = clamped;
-    } else {
-        initialHp = maxHp;
+    if (equippedIds.length > 0) {
+        // equipped_moves에 적힌 ID 순서대로 Move 매핑
+        moves = equippedIds
+            .map((id) => MOVE_DB[id])
+            .filter((m): m is Move => !!m);
     }
 
-    const dim = getPokemonDimension(species.pokedex_no ?? null);
+    // 아무것도 장착 안 되어 있으면 species의 기본 기술로 채우기
+    if (moves.length === 0) {
+        const defaultIds: string[] =
+            (anySpecies.default_moves as string[] | null) ?? [];
+        moves = defaultIds
+            .slice(0, MAX_EQUIPPED_MOVES)
+            .map((id) => MOVE_DB[id])
+            .filter((m): m is Move => !!m);
+    }
+
+    // 최악의 경우에도 1개는 보장
+    if (moves.length === 0) {
+        const fallback = MOVE_DB["tackle"];
+        if (fallback) moves.push(fallback);
+    }
 
     const baseMonster: Monster = {
-        id: owned.id,
-        speciesId: species.id,
-        name: species.name,
-        element: species.element as ElementType,
-
-        level,
-        exp: owned.exp ?? 0,
-
-        // 🔹 전투 스탯 = 파생 스탯
-        maxHp,
-        hp: initialHp,
-        atk: stats.atk,
-        def: stats.def,
-        spd: stats.spd,
-
-        moves: getMovesForSpeciesAndLevel(species.id, level),
-
         accStage: 0,
         evaStage: 0,
-        status: "none",
-
-        pokedexNo: species.pokedex_no ?? null,
-        heightM: dim?.heightM ?? null,
-        weightKg: dim?.weightKg ?? null,
+        exp: 0,
+        hp: 0,
+        id: owned?.id ?? `wild-${species.id}`,
+        name: anySpecies.name ?? `몬스터 ${species.id}`,
+        speciesId: species.id,
+        level,
+        element: anySpecies.element ?? "normal",
+        maxHp: derived.maxHp,
+        currentHp: owned?.current_hp ?? derived.maxHp,
+        atk: derived.atk,
+        def: derived.def,
+        spd: derived.spd,
+        moves,
+        // 필요한 나머지 필드는 기존 Monster 타입에 맞춰 그대로 유지
     };
 
-    return {
-        ...(baseMonster as Monster),
-        ...(extra as TExtra),
-    };
+    const monster: Monster = extra ? { ...baseMonster, ...extra } : baseMonster;
+
+    return monster;
 }
-
