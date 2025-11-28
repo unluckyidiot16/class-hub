@@ -1,4 +1,5 @@
 // src/games/quizmon/PartyAndDexPanel.tsx
+
 import { useEffect, useMemo, useState } from "react";
 import type {
     QuizmonProfileRow,
@@ -6,25 +7,24 @@ import type {
 } from "./types";
 import { getMonsterIcon } from "./assets";
 import { supabase } from "../../lib/supabaseClient";
-
-type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
-    displayName: string;
-    statusText: string;
-};
 import {
     levelUpMonsterSingleService,
     levelUpMonsterMaxService,
 } from "./quizmonService";
 
-
 /** quizmon_owned_monsters 1마리를 UI용으로 가공 */
+type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
+    displayName: string;
+    statusText: string;
+};
+
 function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     const anyMon = mon as any;
 
     const rawSpeciesId = (anyMon.species_id as string | null) ?? "";
     const displayId = rawSpeciesId.startsWith("poke-")
         ? rawSpeciesId
-        : `0000${rawSpeciesId}`.slice(-4); // poke-0001 / 0001 둘 다 커버용
+        : `0000${rawSpeciesId}`.slice(-4); // poke-0001 / 0001 둘 다 커버
 
     const displayName = `포켓몬 #${displayId}`;
 
@@ -102,7 +102,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const selected =
         enhancedMonsters.find((m) => m.id === selectedId) ?? null;
 
-    // 파티 슬롯 (PokéRogue 스타일 3칸)
+    // 파티 슬롯 (3칸)
     const [partyIds, setPartyIds] = useState<(string | null)[]>(() =>
         buildInitialPartyIds(props.monsters),
     );
@@ -177,7 +177,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
     const selectedSlotIndex = findSelectedSlotIndex();
 
-    // ===== 인벤토리 (Exp Dust / 레어 캔디) + 레벨업 모달 상태 =====
+    // ===== 인벤토리 (Exp Dust / 레어 캔디) =====
     const [levelModalOpen, setLevelModalOpen] = useState(false);
     const [inventoryLoading, setInventoryLoading] = useState(false);
     const [inventoryError, setInventoryError] = useState<string | null>(null);
@@ -246,61 +246,71 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
     const handleOpenLevelModal = () => {
         if (!selected) return;
+        if (totalPowerItems <= 0) return;
         setLevelModalOpen(true);
     };
 
+    // 모달 내 레벨업 진행 상태
     const [levelBusy, setLevelBusy] = useState(false);
+    const [levelUseCount, setLevelUseCount] = useState(1);
 
-    const handleLevelUpSingle = async () => {
+    // 모달이 열릴 때마다 슬라이더 기본값 초기화
+    useEffect(() => {
+        if (!levelModalOpen) return;
+        setLevelUseCount(totalPowerItems > 0 ? 1 : 0);
+    }, [levelModalOpen, totalPowerItems]);
+
+    // 슬라이더 기반 레벨업 처리
+    const handleConfirmLevelUp = async () => {
         if (!profile || !selected || levelBusy) return;
+        if (totalPowerItems <= 0 || levelUseCount <= 0) return;
+
+        const times = Math.min(levelUseCount, totalPowerItems);
+
         try {
             setLevelBusy(true);
-            const result = await levelUpMonsterSingleService({
-                profileId: profile.id,
-                monsterId: selected.id,
-            });
+            let lastResult: any = null;
 
+            // 슬라이더를 최대까지 밀면 Max 서비스 사용 (최적화)
+            if (times === totalPowerItems) {
+                lastResult = await levelUpMonsterMaxService({
+                    profileId: profile.id,
+                    monsterId: selected.id,
+                });
+            } else {
+                for (let i = 0; i < times; i += 1) {
+                    const r = await levelUpMonsterSingleService({
+                        profileId: profile.id,
+                        monsterId: selected.id,
+                    });
+                    lastResult = r;
 
-            // 레벨업 연출
-            if (result.evolved) {
-                // 진화 연출: result.previousSpeciesId → result.newSpeciesId
+                    const remain =
+                        (r?.remainingExpDust ?? 0) +
+                        (r?.remainingRareCandy ?? 0);
+                    if (remain <= 0) {
+                        break;
+                    }
+                }
             }
 
-            // 스탯 비교 UI
-            console.log(result.statsBefore.maxHp, "→", result.statsAfter.maxHp);
-
-            // 인벤토리 카운트 갱신
-            setExpDustCount(result.remainingExpDust);
-            setRareCandyCount(result.remainingRareCandy);
-
-            // 몬스터 리스트/선택 개체 갱신
-            // (props.monsters 를 부모에서 내려주는 구조면, 부모에서 refresh() 호출하도록 콜백 추가해도 좋고,
-            //  로컬 state 로 들고 있으면 여기서 바로 교체)
-            // 예: setMonsters(prev => prev.map(m => m.id === result.monster.id ? result.monster : m));
+            if (lastResult) {
+                if (typeof lastResult.remainingExpDust === "number") {
+                    setExpDustCount(lastResult.remainingExpDust);
+                }
+                if (typeof lastResult.remainingRareCandy === "number") {
+                    setRareCandyCount(lastResult.remainingRareCandy);
+                }
+                // TODO: 나중에 몬스터 리스트/선택 개체 갱신은
+                // 부모에서 refreshMonsters() 콜백을 내려받아서 처리하는 쪽으로 확장
+            }
 
             setLevelModalOpen(false);
         } catch (e: any) {
-            setInventoryError(e.message ?? "레벨 업 중 오류가 발생했습니다.");
-        } finally {
-            setLevelBusy(false);
-        }
-    };
-
-    const handleLevelUpMax = async () => {
-        if (!profile || !selected || levelBusy) return;
-        try {
-            setLevelBusy(true);
-            const result = await levelUpMonsterMaxService({
-                profileId: profile.id,
-                monsterId: selected.id,
-            });
-
-            setExpDustCount(result.remainingExpDust);
-            setRareCandyCount(result.remainingRareCandy);
-            // 몬스터/선택 갱신도 위와 동일하게 처리
-            setLevelModalOpen(false);
-        } catch (e: any) {
-            setInventoryError(e.message ?? "최대 레벨 업 중 오류가 발생했습니다.");
+            console.error("[PartyAndDexPanel] handleConfirmLevelUp error", e);
+            setInventoryError(
+                e?.message ?? "레벨 업 중 오류가 발생했습니다.",
+            );
         } finally {
             setLevelBusy(false);
         }
@@ -316,11 +326,11 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     height: "100%",
                 }}
             >
-                {/* 상단: 파티(좌) + 선택한 파트너(우) */}
+                {/* 상단: 파티 / 선택 파트너 / 인벤토리 */}
                 <div
                     style={{
                         display: "grid",
-                        gridTemplateColumns: "1.2fr 1fr",
+                        gridTemplateColumns: "1.3fr 1fr 0.9fr",
                         gap: "0.75rem",
                         minHeight: 220,
                     }}
@@ -497,7 +507,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         </div>
                     </div>
 
-                    {/* 오른쪽: 선택한 파트너 상세 + 회복/레벨업 */}
+                    {/* 가운데: 선택한 파트너 상세 + 회복 버튼 */}
                     <div
                         style={{
                             borderRadius: 12,
@@ -645,132 +655,6 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     )}
                                 </div>
 
-                                {/* 개체 레벨/Exp + 인벤토리 요약 + 레벨업 버튼 */}
-                                <div
-                                    style={{
-                                        marginTop: 8,
-                                        borderRadius: 10,
-                                        background:
-                                            "rgba(15,23,42,0.9)",
-                                        padding:
-                                            "0.55rem 0.7rem 0.5rem",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "0.3rem",
-                                        fontSize: "0.77rem",
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            justifyContent:
-                                                "space-between",
-                                            alignItems: "center",
-                                            gap: "0.5rem",
-                                        }}
-                                    >
-                                        <div>
-                                            <div
-                                                style={{
-                                                    fontSize:
-                                                        "0.75rem",
-                                                    color: "#9ca3af",
-                                                }}
-                                            >
-                                                포켓몬 레벨 / 경험치
-                                            </div>
-                                            <div
-                                                style={{
-                                                    marginTop: 2,
-                                                    fontSize:
-                                                        "0.8rem",
-                                                    color: "#e5e7eb",
-                                                }}
-                                            >
-                                                Lv.{selected.level} ·
-                                                EXP {selected.exp}
-                                            </div>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={
-                                                handleOpenLevelModal
-                                            }
-                                            disabled={
-                                                inventoryLoading ||
-                                                totalPowerItems === 0
-                                            }
-                                            style={{
-                                                padding:
-                                                    "0.3rem 0.9rem",
-                                                borderRadius: 999,
-                                                border: "none",
-                                                fontSize: "0.78rem",
-                                                fontWeight: 600,
-                                                cursor:
-                                                    inventoryLoading ||
-                                                    totalPowerItems ===
-                                                    0
-                                                        ? "not-allowed"
-                                                        : "pointer",
-                                                background:
-                                                    inventoryLoading ||
-                                                    totalPowerItems ===
-                                                    0
-                                                        ? "rgba(75,85,99,0.9)"
-                                                        : "linear-gradient(90deg, #22c55e, #16a34a)",
-                                                color: "#f9fafb",
-                                                opacity:
-                                                    inventoryLoading ||
-                                                    totalPowerItems ===
-                                                    0
-                                                        ? 0.6
-                                                        : 1,
-                                            }}
-                                        >
-                                            레벨 업
-                                        </button>
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: "0.75rem",
-                                            color: "#9ca3af",
-                                        }}
-                                    >
-                                        사용 가능: Exp Dust{" "}
-                                        <span
-                                            style={{
-                                                color: "#e5e7eb",
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            {expDustCount}개
-                                        </span>
-                                        {" · "}레어 캔디{" "}
-                                        <span
-                                            style={{
-                                                color: "#e5e7eb",
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            {rareCandyCount}개
-                                        </span>
-                                        {inventoryLoading &&
-                                            " (불러오는 중)"}
-                                    </div>
-                                    {inventoryError && (
-                                        <div
-                                            style={{
-                                                marginTop: 2,
-                                                fontSize: "0.72rem",
-                                                color: "#f97373",
-                                            }}
-                                        >
-                                            {inventoryError}
-                                        </div>
-                                    )}
-                                </div>
-
                                 <div
                                     style={{
                                         fontSize: "0.75rem",
@@ -784,6 +668,151 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 </div>
                             </>
                         )}
+                    </div>
+
+                    {/* 오른쪽: 인벤토리 패널 (경험치 아이템) */}
+                    <div
+                        style={{
+                            borderRadius: 12,
+                            border: "1px solid rgba(148,163,184,0.5)",
+                            padding: "0.75rem",
+                            background:
+                                "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,64,175,0.85))",
+                            color: "#e5e7eb",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.45rem",
+                            fontSize: "0.8rem",
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    fontSize: "0.85rem",
+                                }}
+                            >
+                                인벤토리 (강화 아이템)
+                            </div>
+                            <div
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: "#cbd5f5",
+                                }}
+                            >
+                                전체 {totalPowerItems}개
+                            </div>
+                        </div>
+
+                        <div
+                            style={{
+                                borderRadius: 10,
+                                background: "rgba(15,23,42,0.9)",
+                                padding: "0.55rem 0.7rem",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.3rem",
+                            }}
+                        >
+                            <div>
+                                <span
+                                    style={{
+                                        color: "#e5e7eb",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    Exp Dust
+                                </span>{" "}
+                                × {expDustCount}
+                            </div>
+                            <div>
+                                <span
+                                    style={{
+                                        color: "#e5e7eb",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    레어 캔디
+                                </span>{" "}
+                                × {rareCandyCount}
+                            </div>
+                            {inventoryLoading && (
+                                <div
+                                    style={{
+                                        fontSize: "0.75rem",
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    인벤토리를 불러오는 중...
+                                </div>
+                            )}
+                            {inventoryError && (
+                                <div
+                                    style={{
+                                        fontSize: "0.75rem",
+                                        color: "#fecaca",
+                                    }}
+                                >
+                                    {inventoryError}
+                                </div>
+                            )}
+                        </div>
+
+                        <div
+                            style={{
+                                fontSize: "0.75rem",
+                                color: "#cbd5f5",
+                            }}
+                        >
+                            Exp Dust와 레어 캔디를 사용해
+                            선택한 포켓몬의 레벨을 올릴 수
+                            있습니다. 아래 버튼을 눌러 레벨업
+                            슬라이더를 열어 보세요.
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleOpenLevelModal}
+                            disabled={
+                                !selected ||
+                                totalPowerItems === 0 ||
+                                inventoryLoading
+                            }
+                            style={{
+                                marginTop: "0.15rem",
+                                padding: "0.4rem 0.7rem",
+                                borderRadius: 999,
+                                border: "none",
+                                fontSize: "0.78rem",
+                                fontWeight: 600,
+                                cursor:
+                                    !selected ||
+                                    totalPowerItems === 0 ||
+                                    inventoryLoading
+                                        ? "not-allowed"
+                                        : "pointer",
+                                background:
+                                    !selected ||
+                                    totalPowerItems === 0 ||
+                                    inventoryLoading
+                                        ? "rgba(75,85,99,0.9)"
+                                        : "linear-gradient(90deg, #22c55e, #16a34a)",
+                                color: "#f9fafb",
+                                opacity:
+                                    !selected ||
+                                    totalPowerItems === 0 ||
+                                    inventoryLoading
+                                        ? 0.6
+                                        : 1,
+                            }}
+                        >
+                            레벨 업 모달 열기
+                        </button>
                     </div>
                 </div>
 
@@ -958,7 +987,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 </div>
             </div>
 
-            {/* 포켓몬 레벨업 모달 */}
+            {/* 포켓몬 레벨업 모달 (슬라이더) */}
             {levelModalOpen && selected && (
                 <div
                     style={{
@@ -970,7 +999,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         justifyContent: "center",
                         zIndex: 40,
                     }}
-                    onClick={() => setLevelModalOpen(false)}
+                    onClick={() => !levelBusy && setLevelModalOpen(false)}
                 >
                     <div
                         style={{
@@ -1005,13 +1034,16 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             <button
                                 type="button"
                                 onClick={() =>
+                                    !levelBusy &&
                                     setLevelModalOpen(false)
                                 }
                                 style={{
                                     border: "none",
                                     background: "transparent",
                                     color: "#9ca3af",
-                                    cursor: "pointer",
+                                    cursor: levelBusy
+                                        ? "default"
+                                        : "pointer",
                                     fontSize: "1rem",
                                 }}
                             >
@@ -1027,9 +1059,10 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             }}
                         >
                             Exp Dust / 레어 캔디를 사용해 선택한
-                            포켓몬의 레벨을 올릴 수 있습니다. 실제
-                            경험치 계산과 아이템 소비 로직은 나중에
-                            서비스에 연결하면 됩니다.
+                            포켓몬의 레벨을 올립니다. 슬라이더로
+                            이번에 사용할 아이템 개수를 조절할 수
+                            있습니다. (실제 경험치 계산 로직은
+                            백엔드와 연결하면서 튜닝할 수 있습니다.)
                         </div>
 
                         <div
@@ -1122,6 +1155,91 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             </div>
                         </div>
 
+                        {/* 슬라이더 영역 */}
+                        <div
+                            style={{
+                                borderRadius: 10,
+                                background: "rgba(15,23,42,0.95)",
+                                padding: "0.6rem 0.75rem",
+                                marginBottom: 10,
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.45rem",
+                                fontSize: "0.8rem",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontSize: "0.78rem",
+                                        color: "#e5e7eb",
+                                    }}
+                                >
+                                    이번에 사용할 아이템 개수
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: "0.78rem",
+                                        color: "#cbd5f5",
+                                    }}
+                                >
+                                    {levelUseCount} / {totalPowerItems}개
+                                </div>
+                            </div>
+
+                            <input
+                                type="range"
+                                min={0}
+                                max={totalPowerItems}
+                                step={1}
+                                value={levelUseCount}
+                                disabled={
+                                    totalPowerItems === 0 || levelBusy
+                                }
+                                onChange={(e) =>
+                                    setLevelUseCount(
+                                        Number(e.currentTarget.value) ||
+                                        0,
+                                    )
+                                }
+                                style={{
+                                    width: "100%",
+                                    marginTop: 4,
+                                }}
+                            />
+
+                            <div
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: "#9ca3af",
+                                }}
+                            >
+                                단순 예측: 이번 강화로{" "}
+                                <span
+                                    style={{
+                                        color: "#e5e7eb",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    최소 Lv.
+                                    {selected.level +
+                                        (levelUseCount > 0
+                                            ? 1
+                                            : 0)}
+                                </span>
+                                {" "}
+                                이상이 될 수 있습니다.
+                                (실제 레벨은 경험치 공식에 따라
+                                달라질 수 있습니다.)
+                            </div>
+                        </div>
+
                         <div
                             style={{
                                 display: "flex",
@@ -1131,8 +1249,12 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         >
                             <button
                                 type="button"
-                                onClick={handleLevelUpSingle}
-                                disabled={totalPowerItems === 0}
+                                onClick={handleConfirmLevelUp}
+                                disabled={
+                                    totalPowerItems === 0 ||
+                                    levelUseCount === 0 ||
+                                    levelBusy
+                                }
                                 style={{
                                     flex: 1,
                                     padding: "0.55rem 0.5rem",
@@ -1141,49 +1263,53 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     fontSize: "0.8rem",
                                     fontWeight: 600,
                                     cursor:
-                                        totalPowerItems === 0
+                                        totalPowerItems === 0 ||
+                                        levelUseCount === 0 ||
+                                        levelBusy
                                             ? "not-allowed"
                                             : "pointer",
                                     background:
-                                        totalPowerItems === 0
+                                        totalPowerItems === 0 ||
+                                        levelUseCount === 0 ||
+                                        levelBusy
                                             ? "rgba(75,85,99,0.9)"
                                             : "linear-gradient(90deg, #22c55e, #16a34a)",
                                     color: "#f9fafb",
                                     opacity:
-                                        totalPowerItems === 0
+                                        totalPowerItems === 0 ||
+                                        levelUseCount === 0
                                             ? 0.6
                                             : 1,
                                 }}
                             >
-                                1 레벨 업
+                                {levelBusy
+                                    ? "레벨 업 중..."
+                                    : "선택 개수만큼 강화"}
                             </button>
                             <button
                                 type="button"
-                                onClick={handleLevelUpMax}
-                                disabled={totalPowerItems === 0}
+                                onClick={() =>
+                                    setLevelUseCount(totalPowerItems)
+                                }
+                                disabled={
+                                    totalPowerItems === 0 || levelBusy
+                                }
                                 style={{
-                                    flex: 1,
-                                    padding: "0.55rem 0.5rem",
+                                    padding: "0.55rem 0.8rem",
                                     borderRadius: 999,
-                                    border: "none",
-                                    fontSize: "0.8rem",
-                                    fontWeight: 600,
+                                    border: "1px solid rgba(156,163,175,0.9)",
+                                    fontSize: "0.78rem",
                                     cursor:
-                                        totalPowerItems === 0
+                                        totalPowerItems === 0 ||
+                                        levelBusy
                                             ? "not-allowed"
                                             : "pointer",
                                     background:
-                                        totalPowerItems === 0
-                                            ? "rgba(75,85,99,0.9)"
-                                            : "linear-gradient(90deg, #4f46e5, #7c3aed)",
-                                    color: "#f9fafb",
-                                    opacity:
-                                        totalPowerItems === 0
-                                            ? 0.6
-                                            : 1,
+                                        "rgba(15,23,42,0.9)",
+                                    color: "#e5e7eb",
                                 }}
                             >
-                                최대 레벨 업
+                                최대 사용
                             </button>
                         </div>
                     </div>
