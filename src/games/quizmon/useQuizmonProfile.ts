@@ -139,7 +139,7 @@ export function useQuizmonProfile(
                         total_questions: 0,
                         // 🔹 경제 필드 초기값 (NOT NULL + DEFAULT 0 이더라도 명시적으로 넣어 줌)
                         gold: 0,
-                        gacha_gems: 0,
+                        gems: 0,
                         star_shards: 0,
                     },
                     {

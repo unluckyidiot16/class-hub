@@ -32,7 +32,7 @@ export async function performSingleGachaDraw(params: {
     const { profile, costType = "gems" } = params;
     const profileId = profile.id;
 
-    const currentGems = profile.gacha_gems ?? 0;
+    const currentGems = profile.gems ?? 0;
     const gemCost = costType === "gems" ? 1 : 0;
 
     if (gemCost > 0 && currentGems < gemCost) {

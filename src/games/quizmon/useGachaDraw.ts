@@ -61,7 +61,7 @@ export function useGachaDraw(options: UseGachaDrawOptions) {
 
             try {
                 // 1) 현재 프로필 재화 스냅샷
-                let gems = profile.gacha_gems ?? 0;
+                let gems = profile.gems ?? 0;
                 let starShards = profile.star_shards ?? 0;
 
                 if (mode === "gems") {
@@ -165,7 +165,7 @@ export function useGachaDraw(options: UseGachaDrawOptions) {
                     await supabase
                         .from("quizmon_profiles")
                         .update({
-                            gacha_gems: gems,
+                            gems: gems,
                             star_shards: starShards,
                         })
                         .eq("id", profile.id)

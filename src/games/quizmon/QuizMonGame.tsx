@@ -154,7 +154,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
     const isBattleActive = viewState === "battle";
-    const canPaidGacha = !!localProfile && (localProfile.gacha_gems ?? 0) > 0 && !gachaDrawing;
+    const canPaidGacha = !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
     
     const [hpSynced, setHpSynced] = useState(false);
     
@@ -984,7 +984,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         <span style={{ marginRight: 2 }}>💎</span>
                         <span style={{ color: "#9ca3af", marginRight: 4 }}>Gems</span>
                         <span style={{ color: "#a5b4fc", fontWeight: 600 }}>
-                {localProfile.gacha_gems ?? 0}
+                {localProfile.gems ?? 0}
             </span>
                     </div>
 

@@ -215,13 +215,11 @@ export type QuizmonProfileRow = {
     starter_chosen: boolean;
 
     // 경제 필드
-    gold: number;         // 전투/회복/강화용
-    gacha_gems: number;   // 가챠 전용 재화
-    star_shards: number;  // 돌파 MAX 중복 → 교환 재화
-
-    // 레거시 필드 (RPC 등에서 아직 쓰면 유지)
-    coins: number;
+    gold: number;        // (선택) 전투/회복/강화용
+    gems: number;        // 가챠/상점용 통합 재화
+    star_shards: number; // 중복 보상 재화 (미사용 시 0 고정)
 };
+
 
 
 

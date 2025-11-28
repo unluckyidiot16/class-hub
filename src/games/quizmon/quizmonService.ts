@@ -592,7 +592,8 @@ export async function levelUpMonsterMaxService(params: {
 // quizmonService.ts 하단 쪽에 추가
 
 /** 인벤토리에서 특정 item_id 아이템 소비 (TM, 진화 아이템 등 공통) */
-async function consumeInventoryItemById(
+/** 인벤토리에서 특정 item_id 아이템 소비 (TM, 진화 아이템 등 공통) */
+export async function consumeInventoryItemById(
     profileId: string,
     itemId: string,
     amount: number,
@@ -614,7 +615,7 @@ async function consumeInventoryItemById(
         throw new Error("인벤토리에서 아이템을 찾을 수 없습니다.");
     }
 
-    const currentQty: number = data.quantity ?? 0;
+    const currentQty: number = (data as any).quantity ?? 0;
     if (currentQty < amount) {
         throw new Error("아이템 수가 부족합니다.");
     }
@@ -624,7 +625,7 @@ async function consumeInventoryItemById(
     const { error: updateError } = await supabase
         .from("quizmon_inventory")
         .update({ quantity: newQty })
-        .eq("id", data.id);
+        .eq("id", (data as any).id);
 
     if (updateError) {
         console.error(
@@ -635,12 +636,14 @@ async function consumeInventoryItemById(
     }
 }
 
-// src/games/quizmon/quizmonService.ts
-
+/**
+ * equipped_moves 전체를 새 배열로 교체하는 서비스
+ * - UI에서 1~4번 슬롯을 재배치하거나 해제할 때 사용
+ */
 export async function setEquippedMoves(params: {
     profileId: string;
     monsterId: string;
-    moveIds: string[];     // 새 순서(길이 1~4)를 통째로 전달
+    moveIds: string[]; // 새 순서(길이 0~4)를 통째로 전달
 }): Promise<QuizmonOwnedMonsterRow> {
     const { profileId, monsterId, moveIds } = params;
 
@@ -661,7 +664,6 @@ export async function setEquippedMoves(params: {
 
     return monRow as QuizmonOwnedMonsterRow;
 }
-
 const MAX_EQUIPPED_MOVES = 4;
 
 /**
@@ -685,14 +687,17 @@ export async function applyTmToMonsterService(params: {
         .maybeSingle();
 
     if (tmError || !tmRow) {
-        console.error("[quizmonService] applyTmToMonster tm select error", tmError);
+        console.error(
+            "[quizmonService] applyTmToMonster tm select error",
+            tmError,
+        );
         throw new Error("TM 아이템 정보를 불러오는 중 오류가 발생했습니다.");
     }
-    if (tmRow.item_type !== "tm" || !tmRow.tm_move_id) {
+    if ((tmRow as any).item_type !== "tm" || !(tmRow as any).tm_move_id) {
         throw new Error("유효한 TM 아이템이 아닙니다.");
     }
 
-    const moveId: string = tmRow.tm_move_id;
+    const moveId: string = (tmRow as any).tm_move_id;
 
     // 2) 몬스터의 현재 learned_moves / equipped_moves 조회
     const { data: monRow, error: monError } = await supabase
@@ -703,7 +708,10 @@ export async function applyTmToMonsterService(params: {
         .maybeSingle();
 
     if (monError || !monRow) {
-        console.error("[quizmonService] applyTmToMonster monster select error", monError);
+        console.error(
+            "[quizmonService] applyTmToMonster monster select error",
+            monError,
+        );
         throw new Error("몬스터 정보를 불러오는 중 오류가 발생했습니다.");
     }
 
@@ -724,9 +732,11 @@ export async function applyTmToMonsterService(params: {
         if (equipped.length < MAX_EQUIPPED_MOVES) {
             // 빈 자리가 있으면 뒤에 추가
             equipped = [...equipped, moveId];
-        } else {
+        } else if (equipped.length > 0) {
             // 꽉 차 있으면 첫 번째 슬롯 교체 (MVP 규칙)
             equipped = [moveId, ...equipped.slice(1, MAX_EQUIPPED_MOVES)];
+        } else {
+            equipped = [moveId];
         }
     }
 
@@ -743,13 +753,15 @@ export async function applyTmToMonsterService(params: {
         .maybeSingle();
 
     if (updateError || !updatedMon) {
-        console.error("[quizmonService] applyTmToMonster monster update error", updateError);
+        console.error(
+            "[quizmonService] applyTmToMonster monster update error",
+            updateError,
+        );
         throw new Error("TM 사용 결과를 저장하는 중 오류가 발생했습니다.");
     }
 
     // 6) 인벤토리에서 TM 1개 소비
     await consumeInventoryItemById(profileId, tmItemId, 1);
-
 
     return updatedMon as QuizmonOwnedMonsterRow;
 }
