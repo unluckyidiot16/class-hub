@@ -1,27 +1,11 @@
 // src/games/quizmon/useQuizmonProfile.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import type { QuizmonProfileRow } from "./types";
+import { applyRaidResultService } from "../../services/quizmonService";
 
-
-// 실제 테이블 스키마에 맞게 최소 필드만 정의
-export type QuizmonProfile = {
-    id: string;
-    class_id: string;
-    student_key: string;
-    trainer_name: string | null;
-    starter_chosen: boolean;
-    total_raids: number;
-    total_correct: number;
-    total_questions: number;
-
-    // 🔸 새로 추가되는 재화 필드들
-    gold: number;        // QuizMon 전용 골드
-    gems: number;         // QuizMon 전용 가챠 젬
-    star_shards: number;  // QuizMon 전용 샤드
-    
-    created_at: string | null;
-    updated_at: string | null;
-};
+// 실제 DB 스키마와 1:1 대응
+export type QuizmonProfile = QuizmonProfileRow;
 
 type UseQuizmonProfileParams = {
     classId: string | null;
@@ -153,6 +137,10 @@ export function useQuizmonProfile(
                         total_raids: 0,
                         total_correct: 0,
                         total_questions: 0,
+                        // 🔹 경제 필드 초기값 (NOT NULL + DEFAULT 0 이더라도 명시적으로 넣어 줌)
+                        gold: 0,
+                        gacha_gems: 0,
+                        star_shards: 0,
                     },
                     {
                         // DB 에 유니크 제약 걸어둔 (class_id, student_key) 기준
@@ -183,56 +171,41 @@ export function useQuizmonProfile(
         void refresh();
     }, [refresh]);
 
-    // 레이드 결과 반영 (프로필 쪽 누적 통계만)
+    // 레이드 결과 반영 (프로필 쪽 누적 통계 + 골드 지급)
     const applyRaidResult = useCallback(
         async (summary: { correct: number; total: number }) => {
             if (!hasKey || !profile) return;
 
             try {
-                const nextTotalRaids = (profile.total_raids ?? 0) + 1;
-                const nextTotalCorrect =
-                    (profile.total_correct ?? 0) + summary.correct;
-                const nextTotalQuestions =
-                    (profile.total_questions ?? 0) + summary.total;
+                // 서비스 레이어에서 DB 업데이트
+                const { rewardedGold } = await applyRaidResultService({
+                    profile: {
+                        id: profile.id,
+                        total_raids: profile.total_raids,
+                        total_correct: profile.total_correct,
+                        total_questions: profile.total_questions,
+                        gold: profile.gold,
+                    },
+                    summary,
+                });
 
-                // 🔸 간단한 골드 보상 규칙 (정답 1개당 10골드)
-                const rewardCoins = summary.correct * 10;
-                const nextCoins = (profile.gold ?? 0) + rewardCoins;
-
-                const { error } = await supabase
-                    .from("quizmon_profiles")
-                    .update({
-                        total_raids: nextTotalRaids,
-                        total_correct: nextTotalCorrect,
-                        total_questions: nextTotalQuestions,
-                        coins: nextCoins, // 🔸 골드만 반영 (젬/샤드는 그대로)
-                    })
-                    .eq("id", profile.id);
-
-                if (error) {
-                    console.error(
-                        "[useQuizmonProfile] applyRaidResult error",
-                        error,
-                    );
-                    setError("레이드 결과를 저장하는 중 오류가 발생했습니다.");
-                    return;
-                }
-
-                // DB에는 반영됐으니, 로컬 상태도 같이 올려서 UI 동기화
+                // 클라이언트 로컬 상태도 동기화
                 setProfile((prev) => {
                     if (!prev) return prev;
                     return {
                         ...prev,
-                        total_raids: nextTotalRaids,
-                        total_correct: nextTotalCorrect,
-                        total_questions: nextTotalQuestions,
-                        coins: nextCoins,
-                    } as QuizmonProfile;
+                        total_raids: (prev.total_raids ?? 0) + 1,
+                        total_correct:
+                            (prev.total_correct ?? 0) + summary.correct,
+                        total_questions:
+                            (prev.total_questions ?? 0) + summary.total,
+                        gold: (prev.gold ?? 0) + rewardedGold,
+                    };
                 });
                 setError(null);
             } catch (e) {
                 console.error(
-                    "[useQuizmonProfile] applyRaidResult unexpected error",
+                    "[useQuizmonProfile] applyRaidResult error",
                     e,
                 );
                 setError("레이드 결과를 저장하는 중 오류가 발생했습니다.");
@@ -240,7 +213,6 @@ export function useQuizmonProfile(
         },
         [hasKey, profile],
     );
-
 
     // 스타터 선택 + 첫 포켓몬 지급
     const chooseStarter = useCallback(
@@ -301,7 +273,6 @@ export function useQuizmonProfile(
                             party_slot: 1,
                             current_hp: null, // null = 풀피
                             is_fainted: false,
-                            // jsonb 컬럼이므로 JS 배열 넣으면 자동으로 JSON 배열로 저장됨
                             learned_moves: [],
                         });
 
