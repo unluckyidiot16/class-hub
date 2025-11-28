@@ -247,3 +247,27 @@ export const DEFAULT_PARTNER: QuizmonPartner = {
     level: 1,
     exp: 0,
 };
+
+// src/games/quizmon/types.ts
+
+export type QuizmonSpeciesLevelupMoveRow = {
+    id: string;
+    species_id: string;
+    level: number;
+    move_id: string;
+    sort_order: number;
+    created_at?: string | null;
+};
+
+/**
+ * 종별 레벨업 기술 테이블
+ * - key: species_id ("poke-0001" 등)
+ * - value: { level, moveId } 배열 (레벨/정렬 순으로 정렬된 상태)
+ */
+export type LevelUpMoveEntry = {
+    level: number;
+    moveId: string;
+};
+
+export type LevelUpMoveTable = Record<string, LevelUpMoveEntry[]>;
+

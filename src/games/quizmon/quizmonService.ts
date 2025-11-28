@@ -26,6 +26,117 @@ function getExpToNextLevel(level: number): number {
     return 50 + level * 10;
 }
 
+
+// ===== 레벨업 시 레벨업 기술(learnset) 적용 유틸 =====
+
+type SpeciesLevelupMoveRow = {
+    species_id: string;
+    level: number;
+    move_id: string;
+    sort_order: number | null;
+};
+
+/**
+ * 레벨업 전/후 구간에서 새로 배울 수 있는 기술을 learned_moves / equipped_moves 에 반영
+ * - speciesBefore / speciesAfter 둘 다의 learnset 을 확인
+ * - levelBefore < level <= levelAfter 인 기술만 대상
+ * - 이미 learned_moves 에 있는 기술은 건너뜀
+ * - 장착 슬롯이 비어 있는 경우에만 자동 장착
+ *   (슬롯 꽉 찬 경우는 나중에 교체 모달 붙이고 처리)
+ */
+async function applyLevelupMovesOnLevelUp(params: {
+    monster: QuizmonOwnedMonsterRow;
+    speciesBefore: QuizmonSpeciesRow;
+    speciesAfter: QuizmonSpeciesRow;
+    levelBefore: number;
+    levelAfter: number;
+}): Promise<QuizmonOwnedMonsterRow> {
+    const { monster, speciesBefore, speciesAfter, levelBefore, levelAfter } =
+        params;
+
+    // 레벨이 그대로면 배울 기술도 없음
+    if (levelAfter <= levelBefore) return monster;
+
+    const speciesIds = [
+        speciesBefore.id,
+        speciesAfter.id,
+    ].filter((v, idx, arr) => arr.indexOf(v) === idx); // 중복 제거
+
+    try {
+        const { data, error } = await supabase
+            .from("quizmon_species_levelup_moves")
+            .select("species_id, level, move_id, sort_order")
+            .in("species_id", speciesIds)
+            .gt("level", levelBefore)
+            .lte("level", levelAfter)
+            .order("level", { ascending: true })
+            .order("sort_order", { ascending: true });
+
+        if (error || !data) {
+            console.error(
+                "[quizmonService] applyLevelupMovesOnLevelUp select error",
+                error,
+            );
+            return monster;
+        }
+
+        const rows = data as SpeciesLevelupMoveRow[];
+        if (!rows.length) return monster;
+
+        const learned = Array.isArray(monster.learned_moves)
+            ? [...monster.learned_moves]
+            : [];
+        const equipped = Array.isArray(monster.equipped_moves)
+            ? [...monster.equipped_moves]
+            : [];
+
+        for (const row of rows) {
+            const moveId = row.move_id;
+            if (!moveId) continue;
+
+            // 이미 배운 기술이면 스킵
+            if (!learned.includes(moveId)) {
+                learned.push(moveId);
+            }
+
+            // 장착 슬롯 여유가 있을 때만 자동 장착
+            if (
+                equipped.length < MAX_EQUIPPED_MOVES &&
+                !equipped.includes(moveId)
+            ) {
+                equipped.push(moveId);
+            }
+        }
+
+        const { data: updatedRow, error: updateError } = await supabase
+            .from("quizmon_owned_monsters")
+            .update({
+                learned_moves: learned,
+                equipped_moves: equipped,
+            })
+            .eq("id", monster.id)
+            .select("*")
+            .maybeSingle();
+
+        if (updateError || !updatedRow) {
+            console.error(
+                "[quizmonService] applyLevelupMovesOnLevelUp update error",
+                updateError,
+            );
+            return monster;
+        }
+
+        return updatedRow as QuizmonOwnedMonsterRow;
+    } catch (e) {
+        console.error(
+            "[quizmonService] applyLevelupMovesOnLevelUp unexpected error",
+            e,
+        );
+        return monster;
+    }
+}
+
+
 /** 인벤토리에서 강화 아이템 개수 읽기 */
 export async function loadPowerItemCounts(profileId: string): Promise<{
     expDustCount: number;
@@ -405,14 +516,12 @@ export async function levelUpMonsterSingleService(params: {
         await consumePowerItems(profileId, "xp_dust", usedExpDust);
     }
 
-    // 몬스터 레벨/EXP 업데이트
-    const { data: updatedMonRow, error: updateMonError } =
-        await supabase
-            .from("quizmon_owned_monsters")
-            .update({ level, exp })
-            .eq("id", initialMonster.id)
-            .select("*")
-            .maybeSingle();
+    const { data: updatedMonRow, error: updateMonError } = await supabase
+        .from("quizmon_owned_monsters")
+        .update({ level, exp })
+        .eq("id", initialMonster.id)
+        .select("*")
+        .maybeSingle();
 
     if (updateMonError || !updatedMonRow) {
         console.error(
@@ -427,17 +536,26 @@ export async function levelUpMonsterSingleService(params: {
     let monster = updatedMonRow as QuizmonOwnedMonsterRow;
     let species = initialSpecies;
 
-    // 🔹 진화 체크 (Everstone이면 진화 막음)
     const evoResult = await maybeApplyEvolution(
         monster,
         species,
         everstoneEquipped,
-        { type: "level_up" },   // ✅ 명시적으로 레벨 업 컨텍스트 전달
+        { type: "level_up" }, // 레벨업 컨텍스트
     );
     monster = evoResult.monster;
     species = evoResult.species;
 
+    // 🔹 레벨업 구간에 해당하는 level-up 기술 적용
+    monster = await applyLevelupMovesOnLevelUp({
+        monster,
+        speciesBefore: initialSpecies,
+        speciesAfter: species,
+        levelBefore,
+        levelAfter: monster.level,
+    });
+
     const levelAfter = monster.level;
+
 
     // 🔹 레벨업 후 스탯 스냅샷 (진화했으면 새 종 기준)
     const statsAfter = calcDerivedStats(species, levelAfter);
@@ -561,6 +679,15 @@ export async function levelUpMonsterMaxService(params: {
     );
     monster = evoResult.monster;
     species = evoResult.species;
+
+    // 🔹 레벨업 구간에 해당하는 level-up 기술 적용
+    monster = await applyLevelupMovesOnLevelUp({
+        monster,
+        speciesBefore: initialSpecies,
+        speciesAfter: species,
+        levelBefore,
+        levelAfter: monster.level,
+    });
 
     const levelAfter = monster.level;
 
