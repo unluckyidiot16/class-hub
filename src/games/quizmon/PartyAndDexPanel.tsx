@@ -6,10 +6,10 @@ import type {
     QuizmonOwnedMonsterRow,
 } from "./types";
 import { getMonsterIcon } from "./assets";
-import { supabase } from "../../lib/supabaseClient";
 import {
     levelUpMonsterSingleService,
     levelUpMonsterMaxService,
+    loadPowerItemCounts,
 } from "./quizmonService";
 
 /** quizmon_owned_monsters 1마리를 UI용으로 가공 */
@@ -178,13 +178,14 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const selectedSlotIndex = findSelectedSlotIndex();
 
     // ===== 인벤토리 (Exp Dust / 레어 캔디) =====
+    // ===== 인벤토리 (Exp Dust / 레어 캔디) + 레벨업 모달 상태 =====
     const [levelModalOpen, setLevelModalOpen] = useState(false);
     const [inventoryLoading, setInventoryLoading] = useState(false);
     const [inventoryError, setInventoryError] = useState<string | null>(null);
     const [expDustCount, setExpDustCount] = useState(0);
     const [rareCandyCount, setRareCandyCount] = useState(0);
 
-    // 프로필 기준 인벤토리 집계
+// ✅ 프로필 기준 인벤토리 집계 (quizmonService 사용)
     useEffect(() => {
         if (!profile?.id) {
             setExpDustCount(0);
@@ -197,50 +198,38 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         const loadInventory = async () => {
             setInventoryLoading(true);
             setInventoryError(null);
+            try {
+                const { expDustCount, rareCandyCount } =
+                    await loadPowerItemCounts(profile.id);
+                if (cancelled) return;
 
-            const { data, error } = await supabase
-                .from("quizmon_inventory")
-                .select("quantity, quizmon_items(item_type)")
-                .eq("profile_id", profile.id);
-
-            if (cancelled) return;
-
-            if (error) {
+                setExpDustCount(expDustCount);
+                setRareCandyCount(rareCandyCount);
+            } catch (err: any) {
+                if (cancelled) return;
                 console.error(
-                    "[PartyAndDexPanel] inventory select error",
-                    error,
+                    "[PartyAndDexPanel] loadPowerItemCounts error",
+                    err,
                 );
                 setInventoryError(
+                    err?.message ??
                     "인벤토리를 불러오는 중 오류가 발생했습니다.",
                 );
                 setExpDustCount(0);
                 setRareCandyCount(0);
-            } else {
-                let dust = 0;
-                let candy = 0;
-
-                (data ?? []).forEach((row: any) => {
-                    const q = row.quantity ?? 0;
-                    const t = row.quizmon_items?.item_type as
-                        | string
-                        | undefined;
-                    if (t === "exp_dust") dust += q;
-                    if (t === "rare_candy") candy += q;
-                });
-
-                setExpDustCount(dust);
-                setRareCandyCount(candy);
+            } finally {
+                if (!cancelled) {
+                    setInventoryLoading(false);
+                }
             }
-
-            setInventoryLoading(false);
         };
 
         void loadInventory();
-
         return () => {
             cancelled = true;
         };
     }, [profile?.id]);
+
 
     const totalPowerItems = expDustCount + rareCandyCount;
 
