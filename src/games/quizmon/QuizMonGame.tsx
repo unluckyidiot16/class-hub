@@ -153,7 +153,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
-    const isBattleActive = viewState === "battle";
     const canPaidGacha = !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
     
     const [hpSynced, setHpSynced] = useState(false);
@@ -655,12 +654,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
 
     const handleSelectMove = (move: Move) => {
-        if (!isBattleActive) return;
-        if (state.phase !== "command") return;
+        // 최소한의 안전 가드만 유지
+        if (state.phase === "finished") return;
         if (playerMon.hp <= 0 || enemyMon.hp <= 0) return;
         if (!questions.length) {
-            // 퀴즈가 없으면 실행 불가
-            setState((prev) =>
+            setState(prev =>
                 pushLog(prev, "[시스템] 이 퀴즈팩에는 문제가 없습니다."),
             );
             return;
@@ -668,28 +666,26 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
         const question = getNextQuestion();
         if (!question) {
-            // 이론상 거의 안 오지만, 방어 코드
-            setState((prev) =>
+            setState(prev =>
                 pushLog(prev, "[시스템] 문제를 불러오는 중 오류가 발생했습니다."),
             );
             return;
         }
 
         const now = Date.now();
+        setQuestionIndex(idx => idx + 1);
 
-        // 다음 문제로 진행
-        setQuestionIndex((idx) => idx + 1);
-
-        setState((prev) => ({
+        setState(prev => ({
             ...prev,
             pendingPlayerMove: { side: "player", move },
             currentQuestion: question,
             questionStartedAt: now,
             lastQuizResult: null,
+            // 여기서 phase를 확실히 quiz 로 전환
             phase: "quiz",
         }));
-
     };
+
 
     const handleAnswer = (optionIndex: number) => {
         if (state.phase !== "quiz" || !state.currentQuestion) return;
@@ -896,8 +892,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
     const canSelectMove =
-        isBattleActive &&
-        state.phase === "command" &&
+        state.phase !== "finished" &&
         questions.length > 0 &&
         playerMon.hp > 0 &&
         enemyMon.hp > 0;

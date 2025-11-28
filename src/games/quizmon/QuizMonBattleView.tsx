@@ -150,10 +150,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                 <button
                                     key={move.id}
                                     type="button"
-                                    onClick={() =>
-                                        canSelectMove &&
-                                        onSelectMove(move)
-                                    }
+                                    onClick={() => onSelectMove(move)}
                                     disabled={!canSelectMove}
                                     style={{
                                         borderRadius: 6,
