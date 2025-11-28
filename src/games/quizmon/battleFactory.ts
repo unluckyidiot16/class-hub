@@ -60,23 +60,25 @@ export function buildBattleMonsterFromSpecies(
         if (fallback) moves.push(fallback);
     }
 
+    const currentHp = owned?.current_hp ?? derived.maxHp;
+    
     const baseMonster: Monster = {
         accStage: 0,
         evaStage: 0,
-        exp: 0,
-        hp: 0,
+        exp: owned?.exp ?? 0,
+        hp: currentHp,                 // ✅ 현재 체력
         id: owned?.id ?? `wild-${species.id}`,
         name: anySpecies.name ?? `몬스터 ${species.id}`,
         speciesId: species.id,
         level,
         element: anySpecies.element ?? "normal",
         maxHp: derived.maxHp,
-        currentHp: owned?.current_hp ?? derived.maxHp,
+        currentHp,                     // ✅ optional 필드도 같이 세팅
         atk: derived.atk,
         def: derived.def,
         spd: derived.spd,
         moves,
-        // 필요한 나머지 필드는 기존 Monster 타입에 맞춰 그대로 유지
+        // 나머지 필드는 필요 시 extra로 병합
     };
 
     const monster: Monster = extra ? { ...baseMonster, ...extra } : baseMonster;
