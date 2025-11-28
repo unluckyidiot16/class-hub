@@ -83,11 +83,12 @@ export type Monster = {
     name: string;
     element: ElementType;
 
-    // 레벨/경험치
-    level?: number;
-    exp?: number;
+    // 레벨/경험치 (QuizMon에서는 항상 채워짐)
+    level: number;
+    exp: number;
 
-    // 전투 스탯
+    // 🔹 전투 스탯 (calcDerivedStats 결과)
+    //   - maxHp/atk/def/spd는 DB base_*가 아니라 "종 + 레벨"에서 계산된 값
     maxHp: number;
     hp: number;
     atk: number;
@@ -109,6 +110,7 @@ export type Monster = {
     // 보유 스킬 (최대 4개 사용 권장; 타입은 유연하게 배열로 둠)
     moves: Move[];
 };
+
 
 export type BattleSide = {
     trainer: Trainer;

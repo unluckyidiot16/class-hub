@@ -11,6 +11,11 @@ type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
     displayName: string;
     statusText: string;
 };
+import {
+    levelUpMonsterSingleService,
+    levelUpMonsterMaxService,
+} from "./quizmonService";
+
 
 /** quizmon_owned_monsters 1마리를 UI용으로 가공 */
 function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
@@ -244,22 +249,61 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         setLevelModalOpen(true);
     };
 
+    const [levelBusy, setLevelBusy] = useState(false);
+
     const handleLevelUpSingle = async () => {
-        // TODO: Exp Dust / 레어 캔디 소비 + 선택 몬스터 레벨 1업 서비스 연결
-        setLevelModalOpen(false);
-        window.alert(
-            "선택한 포켓몬 1레벨 업 기능은 아직 서비스와 연결되지 않았습니다.\n" +
-            "quizmonService에 Exp Dust / 레어 캔디 소비 로직을 추가한 뒤 이 버튼에서 호출해 주세요.",
-        );
+        if (!profile || !selected || levelBusy) return;
+        try {
+            setLevelBusy(true);
+            const result = await levelUpMonsterSingleService({
+                profileId: profile.id,
+                monsterId: selected.id,
+            });
+
+
+            // 레벨업 연출
+            if (result.evolved) {
+                // 진화 연출: result.previousSpeciesId → result.newSpeciesId
+            }
+
+            // 스탯 비교 UI
+            console.log(result.statsBefore.maxHp, "→", result.statsAfter.maxHp);
+
+            // 인벤토리 카운트 갱신
+            setExpDustCount(result.remainingExpDust);
+            setRareCandyCount(result.remainingRareCandy);
+
+            // 몬스터 리스트/선택 개체 갱신
+            // (props.monsters 를 부모에서 내려주는 구조면, 부모에서 refresh() 호출하도록 콜백 추가해도 좋고,
+            //  로컬 state 로 들고 있으면 여기서 바로 교체)
+            // 예: setMonsters(prev => prev.map(m => m.id === result.monster.id ? result.monster : m));
+
+            setLevelModalOpen(false);
+        } catch (e: any) {
+            setInventoryError(e.message ?? "레벨 업 중 오류가 발생했습니다.");
+        } finally {
+            setLevelBusy(false);
+        }
     };
 
     const handleLevelUpMax = async () => {
-        // TODO: 가지고 있는 강화 아이템을 모두 사용해 최대한 레벨 업하는 서비스 연결
-        setLevelModalOpen(false);
-        window.alert(
-            "최대 레벨 업 기능은 아직 서비스와 연결되지 않았습니다.\n" +
-            "보유한 Exp Dust / 레어 캔디 수만큼 레벨을 올리는 로직을 나중에 연결해 주세요.",
-        );
+        if (!profile || !selected || levelBusy) return;
+        try {
+            setLevelBusy(true);
+            const result = await levelUpMonsterMaxService({
+                profileId: profile.id,
+                monsterId: selected.id,
+            });
+
+            setExpDustCount(result.remainingExpDust);
+            setRareCandyCount(result.remainingRareCandy);
+            // 몬스터/선택 갱신도 위와 동일하게 처리
+            setLevelModalOpen(false);
+        } catch (e: any) {
+            setInventoryError(e.message ?? "최대 레벨 업 중 오류가 발생했습니다.");
+        } finally {
+            setLevelBusy(false);
+        }
     };
 
     return (

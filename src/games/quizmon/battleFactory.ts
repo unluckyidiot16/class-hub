@@ -7,6 +7,7 @@ import {
 } from "./types";
 import { getPokemonDimension } from "./pokemonDimensions";
 import { getMovesForSpeciesAndLevel } from "./moveData";
+import { calcDerivedStats } from "./stats";
 
 /**
  * 기존 제네릭 코드와의 호환을 위해 alias 유지
@@ -35,45 +36,42 @@ export function buildBattleMonsterFromSpecies<
 ): BattleMonsterCore & TExtra {
     const level = owned.level ?? 1;
 
-    // 🔢 아주 단순한 레벨 스케일링 – 숫자는 나중에 조정 가능
-    const maxHp = species.base_hp + level * 5;
+    // ✅ 종 + 레벨 → 파생 스탯 계산 (이 함수만 믿고 가기)
+    const stats = calcDerivedStats(species, level);
 
-    // ✅ DB에 저장된 HP/기절 정보 사용
-    // - current_hp: null 이면 "풀피"로 간주
-    // - is_fainted: true 면 무조건 0으로 시작
+    const maxHp = stats.maxHp;
+
     const storedHp = (owned as any).current_hp as number | null | undefined;
     const storedFainted = (owned as any).is_fainted as boolean | null | undefined;
 
     let initialHp: number;
 
     if (storedFainted) {
-        // DB에서 기절 처리된 개체는 0으로 시작
         initialHp = 0;
     } else if (typeof storedHp === "number") {
-        // 숫자면 0~maxHp 범위로 클램프
         const clamped = Math.max(0, Math.min(maxHp, storedHp));
         initialHp = clamped;
     } else {
-        // null/undefined → 아직 한번도 전투/회복 이력 없음 → 풀피
         initialHp = maxHp;
     }
 
     const dim = getPokemonDimension(species.pokedex_no ?? null);
 
     const baseMonster: Monster = {
-        id: owned.id,           // 개체 ID
-        speciesId: species.id,  // 종 ID
+        id: owned.id,
+        speciesId: species.id,
         name: species.name,
         element: species.element as ElementType,
 
         level,
         exp: owned.exp ?? 0,
 
+        // 🔹 전투 스탯 = 파생 스탯
         maxHp,
         hp: initialHp,
-        atk: species.base_atk,
-        def: species.base_def,
-        spd: species.base_spd,
+        atk: stats.atk,
+        def: stats.def,
+        spd: stats.spd,
 
         moves: getMovesForSpeciesAndLevel(species.id, level),
 
@@ -91,3 +89,4 @@ export function buildBattleMonsterFromSpecies<
         ...(extra as TExtra),
     };
 }
+
