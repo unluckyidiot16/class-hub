@@ -1,12 +1,9 @@
 // src/games/quizmon/useGachaDraw.ts
 import { useCallback, useState } from "react";
 import type { QuizmonProfileRow } from "./types";
-import { performSingleGachaDraw } from "./gacha";
+import { performSingleGachaDraw, type GachaCostType } from "./gacha";
 
-// 가챠 비용 타입 (이미 gacha.ts 에 맞춰져 있으면 그대로 사용)
-export type GachaCostType = "free" | "gems" ;
-
-// UI에서 쓰기용 “가볍게 정리한 결과” 타입
+// UI에서 쓰기용 결과 타입은 그대로
 export type GachaResultLite = {
     kind: "new" | "duplicate";
     speciesId: string;
@@ -25,7 +22,7 @@ type UseGachaDrawOptions = {
 type UseGachaDrawReturn = {
     drawing: boolean;
     error: string | null;
-    pullGacha: (costType: GachaCostType) => Promise<void>;
+    pullGacha: (costType?: GachaCostType) => Promise<void>;
     lastResult: GachaResultLite | null;
 };
 
@@ -37,12 +34,11 @@ export function useGachaDraw(options: UseGachaDrawOptions): UseGachaDrawReturn {
     const [lastResult, setLastResult] = useState<GachaResultLite | null>(null);
 
     const pullGacha = useCallback(
-        async (costType: GachaCostType) => {
+        async (costType: GachaCostType = "gems") => {
             if (!profile) {
                 setError("플레이어 프로필이 없습니다.");
                 return;
             }
-
             if (drawing) return;
 
             setDrawing(true);
@@ -61,7 +57,7 @@ export function useGachaDraw(options: UseGachaDrawOptions): UseGachaDrawReturn {
                 if (result) {
                     setLastResult({
                         kind: result.kind,
-                        speciesId: result.species.id, // ← 여기!
+                        speciesId: result.species.id,
                         species: {
                             name: result.species.name,
                             rarity: result.species.rarity ?? 1,
@@ -78,7 +74,6 @@ export function useGachaDraw(options: UseGachaDrawOptions): UseGachaDrawReturn {
         },
         [profile, drawing, onProfileUpdated],
     );
-
 
     return {
         drawing,

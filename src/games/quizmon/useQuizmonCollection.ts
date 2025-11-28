@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { QuizmonOwnedMonsterRow, QuizmonProfileRow } from "./types";
-import { performSingleGachaDraw } from "./gacha";
 import {
     buildBattleMonsterFromSpecies,
     type BattleMonsterCore,
@@ -19,9 +18,6 @@ type UseQuizmonCollectionResult = {
     loading: boolean;
     error: string | null;
     refresh: () => void;
-
-    // 무료 1회 소환
-    pullFreeGacha: () => Promise<QuizmonOwnedMonsterRow | null>;
 };
 
 type QuizmonSpeciesRow = QuizmonSpeciesLike;
@@ -33,7 +29,7 @@ export type BattlePartyMonster = BattleMonsterCore & {
 export function useQuizmonCollection(
     options: UseQuizmonCollectionOptions,
 ): UseQuizmonCollectionResult {
-    const { profileId, profile = null } = options;
+    const { profileId = null } = options;
 
     const [monsters, setMonsters] = useState<QuizmonOwnedMonsterRow[]>([]);
     const [loading, setLoading] = useState(false);
@@ -82,51 +78,13 @@ export function useQuizmonCollection(
     const refresh = useCallback(() => {
         setReloadFlag((x) => x + 1);
     }, []);
-
-    // 무료 소환 1회 (가챠 재화 소비 X, 중복이면 StarShard만 증가)
-    const pullFreeGacha = useCallback(async () => {
-        if (!profileId || !profile) return null;
-
-        // ✅ 로딩 중에는 가챠 막기 (Race condition 방지)
-        if (loading) {
-            setError("몬스터 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.");
-            return null;
-        }
-
-        setError(null);
-
-        try {
-            const { result } = await performSingleGachaDraw({
-                profile,
-                costType: "free",
-            });
-
-            const owned = result.ownedMonster;
-
-            if (owned) {
-                // 기존에 없던 개체라면 로컬 상태에 추가
-                setMonsters((prev) => {
-                    const exists = prev.some((m) => m.id === owned.id);
-                    return exists ? prev : [...prev, owned];
-                });
-                return owned;
-            }
-
-            // 만약 result.ownedMonster가 null이면(이론상 거의 없음) 그냥 null 반환
-            return null;
-        } catch (e) {
-            console.error("[useQuizmonCollection] free gacha error", e);
-            setError("몬스터를 소환하는 중 오류가 발생했습니다.");
-            return null;
-        }
-    }, [profileId, profile, loading]);
+    
 
     return {
         monsters,
         loading,
         error,
-        refresh,
-        pullFreeGacha,
+        refresh
     };
 }
 

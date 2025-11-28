@@ -14,7 +14,8 @@ function rollSpeciesId(): string {
     return GACHA_POOL[idx];
 }
 
-export type GachaCostType = "free" | "gems";
+export type GachaCostType = "gems" | "free"; // ← 타입은 유지하되
+// 실제 게임에서는 "gems"만 사용(테스트용으로 free 남겨둔 상태)
 
 export type GachaDrawResult = {
     kind: "new" | "duplicate";
@@ -24,11 +25,6 @@ export type GachaDrawResult = {
     gachaGemsConsumed: number;
 };
 
-/**
- * 단일 뽑기 로직
- * - costType: "gems" | "free"
- * - profile.gacha_gems / star_shards / owned_monsters 를 모두 여기서 처리
- */
 export async function performSingleGachaDraw(params: {
     profile: QuizmonProfileRow;
     costType?: GachaCostType;
@@ -36,16 +32,17 @@ export async function performSingleGachaDraw(params: {
     const { profile, costType = "gems" } = params;
     const profileId = profile.id;
 
+    const currentGems = profile.gacha_gems ?? 0;
     const gemCost = costType === "gems" ? 1 : 0;
 
-    if (gemCost > 0 && profile.gacha_gems < gemCost) {
+    if (gemCost > 0 && currentGems < gemCost) {
         throw new Error("가챠 재화가 부족합니다.");
     }
 
     // 1) 종 선택
     const speciesId = rollSpeciesId();
 
-    // 2) 해당 프로필의 모든 owned_monsters 불러오기
+    // 2) 해당 프로필의 owned_monsters 불러오기
     const { data: ownedRows, error: ownedError } = await supabase
         .from("quizmon_owned_monsters")
         .select("*")
@@ -85,7 +82,6 @@ export async function performSingleGachaDraw(params: {
         starShardsGained = Math.max(1, rarity);
     } else {
         // ✅ 신규 → owned_monsters에 생성
-        // 파티 슬롯 자동 배정 (1~3 중 비어 있는 곳)
         const usedSlots = new Set(
             ownedList
                 .map((m) => m.party_slot)
@@ -111,6 +107,8 @@ export async function performSingleGachaDraw(params: {
                 current_hp: null,
                 is_fainted: false,
                 learned_moves: [],
+                // ability_id, equipped_moves, held_item_id 는
+                // DB default/추후 패치로 처리
             })
             .select("*")
             .single();
@@ -130,8 +128,8 @@ export async function performSingleGachaDraw(params: {
     const { data: updatedProfileRow, error: profileError } = await supabase
         .from("quizmon_profiles")
         .update({
-            gacha_gems: profile.gacha_gems - gemCost,
-            star_shards: profile.star_shards + starShardsGained,
+            gacha_gems: currentGems - gemCost,
+            star_shards: (profile.star_shards ?? 0) + starShardsGained,
         })
         .eq("id", profileId)
         .select("*")
