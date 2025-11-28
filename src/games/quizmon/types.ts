@@ -163,11 +163,13 @@ export type BattleState = {
  * quizmon_species 테이블 대응 타입
  * - 실제 포켓몬 스탯 + 번호 + 스프라이트 키/설명
  */
+export type EvolutionTrigger = "level" | "item" | "special";
+
 export type QuizmonSpeciesRow = {
-    id: string;               // "poke-0001" 등
+    id: string;
     name: string;
     element: ElementType;
-    rarity: number;           // 1~5
+    rarity: number;
     base_hp: number;
     base_atk: number;
     base_def: number;
@@ -176,9 +178,15 @@ export type QuizmonSpeciesRow = {
     sprite_key: string | null;
     description: string | null;
 
-    // 나중에 height/weight 컬럼 추가 시 확장 여지
     height_m?: number | null;
     weight_kg?: number | null;
+
+    // 🔹 진화 정보
+    evolves_to_id?: string | null;
+    evolution_trigger?: EvolutionTrigger | null;
+    evolution_level?: number | null;
+    evolution_item_id?: string | null;
+    evolution_special_key?: string | null;
 };
 
 export type QuizmonPartner = {
@@ -213,6 +221,7 @@ export type QuizmonProfileRow = {
     // 레거시 필드 (RPC 등에서 아직 쓰면 유지)
     coins: number;
 };
+
 
 
 export type QuizmonOwnedMonsterRow = {

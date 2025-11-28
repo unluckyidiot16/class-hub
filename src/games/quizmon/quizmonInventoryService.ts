@@ -1,5 +1,12 @@
 // src/services/quizmonInventoryService.ts
 import { supabase } from "../../lib/supabaseClient";
+import {
+    type MonsterLevelUpResult,
+    loadMonsterWithSpecies,
+    maybeApplyEvolution,
+    loadPowerItemCounts
+} from "./quizmonService.ts";
+import {calcDerivedStats} from "./stats.ts";
 
 export type InventoryRow = {
     id: string;
@@ -103,8 +110,99 @@ export async function modifyInventoryQuantity(
 export async function consumeInventoryItem(
     profileId: string,
     itemId: string,
-    quantity: number = 1,
+    amount: number,
 ): Promise<void> {
-    if (quantity <= 0) return;
-    await modifyInventoryQuantity(profileId, itemId, -quantity);
+    if (amount <= 0) return;
+
+    const { data, error } = await supabase
+        .from("quizmon_inventory")
+        .select("id, quantity")
+        .eq("profile_id", profileId)
+        .eq("item_id", itemId)
+        .maybeSingle();
+
+    if (error || !data) {
+        throw new Error("인벤토리에서 아이템을 찾을 수 없습니다.");
+    }
+
+    const currentQty: number = data.quantity ?? 0;
+    if (currentQty < amount) {
+        throw new Error("해당 아이템 수가 부족합니다.");
+    }
+
+    const newQty = currentQty - amount;
+
+    const { error: updateError } = await supabase
+        .from("quizmon_inventory")
+        .update({ quantity: newQty })
+        .eq("id", data.id);
+
+    if (updateError) {
+        throw new Error("인벤토리 갱신 중 오류가 발생했습니다.");
+    }
+}
+
+export async function evolveMonsterWithItemService(params: {
+    profileId: string;
+    monsterId: string;
+    itemId: string; // quizmon_items.id (예: "item-fire-stone")
+}): Promise<MonsterLevelUpResult> {
+    const { profileId, monsterId, itemId } = params;
+
+    const {
+        monster: initialMonster,
+        species: initialSpecies,
+        everstoneEquipped,
+    } = await loadMonsterWithSpecies(monsterId, profileId);
+
+    const levelBefore = initialMonster.level;
+    const statsBefore = calcDerivedStats(initialSpecies, levelBefore);
+
+    // 🔍 종 정보가 아이템 진화를 요구하는지 확인
+    if (
+        (initialSpecies.evolution_trigger ?? "item") !== "item" ||
+        initialSpecies.evolution_item_id !== itemId
+    ) {
+        throw new Error("이 아이템으로는 해당 몬스터가 진화하지 않습니다.");
+    }
+
+    // 🔑 진화 시도 (item 컨텍스트)
+    const evoResult = await maybeApplyEvolution(
+        initialMonster,
+        initialSpecies,
+        everstoneEquipped,
+        { type: "item", itemId },
+    );
+
+    if (!evoResult.evolved) {
+        throw new Error("진화 조건이 충족되지 않았습니다.");
+    }
+
+    // 🎁 진화 성공했을 때만 아이템 실제 소비
+    await consumeInventoryItem(profileId, itemId, 1);
+
+    const monster = evoResult.monster;
+    const species = evoResult.species;
+    const levelAfter = monster.level; // 보통 동일
+
+    const statsAfter = calcDerivedStats(species, levelAfter);
+
+    const { expDustCount, rareCandyCount } =
+        await loadPowerItemCounts(profileId);
+
+    return {
+        monster,
+        species,
+        usedExpDust: 0,
+        usedRareCandy: 0,
+        levelBefore,
+        levelAfter,
+        evolved: evoResult.evolved,
+        previousSpeciesId: evoResult.previousSpeciesId,
+        newSpeciesId: evoResult.newSpeciesId,
+        statsBefore,
+        statsAfter,
+        remainingExpDust: expDustCount,
+        remainingRareCandy: rareCandyCount,
+    };
 }

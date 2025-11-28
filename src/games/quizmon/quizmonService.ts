@@ -10,10 +10,16 @@ import {
 } from "./stats";
 
 
+
 /** ===== 레벨업 관련 상수 / 유틸 ===== */
 
 const MONSTER_MAX_LEVEL = 100;          // 몬스터 최대 레벨
 const EXP_PER_DUST = 50;                // Exp Dust 1개당 경험치량 (원하면 조정)
+
+type EvolutionContext =
+    | { type: "level_up" }
+    | { type: "item"; itemId: string }
+    | { type: "special"; key: string };
 
 // 레벨 N → N+1 까지 필요한 경험치량 (간단 버전, 나중에 교체 가능)
 function getExpToNextLevel(level: number): number {
@@ -21,7 +27,7 @@ function getExpToNextLevel(level: number): number {
 }
 
 /** 인벤토리에서 강화 아이템 개수 읽기 */
-async function loadPowerItemCounts(profileId: string): Promise<{
+export async function loadPowerItemCounts(profileId: string): Promise<{
     expDustCount: number;
     rareCandyCount: number;
 }> {
@@ -103,7 +109,7 @@ async function consumePowerItems(
 }
 
 /** 한 마리 몬스터 + 종 정보 + Everstone 여부 읽기 */
-async function loadMonsterWithSpecies(
+export async function loadMonsterWithSpecies(
     monsterId: string,
     profileId: string,
 ): Promise<{
@@ -190,10 +196,11 @@ export type MonsterLevelUpResult = {
 
 
 /** 레벨업 후 진화 체크 + 종 교체 */
-async function maybeApplyEvolution(
+export async function maybeApplyEvolution(
     monster: QuizmonOwnedMonsterRow,
     species: QuizmonSpeciesRow,
     everstoneEquipped: boolean,
+    ctx: EvolutionContext = { type: "level_up" },
 ): Promise<{
     monster: QuizmonOwnedMonsterRow;
     species: QuizmonSpeciesRow;
@@ -201,32 +208,76 @@ async function maybeApplyEvolution(
     previousSpeciesId: string;
     newSpeciesId?: string;
 }> {
-    const anySpecies = species as any;
-    const evolutionLevel: number | null =
-        anySpecies.evolution_level ?? null;
-    const evolvesToId: string | null =
-        anySpecies.evolves_to_id ?? null;
-
-    if (!evolutionLevel || !evolvesToId) {
-        return {
-            monster,
-            species,
-            evolved: false,
-            previousSpeciesId: species.id,
-        };
-    }
-
-    if (everstoneEquipped || monster.level < evolutionLevel) {
-        return {
-            monster,
-            species,
-            evolved: false,
-            previousSpeciesId: species.id,
-        };
-    }
-
     const previousSpeciesId = species.id;
 
+    // 🔒 변화없음의 돌(everstone) 들고 있으면 무조건 진화 막기
+    if (everstoneEquipped) {
+        return {
+            monster,
+            species,
+            evolved: false,
+            previousSpeciesId,
+        };
+    }
+
+    const trigger =
+        species.evolution_trigger ??
+        // 옛날 데이터와 호환: level / item 필드 존재 여부로 추론
+        (species.evolution_item_id
+            ? "item"
+            : species.evolution_level
+                ? "level"
+                : null);
+
+    const evolvesToId = species.evolves_to_id ?? null;
+
+    if (!evolvesToId || !trigger) {
+        // 진화 정보 없음
+        return {
+            monster,
+            species,
+            evolved: false,
+            previousSpeciesId,
+        };
+    }
+
+    let canEvolve = false;
+
+    if (trigger === "level") {
+        const reqLevel = species.evolution_level ?? 0;
+        if (ctx.type === "level_up" && monster.level >= reqLevel) {
+            canEvolve = true;
+        }
+    } else if (trigger === "item") {
+        const reqItemId = species.evolution_item_id;
+        if (
+            reqItemId &&
+            ctx.type === "item" &&
+            ctx.itemId === reqItemId
+        ) {
+            canEvolve = true;
+        }
+    } else if (trigger === "special") {
+        const key = species.evolution_special_key;
+        if (
+            key &&
+            ctx.type === "special" &&
+            ctx.key === key
+        ) {
+            canEvolve = true;
+        }
+    }
+
+    if (!canEvolve) {
+        return {
+            monster,
+            species,
+            evolved: false,
+            previousSpeciesId,
+        };
+    }
+
+    // 🔄 실제 진화: 타겟 종 로드 후 owned_monsters.species_id 교체
     const { data: evoSpeciesRow, error: evoError } = await supabase
         .from("quizmon_species")
         .select("*")
@@ -278,6 +329,7 @@ async function maybeApplyEvolution(
         newSpeciesId: newSpecies.id,
     };
 }
+
 
 /**
  * 1 레벨 업 서비스
@@ -379,6 +431,7 @@ export async function levelUpMonsterSingleService(params: {
         monster,
         species,
         everstoneEquipped,
+        { type: "level_up" },   // ✅ 명시적으로 레벨 업 컨텍스트 전달
     );
     monster = evoResult.monster;
     species = evoResult.species;
