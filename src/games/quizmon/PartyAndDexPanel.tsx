@@ -11,6 +11,8 @@ import {
     levelUpMonsterMaxService,
     loadPowerItemCounts,
 } from "./quizmonService";
+import { MOVE_DB } from "./moveData"; // ✅ 추가
+
 
 /** quizmon_owned_monsters 1마리를 UI용으로 가공 */
 type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
@@ -177,13 +179,17 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
     const selectedSlotIndex = findSelectedSlotIndex();
 
-    // ===== 인벤토리 (Exp Dust / 레어 캔디) =====
     // ===== 인벤토리 (Exp Dust / 레어 캔디) + 레벨업 모달 상태 =====
     const [levelModalOpen, setLevelModalOpen] = useState(false);
     const [inventoryLoading, setInventoryLoading] = useState(false);
     const [inventoryError, setInventoryError] = useState<string | null>(null);
     const [expDustCount, setExpDustCount] = useState(0);
     const [rareCandyCount, setRareCandyCount] = useState(0);
+
+    // 🔹 레벨업 전/후 기술 비교용
+    const [baseLearnedMoves, setBaseLearnedMoves] = useState<string[]>([]);
+    const [newlyLearnedMoves, setNewlyLearnedMoves] = useState<string[]>([]);
+    const [lastLevelUpResult, setLastLevelUpResult] = useState<any | null>(null);
 
 // ✅ 프로필 기준 인벤토리 집계 (quizmonService 사용)
     useEffect(() => {
@@ -236,6 +242,17 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const handleOpenLevelModal = () => {
         if (!selected) return;
         if (totalPowerItems <= 0) return;
+
+        // 이번 모달에서 기준이 될 "레벨업 전" 기술 목록 저장
+        const base = Array.isArray(selected.learned_moves)
+            ? selected.learned_moves
+            : [];
+        setBaseLearnedMoves(base);
+
+        // 이전 결과 초기화
+        setNewlyLearnedMoves([]);
+        setLastLevelUpResult(null);
+
         setLevelModalOpen(true);
     };
 
@@ -290,11 +307,28 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 if (typeof lastResult.remainingRareCandy === "number") {
                     setRareCandyCount(lastResult.remainingRareCandy);
                 }
-                // TODO: 나중에 몬스터 리스트/선택 개체 갱신은
-                // 부모에서 refreshMonsters() 콜백을 내려받아서 처리하는 쪽으로 확장
+
+                // 🔹 새로 배운 기술 계산 (레벨업 전 baseLearnedMoves vs 레벨업 후)
+                const afterMoves: string[] = Array.isArray(
+                    lastResult.monster?.learned_moves,
+                )
+                    ? lastResult.monster.learned_moves
+                    : [];
+                const baseMoves = Array.isArray(baseLearnedMoves)
+                    ? baseLearnedMoves
+                    : [];
+
+                const newly = afterMoves.filter(
+                    (id) => !baseMoves.includes(id),
+                );
+
+                setLastLevelUpResult(lastResult);
+                setNewlyLearnedMoves(newly);
             }
 
-            setLevelModalOpen(false);
+            // ❌ 자동으로 모달을 닫지 않고, 결과를 모달 안에서 보여주도록 둔다
+            // setLevelModalOpen(false);
+            
         } catch (e: any) {
             console.error("[PartyAndDexPanel] handleConfirmLevelUp error", e);
             setInventoryError(
@@ -1227,6 +1261,78 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 (실제 레벨은 경험치 공식에 따라
                                 달라질 수 있습니다.)
                             </div>
+
+                            {/* 🔹 레벨업 결과: 새로 배운 기술 */}
+                            {lastLevelUpResult &&
+                                newlyLearnedMoves.length > 0 && (
+                                    <div
+                                        style={{
+                                            marginTop: 10,
+                                            padding: "0.6rem 0.75rem",
+                                            borderRadius: 12,
+                                            border:
+                                                "1px solid rgba(96,165,250,0.85)",
+                                            background:
+                                                "rgba(15,23,42,0.95)",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: "0.75rem",
+                                                color: "#93c5fd",
+                                                marginBottom: 4,
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            새로 배운 기술
+                                        </div>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                gap: "0.35rem",
+                                            }}
+                                        >
+                                            {newlyLearnedMoves.map((id) => {
+                                                const move = (MOVE_DB as any)[id];
+                                                return (
+                                                    <div
+                                                        key={id}
+                                                        style={{
+                                                            fontSize:
+                                                                "0.78rem",
+                                                            padding:
+                                                                "0.25rem 0.55rem",
+                                                            borderRadius: 999,
+                                                            border:
+                                                                "1px solid rgba(59,130,246,0.9)",
+                                                            background:
+                                                                "rgba(15,23,42,0.98)",
+                                                        }}
+                                                    >
+                                                        {move?.name ?? id}
+                                                        {move?.element && (
+                                                            <span
+                                                                style={{
+                                                                    marginLeft: 4,
+                                                                    fontSize:
+                                                                        "0.7rem",
+                                                                    opacity: 0.8,
+                                                                }}
+                                                            >
+                                                                (
+                                                                {
+                                                                    move.element
+                                                                }
+                                                                )
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                         </div>
 
                         <div
