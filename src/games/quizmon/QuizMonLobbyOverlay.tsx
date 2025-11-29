@@ -53,8 +53,11 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onBuyExpDust,      
     } = props;
 
+    // 🔹 우선순위: localProfile(가챠/상점 등으로 갱신된 최신 프로필) → fallback profile
+    const effectiveProfile = localProfile ?? profile;
+
     const trainerName =
-        localProfile?.trainer_name ?? profile?.trainer_name ?? "미지의 트레이너";
+        effectiveProfile?.trainer_name ?? "미지의 트레이너";
 
     return (
         <div
@@ -275,7 +278,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     {/* 프로필 탭 */}
                     {menuTab === "profile" && (
                         <ProfileTab
-                            profile={profile}
+                            profile={effectiveProfile}
                             lastRaidResult={lastRaidResult}
                             onOpenLevelUpModal={onOpenLevelUpModal}
                             onBuyExpDust={onBuyExpDust}

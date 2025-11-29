@@ -173,36 +173,22 @@ export function useQuizmonProfile(
     }, [refresh]);
 
     // 레이드 결과 반영 (프로필 쪽 누적 통계 + 골드 지급)
+    // 레이드 결과 반영 (프로필 쪽 누적 통계 + 골드 지급)
     const applyRaidResult = useCallback(
         async (summary: { correct: number; total: number }) => {
             if (!hasKey || !profile) return;
 
             try {
                 // 서비스 레이어에서 DB 업데이트
-                const { rewardedGold } = await applyRaidResultService({
-                    profile: {
-                        id: profile.id,
-                        total_raids: profile.total_raids,
-                        total_correct: profile.total_correct,
-                        total_questions: profile.total_questions,
-                        gold: profile.gold,
-                    },
+                const { updatedProfile } = await applyRaidResultService({
+                    profile,
                     summary,
                 });
 
-                // 클라이언트 로컬 상태도 동기화
-                setProfile((prev) => {
-                    if (!prev) return prev;
-                    return {
-                        ...prev,
-                        total_raids: (prev.total_raids ?? 0) + 1,
-                        total_correct:
-                            (prev.total_correct ?? 0) + summary.correct,
-                        total_questions:
-                            (prev.total_questions ?? 0) + summary.total,
-                        gold: (prev.gold ?? 0) + rewardedGold,
-                    };
-                });
+                // 서버가 돌려준 최신 프로필로 로컬 상태 동기화
+                if (updatedProfile) {
+                    setProfile(updatedProfile as QuizmonProfile);
+                }
                 setError(null);
             } catch (e) {
                 console.error(
@@ -214,6 +200,7 @@ export function useQuizmonProfile(
         },
         [hasKey, profile],
     );
+
 
     const buyExpDust = useCallback(
         async (quantity: number = 1) => {

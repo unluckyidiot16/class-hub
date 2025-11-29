@@ -12,8 +12,6 @@ export type ProfileTabProps = {
 
 export function ProfileTab({
                                profile,
-                               lastRaidResult,
-                               onOpenLevelUpModal,
                                onBuyExpDust,
                            }: ProfileTabProps) {
     if (!profile) {
@@ -64,11 +62,6 @@ export function ProfileTab({
             Math.min(1, trainerExp / trainerExpToNext),
         );
     }, [trainerExp, trainerExpToNext]);
-
-    const lastRaidText =
-        lastRaidResult && lastRaidResult.total > 0
-            ? `${lastRaidResult.correct} / ${lastRaidResult.total} 문제 정답`
-            : "아직 최근 레이드 기록이 없습니다.";
 
     return (
         <div
