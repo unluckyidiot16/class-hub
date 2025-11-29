@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { QuizmonProfileRow } from "./types";
-import { applyRaidResultService } from "../../services/quizmonService";
+import { applyRaidResultService, buyExpDustWithGoldService } from "./quizmonService";
 
 // 실제 DB 스키마와 1:1 대응
 export type QuizmonProfile = QuizmonProfileRow;
@@ -13,13 +13,14 @@ type UseQuizmonProfileParams = {
     studentKey: string | null;
 };
 
-type UseQuizmonProfileResult = {
+export type UseQuizmonProfileResult = {
     profile: QuizmonProfile | null;
     loading: boolean;
     error: string | null;
     refresh: () => Promise<void>;
     applyRaidResult: (summary: { correct: number; total: number }) => Promise<void>;
     chooseStarter: (speciesId: string) => Promise<void>;
+    buyExpDust: (quantity?: number) => Promise<{ spentGold: number; gainedExpDust: number } | void>;
 };
 
 /**
@@ -214,6 +215,36 @@ export function useQuizmonProfile(
         [hasKey, profile],
     );
 
+    const buyExpDust = useCallback(
+        async (quantity: number = 1) => {
+            if (!profile) return;
+
+            try {
+                const { updatedProfile, spentGold, gainedExpDust } =
+                    await buyExpDustWithGoldService({
+                        profileId: profile.id,
+                        quantity,
+                    });
+
+                setProfile(updatedProfile);
+                setError(null);
+
+                console.log(
+                    "[useQuizmonProfile] buyExpDust",
+                    { spentGold, gainedExpDust },
+                );
+
+                return { spentGold, gainedExpDust };
+            } catch (e: any) {
+                console.error("[useQuizmonProfile] buyExpDust error", e);
+                setError(e?.message ?? "Exp Dust를 구매하는 중 오류가 발생했습니다.");
+                throw e;
+            }
+        },
+        [profile],
+    );
+
+
     // 스타터 선택 + 첫 포켓몬 지급
     const chooseStarter = useCallback(
         async (speciesId: string) => {
@@ -297,5 +328,6 @@ export function useQuizmonProfile(
         refresh,
         applyRaidResult,
         chooseStarter,
+        buyExpDust,
     };
 }

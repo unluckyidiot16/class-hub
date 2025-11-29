@@ -125,64 +125,7 @@ export async function saveBattleHpResultsService(
     }
 }
 
-/**
- * 파티 전체 회복 비용 (골드)
- * - 필요하면 나중에 난이도나 진행도에 따라 조정 가능
- */
-export const HEAL_ALL_COST_GOLD = 10;
 
-/**
- * 보유 몬스터 전체 회복
- * - quizmon_profiles.gold 에서 HEAL_ALL_COST_GOLD 차감
- * - quizmon_owned_monsters.current_hp / is_fainted 초기화
- */
-export async function healAllMonstersService(
-    profileId: string,
-): Promise<void> {
-    if (!profileId) return;
 
-    // 1) 현재 골드 확인
-    const { data: profile, error: profileError } = await supabase
-        .from("quizmon_profiles")
-        .select("id, gold")
-        .eq("id", profileId)
-        .single();
-
-    if (profileError || !profile) {
-        throw profileError ?? new Error("프로필 정보를 불러올 수 없습니다.");
-    }
-
-    const currentGold: number = profile.gold ?? 0;
-
-    if (currentGold < HEAL_ALL_COST_GOLD) {
-        // Provider 쪽에서 e.message 를 그대로 보여줄 수 있게 깔끔한 메시지로 던짐
-        throw new Error("골드가 부족해서 파티를 회복할 수 없습니다.");
-    }
-
-    const nextGold = currentGold - HEAL_ALL_COST_GOLD;
-
-    // 2) 골드 차감
-    const { error: updateProfileError } = await supabase
-        .from("quizmon_profiles")
-        .update({ gold: nextGold })
-        .eq("id", profileId);
-
-    if (updateProfileError) {
-        throw updateProfileError;
-    }
-
-    // 3) 몬스터 전체 회복/부활
-    const { error: updateMonstersError } = await supabase
-        .from("quizmon_owned_monsters")
-        .update({
-            current_hp: null,  // null = 풀피 상태로 간주
-            is_fainted: false, // 기절 해제
-        })
-        .eq("profile_id", profileId);
-
-    if (updateMonstersError) {
-        throw updateMonstersError;
-    }
-}
 
 // pullGachaService 등은 같은 패턴으로 여기 아래에 추가 예정

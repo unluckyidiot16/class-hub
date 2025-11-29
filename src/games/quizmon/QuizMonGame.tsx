@@ -30,6 +30,7 @@ import { useGachaDraw } from "./useGachaDraw";
 import { QuizMonLobbyOverlay } from "./QuizMonLobbyOverlay"; // ⬅️ 새로 추가;
 import { QuizMonBattleView } from "./QuizMonBattleView";
 import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
+import { useQuizmonContext } from "./QuizmonProvider";
 
 
 // =========================
@@ -111,6 +112,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         typeof window !== "undefined" ? window.innerWidth : 1024,
     );
 
+    const { buyExpDust } = useQuizmonContext();
+
     useEffect(() => {
         setLocalProfile(props.profile ?? null);
     }, [props.profile]);
@@ -154,6 +157,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
     const canPaidGacha = !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
+
+    const handleBuyExpDust = async () => {
+        if (!buyExpDust) return;
+        try {
+            await buyExpDust(1); // Dust 1개 구매 (서비스 쪽에서 Gold 차감)
+        } catch (e) {
+            console.error("[QuizMonGame] buyExpDust error", e);
+            let message = "Exp Dust를 구매하는 중 오류가 발생했습니다.";
+            if (e instanceof Error && e.message) {
+                message = e.message;
+            }
+            window.alert(message);
+        }
+    };
     
     const [hpSynced, setHpSynced] = useState(false);
     
@@ -1076,8 +1093,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onSelectDungeon={() => setViewState("dungeon")}
                             onSelectGacha={() => setViewState("gacha")}
                             lastRaidResult={props.lastRaidResult ?? null}
+                            onOpenLevelUpModal={() => { /* TODO: 레벨업 모달 붙일 때 구현 */ }}
+                            onBuyExpDust={handleBuyExpDust} // ⭐ 추가
                         />
                     )}
+
 
 
 

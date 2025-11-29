@@ -5,9 +5,17 @@ import type { QuizmonProfileRow } from "./types";
 export type ProfileTabProps = {
     profile: QuizmonProfileRow | null;
     lastRaidResult?: { correct: number; total: number } | null;
+    onOpenLevelUpModal?: () => void; // ⭐ optional
+    onBuyExpDust?: () => void;
 };
 
-export function ProfileTab({ profile, lastRaidResult }: ProfileTabProps) {
+
+export function ProfileTab({
+                               profile,
+                               lastRaidResult,
+                               onOpenLevelUpModal,
+                               onBuyExpDust,
+                           }: ProfileTabProps) {
     if (!profile) {
         return (
             <div
@@ -25,6 +33,10 @@ export function ProfileTab({ profile, lastRaidResult }: ProfileTabProps) {
     const totalRaids = profile.total_raids ?? 0;
     const totalCorrect = profile.total_correct ?? 0;
     const totalQuestions = profile.total_questions ?? 0;
+
+    const gold = (profile as any).gold ?? 0;
+    const gems = (profile as any).gems ?? 0;
+    const shards = (profile as any).star_shards ?? 0;
 
     const accuracy =
         totalQuestions > 0
@@ -226,57 +238,96 @@ export function ProfileTab({ profile, lastRaidResult }: ProfileTabProps) {
                     style={{
                         fontSize: "0.75rem",
                         opacity: 0.9,
-                    }}
-                >
-                    앞으로는 여기에서 레이드별 상세 기록, 즐겨쓰는
-                    몬스터, 수업별 통계 등을 더 자세히 볼 수 있도록
-                    확장할 예정입니다.
-                </div>
-            </div>
-
-            {/* 오른쪽: 최근 레이드 / 메모 영역 */}
-            <div
-                style={{
-                    borderRadius: 12,
-                    border: "1px solid rgba(148,163,184,0.5)",
-                    padding: "0.9rem 0.9rem 0.75rem",
-                    background:
-                        "radial-gradient(circle at top, rgba(55,65,81,0.9), rgba(15,23,42,0.97))",
-                    color: "#e5e7eb",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.6rem",
-                }}
-            >
-                <div
-                    style={{
-                        fontSize: "0.85rem",
-                        marginBottom: 2,
-                    }}
-                >
-                    최근 레이드 결과
-                </div>
-                <div
-                    style={{
-                        borderRadius: 10,
-                        background: "rgba(15,23,42,0.9)",
-                        padding: "0.6rem 0.75rem",
-                        fontSize: "0.8rem",
-                    }}
-                >
-                    {lastRaidText}
-                </div>
-
-                <div
-                    style={{
-                        fontSize: "0.75rem",
-                        opacity: 0.9,
                         marginTop: 4,
                     }}
                 >
                     교사가 레이드 결과를 바탕으로 피드백을 줄 수 있는
                     메모 영역이나, 학생에게 보여 줄 칭찬/도전 과제
                     안내도 이곳에 배치할 수 있습니다.
+                </div>
+
+                {/* ⭐ 골드 → Exp Dust 상점 (MVP) */}
+                <div
+                    style={{
+                        marginTop: 8,
+                        borderRadius: 10,
+                        background: "rgba(15,23,42,0.9)",
+                        padding: "0.6rem 0.75rem",
+                        fontSize: "0.78rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.4rem",
+                    }}
+                >
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: "0.8rem",
+                                fontWeight: 500,
+                            }}
+                        >
+                            강화 아이템 상점 (Gold → Exp Dust)
+                        </div>
+                        <div
+                            style={{
+                                fontSize: "0.75rem",
+                                color: "#eab308",
+                            }}
+                        >
+                            Gold: {gold} · Gems: {gems} · Shards: {shards}
+                        </div>
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: "0.75rem",
+                                color: "#cbd5f5",
+                            }}
+                        >
+                            Exp Dust 1개를 Gold 10개로 구매합니다.
+                            (MVP용 단일 상품)
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onBuyExpDust}
+                            disabled={!onBuyExpDust || gold < 10}
+                            style={{
+                                padding: "0.35rem 0.8rem",
+                                borderRadius: 999,
+                                border: "none",
+                                backgroundColor:
+                                    !onBuyExpDust || gold < 10
+                                        ? "#4b556380"
+                                        : "#facc15",
+                                color:
+                                    !onBuyExpDust || gold < 10
+                                        ? "#9ca3af"
+                                        : "#1f2937",
+                                fontSize: "0.75rem",
+                                fontWeight: 600,
+                                cursor:
+                                    !onBuyExpDust || gold < 10
+                                        ? "not-allowed"
+                                        : "pointer",
+                            }}
+                        >
+                            Exp Dust 1개 구매
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

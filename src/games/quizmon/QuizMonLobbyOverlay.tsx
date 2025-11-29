@@ -28,6 +28,8 @@ export type QuizMonLobbyOverlayProps = {
     onSelectGacha: () => void;
 
     lastRaidResult?: { correct: number; total: number } | null;
+    onOpenLevelUpModal: () => void;
+    onBuyExpDust?: () => void;
 };
 
 export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
@@ -47,6 +49,8 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onSelectDungeon,
         onSelectGacha,
         lastRaidResult,
+        onOpenLevelUpModal,
+        onBuyExpDust,      
     } = props;
 
     const trainerName =
@@ -272,10 +276,11 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     {menuTab === "profile" && (
                         <ProfileTab
                             profile={profile}
-                            lastRaidResult={lastRaidResult ?? null}
+                            lastRaidResult={lastRaidResult}
+                            onOpenLevelUpModal={onOpenLevelUpModal}
+                            onBuyExpDust={onBuyExpDust}
                         />
                     )}
-
                     {/* 도감 탭(menuTab === "dex")은 아직 별도 내용 없음 */}
                 </div>
             </div>

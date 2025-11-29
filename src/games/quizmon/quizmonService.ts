@@ -1,7 +1,7 @@
 // src/services/quizmonService.ts (추가 부분)
 import { supabase } from "../../lib/supabaseClient";
 import type {
-    QuizmonOwnedMonsterRow,
+    QuizmonOwnedMonsterRow, QuizmonProfileRow,
     QuizmonSpeciesRow,
 } from "./types";
 import {
@@ -719,7 +719,6 @@ export async function levelUpMonsterMaxService(params: {
 // quizmonService.ts 하단 쪽에 추가
 
 /** 인벤토리에서 특정 item_id 아이템 소비 (TM, 진화 아이템 등 공통) */
-/** 인벤토리에서 특정 item_id 아이템 소비 (TM, 진화 아이템 등 공통) */
 export async function consumeInventoryItemById(
     profileId: string,
     itemId: string,
@@ -891,4 +890,271 @@ export async function applyTmToMonsterService(params: {
     await consumeInventoryItemById(profileId, tmItemId, 1);
 
     return updatedMon as QuizmonOwnedMonsterRow;
+}
+
+// 🧩 raid & shop 공통: 특정 item_type 인벤토리에 수량 더하기
+async function addPowerItemsByType(params: {
+    profileId: string;
+    itemType: "xp_dust" | "rare_candy";
+    amount: number;
+}) {
+    const { profileId, itemType, amount } = params;
+    if (amount <= 0) return;
+
+    // 1) item_type 으로 quizmon_items.id 찾기 (MVP: 한 종류만 있다고 가정)
+    const { data: itemRows, error: itemFetchError } = await supabase
+        .from("quizmon_items")
+        .select("id")
+        .eq("item_type", itemType)
+        .limit(1);
+
+    if (itemFetchError) {
+        console.error("[addPowerItemsByType] quizmon_items 조회 오류", itemFetchError);
+        throw new Error("강화 아이템 정보를 불러오지 못했습니다.");
+    }
+
+    const itemRow = itemRows?.[0];
+    if (!itemRow) {
+        console.warn(
+            "[addPowerItemsByType] 해당 item_type의 아이템이 없습니다:",
+            itemType,
+        );
+        return;
+    }
+    const itemId = itemRow.id as string;
+
+    // 2) 기존 인벤토리 row 있는지 확인
+    const { data: invRows, error: invFetchError } = await supabase
+        .from("quizmon_inventory")
+        .select("id, quantity")
+        .eq("profile_id", profileId)
+        .eq("item_id", itemId)
+        .limit(1);
+
+    if (invFetchError) {
+        console.error("[addPowerItemsByType] quizmon_inventory 조회 오류", invFetchError);
+        throw new Error("인벤토리를 불러오지 못했습니다.");
+    }
+
+    const existing = invRows?.[0];
+    const newQuantity = (existing?.quantity ?? 0) + amount;
+
+    if (existing) {
+        const { error: updateError } = await supabase
+            .from("quizmon_inventory")
+            .update({ quantity: newQuantity })
+            .eq("id", existing.id);
+
+        if (updateError) {
+            console.error("[addPowerItemsByType] 수량 업데이트 오류", updateError);
+            throw new Error("인벤토리 수량을 업데이트하는 중 오류가 발생했습니다.");
+        }
+    } else {
+        const { error: insertError } = await supabase
+            .from("quizmon_inventory")
+            .insert({
+                profile_id: profileId,
+                item_id: itemId,
+                quantity: newQuantity,
+            });
+
+        if (insertError) {
+            console.error("[addPowerItemsByType] 인벤토리 추가 오류", insertError);
+            throw new Error("인벤토리에 아이템을 추가하는 중 오류가 발생했습니다.");
+        }
+    }
+}
+
+/**
+ * 🛡 레이드 결과를 프로필/인벤토리에 반영하는 공통 서비스
+ *  - 총 레이드/정답/문항 수 집계
+ *  - 골드 보상
+ *  - Exp Dust 보상
+ */
+export async function applyRaidResultService(params: {
+    profile: QuizmonProfileRow;
+    summary: { correct: number; total: number };
+}): Promise<{
+    updatedProfile: QuizmonProfileRow;
+    rewardedGold: number;
+    rewardedExpDust: number;
+}> {
+    const { profile, summary } = params;
+    const correct = summary.correct ?? 0;
+    const total = summary.total ?? 0;
+
+    // 🎁 보상 공식 (원하면 여기 숫자만 조정해서 밸런스 맞추면 됨)
+    const GOLD_PER_CORRECT = 2;
+    const DUST_PER_CORRECT = 0.3; // 3문제 맞추면 대략 1개 정도
+
+    const rewardedGold = correct * GOLD_PER_CORRECT;
+    const rewardedExpDust = Math.floor(correct * DUST_PER_CORRECT);
+
+    const nextTotalRaids = (profile.total_raids ?? 0) + 1;
+    const nextTotalCorrect = (profile.total_correct ?? 0) + correct;
+    const nextTotalQuestions = (profile.total_questions ?? 0) + total;
+    const nextGold = (profile.gold ?? 0) + rewardedGold;
+
+    // 1) 프로필 집계 + 골드 업데이트
+    const { data, error } = await supabase
+        .from("quizmon_profiles")
+        .update({
+            total_raids: nextTotalRaids,
+            total_correct: nextTotalCorrect,
+            total_questions: nextTotalQuestions,
+            gold: nextGold,
+        })
+        .eq("id", profile.id)
+        .select("*")
+        .single();
+
+    if (error || !data) {
+        console.error("[applyRaidResultService] 프로필 업데이트 오류", error);
+        throw new Error("레이드 결과를 저장하는 중 오류가 발생했습니다.");
+    }
+
+    // 2) Exp Dust 보상 지급 (0개면 스킵)
+    if (rewardedExpDust > 0) {
+        await addPowerItemsByType({
+            profileId: profile.id,
+            itemType: "xp_dust",
+            amount: rewardedExpDust,
+        });
+    }
+
+    return {
+        updatedProfile: data as QuizmonProfileRow,
+        rewardedGold,
+        rewardedExpDust,
+    };
+}
+
+/**
+ * 🛒 상점: 골드로 Exp Dust 구매
+ *  - 기본값: Dust 1개당 10 Gold
+ */
+export async function buyExpDustWithGoldService(params: {
+    profileId: string;
+    quantity?: number;
+    pricePerDust?: number;
+}): Promise<{
+    updatedProfile: QuizmonProfileRow;
+    spentGold: number;
+    gainedExpDust: number;
+}> {
+    const { profileId, quantity = 1, pricePerDust = 10 } = params;
+    if (quantity <= 0) {
+        return {
+            updatedProfile: null as any,
+            spentGold: 0,
+            gainedExpDust: 0,
+        };
+    }
+
+    // 1) 현재 프로필 골드 조회
+    const { data: profileRow, error: profileError } = await supabase
+        .from("quizmon_profiles")
+        .select("*")
+        .eq("id", profileId)
+        .single();
+
+    if (profileError || !profileRow) {
+        console.error("[buyExpDustWithGoldService] 프로필 조회 오류", profileError);
+        throw new Error("프로필 정보를 불러오지 못했습니다.");
+    }
+
+    const currentGold = profileRow.gold ?? 0;
+    const cost = quantity * pricePerDust;
+
+    if (currentGold < cost) {
+        throw new Error("골드가 부족합니다.");
+    }
+
+    // 2) 골드 차감
+    const { data: updatedProfileRow, error: updateError } = await supabase
+        .from("quizmon_profiles")
+        .update({
+            gold: currentGold - cost,
+        })
+        .eq("id", profileId)
+        .select("*")
+        .single();
+
+    if (updateError || !updatedProfileRow) {
+        console.error("[buyExpDustWithGoldService] 골드 차감 오류", updateError);
+        throw new Error("골드를 차감하는 중 오류가 발생했습니다.");
+    }
+
+    // 3) Exp Dust 지급
+    await addPowerItemsByType({
+        profileId,
+        itemType: "xp_dust",
+        amount: quantity,
+    });
+
+    return {
+        updatedProfile: updatedProfileRow as QuizmonProfileRow,
+        spentGold: cost,
+        gainedExpDust: quantity,
+    };
+}
+
+/**
+ * 파티 전체 회복 비용 (골드)
+ * - 필요하면 나중에 난이도나 진행도에 따라 조정 가능
+ */
+export const HEAL_ALL_COST_GOLD = 10;
+
+/**
+ * 보유 몬스터 전체 회복
+ * - quizmon_profiles.gold 에서 HEAL_ALL_COST_GOLD 차감
+ * - quizmon_owned_monsters.current_hp / is_fainted 초기화
+ */
+export async function healAllMonstersService(
+    profileId: string,
+): Promise<void> {
+    if (!profileId) return;
+
+    // 1) 현재 골드 확인
+    const { data: profile, error: profileError } = await supabase
+        .from("quizmon_profiles")
+        .select("id, gold")
+        .eq("id", profileId)
+        .single();
+
+    if (profileError || !profile) {
+        throw profileError ?? new Error("프로필 정보를 불러올 수 없습니다.");
+    }
+
+    const currentGold: number = profile.gold ?? 0;
+
+    if (currentGold < HEAL_ALL_COST_GOLD) {
+        // Provider 쪽에서 e.message 를 그대로 보여줄 수 있게 깔끔한 메시지로 던짐
+        throw new Error("골드가 부족해서 파티를 회복할 수 없습니다.");
+    }
+
+    const nextGold = currentGold - HEAL_ALL_COST_GOLD;
+
+    // 2) 골드 차감
+    const { error: updateProfileError } = await supabase
+        .from("quizmon_profiles")
+        .update({ gold: nextGold })
+        .eq("id", profileId);
+
+    if (updateProfileError) {
+        throw updateProfileError;
+    }
+
+    // 3) 몬스터 전체 회복/부활
+    const { error: updateMonstersError } = await supabase
+        .from("quizmon_owned_monsters")
+        .update({
+            current_hp: null,  // null = 풀피 상태로 간주
+            is_fainted: false, // 기절 해제
+        })
+        .eq("profile_id", profileId);
+
+    if (updateMonstersError) {
+        throw updateMonstersError;
+    }
 }

@@ -9,16 +9,21 @@ import {
     type ReactNode,
 } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { useQuizmonProfile } from "./useQuizmonProfile";
+import {
+    useQuizmonProfile,
+    type UseQuizmonProfileResult,
+} from "./useQuizmonProfile";
 import type { QuizmonOwnedMonsterRow } from "./types";
-import { healAllMonstersService } from "../../services/quizmonService";
+import { healAllMonstersService } from "./quizmonService";
 
-// useQuizmonProfile 훅의 반환값에서 profile / error / 함수 타입을 추론
-type UseQuizmonProfileResult = ReturnType<typeof useQuizmonProfile>;
+// useQuizmonProfile 훅의 반환값에서 프로필/함수 타입 추론
 type QuizmonProfile = UseQuizmonProfileResult["profile"];
 type QuizmonProfileError = UseQuizmonProfileResult["error"];
 type ApplyRaidResultFn = UseQuizmonProfileResult["applyRaidResult"];
 type ChooseStarterFn = UseQuizmonProfileResult["chooseStarter"];
+type BuyExpDustFn = UseQuizmonProfileResult["buyExpDust"];
+
+
 
 export type QuizmonContextValue = {
     profile: QuizmonProfile;
@@ -32,7 +37,9 @@ export type QuizmonContextValue = {
     collectionError: string | null;
     refreshMonsters: () => Promise<void>;
     healAllMonsters: () => Promise<void>;
+    buyExpDust: BuyExpDustFn; 
 };
+
 
 const QuizmonContext = createContext<QuizmonContextValue | undefined>(
     undefined,
@@ -57,6 +64,7 @@ export function QuizmonProvider({
         error: profileError,
         applyRaidResult,
         chooseStarter,
+        buyExpDust,
     } = useQuizmonProfile({
         classId,
         studentKey: studentId,
@@ -163,27 +171,26 @@ export function QuizmonProvider({
      * 모든 보유 몬스터 전체 회복
      */
 
-        // QuizmonProvider.tsx 안 healAllMonsters 부분만 교체
-
     const healAllMonsters = useCallback(async () => {
-            if (!profile?.id || !isStudent) return;
+        if (!profile?.id || !isStudent) return;
 
-            setCollectionError(null);
-            setCollectionLoading(true);
-            try {
-                await healAllMonstersService(profile.id);
-                await refreshMonsters();
-            } catch (e) {
-                console.error("[QuizmonProvider] healAllMonsters error", e);
-                let message = "몬스터를 회복하는 중 오류가 발생했습니다.";
-                if (e instanceof Error && e.message) {
-                    message = e.message;
-                }
-                setCollectionError(message);
-            } finally {
-                setCollectionLoading(false);
+        setCollectionError(null);
+        setCollectionLoading(true);
+        try {
+            await healAllMonstersService(profile.id);
+            await refreshMonsters();
+        } catch (e) {
+            console.error("[QuizmonProvider] healAllMonsters error", e);
+            let message = "몬스터를 회복하는 중 오류가 발생했습니다.";
+            if (e instanceof Error && e.message) {
+                message = e.message;
             }
-        }, [profile?.id, isStudent, refreshMonsters]);
+            setCollectionError(message);
+        } finally {
+            setCollectionLoading(false);
+        }
+    }, [profile?.id, isStudent, refreshMonsters]);
+
 
 
     const value: QuizmonContextValue = {
@@ -197,6 +204,7 @@ export function QuizmonProvider({
         collectionError,
         refreshMonsters,
         healAllMonsters,
+        buyExpDust,
     };
 
     return (
