@@ -160,9 +160,6 @@ export async function loadBattlePartyForProfile(
         const battleMon = buildBattleMonsterFromSpecies(
             species,
             ownedMon,
-            {
-                partySlot: ownedMon.party_slot,
-            },
         );
 
         // ✅ null 가드 + BattlePartyMonster로 캐스팅

@@ -6,7 +6,7 @@ import type {
     QuizmonSpeciesRow,
 } from "./types";
 import { calcDerivedStats } from "./stats";
-import { MOVE_DB } from "./moveData"; // <- 실제 프로젝트에 맞는 move 데이터 소스 사용
+import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 
 export type BattleMonsterCore = Monster;
 export type QuizmonSpeciesLike = QuizmonSpeciesRow;
@@ -14,74 +14,136 @@ export type QuizmonSpeciesLike = QuizmonSpeciesRow;
 const MAX_EQUIPPED_MOVES = 4;
 
 /**
- * species + owned 정보를 기반으로 전투용 Monster 빌드
- * - owned.equipped_moves에 적힌 move id만 실제 moves에 반영
- * - equipped_moves가 비어 있으면 default move로 채움
+ * Move 배열을 id 기준으로 중복 제거
+ */
+function dedupMoves(moves: (Move | null | undefined)[]): Move[] {
+    const map = new Map<string, Move>();
+    for (const m of moves) {
+        if (!m) continue;
+        map.set(m.id, m);
+    }
+    return Array.from(map.values());
+}
+
+/**
+ * 배틀에서 사용할 기술 목록 결정
+ *
+ * 우선순위:
+ *  1) equipped_moves 가 있으면 → 그 id 순서대로 장착 (MOVE_DB lookup)
+ *  2) 없으면: 종 + 레벨 기준 레벨업 기술 + learned_moves (TM 등)
+ *  3) 아무 것도 없으면: tackle 등 기본기 1개라도 보장
+ */
+function resolveMovesForBattle(
+    species: QuizmonSpeciesRow,
+    owned?: QuizmonOwnedMonsterRow | null,
+): Move[] {
+    const anySpecies: any = species;
+    const level = owned?.level ?? anySpecies.base_level ?? 1;
+
+    // 1) 기본: 종 + 레벨 기반 자동 기술 (코드에서 계산)
+    const baseFromLearnset = getMovesForSpeciesAndLevel(species.id, level);
+
+    // 2) (선택) 추가로 배운 기술 (TM 등)
+    const learnedIds: string[] = Array.isArray(owned?.learned_moves)
+        ? owned!.learned_moves
+        : [];
+    const learnedMoves: Move[] = learnedIds
+        .map((id) => MOVE_DB[id])
+        .filter((m): m is Move => !!m);
+
+    // 3) equipped_moves 가 지정되어 있으면, 그것만 사용 (id 배열)
+    const equippedIds: string[] = Array.isArray(owned?.equipped_moves)
+        ? owned!.equipped_moves
+        : [];
+
+    if (equippedIds.length > 0) {
+        const equippedMoves: Move[] = equippedIds
+            .map((id) => MOVE_DB[id])
+            .filter((m): m is Move => !!m);
+
+        const deduped = dedupMoves(equippedMoves).slice(0, MAX_EQUIPPED_MOVES);
+        if (deduped.length > 0) {
+            return deduped;
+        }
+    }
+
+    // 4) 장착 정보가 없으면: 레벨업 기술 + learned_moves 합쳐서 뒤에서 4개 사용
+    const merged = dedupMoves([...baseFromLearnset, ...learnedMoves]);
+    let trimmed = merged.slice(-MAX_EQUIPPED_MOVES);
+
+    // 5) 그래도 아무것도 없으면: tackle 등 기본기 하나라도
+    if (trimmed.length === 0) {
+        const fallback = MOVE_DB["tackle"] ?? Object.values(MOVE_DB)[0];
+        if (fallback) {
+            trimmed = [fallback];
+        }
+    }
+
+    return trimmed;
+}
+
+/**
+ * 종 + 소유 개체 정보로 배틀용 Monster를 생성
+ *
+ * - 레벨 / 스탯: calcDerivedStats 로 계산
+ * - HP:
+ *   - owned.current_hp 가 있으면 그대로 사용
+ *   - 없으면 maxHp로 초기화
+ * - 기술:
+ *   - 위의 resolveMovesForBattle 로 결정
  */
 export function buildBattleMonsterFromSpecies(
     species: QuizmonSpeciesRow,
     owned?: QuizmonOwnedMonsterRow | null,
-    extra?: any,
-): Monster | null {
-    if (!species) return null;
-    const anySpecies = species as any;
+    extra?: Partial<Monster>,
+): Monster {
+    const anySpecies: any = species;
+    const level = owned?.level ?? anySpecies.base_level ?? 1;
 
-    const level = owned?.level ?? 1;
     const derived = calcDerivedStats(species, level);
 
-    // 🔹 장착 기술 선택
-    const equippedIds: string[] =
-        (owned as any)?.equipped_moves && Array.isArray((owned as any).equipped_moves)
-            ? ((owned as any).equipped_moves as string[])
-            : [];
+    const currentHp =
+        typeof owned?.current_hp === "number" && owned.current_hp > 0
+            ? owned.current_hp
+            : derived.maxHp;
 
-    let moves: Move[] = [];
+    const moves = resolveMovesForBattle(species, owned);
 
-    if (equippedIds.length > 0) {
-        // equipped_moves에 적힌 ID 순서대로 Move 매핑
-        moves = equippedIds
-            .map((id) => MOVE_DB[id])
-            .filter((m): m is Move => !!m);
-    }
-
-    // 아무것도 장착 안 되어 있으면 species의 기본 기술로 채우기
-    if (moves.length === 0) {
-        const defaultIds: string[] =
-            (anySpecies.default_moves as string[] | null) ?? [];
-        moves = defaultIds
-            .slice(0, MAX_EQUIPPED_MOVES)
-            .map((id) => MOVE_DB[id])
-            .filter((m): m is Move => !!m);
-    }
-
-    // 최악의 경우에도 1개는 보장
-    if (moves.length === 0) {
-        const fallback = MOVE_DB["tackle"];
-        if (fallback) moves.push(fallback);
-    }
-
-    const currentHp = owned?.current_hp ?? derived.maxHp;
-    
     const baseMonster: Monster = {
+        // 기본 전투 상태값
         accStage: 0,
         evaStage: 0,
         exp: owned?.exp ?? 0,
-        hp: currentHp,                 // ✅ 현재 체력
+
+        // HP
+        hp: currentHp,
+        maxHp: derived.maxHp,
+        currentHp,
+
+        // 식별자 / 메타
         id: owned?.id ?? `wild-${species.id}`,
-        name: anySpecies.name ?? `몬스터 ${species.id}`,
+        name:
+            anySpecies.display_name ??
+            anySpecies.name ??
+            `몬스터 ${species.id}`,
         speciesId: species.id,
         level,
         element: anySpecies.element ?? "normal",
-        maxHp: derived.maxHp,
-        currentHp,                     // ✅ optional 필드도 같이 세팅
+
+        // 스탯
         atk: derived.atk,
         def: derived.def,
         spd: derived.spd,
+
+        // 기술
         moves,
-        // 나머지 필드는 필요 시 extra로 병합
+
+        // extra 로 덮어쓸 수 있도록 최소 필드만 채움
     };
 
-    const monster: Monster = extra ? { ...baseMonster, ...extra } : baseMonster;
+    const monster: Monster = extra
+        ? ({ ...baseMonster, ...extra } as Monster)
+        : baseMonster;
 
     return monster;
 }

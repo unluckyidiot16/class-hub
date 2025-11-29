@@ -5,12 +5,16 @@ import type {
 } from "./types";
 import { PartyAndDexPanel } from "./PartyAndDexPanel";
 import { ProfileTab } from "./ProfileTab";
+import {InventoryTab} from "./InventoryTab.tsx";
+import { useEffect, useState } from "react";
+import { loadPowerItemCounts } from "./quizmonService";
 
-type MenuTabKey = "menu" | "monsters" | "dex" | "profile";
+
+type MainTabKey = "menu" | "monsters" | "dex" | "inventory" | "profile";
 
 export type QuizMonLobbyOverlayProps = {
-    menuTab: MenuTabKey;
-    onMenuTabChange: (tab: MenuTabKey) => void;
+    menuTab: MainTabKey;
+    onMenuTabChange: (tab: MainTabKey) => void;
 
     localProfile: QuizmonProfileRow | null;
     profile: QuizmonProfileRow | null;
@@ -29,7 +33,7 @@ export type QuizMonLobbyOverlayProps = {
 
     lastRaidResult?: { correct: number; total: number } | null;
     onOpenLevelUpModal: () => void;
-    onBuyExpDust?: () => void;
+    onBuyExpDust?: (quantity?: number) => Promise<void> | void;
 };
 
 export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
@@ -59,6 +63,62 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
     const trainerName =
         effectiveProfile?.trainer_name ?? "미지의 트레이너";
 
+    /** 🔹 인벤토리 수량: Exp Dust / 레어 캔디 */
+    const [xpDustCount, setXpDustCount] = useState(0);
+    const [rareCandyCount, setRareCandyCount] = useState(0);
+
+    useEffect(() => {
+        if (!effectiveProfile?.id) {
+            setXpDustCount(0);
+            setRareCandyCount(0);
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadInventory = async () => {
+            try {
+                const { expDustCount, rareCandyCount } =
+                    await loadPowerItemCounts(effectiveProfile.id);
+                if (cancelled) return;
+                setXpDustCount(expDustCount);
+                setRareCandyCount(rareCandyCount);
+            } catch (err) {
+                if (cancelled) return;
+                console.error(
+                    "[QuizMonLobbyOverlay] loadPowerItemCounts error",
+                    err,
+                );
+                setXpDustCount(0);
+                setRareCandyCount(0);
+            }
+        };
+
+        void loadInventory();
+        return () => {
+            cancelled = true;
+        };
+    }, [effectiveProfile?.id]);
+
+    /** 🔹 인벤토리 탭 / 프로필 탭에서 공용으로 쓸 구매 핸들러 */
+    const handleBuyExpDust = async (quantity = 1) => {
+        if (!onBuyExpDust) return;
+        await onBuyExpDust(quantity);
+
+        if (!effectiveProfile?.id) return;
+        try {
+            const { expDustCount, rareCandyCount } =
+                await loadPowerItemCounts(effectiveProfile.id);
+            setXpDustCount(expDustCount);
+            setRareCandyCount(rareCandyCount);
+        } catch (err) {
+            console.error(
+                "[QuizMonLobbyOverlay] reload inventory error",
+                err,
+            );
+        }
+    };
+    
     return (
         <div
             style={{
@@ -120,13 +180,14 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 { key: "menu", label: "메뉴" },
                                 { key: "monsters", label: "몬스터" },
                                 { key: "dex", label: "도감" },
+                                { key: "inventory", label: "인벤토리" },
                                 { key: "profile", label: "프로필" },
                             ].map((tab) => (
                                 <button
                                     key={tab.key}
                                     type="button"
                                     onClick={() =>
-                                        onMenuTabChange(tab.key as MenuTabKey)
+                                        onMenuTabChange(tab.key as MainTabKey)
                                     }
                                     style={{
                                         padding: "4px 10px",
@@ -281,10 +342,26 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             profile={effectiveProfile}
                             lastRaidResult={lastRaidResult}
                             onOpenLevelUpModal={onOpenLevelUpModal}
-                            onBuyExpDust={onBuyExpDust}
+                            onBuyExpDust={handleBuyExpDust}
                         />
                     )}
-                    {/* 도감 탭(menuTab === "dex")은 아직 별도 내용 없음 */}
+
+                    {/* 인벤토리 탭 */}
+                    {menuTab === "inventory" && (
+                        <div
+                            style={{
+                                flex: 1,
+                                overflow: "auto",
+                            }}
+                        >
+                            <InventoryTab
+                                profile={effectiveProfile}
+                                xpDustCount={xpDustCount}
+                                rareCandyCount={rareCandyCount}
+                                onBuyExpDust={handleBuyExpDust}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

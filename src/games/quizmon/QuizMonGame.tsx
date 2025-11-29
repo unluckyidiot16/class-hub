@@ -152,7 +152,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
 
-    const [menuTab, setMenuTab] = useState<"menu" | "monsters" | "dex" | "profile">("menu");
+    type LobbyMenuTab = "menu" | "monsters" | "dex" | "inventory" | "profile";
+
+    const [menuTab, setMenuTab] = useState<LobbyMenuTab>("menu");
 
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
@@ -1097,9 +1099,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onBuyExpDust={handleBuyExpDust} // ⭐ 추가
                         />
                     )}
-
-
-
 
 
                     {/* 🏰 던전 선택 오버레이 */}

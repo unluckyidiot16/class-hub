@@ -11,13 +11,13 @@ import {
     levelUpMonsterMaxService,
     loadPowerItemCounts,
 } from "./quizmonService";
-import { MOVE_DB } from "./moveData"; // ✅ 추가
-
+import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 
 /** quizmon_owned_monsters 1마리를 UI용으로 가공 */
 type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
     displayName: string;
     statusText: string;
+    currentHpText: string;
 };
 
 function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
@@ -34,18 +34,24 @@ function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     const isFainted = Boolean(anyMon.is_fainted);
 
     let statusText: string;
+    let currentHpText: string;
+
     if (isFainted) {
         statusText = "기절";
+        currentHpText = "0";
     } else if (hp == null) {
         statusText = "HP 풀피";
+        currentHpText = "풀피";
     } else {
         statusText = `HP ${hp}`;
+        currentHpText = String(hp);
     }
 
     return {
         ...mon,
         displayName,
         statusText,
+        currentHpText,
     };
 }
 
@@ -77,7 +83,7 @@ export type PartyAndDexPanelProps = {
 };
 
 export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
-    const { profile } = props;
+    const { profile, onHealAll } = props;
 
     const enhancedMonsters = useMemo(
         () => (props.monsters ?? []).map((m) => enhanceOwned(m)),
@@ -109,14 +115,16 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         buildInitialPartyIds(props.monsters),
     );
 
-    // partyIds 변경 시 DB에 저장
+    // partyIds 변경 시 DB에 저장 (자동 저장)
     useEffect(() => {
         if (!props.onSaveParty) return;
         void props.onSaveParty(partyIds);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [partyIds]);
 
-    function getMonsterInSlot(slotIndex: number): EnhancedOwnedMonster | null {
+    function getMonsterInSlot(
+        slotIndex: number,
+    ): EnhancedOwnedMonster | null {
         const id = partyIds[slotIndex];
         if (!id) return null;
         return enhancedMonsters.find((m) => m.id === id) ?? null;
@@ -151,108 +159,89 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         });
     }
 
-    /** 지정 슬롯 비우기 */
-    function handleRemoveFromParty(index: number) {
-        setPartyIds((prev) => {
-            const next = [...prev];
-            next[index] = null;
-            return next;
-        });
+    /** 도감에서 몬스터 선택 */
+    function handleDexClick(id: string) {
+        setSelectedId(id);
     }
 
-    /** 도감 카드 클릭 → 선택만 변경 */
-    function handleDexClick(mon: EnhancedOwnedMonster) {
-        setSelectedId(mon.id);
-    }
+    const selectedSlotIndex =
+        selected ? partyIds.findIndex((id) => id === selected.id) : -1;
 
-    /** 선택된 몬스터가 몇 번 슬롯에 있는지 */
-    function findSelectedSlotIndex(): number | null {
-        if (!selected) return null;
-        const idx = partyIds.findIndex((id) => id === selected.id);
-        return idx === -1 ? null : idx;
-    }
+    const ownedCount = enhancedMonsters.length;
 
-    const dexEntries = enhancedMonsters;
-    const trainerName =
-        profile?.trainer_name ?? "미지의 트레이너";
-    const ownedCount = dexEntries.length;
-
-    const selectedSlotIndex = findSelectedSlotIndex();
-
-    // ===== 인벤토리 (Exp Dust / 레어 캔디) + 레벨업 모달 상태 =====
-    const [levelModalOpen, setLevelModalOpen] = useState(false);
-    const [inventoryLoading, setInventoryLoading] = useState(false);
-    const [inventoryError, setInventoryError] = useState<string | null>(null);
+    // ---------------- 인벤토리 / 레벨업 관련 상태 ----------------
     const [expDustCount, setExpDustCount] = useState(0);
     const [rareCandyCount, setRareCandyCount] = useState(0);
+    const [inventoryLoading, setInventoryLoading] = useState(false);
+    const [inventoryError, setInventoryError] = useState<string | null>(
+        null,
+    );
 
-    // 🔹 레벨업 전/후 기술 비교용
-    const [baseLearnedMoves, setBaseLearnedMoves] = useState<string[]>([]);
-    const [newlyLearnedMoves, setNewlyLearnedMoves] = useState<string[]>([]);
-    const [lastLevelUpResult, setLastLevelUpResult] = useState<any | null>(null);
+    const totalPowerItems = expDustCount + rareCandyCount;
 
-// ✅ 프로필 기준 인벤토리 집계 (quizmonService 사용)
+    // 레벨업 전 기술 목록 (species + level 기준 코드 계산)
+    const [baseLearnedMoves, setBaseLearnedMoves] = useState<string[]>(
+        [],
+    );
+    const [newlyLearnedMoves, setNewlyLearnedMoves] = useState<string[]>(
+        [],
+    );
+    const [lastLevelUpResult, setLastLevelUpResult] = useState<any | null>(
+        null,
+    );
+
+    // 인벤토리 로딩
     useEffect(() => {
-        if (!profile?.id) {
-            setExpDustCount(0);
-            setRareCandyCount(0);
-            return;
-        }
+        if (!profile) return;
 
         let cancelled = false;
-
-        const loadInventory = async () => {
-            setInventoryLoading(true);
-            setInventoryError(null);
+        (async () => {
             try {
-                const { expDustCount, rareCandyCount } =
-                    await loadPowerItemCounts(profile.id);
+                setInventoryLoading(true);
+                setInventoryError(null);
+                const res = await loadPowerItemCounts(profile.id);
                 if (cancelled) return;
-
-                setExpDustCount(expDustCount);
-                setRareCandyCount(rareCandyCount);
-            } catch (err: any) {
+                setExpDustCount(res.expDustCount ?? 0);
+                setRareCandyCount(res.rareCandyCount ?? 0);
+            } catch (e: any) {
                 if (cancelled) return;
                 console.error(
                     "[PartyAndDexPanel] loadPowerItemCounts error",
-                    err,
+                    e,
                 );
                 setInventoryError(
-                    err?.message ??
-                    "인벤토리를 불러오는 중 오류가 발생했습니다.",
+                    e?.message ??
+                    "인벤토리 정보를 불러오는 중 오류가 발생했습니다.",
                 );
-                setExpDustCount(0);
-                setRareCandyCount(0);
             } finally {
                 if (!cancelled) {
                     setInventoryLoading(false);
                 }
             }
-        };
+        })();
 
-        void loadInventory();
         return () => {
             cancelled = true;
         };
-    }, [profile?.id]);
+    }, [profile]);
 
-
-    const totalPowerItems = expDustCount + rareCandyCount;
+    // 레벨업 모달
+    const [levelModalOpen, setLevelModalOpen] = useState(false);
 
     const handleOpenLevelModal = () => {
         if (!selected) return;
         if (totalPowerItems <= 0) return;
 
-        // 이번 모달에서 기준이 될 "레벨업 전" 기술 목록 저장
-        const base = Array.isArray(selected.learned_moves)
-            ? selected.learned_moves
-            : [];
-        setBaseLearnedMoves(base);
+        // 현재 종+레벨 기준으로 배운 기술 목록 계산
+        const baseMoveObjs = getMovesForSpeciesAndLevel(
+            selected.species_id,
+            selected.level,
+        );
+        const base = baseMoveObjs.map((m) => m.id);
 
-        // 이전 결과 초기화
+        setBaseLearnedMoves(base);
         setNewlyLearnedMoves([]);
         setLastLevelUpResult(null);
-
         setLevelModalOpen(true);
     };
 
@@ -308,12 +297,13 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     setRareCandyCount(lastResult.remainingRareCandy);
                 }
 
-                // 🔹 새로 배운 기술 계산 (레벨업 전 baseLearnedMoves vs 레벨업 후)
-                const afterMoves: string[] = Array.isArray(
-                    lastResult.monster?.learned_moves,
-                )
-                    ? lastResult.monster.learned_moves
-                    : [];
+                // 레벨업 이후: 종+레벨 기준 배운 기술 목록 재계산
+                const afterMoveObjs = getMovesForSpeciesAndLevel(
+                    lastResult.monster.species_id,
+                    lastResult.monster.level,
+                );
+                const afterMoves = afterMoveObjs.map((m) => m.id);
+
                 const baseMoves = Array.isArray(baseLearnedMoves)
                     ? baseLearnedMoves
                     : [];
@@ -326,9 +316,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 setNewlyLearnedMoves(newly);
             }
 
-            // ❌ 자동으로 모달을 닫지 않고, 결과를 모달 안에서 보여주도록 둔다
-            // setLevelModalOpen(false);
-            
+            // 모달은 자동으로 닫지 않고 안에서 결과를 보여줌
         } catch (e: any) {
             console.error("[PartyAndDexPanel] handleConfirmLevelUp error", e);
             setInventoryError(
@@ -338,6 +326,15 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             setLevelBusy(false);
         }
     };
+
+    // 도감 정렬 (레벨 높은 순)
+    const dexList = useMemo(
+        () =>
+            [...enhancedMonsters].sort(
+                (a, b) => (b.level ?? 1) - (a.level ?? 1),
+            ),
+        [enhancedMonsters],
+    );
 
     return (
         <>
@@ -352,20 +349,22 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 {/* 상단: 파티 / 선택 파트너 / 인벤토리 */}
                 <div
                     style={{
-                        display: "grid",
-                        gridTemplateColumns: "1.3fr 1fr 0.9fr",
+                        display: "flex",
+                        flexDirection: "row",
                         gap: "0.75rem",
-                        minHeight: 220,
+                        minHeight: 180,
                     }}
                 >
-                    {/* 왼쪽: 파티 리스트 */}
+                    {/* 왼쪽: 파티 슬롯 3칸 */}
                     <div
                         style={{
+                            width: 220,
                             borderRadius: 12,
-                            border: "1px solid rgba(148,163,184,0.5)",
-                            padding: "0.75rem 0.75rem 0.5rem",
+                            border: "1px solid rgba(148,163,184,0.6)",
+                            padding: "0.75rem",
                             background:
-                                "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,64,175,0.75))",
+                                "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,64,175,0.85))",
+                            color: "#e5e7eb",
                             display: "flex",
                             flexDirection: "column",
                             gap: "0.5rem",
@@ -373,175 +372,199 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     >
                         <div
                             style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
                                 fontSize: "0.85rem",
-                                color: "#e5e7eb",
                             }}
                         >
-                            내 파트너 / 파티
-                        </div>
-                        <div
-                            style={{
-                                fontSize: "0.75rem",
-                                color: "#9ca3af",
-                                marginBottom: 4,
-                            }}
-                        >
-                            트레이너: {trainerName}
+                            <div>내 파티 (최대 3마리)</div>
+                            <div
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: "#cbd5f5",
+                                }}
+                            >
+                                편성{" "}
+                                {
+                                    partyIds.filter((id) => id !== null)
+                                        .length
+                                }
+                                /3
+                            </div>
                         </div>
 
                         <div
                             style={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "0.4rem",
+                                gap: "0.35rem",
                             }}
                         >
-                            {[0, 1, 2].map((slotIndex) => {
-                                const mon =
-                                    getMonsterInSlot(slotIndex);
-                                const label = mon
-                                    ? mon.displayName
-                                    : "빈 슬롯";
-                                const subtitle = mon
-                                    ? `Lv.${mon.level} · ${mon.statusText}`
-                                    : "도감에서 몬스터를 선택하면 자동으로 배치됩니다.";
-                                const iconUrl = mon
-                                    ? getMonsterIcon(mon.species_id)
-                                    : null;
-
+                            {[0, 1, 2].map((index) => {
+                                const slotMon = getMonsterInSlot(index);
                                 const isSelected =
-                                    mon && mon.id === selectedId;
+                                    selected &&
+                                    slotMon &&
+                                    selected.id === slotMon.id;
+
+                                let iconUrl: string | null = null;
+                                if (slotMon) {
+                                    iconUrl = getMonsterIcon(
+                                        slotMon.species_id,
+                                    );
+                                }
 
                                 return (
                                     <button
-                                        key={slotIndex}
+                                        key={index}
                                         type="button"
                                         onClick={() =>
-                                            handlePartySlotClick(
-                                                slotIndex,
-                                            )
+                                            handlePartySlotClick(index)
                                         }
                                         style={{
-                                            width: "100%",
-                                            borderRadius: 999,
-                                            padding:
-                                                "0.4rem 0.75rem",
-                                            border: mon
-                                                ? isSelected
-                                                    ? "2px solid rgba(252,211,77,0.95)"
-                                                    : "1px solid rgba(55,65,81,0.9)"
-                                                : "1px dashed rgba(75,85,99,0.9)",
-                                            background: mon
-                                                ? "linear-gradient(90deg, rgba(30,64,175,0.95), rgba(17,24,39,0.95))"
-                                                : "rgba(15,23,42,0.9)",
                                             display: "flex",
                                             alignItems: "center",
-                                            justifyContent:
-                                                "space-between",
-                                            gap: "0.75rem",
-                                            color: "#e5e7eb",
+                                            gap: "0.5rem",
+                                            padding:
+                                                "0.35rem 0.55rem",
+                                            borderRadius: 999,
+                                            border: isSelected
+                                                ? "1px solid rgba(248,250,252,0.9)"
+                                                : "1px solid rgba(148,163,184,0.8)",
+                                            backgroundColor: slotMon
+                                                ? "rgba(15,23,42,0.9)"
+                                                : "rgba(15,23,42,0.6)",
+                                            cursor: "pointer",
                                         }}
                                     >
-                                        {/* 왼쪽: 아이콘 + 이름/HP */}
                                         <div
                                             style={{
+                                                width: 32,
+                                                height: 32,
+                                                borderRadius: 999,
+                                                backgroundColor:
+                                                    "rgba(15,23,42,0.9)",
+                                                border: "1px solid rgba(148,163,184,0.9)",
                                                 display: "flex",
                                                 alignItems: "center",
-                                                gap: "0.5rem",
+                                                justifyContent:
+                                                    "center",
+                                                overflow: "hidden",
                                             }}
                                         >
-                                            {iconUrl && (
+                                            {slotMon && iconUrl && (
                                                 <img
                                                     src={iconUrl}
-                                                    alt={label}
+                                                    alt={
+                                                        slotMon.displayName
+                                                    }
                                                     style={{
-                                                        width: 36,
-                                                        height: 36,
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        objectFit:
+                                                            "contain",
                                                         imageRendering:
                                                             "pixelated",
                                                     }}
                                                 />
                                             )}
-                                            {!iconUrl && (
+                                        </div>
+                                        {slotMon ? (
+                                            <>
                                                 <div
                                                     style={{
-                                                        width: 30,
-                                                        height: 30,
-                                                        borderRadius:
-                                                            999,
-                                                        border:
-                                                            "1px dashed rgba(75,85,99,0.9)",
-                                                        display:
-                                                            "flex",
-                                                        alignItems:
-                                                            "center",
-                                                        justifyContent:
-                                                            "center",
-                                                        fontSize:
-                                                            "0.9rem",
-                                                        color: "#9ca3af",
+                                                        flex: 1,
+                                                        minWidth: 0,
                                                     }}
                                                 >
-                                                    +
+                                                    <div
+                                                        style={{
+                                                            fontSize:
+                                                                "0.78rem",
+                                                            fontWeight: 600,
+                                                            whiteSpace:
+                                                                "nowrap",
+                                                            textOverflow:
+                                                                "ellipsis",
+                                                            overflow:
+                                                                "hidden",
+                                                        }}
+                                                    >
+                                                        {
+                                                            slotMon.displayName
+                                                        }
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontSize:
+                                                                "0.7rem",
+                                                            color: slotMon.is_fainted
+                                                                ? "#fecaca"
+                                                                : "#bbf7d0",
+                                                        }}
+                                                    >
+                                                        {slotMon.is_fainted
+                                                            ? "기절"
+                                                            : `HP ${slotMon.currentHpText}`}
+                                                    </div>
                                                 </div>
-                                            )}
+                                                <div
+                                                    style={{
+                                                        fontSize:
+                                                            "0.7rem",
+                                                        color:
+                                                            "#9ca3af",
+                                                    }}
+                                                >
+                                                    #{index + 1}
+                                                </div>
+                                            </>
+                                        ) : (
                                             <div
                                                 style={{
-                                                    textAlign: "left",
+                                                    fontSize:
+                                                        "0.7rem",
+                                                    color: "#64748b",
+                                                    paddingTop: 4,
+                                                    paddingBottom: 4,
                                                 }}
                                             >
-                                                <div
-                                                    style={{
-                                                        fontSize:
-                                                            "0.85rem",
-                                                        fontWeight: 600,
-                                                    }}
-                                                >
-                                                    {label}
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        fontSize:
-                                                            "0.75rem",
-                                                        opacity: 0.9,
-                                                    }}
-                                                >
-                                                    {subtitle}
-                                                </div>
+                                                비어 있음
                                             </div>
-                                        </div>
-
-                                        {/* 오른쪽: 파티 n번 텍스트 */}
-                                        <div
-                                            style={{
-                                                fontSize:
-                                                    "0.7rem",
-                                                color: "#cbd5f5",
-                                                whiteSpace:
-                                                    "nowrap",
-                                            }}
-                                        >
-                                            파티 {slotIndex + 1}
-                                            번
-                                        </div>
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
+
+                        <div
+                            style={{
+                                marginTop: "0.25rem",
+                                fontSize: "0.75rem",
+                                color: "#9ca3af",
+                            }}
+                        >
+                            파티 슬롯을 클릭한 뒤 아래 도감에서
+                            교체할 몬스터를 선택하면 자리가
+                            바뀝니다. 파티 변경 사항은 자동으로
+                            저장됩니다.
+                        </div>
                     </div>
 
-                    {/* 가운데: 선택한 파트너 상세 + 회복 버튼 */}
+                    {/* 가운데: 선택 파트너 요약 */}
                     <div
                         style={{
+                            flex: 1,
                             borderRadius: 12,
-                            border: "1px solid rgba(148,163,184,0.5)",
+                            border: "1px solid rgba(148,163,184,0.6)",
                             padding: "0.75rem",
                             background:
-                                "radial-gradient(circle at top, rgba(55,65,81,0.9), rgba(15,23,42,0.96))",
+                                "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,64,175,0.85))",
                             color: "#e5e7eb",
                             display: "flex",
                             flexDirection: "column",
-                            gap: "0.45rem",
+                            gap: "0.5rem",
                         }}
                     >
                         <div
@@ -549,54 +572,22 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
+                                fontSize: "0.85rem",
                             }}
                         >
+                            <div>선택한 파트너</div>
                             <div
                                 style={{
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.75rem",
+                                    color: "#cbd5f5",
                                 }}
                             >
-                                선택한 파트너
+                                보유 {ownedCount}마리
                             </div>
-                            {selectedSlotIndex !== null && (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        handleRemoveFromParty(
-                                            selectedSlotIndex,
-                                        )
-                                    }
-                                    style={{
-                                        padding:
-                                            "0.25rem 0.9rem",
-                                        borderRadius: 999,
-                                        border: "none",
-                                        fontSize: "0.7rem",
-                                        background:
-                                            "rgba(156,163,175,0.25)",
-                                        color: "#e5e7eb",
-                                    }}
-                                >
-                                    파티 {selectedSlotIndex + 1}
-                                    번에서 빼기
-                                </button>
-                            )}
                         </div>
 
-                        {!selected && (
-                            <div
-                                style={{
-                                    fontSize: "0.8rem",
-                                    opacity: 0.75,
-                                }}
-                            >
-                                아래 도감에서 몬스터를 선택하면
-                                상세 정보를 볼 수 있습니다.
-                            </div>
-                        )}
-
-                        {selected && (
-                            <>
+                        {selected ? (
+                            <div>
                                 <div
                                     style={{
                                         display: "flex",
@@ -605,49 +596,143 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         marginTop: 4,
                                     }}
                                 >
-                                    {(() => {
-                                        const iconUrl =
-                                            getMonsterIcon(
-                                                selected.species_id,
-                                            );
-                                        return (
-                                            iconUrl && (
+                                    <div
+                                        style={{
+                                            width: 56,
+                                            height: 56,
+                                            borderRadius: 12,
+                                            background:
+                                                "rgba(15,23,42,0.9)",
+                                            border: "1px solid rgba(148,163,184,0.9)",
+                                            overflow: "hidden",
+                                            boxShadow:
+                                                "0 0 0 1px rgba(59,130,246,0.5)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        {(() => {
+                                            const iconUrl =
+                                                getMonsterIcon(
+                                                    selected.species_id,
+                                                );
+                                            if (!iconUrl) return null;
+                                            return (
                                                 <img
                                                     src={iconUrl}
                                                     alt={
                                                         selected.displayName
                                                     }
                                                     style={{
-                                                        width: 56,
-                                                        height: 56,
+                                                        width: "100%",
+                                                        height: "100%",
+                                                        objectFit:
+                                                            "contain",
                                                         imageRendering:
                                                             "pixelated",
                                                     }}
                                                 />
-                                            )
-                                        );
-                                    })()}
-                                    <div>
+                                            );
+                                        })()}
+                                    </div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 2,
+                                        }}
+                                    >
                                         <div
                                             style={{
-                                                fontSize: "0.95rem",
+                                                fontSize: "0.9rem",
                                                 fontWeight: 600,
                                             }}
                                         >
                                             {selected.displayName}
                                         </div>
+
+                                        {/* 레벨 + 상태 + 레벨업 버튼 */}
                                         <div
                                             style={{
-                                                fontSize: "0.8rem",
-                                                opacity: 0.9,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                flexWrap: "wrap",
+                                                gap: 6,
+                                                marginTop: 2,
                                             }}
                                         >
-                                            Lv.{selected.level} ·{" "}
-                                            {selected.statusText}
+                                            <div
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    opacity: 0.9,
+                                                }}
+                                            >
+                                                Lv.{selected.level} ·{" "}
+                                                {selected.statusText}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    handleOpenLevelModal
+                                                }
+                                                disabled={
+                                                    totalPowerItems ===
+                                                    0 ||
+                                                    inventoryLoading
+                                                }
+                                                style={{
+                                                    padding:
+                                                        "0.3rem 0.6rem",
+                                                    borderRadius: 999,
+                                                    border: "none",
+                                                    fontSize: "0.75rem",
+                                                    fontWeight: 600,
+                                                    cursor:
+                                                        totalPowerItems ===
+                                                        0 ||
+                                                        inventoryLoading
+                                                            ? "not-allowed"
+                                                            : "pointer",
+                                                    background:
+                                                        totalPowerItems ===
+                                                        0 ||
+                                                        inventoryLoading
+                                                            ? "rgba(75,85,99,0.9)"
+                                                            : "linear-gradient(90deg, #22c55e, #16a34a)",
+                                                    color: "#f9fafb",
+                                                    opacity:
+                                                        totalPowerItems ===
+                                                        0 ||
+                                                        inventoryLoading
+                                                            ? 0.6
+                                                            : 1,
+                                                }}
+                                            >
+                                                레벨 업
+                                            </button>
+                                        </div>
+
+                                        {/* HP / 파티슬롯 정보 */}
+                                        <div
+                                            style={{
+                                                fontSize: "0.75rem",
+                                                marginTop: 4,
+                                                color: "#cbd5f5",
+                                            }}
+                                        >
+                                            HP {selected.currentHpText}
+                                            {" · "}
+                                            파티 슬롯{" "}
+                                            {selectedSlotIndex >= 0
+                                                ? selectedSlotIndex +
+                                                1
+                                                : "편성 안 됨"}
                                         </div>
                                     </div>
                                 </div>
 
+                                {/* 회복 버튼 */}
                                 <div
                                     style={{
                                         display: "flex",
@@ -656,21 +741,20 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         marginTop: 8,
                                     }}
                                 >
-                                    {props.onHealAll && (
+                                    {onHealAll && (
                                         <button
                                             type="button"
-                                            onClick={
-                                                props.onHealAll
-                                            }
+                                            onClick={onHealAll}
                                             style={{
                                                 padding:
-                                                    "0.35rem 0.95rem",
+                                                    "0.35rem 0.7rem",
                                                 borderRadius: 999,
-                                                border: "none",
+                                                border: "1px solid rgba(148,163,184,0.9)",
+                                                backgroundColor:
+                                                    "rgba(15,23,42,0.9)",
+                                                color: "#e5e7eb",
                                                 fontSize: "0.75rem",
-                                                background:
-                                                    "linear-gradient(90deg, #22c55e, #16a34a)",
-                                                color: "white",
+                                                cursor: "pointer",
                                             }}
                                         >
                                             전체 회복
@@ -678,24 +762,37 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     )}
                                 </div>
 
+                                {/* 선택 파트너 상세 설명 (추후 확장 자리) */}
                                 <div
                                     style={{
                                         fontSize: "0.75rem",
-                                        opacity: 0.9,
+                                        color: "#cbd5f5",
                                         marginTop: 6,
                                     }}
                                 >
-                                    앞으로는 여기에서 개체 값,
-                                    성장, 레이드 기록 등을 자세히
-                                    보여 줄 예정입니다.
+                                    앞으로는 여기에서 개체 값, 성장,
+                                    레이드 기록, 배운 기술과 능력치를
+                                    자세히 보여 줄 예정입니다.
                                 </div>
-                            </>
+                            </div>
+                        ) : (
+                            <div
+                                style={{
+                                    marginTop: 12,
+                                    fontSize: "0.8rem",
+                                    color: "#9ca3af",
+                                }}
+                            >
+                                아래 도감에서 몬스터를 선택하면 이
+                                영역에 상세 정보가 표시됩니다.
+                            </div>
                         )}
                     </div>
 
-                    {/* 오른쪽: 인벤토리 패널 (경험치 아이템) */}
+                    {/* 오른쪽: 인벤토리 패널 (강화 아이템) */}
                     <div
                         style={{
+                            width: 220,
                             borderRadius: 12,
                             border: "1px solid rgba(148,163,184,0.5)",
                             padding: "0.75rem",
@@ -771,7 +868,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         color: "#9ca3af",
                                     }}
                                 >
-                                    인벤토리를 불러오는 중...
+                                    인벤토리를 불러오는 중.
                                 </div>
                             )}
                             {inventoryError && (
@@ -792,10 +889,10 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 color: "#cbd5f5",
                             }}
                         >
-                            Exp Dust와 레어 캔디를 사용해
-                            선택한 포켓몬의 레벨을 올릴 수
-                            있습니다. 아래 버튼을 눌러 레벨업
-                            슬라이더를 열어 보세요.
+                            Exp Dust와 레어 캔디를 사용해 선택한
+                            포켓몬의 레벨을 올릴 수 있습니다. 아래
+                            버튼을 눌러 레벨업 슬라이더를 열어
+                            보세요.
                         </div>
 
                         <button
@@ -834,7 +931,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         : 1,
                             }}
                         >
-                            레벨 업 모달 열기
+                            선택 파트너 레벨 업
                         </button>
                     </div>
                 </div>
@@ -860,183 +957,180 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             justifyContent: "space-between",
                             alignItems: "center",
                             fontSize: "0.85rem",
-                            color: "#e5e7eb",
+                            marginBottom: 2,
                         }}
                     >
                         <div>도감 / 보유 몬스터</div>
                         <div
                             style={{
                                 fontSize: "0.75rem",
-                                color: "#9ca3af",
+                                color: "#cbd5f5",
                             }}
                         >
-                            소유 {ownedCount}종
+                            총 {dexList.length}마리
                         </div>
                     </div>
 
                     <div
                         style={{
                             flex: 1,
-                            borderRadius: 8,
-                            background: "rgba(15,23,42,0.9)",
-                            padding: "0.35rem",
-                            overflow: "auto",
+                            overflowY: "auto",
+                            paddingRight: 4,
                         }}
                     >
-                        {props.collectionLoading && (
+                        {dexList.length === 0 ? (
                             <div
                                 style={{
                                     fontSize: "0.8rem",
-                                    opacity: 0.8,
+                                    color: "#9ca3af",
                                 }}
                             >
-                                보유 몬스터를 불러오는 중...
+                                아직 보유한 몬스터가 없습니다. 가챠나
+                                레이드 보상으로 몬스터를 모아보세요.
                             </div>
-                        )}
-                        {props.collectionError && (
+                        ) : (
                             <div
                                 style={{
-                                    fontSize: "0.8rem",
-                                    color: "#fecaca",
+                                    display: "grid",
+                                    gridTemplateColumns:
+                                        "repeat(auto-fill, minmax(150px, 1fr))",
+                                    gap: "0.5rem",
                                 }}
                             >
-                                {props.collectionError}
-                            </div>
-                        )}
+                                {dexList.map((mon) => {
+                                    const isSelected =
+                                        selected &&
+                                        selected.id === mon.id;
 
-                        {!props.collectionLoading &&
-                            !props.collectionError &&
-                            dexEntries.length > 0 && (
-                                <div
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns:
-                                            "repeat(auto-fill, minmax(110px, 1fr))",
-                                        gap: "0.5rem",
-                                    }}
-                                >
-                                    {dexEntries.map((entry) => {
-                                        const iconUrl =
-                                            getMonsterIcon(
-                                                entry.species_id,
-                                            );
-                                        const label =
-                                            entry.displayName;
+                                    const iconUrl = getMonsterIcon(
+                                        mon.species_id,
+                                    );
 
-                                        const isSelected =
-                                            entry.id === selectedId;
-
-                                        return (
-                                            <button
-                                                key={entry.id}
-                                                type="button"
-                                                onClick={() =>
-                                                    handleDexClick(
-                                                        entry,
-                                                    )
-                                                }
+                                    return (
+                                        <button
+                                            key={mon.id}
+                                            type="button"
+                                            onClick={() =>
+                                                handleDexClick(mon.id)
+                                            }
+                                            style={{
+                                                textAlign: "left",
+                                                borderRadius: 10,
+                                                border: isSelected
+                                                    ? "1px solid rgba(248,250,252,0.95)"
+                                                    : "1px solid rgba(148,163,184,0.7)",
+                                                backgroundColor:
+                                                    "rgba(15,23,42,0.9)",
+                                                padding: "0.4rem 0.45rem",
+                                                display: "flex",
+                                                gap: "0.4rem",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            <div
                                                 style={{
-                                                    borderRadius: 10,
-                                                    border: isSelected
-                                                        ? "1px solid rgba(252,211,77,0.95)"
-                                                        : "1px solid rgba(55,65,81,0.9)",
-                                                    padding: "0.35rem",
-                                                    background:
-                                                        "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,64,175,0.85))",
-                                                    color: "#e5e7eb",
+                                                    width: 32,
+                                                    height: 32,
+                                                    borderRadius: 8,
+                                                    backgroundColor:
+                                                        "rgba(15,23,42,0.95)",
+                                                    border: "1px solid rgba(148,163,184,0.9)",
                                                     display: "flex",
-                                                    flexDirection:
-                                                        "column",
                                                     alignItems:
                                                         "center",
-                                                    gap: "0.25rem",
-                                                    fontSize:
-                                                        "0.7rem",
+                                                    justifyContent:
+                                                        "center",
+                                                    overflow: "hidden",
                                                 }}
                                             >
                                                 {iconUrl && (
                                                     <img
                                                         src={iconUrl}
-                                                        alt={label}
+                                                        alt={
+                                                            mon.displayName
+                                                        }
                                                         style={{
-                                                            width: 44,
-                                                            height: 44,
+                                                            width:
+                                                                "100%",
+                                                            height:
+                                                                "100%",
+                                                            objectFit:
+                                                                "contain",
                                                             imageRendering:
                                                                 "pixelated",
                                                         }}
                                                     />
                                                 )}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection:
+                                                        "column",
+                                                    gap: 2,
+                                                }}
+                                            >
                                                 <div
                                                     style={{
-                                                        textAlign:
-                                                            "center",
+                                                        fontSize:
+                                                            "0.8rem",
+                                                        fontWeight: 600,
+                                                        whiteSpace:
+                                                            "nowrap",
+                                                        textOverflow:
+                                                            "ellipsis",
+                                                        overflow:
+                                                            "hidden",
                                                     }}
                                                 >
-                                                    <div>
-                                                        {label}
-                                                    </div>
-                                                    <div
-                                                        style={{
-                                                            opacity: 0.9,
-                                                        }}
-                                                    >
-                                                        Lv.
-                                                        {entry.level} ·{" "}
-                                                        {
-                                                            entry.statusText
-                                                        }
-                                                    </div>
+                                                    {mon.displayName}
                                                 </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                        {!props.collectionLoading &&
-                            !props.collectionError &&
-                            dexEntries.length === 0 && (
-                                <div
-                                    style={{
-                                        fontSize: "0.8rem",
-                                        opacity: 0.7,
-                                    }}
-                                >
-                                    아직 도감에 등록된 몬스터가
-                                    없습니다.
-                                </div>
-                            )}
+                                                <div
+                                                    style={{
+                                                        fontSize:
+                                                            "0.75rem",
+                                                        color: "#cbd5f5",
+                                                    }}
+                                                >
+                                                    Lv.{mon.level} ·{" "}
+                                                    {mon.statusText}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* 포켓몬 레벨업 모달 (슬라이더) */}
+            {/* 레벨업 모달 */}
             {levelModalOpen && selected && (
                 <div
                     style={{
                         position: "fixed",
                         inset: 0,
-                        background: "rgba(15,23,42,0.75)",
+                        backgroundColor: "rgba(15,23,42,0.85)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        zIndex: 40,
+                        zIndex: 9999,
                     }}
-                    onClick={() => !levelBusy && setLevelModalOpen(false)}
                 >
                     <div
                         style={{
-                            width: "min(420px, 90vw)",
+                            width: "min(480px, 100% - 2rem)",
+                            maxWidth: 480,
                             borderRadius: 16,
+                            border: "1px solid rgba(148,163,184,0.9)",
                             background:
-                                "linear-gradient(135deg, #020617, #020617, #0f172a)",
-                            border: "1px solid rgba(148,163,184,0.7)",
-                            padding: "1rem 1.1rem 0.9rem",
-                            boxShadow:
-                                "0 18px 45px rgba(15,23,42,0.9)",
+                                "linear-gradient(145deg, #020617, #0f172a, #1d4ed8)",
                             color: "#e5e7eb",
+                            padding: "1rem 1.1rem 0.95rem",
+                            boxShadow:
+                                "0 20px 60px rgba(15,23,42,0.9)",
                         }}
-                        onClick={(e) => e.stopPropagation()}
                     >
                         <div
                             style={{
@@ -1084,8 +1178,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             Exp Dust / 레어 캔디를 사용해 선택한
                             포켓몬의 레벨을 올립니다. 슬라이더로
                             이번에 사용할 아이템 개수를 조절할 수
-                            있습니다. (실제 경험치 계산 로직은
-                            백엔드와 연결하면서 튜닝할 수 있습니다.)
+                            있습니다.
                         </div>
 
                         <div
@@ -1181,230 +1274,187 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         {/* 슬라이더 영역 */}
                         <div
                             style={{
-                                borderRadius: 10,
-                                background: "rgba(15,23,42,0.95)",
-                                padding: "0.6rem 0.75rem",
                                 marginBottom: 10,
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.45rem",
-                                fontSize: "0.8rem",
                             }}
                         >
                             <div
                                 style={{
                                     display: "flex",
                                     justifyContent: "space-between",
-                                    alignItems: "center",
+                                    fontSize: "0.75rem",
+                                    marginBottom: 4,
+                                }}
+                            >
+                                <span>이번에 사용할 아이템 개수</span>
+                                <span>
+                                    {levelUseCount} / {totalPowerItems}
+                                </span>
+                            </div>
+                            <input
+                                type="range"
+                                min={0}
+                                max={totalPowerItems}
+                                value={levelUseCount}
+                                onChange={(e) =>
+                                    setLevelUseCount(
+                                        Number(e.target.value),
+                                    )
+                                }
+                                disabled={
+                                    totalPowerItems === 0 || levelBusy
+                                }
+                                style={{
+                                    width: "100%",
+                                }}
+                            />
+                        </div>
+
+                        {/* 결과 영역 (새로 배운 기술) */}
+                        {lastLevelUpResult && (
+                            <div
+                                style={{
+                                    marginTop: 8,
+                                    marginBottom: 10,
+                                    borderRadius: 10,
+                                    background:
+                                        "rgba(15,23,42,0.95)",
+                                    padding: "0.6rem 0.75rem",
+                                    fontSize: "0.8rem",
                                 }}
                             >
                                 <div
                                     style={{
-                                        fontSize: "0.78rem",
-                                        color: "#e5e7eb",
+                                        fontWeight: 600,
+                                        marginBottom: 4,
                                     }}
                                 >
-                                    이번에 사용할 아이템 개수
+                                    레벨업 결과
                                 </div>
                                 <div
                                     style={{
                                         fontSize: "0.78rem",
                                         color: "#cbd5f5",
+                                        marginBottom: 4,
                                     }}
                                 >
-                                    {levelUseCount} / {totalPowerItems}개
+                                    최종 레벨: Lv.
+                                    {lastLevelUpResult.monster?.level}
                                 </div>
-                            </div>
-
-                            <input
-                                type="range"
-                                min={0}
-                                max={totalPowerItems}
-                                step={1}
-                                value={levelUseCount}
-                                disabled={
-                                    totalPowerItems === 0 || levelBusy
-                                }
-                                onChange={(e) =>
-                                    setLevelUseCount(
-                                        Number(e.currentTarget.value) ||
-                                        0,
-                                    )
-                                }
-                                style={{
-                                    width: "100%",
-                                    marginTop: 4,
-                                }}
-                            />
-
-                            <div
-                                style={{
-                                    fontSize: "0.75rem",
-                                    color: "#9ca3af",
-                                }}
-                            >
-                                단순 예측: 이번 강화로{" "}
-                                <span
-                                    style={{
-                                        color: "#e5e7eb",
-                                        fontWeight: 600,
-                                    }}
-                                >
-                                    최소 Lv.
-                                    {selected.level +
-                                        (levelUseCount > 0
-                                            ? 1
-                                            : 0)}
-                                </span>
-                                {" "}
-                                이상이 될 수 있습니다.
-                                (실제 레벨은 경험치 공식에 따라
-                                달라질 수 있습니다.)
-                            </div>
-
-                            {/* 🔹 레벨업 결과: 새로 배운 기술 */}
-                            {lastLevelUpResult &&
-                                newlyLearnedMoves.length > 0 && (
+                                {newlyLearnedMoves.length > 0 ? (
+                                    <div>
+                                        <div
+                                            style={{
+                                                fontSize: "0.78rem",
+                                                color: "#cbd5f5",
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            새로 배운 기술:
+                                        </div>
+                                        <ul
+                                            style={{
+                                                paddingLeft: "1.1rem",
+                                                margin: 0,
+                                            }}
+                                        >
+                                            {newlyLearnedMoves.map(
+                                                (id) => {
+                                                    const move =
+                                                        MOVE_DB[id];
+                                                    return (
+                                                        <li
+                                                            key={id}
+                                                            style={{
+                                                                fontSize:
+                                                                    "0.78rem",
+                                                            }}
+                                                        >
+                                                            {move
+                                                                ? `${move.name ?? id} (${id})`
+                                                                : id}
+                                                        </li>
+                                                    );
+                                                },
+                                            )}
+                                        </ul>
+                                    </div>
+                                ) : (
                                     <div
                                         style={{
-                                            marginTop: 10,
-                                            padding: "0.6rem 0.75rem",
-                                            borderRadius: 12,
-                                            border:
-                                                "1px solid rgba(96,165,250,0.85)",
-                                            background:
-                                                "rgba(15,23,42,0.95)",
+                                            fontSize: "0.78rem",
+                                            color: "#9ca3af",
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                fontSize: "0.75rem",
-                                                color: "#93c5fd",
-                                                marginBottom: 4,
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            새로 배운 기술
-                                        </div>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                flexWrap: "wrap",
-                                                gap: "0.35rem",
-                                            }}
-                                        >
-                                            {newlyLearnedMoves.map((id) => {
-                                                const move = (MOVE_DB as any)[id];
-                                                return (
-                                                    <div
-                                                        key={id}
-                                                        style={{
-                                                            fontSize:
-                                                                "0.78rem",
-                                                            padding:
-                                                                "0.25rem 0.55rem",
-                                                            borderRadius: 999,
-                                                            border:
-                                                                "1px solid rgba(59,130,246,0.9)",
-                                                            background:
-                                                                "rgba(15,23,42,0.98)",
-                                                        }}
-                                                    >
-                                                        {move?.name ?? id}
-                                                        {move?.element && (
-                                                            <span
-                                                                style={{
-                                                                    marginLeft: 4,
-                                                                    fontSize:
-                                                                        "0.7rem",
-                                                                    opacity: 0.8,
-                                                                }}
-                                                            >
-                                                                (
-                                                                {
-                                                                    move.element
-                                                                }
-                                                                )
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+                                        새로 배운 기술은 없습니다.
                                     </div>
                                 )}
-                        </div>
+                            </div>
+                        )}
 
                         <div
                             style={{
                                 display: "flex",
+                                justifyContent: "flex-end",
                                 gap: "0.5rem",
                                 marginTop: 4,
                             }}
                         >
                             <button
                                 type="button"
+                                onClick={() =>
+                                    !levelBusy &&
+                                    setLevelModalOpen(false)
+                                }
+                                disabled={levelBusy}
+                                style={{
+                                    padding:
+                                        "0.4rem 0.75rem",
+                                    borderRadius: 999,
+                                    border: "1px solid rgba(148,163,184,0.9)",
+                                    backgroundColor:
+                                        "rgba(15,23,42,0.95)",
+                                    color: "#e5e7eb",
+                                    fontSize: "0.8rem",
+                                    cursor: levelBusy
+                                        ? "not-allowed"
+                                        : "pointer",
+                                }}
+                            >
+                                닫기
+                            </button>
+                            <button
+                                type="button"
                                 onClick={handleConfirmLevelUp}
                                 disabled={
+                                    levelBusy ||
                                     totalPowerItems === 0 ||
-                                    levelUseCount === 0 ||
-                                    levelBusy
+                                    levelUseCount === 0
                                 }
                                 style={{
-                                    flex: 1,
-                                    padding: "0.55rem 0.5rem",
+                                    padding:
+                                        "0.4rem 0.85rem",
                                     borderRadius: 999,
                                     border: "none",
+                                    background:
+                                        "linear-gradient(90deg, #22c55e, #16a34a)",
+                                    color: "#f9fafb",
                                     fontSize: "0.8rem",
                                     fontWeight: 600,
                                     cursor:
+                                        levelBusy ||
                                         totalPowerItems === 0 ||
-                                        levelUseCount === 0 ||
-                                        levelBusy
+                                        levelUseCount === 0
                                             ? "not-allowed"
                                             : "pointer",
-                                    background:
-                                        totalPowerItems === 0 ||
-                                        levelUseCount === 0 ||
-                                        levelBusy
-                                            ? "rgba(75,85,99,0.9)"
-                                            : "linear-gradient(90deg, #22c55e, #16a34a)",
-                                    color: "#f9fafb",
                                     opacity:
+                                        levelBusy ||
                                         totalPowerItems === 0 ||
                                         levelUseCount === 0
                                             ? 0.6
                                             : 1,
                                 }}
                             >
-                                {levelBusy
-                                    ? "레벨 업 중..."
-                                    : "선택 개수만큼 강화"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setLevelUseCount(totalPowerItems)
-                                }
-                                disabled={
-                                    totalPowerItems === 0 || levelBusy
-                                }
-                                style={{
-                                    padding: "0.55rem 0.8rem",
-                                    borderRadius: 999,
-                                    border: "1px solid rgba(156,163,175,0.9)",
-                                    fontSize: "0.78rem",
-                                    cursor:
-                                        totalPowerItems === 0 ||
-                                        levelBusy
-                                            ? "not-allowed"
-                                            : "pointer",
-                                    background:
-                                        "rgba(15,23,42,0.9)",
-                                    color: "#e5e7eb",
-                                }}
-                            >
-                                최대 사용
+                                {levelBusy ? "레벨 업 중..." : "레벨 업 진행"}
                             </button>
                         </div>
                     </div>
