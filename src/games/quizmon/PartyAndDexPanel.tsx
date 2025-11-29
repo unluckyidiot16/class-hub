@@ -345,6 +345,9 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const [equipDirty, setEquipDirty] = useState(false);
 
     // 선택 몬스터가 바뀔 때마다 장착 기술 초기화
+// 1순위: equipped_moves에서 MOVE_DB에 있는 id만 사용
+// 2순위: learned_moves 중 MOVE_DB에 있는 id
+// 3순위: 종+레벨 기반 기본 기술 (getMovesForSpeciesAndLevel)
     useEffect(() => {
         if (!selected) {
             setEquipSlots([null, null, null, null]);
@@ -355,25 +358,64 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         }
 
         const anyMon = selected as any;
-        const equipped: string[] = Array.isArray(anyMon.equipped_moves)
+
+        // ----- 1) equipped_moves 정리 -----
+        const equippedRaw: string[] = Array.isArray(anyMon.equipped_moves)
             ? (anyMon.equipped_moves as string[])
             : [];
 
-        const normalized: (string | null)[] = [
+        const equippedValid = equippedRaw.filter(
+            (id) => (MOVE_DB as any)[id],
+        );
+
+        const nextSlots: (string | null)[] = [
             null,
             null,
             null,
             null,
         ];
-        for (let i = 0; i < 4; i += 1) {
-            normalized[i] = equipped[i] ?? null;
+
+        if (equippedValid.length > 0) {
+            for (let i = 0; i < 4; i += 1) {
+                nextSlots[i] = equippedValid[i] ?? null;
+            }
+
+            setEquipSlots(nextSlots);
+            setActiveEquipIndex(null);
+            setEquipDirty(false);
+            setEquipError(null);
+            return;
         }
 
-        setEquipSlots(normalized);
+        // ----- 2) equipped_moves가 비어 있거나 구버전만 있는 경우 → 자동 장착 -----
+        const learnedRaw: string[] = Array.isArray(anyMon.learned_moves)
+            ? (anyMon.learned_moves as string[])
+            : [];
+
+        let learnedValid = learnedRaw.filter(
+            (id) => (MOVE_DB as any)[id],
+        );
+
+        // learned_moves도 전부 구버전(growl 등)이면 레벨업 테이블에서 새로 생성
+        if (learnedValid.length === 0) {
+            const list = getMovesForSpeciesAndLevel(
+                anyMon.species_id,
+                anyMon.level,
+            );
+            learnedValid = list.map((m: any) => m.id);
+        }
+
+        for (let i = 0; i < 4; i += 1) {
+            nextSlots[i] = learnedValid[i] ?? null;
+        }
+
+        setEquipSlots(nextSlots);
         setActiveEquipIndex(null);
-        setEquipDirty(false);
+        // 자동 장착된 내용은 DB에 저장되도록 dirty 플래그 on
+        setEquipDirty(true);
         setEquipError(null);
     }, [selected?.id]);
+
 
     // equipSlots 변경이 있고 dirty일 때 DB 저장
     useEffect(() => {

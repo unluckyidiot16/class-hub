@@ -8,6 +8,8 @@ import {
     calcDerivedStats,
     type DerivedStats,
 } from "./stats";
+import { getNewlyLearnedMoveIds } from "./moveData";
+
 
 
 
@@ -26,16 +28,6 @@ function getExpToNextLevel(level: number): number {
     return 50 + level * 10;
 }
 
-
-// ===== 레벨업 시 레벨업 기술(learnset) 적용 유틸 =====
-
-type SpeciesLevelupMoveRow = {
-    species_id: string;
-    level: number;
-    move_id: string;
-    sort_order: number | null;
-};
-
 /**
  * 레벨업 전/후 구간에서 새로 배울 수 있는 기술을 learned_moves / equipped_moves 에 반영
  * - speciesBefore / speciesAfter 둘 다의 learnset 을 확인
@@ -43,6 +35,13 @@ type SpeciesLevelupMoveRow = {
  * - 이미 learned_moves 에 있는 기술은 건너뜀
  * - 장착 슬롯이 비어 있는 경우에만 자동 장착
  *   (슬롯 꽉 찬 경우는 나중에 교체 모달 붙이고 처리)
+ */
+/**
+ * 레벨업 전/후 구간에서 새로 배울 수 있는 기술을 learned_moves / equipped_moves 에 반영
+ * - speciesBefore / speciesAfter 둘 다의 learnset 을 확인
+ * - levelBefore < level <= levelAfter 인 기술만 대상
+ * - 이미 learned_moves 에 있는 기술은 건너뜀
+ * - 장착 슬롯이 비어 있는 경우에만 자동 장착
  */
 async function applyLevelupMovesOnLevelUp(params: {
     monster: QuizmonOwnedMonsterRow;
@@ -57,32 +56,8 @@ async function applyLevelupMovesOnLevelUp(params: {
     // 레벨이 그대로면 배울 기술도 없음
     if (levelAfter <= levelBefore) return monster;
 
-    const speciesIds = [
-        speciesBefore.id,
-        speciesAfter.id,
-    ].filter((v, idx, arr) => arr.indexOf(v) === idx); // 중복 제거
-
     try {
-        const { data, error } = await supabase
-            .from("quizmon_species_levelup_moves")
-            .select("species_id, level, move_id, sort_order")
-            .in("species_id", speciesIds)
-            .gt("level", levelBefore)
-            .lte("level", levelAfter)
-            .order("level", { ascending: true })
-            .order("sort_order", { ascending: true });
-
-        if (error || !data) {
-            console.error(
-                "[quizmonService] applyLevelupMovesOnLevelUp select error",
-                error,
-            );
-            return monster;
-        }
-
-        const rows = data as SpeciesLevelupMoveRow[];
-        if (!rows.length) return monster;
-
+        // 1) 현재까지 배운 / 장착한 기술 복사
         const learned = Array.isArray(monster.learned_moves)
             ? [...monster.learned_moves]
             : [];
@@ -90,11 +65,36 @@ async function applyLevelupMovesOnLevelUp(params: {
             ? [...monster.equipped_moves]
             : [];
 
-        for (const row of rows) {
-            const moveId = row.move_id;
-            if (!moveId) continue;
+        // 2) 종별로 이번 레벨업 구간에서 새로 배우는 기술 id 계산
+        const speciesIds = [
+            speciesBefore.id,
+            speciesAfter.id,
+        ].filter((v, idx, arr) => arr.indexOf(v) === idx); // 중복 제거
 
-            // 이미 배운 기술이면 스킵
+        const newlyLearnedSet = new Set<string>();
+
+        for (const sid of speciesIds) {
+            const ids = getNewlyLearnedMoveIds(
+                sid,
+                levelBefore,
+                levelAfter,
+            );
+            for (const id of ids) {
+                if (!id) continue;
+                newlyLearnedSet.add(id);
+            }
+        }
+
+        // 이번 레벨업에서 배울 기술이 없으면 그대로 반환
+        if (newlyLearnedSet.size === 0) {
+            return monster;
+        }
+
+        // 3) learned_moves / equipped_moves 업데이트
+        const newlyLearnedIds = Array.from(newlyLearnedSet);
+
+        for (const moveId of newlyLearnedIds) {
+            // 이미 배운 기술이면 learned에만 한 번 유지
             if (!learned.includes(moveId)) {
                 learned.push(moveId);
             }
@@ -135,6 +135,7 @@ async function applyLevelupMovesOnLevelUp(params: {
         return monster;
     }
 }
+
 
 
 /** 인벤토리에서 강화 아이템 개수 읽기 */

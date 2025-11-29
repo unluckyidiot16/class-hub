@@ -31,6 +31,8 @@ import { QuizMonLobbyOverlay } from "./QuizMonLobbyOverlay"; // ⬅️ 새로 �
 import { QuizMonBattleView } from "./QuizMonBattleView";
 import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
 import { useQuizmonContext } from "./QuizmonProvider";
+import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
+
 
 
 // =========================
@@ -393,13 +395,43 @@ export function QuizMonGame(props: QuizMonGameProps) {
             );
 
             // 3) battleFactory로 Monster 빌드
+            // 3) battleFactory로 Monster 빌드
             const partyMonsters: Monster[] = aliveOwnedRows
                 .map((owned) => {
                     const species = speciesMap.get(owned.species_id);
                     if (!species) return null;
-                    return buildBattleMonsterFromSpecies(species, owned);
+
+                    const base = buildBattleMonsterFromSpecies(species, owned);
+                    if (!base) return null;
+
+                    const anyOwned = owned as any;
+
+                    // 1) equipped_moves 우선 사용
+                    let moveList: Move[] = [];
+
+                    if (Array.isArray(anyOwned.equipped_moves)) {
+                        moveList = (anyOwned.equipped_moves as string[])
+                            .map((id: string) => (MOVE_DB as any)[id])
+                            .filter((m): m is Move => Boolean(m));
+                    }
+
+                    // 2) equipped_moves가 비어 있거나,
+                    //    구버전 데이터만 있는 경우 → 레벨업 테이블 기반 기본 기술 사용
+                    if (!moveList.length) {
+                        moveList = getMovesForSpeciesAndLevel(
+                            anyOwned.species_id,
+                            anyOwned.level ?? 1,
+                        );
+                    }
+
+                    // 최종적으로 전투에서 사용할 moves를 덮어쓴 Monster 반환
+                    return {
+                        ...base,
+                        moves: moveList,
+                    };
                 })
                 .filter((m): m is Monster => m !== null);
+
 
             if (!partyMonsters.length) {
                 console.warn(

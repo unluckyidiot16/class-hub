@@ -28,9 +28,10 @@ export const MOVE_DB: Record<string, Move> = {
         id: "seed_bomb",
         name: "씨폭탄",
         power: 80,
-        baseAcc: 90,
+        baseAcc: 100,
         element: "grass",
     },
+    // ... 여기에 추가 스킬들 계속
 };
 
 // ====== 2) 레벨업 데이터 타입 ======
@@ -86,6 +87,70 @@ function buildMovesFromLearnset(
 
     return lastIds.map((id) => MOVE_DB[id]);
 }
+
+/* 🔽🔽🔽 여기서부터 새로 추가 🔽🔽🔽 */
+
+/**
+ * 내부용: fromLevel < level <= toLevel 구간에서 새로 배우는 moveId들만 추출
+ */
+function getNewMoveIdsFromLearnset(
+    entries: LearnsetEntry[],
+    fromLevel: number,
+    toLevel: number,
+): (keyof typeof MOVE_DB)[] {
+    if (toLevel <= fromLevel) return [];
+
+    const newly = entries.filter(
+        (e) => e.level > fromLevel && e.level <= toLevel,
+    );
+
+    // 혹시 같은 기술을 여러 레벨에서 다시 배우는 케이스 대비해서 중복 제거
+    return Array.from(
+        new Set(newly.map((e) => e.moveId)),
+    ) as (keyof typeof MOVE_DB)[];
+}
+
+/**
+ * 헬퍼 1:
+ *  - speciesId, 이전 레벨, 새 레벨을 받아서
+ *  - 그 사이에 "새로 배우는 기술 id 리스트"만 반환
+ *  - 레벨업 서비스에서 learned_moves 업데이트할 때 사용
+ */
+export function getNewlyLearnedMoveIds(
+    speciesId: string,
+    fromLevel: number,
+    toLevel: number,
+): string[] {
+    const normalized = normalizeSpeciesIdForLearnset(speciesId);
+    const learnset = SPECIES_LEARNSETS[normalized];
+
+    if (!learnset) return [];
+
+    const ids = getNewMoveIdsFromLearnset(learnset, fromLevel, toLevel);
+    // 외부에선 string[] 으로 다루기 편하도록 캐스팅
+    return ids as string[];
+}
+
+/**
+ * 헬퍼 2:
+ *  - 위와 동일하지만 Move 객체 리스트로 반환
+ *  - UI에서 "이번에 새로 배운 기술" 카드 보여줄 때 사용 가능
+ */
+export function getNewlyLearnedMoves(
+    speciesId: string,
+    fromLevel: number,
+    toLevel: number,
+): Move[] {
+    const normalized = normalizeSpeciesIdForLearnset(speciesId);
+    const learnset = SPECIES_LEARNSETS[normalized];
+
+    if (!learnset) return [];
+
+    const ids = getNewMoveIdsFromLearnset(learnset, fromLevel, toLevel);
+    return ids.map((id) => MOVE_DB[id]);
+}
+
+/* 🔼🔼🔼 여기까지 새로 추가 🔼🔼🔼 */
 
 // ====== 3) 종 + 레벨 → 실제 기술 리스트 ======
 export function getMovesForSpeciesAndLevel(
