@@ -824,6 +824,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
             timeMs,
         };
 
+        // 🔹 이번 정답이 레이드에서 줄 "누적 데미지" 점수
+        //    v1에서는 "정답 1개 = 10 데미지"로 단순하게 고정
+        const raidDamage = correct ? 10 : 0;
+
         // 🔹 이번 배틀 통계에 반영
         setBattleStats((prev) => ({
             correct: prev.correct + (correct ? 1 : 0),
@@ -846,6 +850,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     answerIndex: quizResult.chosenIndex,
                     correct: quizResult.correct,
                     timeMs: quizResult.timeMs ?? null,
+                    // 🔹 클래스 레이드용 누적 데미지
+                    raidDamage,
                 },
             }).catch((err) => {
                 console.warn(

@@ -134,8 +134,17 @@ type QddQuestionStats = {
     questionId: string;
     total: number;
     correct: number;
-    options: Record<number, number>; // answerIndex -> count
+    options: Record<number, number>;
 };
+
+// 🔹 클래스 레이드용 학생별 누적 데미지 집계 타입
+type RaidStat = {
+    studentId: string;       // = game_events.student_id (student_key)
+    totalAnswers: number;    // 전체 응답 수
+    correctAnswers: number;  // 정답 수
+    totalRaidDamage: number; // 누적 데미지 점수
+};
+
 
 /** QDD game_events 한 줄을 누적 집계에 반영 */
 /** QDD game_events 한 줄을 누적 집계에 반영 */
@@ -210,6 +219,71 @@ function applyQddEvent(
     };
 }
 
+// 🔹 QuizMon 레이드용: game_events → 학생별 누적 데미지로 반영
+function applyRaidEvent(
+    base: Record<string, RaidStat>,
+    row: GameEventRow,
+): Record<string, RaidStat> {
+    if (!row.payload) return base;
+
+    // QuizMon 레이드만 집계
+    if (row.event_type !== "quizmon-answer") {
+        return base;
+    }
+
+    // payload 정규화
+    let raw = row.payload as any;
+    if (typeof raw === "string") {
+        try {
+            raw = JSON.parse(raw);
+        } catch (e) {
+            console.warn("[Raid] invalid payload JSON, skip", row.payload);
+            return base;
+        }
+    }
+
+    const payload = raw as {
+        questionId?: string;
+        correct?: boolean;
+        raidDamage?: number;
+    };
+
+    if (!payload.questionId) {
+        return base;
+    }
+
+    const studentId = row.student_id;
+    if (!studentId) return base;
+
+    const correct = !!payload.correct;
+    const dmg =
+        typeof payload.raidDamage === "number"
+            ? payload.raidDamage
+            : correct
+                ? 10
+                : 0; // 🔁 v1 기본값: 정답 1개 = 10 데미지
+
+    const existing = base[studentId] ?? {
+        studentId,
+        totalAnswers: 0,
+        correctAnswers: 0,
+        totalRaidDamage: 0,
+    };
+
+    const next: RaidStat = {
+        studentId,
+        totalAnswers: existing.totalAnswers + 1,
+        correctAnswers: existing.correctAnswers + (correct ? 1 : 0),
+        totalRaidDamage: existing.totalRaidDamage + dmg,
+    };
+
+    return {
+        ...base,
+        [studentId]: next,
+    };
+}
+
+
 
 /** 초기 game_events 목록 → QDD 통계 맵 */
 function buildQddStats(rows: GameEventRow[]): Record<string, QddQuestionStats> {
@@ -222,6 +296,15 @@ function buildQddStats(rows: GameEventRow[]): Record<string, QddQuestionStats> {
     return stats;
 }
 
+// 🔹 초기 game_events 목록 → 레이드 통계 맵
+function buildRaidStats(rows: GameEventRow[]): Record<string, RaidStat> {
+    console.log("[Raid] buildRaidStats input count:", rows.length);
+    let stats: Record<string, RaidStat> = {};
+    for (const row of rows) {
+        stats = applyRaidEvent(stats, row);
+    }
+    return stats;
+}
 
 export function TeacherRoomLivePage() {
     const { roomId } = useParams<{ roomId: string }>();
@@ -424,6 +507,10 @@ export function TeacherRoomLivePage() {
     const [qddStats, setQddStats] =
         useState<Record<string, QddQuestionStats>>({});
 
+    // 🔹 QuizMon 클래스 레이드용 학생별 누적 데미지
+    const [raidStats, setRaidStats] =
+        useState<Record<string, RaidStat>>({});
+
     // QDD에서 사용하는 questionId 예시: "Eng5_9-033"
     // → prefix("Eng5_9") + 번호(033) 구조라서 prefix만 한 번 뽑아서 재사용
     const qddQuestionPrefix = useMemo(() => {
@@ -436,6 +523,43 @@ export function TeacherRoomLivePage() {
 
         return sample.slice(0, idx);         // "Eng5_9"
     }, [qddStats]);
+
+    // 🔹 QuizMon 클래스 레이드용: 학생별 랭킹 리스트
+    const raidRanking = useMemo(() => {
+        if (!room || room.game_key !== "quizmon") return [];
+
+        // students: StudentSummary[] (student_key, nickname, ...)
+        return students
+            .map((s) => {
+                const rs = raidStats[s.student_key];
+                if (!rs) {
+                    return null;
+                }
+                const accuracy =
+                    rs.totalAnswers > 0
+                        ? Math.round(
+                            (rs.correctAnswers / rs.totalAnswers) * 100,
+                        )
+                        : 0;
+
+                return {
+                    studentKey: s.student_key,
+                    nickname: s.nickname,
+                    totalAnswers: rs.totalAnswers,
+                    correctAnswers: rs.correctAnswers,
+                    totalRaidDamage: rs.totalRaidDamage,
+                    accuracy,
+                };
+            })
+            .filter((x): x is NonNullable<typeof x> => !!x)
+            .sort((a, b) => {
+                // 🔹 데미지 내림차순, 동점이면 정답 수 기준
+                if (b.totalRaidDamage !== a.totalRaidDamage) {
+                    return b.totalRaidDamage - a.totalRaidDamage;
+                }
+                return b.correctAnswers - a.correctAnswers;
+            });
+    }, [room, students, raidStats]);
 
     // DB quiz_questions.row -> QDD questionId 문자열로 변환
     function getQddKeyForQuestion(q: QuizQuestionRow): string | null {
@@ -775,6 +899,7 @@ export function TeacherRoomLivePage() {
             );
 
             setQddStats(buildQddStats(data as GameEventRow[]));
+            setRaidStats(buildRaidStats(data));
         };
 
         void loadEvents();
@@ -793,6 +918,8 @@ export function TeacherRoomLivePage() {
                     const row = payload.new as GameEventRow;
                     console.log("[TeacherRoomLive] realtime game_event:", row);
                     setQddStats((prev) => applyQddEvent(prev, row));
+                    // 🔹 레이드 통계도 같이 반영
+                    setRaidStats((prev) => applyRaidEvent(prev, row));
                 },
             )
             .subscribe((status) => {
@@ -2123,6 +2250,44 @@ export function TeacherRoomLivePage() {
                                         </>
                                     );
                                 })()}
+                            </div>
+                        )}
+
+                    {/* 🔹 QuizMon 클래스 레이드 v1 – 누적 데미지 랭킹 */}
+                    {room?.game_key === "quizmon" &&
+                        session &&
+                        raidRanking.length > 0 && (
+                            <div className="card" style={{ marginTop: "1rem" }}>
+                                <h2>클래스 레이드 — 누적 데미지 랭킹</h2>
+                                <p className="hint">
+                                    현재 세션 동안 퀴즈몬 정답으로 누적된 데미지 기준 랭킹입니다.
+                                    (정답 1개 = 10 데미지)
+                                </p>
+
+                                <div style={{ overflowX: "auto", marginTop: "0.5rem" }}>
+                                    <table className="simple-table">
+                                        <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>학생</th>
+                                            <th>정답 수</th>
+                                            <th>정답률</th>
+                                            <th>누적 데미지</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {raidRanking.map((r, idx) => (
+                                            <tr key={r.studentKey ?? idx}>
+                                                <td>{idx + 1}</td>
+                                                <td>{r.nickname ?? r.studentKey ?? "무명 트레이너"}</td>
+                                                <td>{r.correctAnswers} / {r.totalAnswers}</td>
+                                                <td>{r.accuracy}%</td>
+                                                <td>{r.totalRaidDamage}</td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         )}
                 </div>
