@@ -32,7 +32,6 @@ export type QuizMonLobbyOverlayProps = {
     onSelectGacha: () => void;
 
     lastRaidResult?: { correct: number; total: number } | null;
-    onOpenLevelUpModal: () => void;
     onBuyExpDust?: (quantity?: number) => Promise<void> | void;
 };
 
@@ -53,7 +52,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onSelectDungeon,
         onSelectGacha,
         lastRaidResult,
-        onOpenLevelUpModal,
         onBuyExpDust,      
     } = props;
 
@@ -341,7 +339,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         <ProfileTab
                             profile={effectiveProfile}
                             lastRaidResult={lastRaidResult}
-                            onOpenLevelUpModal={onOpenLevelUpModal}
                             onBuyExpDust={handleBuyExpDust}
                         />
                     )}

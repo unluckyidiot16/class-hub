@@ -54,7 +54,6 @@ type QuizMonBattleSectionProps = {
     monsters?: QuizmonOwnedMonsterRow[];
     collectionLoading?: boolean;
     collectionError?: string | null;
-    onPullFreeGacha?: () => void | Promise<void>;
     lastRaidResult?: { correct: number; total: number } | null;
     onHealAll?: () => void | Promise<void>;
     onRefreshCollection?: () => void | Promise<void>;
@@ -81,7 +80,6 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
         monsters,
         collectionLoading = false,
         collectionError,
-        onPullFreeGacha,
         lastRaidResult,
         onHealAll,
         onRefreshCollection,
@@ -144,7 +142,6 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     monsters={monsters ?? []}
                     collectionLoading={collectionLoading}
                     collectionError={collectionError ?? null}
-                    onPullFreeGacha={onPullFreeGacha}
                     lastRaidResult={lastRaidResult ?? null}
                     onHealAll={onHealAll}
                     onRefreshCollection={onRefreshCollection}
@@ -179,7 +176,6 @@ export function QuizMonBattleSection(props: QuizMonBattleSectionProps) {
                     monsters={monsters ?? []}
                     collectionLoading={collectionLoading}
                     collectionError={collectionError ?? null}
-                    onPullFreeGacha={onPullFreeGacha}
                     lastRaidResult={lastRaidResult ?? null}
                     onHealAll={onHealAll}
                     onRefreshCollection={onRefreshCollection}

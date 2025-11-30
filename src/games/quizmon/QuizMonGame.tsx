@@ -147,7 +147,6 @@ type QuizMonGameProps = {
     monsters?: QuizmonOwnedMonsterRow[];
     collectionLoading?: boolean;
     collectionError?: string | null;
-    onPullFreeGacha?: () => void | Promise<void>;
     lastRaidResult?: { correct: number; total: number } | null;
     onHealAll?: () => void | Promise<void>;
 
@@ -167,6 +166,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onQuizAnswer,
         onBattleEnd,
     } = props;
+
+    const isClassRaid = !!roomId && !!gameSessionId && !!studentId;
 
     // 🔹 가챠/재화용 프로필 로컬 상태 (부모 profile과 동기화)
     const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(
@@ -248,7 +249,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
     
     const [hpSynced, setHpSynced] = useState(false);
-    
+
     // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
     const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
     const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
@@ -1200,24 +1201,32 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     {viewState === "lobby" && (
                         <QuizMonLobbyOverlay
                             menuTab={menuTab}
-                            onMenuTabChange={(tab) => setMenuTab(tab)}
+                            onMenuTabChange={setMenuTab}
                             localProfile={localProfile}
                             profile={props.profile ?? null}
                             monsters={props.monsters}
                             collectionLoading={props.collectionLoading}
                             collectionError={props.collectionError}
-                            onPullFreeGacha={props.onPullFreeGacha}
                             onHealAll={props.onHealAll}
                             onSaveParty={handleSaveParty}
                             canContinue={canContinue}
                             onContinue={handleContinue}
-                            onSelectDungeon={() => setViewState("dungeon")}
-                            onSelectGacha={() => setViewState("gacha")}
+                            onSelectDungeon={() => {
+                                if (isClassRaid) {
+                                    handleReset();
+                                    setViewState("battle");
+                                } else {
+                                    setViewState("dungeon");
+                                }
+                            }}
+                            onSelectGacha={() => {
+                                setViewState("gacha");
+                            }}
                             lastRaidResult={props.lastRaidResult ?? null}
-                            onOpenLevelUpModal={() => { /* TODO: 레벨업 모달 붙일 때 구현 */ }}
-                            onBuyExpDust={handleBuyExpDust} // ⭐ 추가
+                            onBuyExpDust={handleBuyExpDust}
                         />
                     )}
+
 
 
                     {/* 🏰 던전 선택 오버레이 */}
@@ -1641,9 +1650,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         <QuizMonResultOverlay
                             // ✅ roomId / gameSessionId / studentId 가 모두 있으면
                             //    “클래스 레이드 모드”로 간주
-                            variant={
-                                roomId && gameSessionId && studentId ? "raid" : "dungeon"
-                            }
+                            variant={isClassRaid ? "raid" : "dungeon"}
                             resultMessage={resultMessage}
                             stats={battleStats}
                             accuracyPercent={accuracyPercent}
