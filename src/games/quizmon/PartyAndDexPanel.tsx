@@ -86,9 +86,21 @@ export type PartyAndDexPanelProps = {
 export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const { profile, onHealAll } = props;
 
+    // 🔹 레벨업 등으로 즉시 반영하기 위한 로컬 override
+    const [monsterOverrides, setMonsterOverrides] = useState<
+        Record<string, Partial<QuizmonOwnedMonsterRow>>
+    >({});
+    
     const enhancedMonsters = useMemo(
-        () => (props.monsters ?? []).map((m) => enhanceOwned(m)),
-        [props.monsters],
+        () =>
+            (props.monsters ?? []).map((m) => {
+                const override = monsterOverrides[m.id];
+                const merged = override
+                    ? ({ ...m, ...override } as QuizmonOwnedMonsterRow)
+                    : m;
+                return enhanceOwned(merged);
+            }),
+        [props.monsters, monsterOverrides],
     );
 
     // 선택된 파트너
@@ -295,6 +307,23 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                     setRareCandyCount(lastResult.remainingRareCandy);
                 }
 
+                // 🔹 레벨업 후 최신 개체 정보로 로컬 override 갱신
+                if (lastResult.monster) {
+                    const updated = lastResult.monster as QuizmonOwnedMonsterRow;
+                    setMonsterOverrides((prev) => ({
+                        ...prev,
+                        [updated.id]: {
+                            // UI에서 바로 쓰는 핵심 필드들
+                            level: updated.level,
+                            exp: updated.exp,
+                            current_hp: updated.current_hp,
+                            is_fainted: updated.is_fainted,
+                            learned_moves: updated.learned_moves,
+                            species_id: updated.species_id,
+                        },
+                    }));
+                }
+
                 // 레벨업 이후 DB row에 들어있는 learned_moves 기준으로 "새로 배운 기술" 계산
                 const afterMoves: string[] = Array.isArray(
                     lastResult.monster?.learned_moves,
@@ -312,6 +341,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 setLastLevelUpResult(lastResult);
                 setNewlyLearnedMoves(newly);
             }
+
         } catch (e: any) {
             console.error(
                 "[PartyAndDexPanel] handleConfirmLevelUp error",
