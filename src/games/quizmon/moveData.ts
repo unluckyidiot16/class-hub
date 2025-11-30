@@ -31,7 +31,13 @@ export const MOVE_DB: Record<string, Move> = {
         baseAcc: 100,
         element: "grass",
     },
-    // ... 여기에 추가 스킬들 계속
+    growl: {
+        id: "growl",
+        name: "growl",        // 원하면 "울부짖기" 등으로 교체 가능
+        power: 0,
+        baseAcc: 100,
+        element: "normal",
+    },
 };
 
 // ====== 2) 레벨업 데이터 타입 ======

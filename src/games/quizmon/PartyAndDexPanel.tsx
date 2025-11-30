@@ -418,6 +418,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
 
     // equipSlots 변경이 있고 dirty일 때 DB 저장
+    // equipSlots 변경이 있고 dirty일 때 DB 저장
     useEffect(() => {
         if (!profile || !selected || !equipDirty) return;
 
@@ -434,9 +435,12 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                 const { error } = await supabase
                     .from("quizmon_owned_monsters")
                     .update({ equipped_moves: payload })
-                    .eq("id", selected.id);
+                    .eq("id", selected.id)
+                    // 🔽 프로필까지 같이 걸어 주기
+                    .eq("profile_id", profile.id);
 
                 if (error) throw error;
+
                 if (!cancelled) {
                     setEquipDirty(false);
                 }
@@ -464,6 +468,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             cancelled = true;
         };
     }, [equipDirty, equipSlots, profile, selected]);
+
 
     const learnedMoveIds: string[] = useMemo(() => {
         if (!selected) return [];
