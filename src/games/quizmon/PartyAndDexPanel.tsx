@@ -220,9 +220,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const [newlyLearnedMoves, setNewlyLearnedMoves] = useState<
         string[]
     >([]);
-    const [setLastLevelUpResult] =
-        useState<any>(null);
-
+    const [, setLastLevelUpResult] = useState<any>(null);
     const handleOpenLevelModal = () => {
         if (!selected) return;
 

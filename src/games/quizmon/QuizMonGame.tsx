@@ -602,11 +602,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
             return;
         }
 
-        // 결과 오버레이 켜기
-        setViewState("result");
-
-        // 이미 한 번 동기화했으면 재실행 방지
+        // ✅ 이미 한 번 결과/HP 처리를 했으면 더 이상 결과 화면을 다시 띄우지 않음
         if (hpSynced) return;
+
+        // ✅ 이 시점에만 결과 오버레이 켜기
+        setViewState("result");
 
         // 프로필 정보 없으면 HP 저장 스킵
         if (!props.profileId) return;
@@ -624,7 +624,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
             if (!snapshot.length) return;
 
             try {
-                // 개체별로 HP / 기절 상태 업데이트
                 for (const row of snapshot) {
                     const { error } = await supabase
                         .from("quizmon_owned_monsters")
@@ -641,7 +640,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     }
                 }
 
-                // 🔁 HP 저장이 끝났으면 컬렉션 다시 불러오기
                 if (props.onRefreshCollection) {
                     try {
                         await props.onRefreshCollection();
@@ -665,6 +663,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         props.profileId,
         props.onRefreshCollection,
     ]);
+
 
 
 
