@@ -8,6 +8,7 @@ export type BattleStats = {
 };
 
 export type QuizMonResultOverlayProps = {
+    variant?: "dungeon" | "raid";
     resultMessage: string;
     stats: BattleStats;
     accuracyPercent: number | null;
@@ -19,6 +20,7 @@ export type QuizMonResultOverlayProps = {
 
 export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
     const {
+        variant = "dungeon",
         resultMessage,
         stats,
         accuracyPercent,
@@ -27,6 +29,13 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
         onBackToMenu,
         onRetry,
     } = props;
+
+    const isRaid = variant === "raid";
+
+    const headerLabel = isRaid ? "레이드 전투 결과" : "배틀 결과";
+
+    const backButtonLabel = isRaid ? "레이드 메뉴로" : "던전 선택으로";
+    const retryButtonLabel = isRaid ? "다음 레이드" : "다시 도전";
 
     return (
         <div
@@ -60,7 +69,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                         marginBottom: 4,
                     }}
                 >
-                    배틀 결과
+                    {headerLabel}
                 </div>
                 <div
                     style={{
@@ -75,7 +84,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                 <div
                     style={{
                         fontSize: 13,
-                        marginBottom: 8,
+                        marginBottom: 4,
                     }}
                 >
                     정답 {stats.correct} / {stats.total}
@@ -84,6 +93,19 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                         ` (${accuracyPercent}%)`}
                 </div>
 
+                {isRaid && (
+                    <div
+                        style={{
+                            fontSize: 11,
+                            marginBottom: 8,
+                            color: "#e5e7eb",
+                        }}
+                    >
+                        이 전투의 정답 수와 정확도는{" "}
+                        <strong>클래스 레이드 누적 데미지</strong>에
+                        반영됩니다.
+                    </div>
+                )}
 
                 {/* 내 파트너 / 상대 포켓몬 요약 */}
                 <div
@@ -126,10 +148,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                         >
                             HP {playerMon.hp}/{playerMon.maxHp}
                         </div>
-                        <HpBar
-                            current={playerMon.hp}
-                            max={playerMon.maxHp}
-                        />
+                        <HpBar current={playerMon.hp} max={playerMon.maxHp} />
                     </div>
 
                     <div
@@ -165,10 +184,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                         >
                             HP {enemyMon.hp}/{enemyMon.maxHp}
                         </div>
-                        <HpBar
-                            current={enemyMon.hp}
-                            max={enemyMon.maxHp}
-                        />
+                        <HpBar current={enemyMon.hp} max={enemyMon.maxHp} />
                     </div>
                 </div>
 
@@ -194,7 +210,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                             cursor: "pointer",
                         }}
                     >
-                        메뉴로
+                        {backButtonLabel}
                     </button>
                     <button
                         type="button"
@@ -211,7 +227,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                             cursor: "pointer",
                         }}
                     >
-                        다시 도전
+                        {retryButtonLabel}
                     </button>
                 </div>
             </div>

@@ -547,8 +547,8 @@ export function TeacherRoomLivePage() {
                     nickname: s.nickname,
                     totalAnswers: rs.totalAnswers,
                     correctAnswers: rs.correctAnswers,
-                    totalRaidDamage: rs.totalRaidDamage,
                     accuracy,
+                    totalRaidDamage: rs.totalRaidDamage,
                 };
             })
             .filter((x): x is NonNullable<typeof x> => !!x)
@@ -560,6 +560,55 @@ export function TeacherRoomLivePage() {
                 return b.correctAnswers - a.correctAnswers;
             });
     }, [room, students, raidStats]);
+
+    // 🔹 v2: 클래스 레이드용 공유 보스 HP 계산
+    const {
+        bossMaxHp,
+        totalRaidDamage,
+        bossHpRemaining,
+        bossProgress,
+        bossDefeated,
+        raidParticipantCount,
+    } = useMemo(() => {
+        if (!room || room.game_key !== "quizmon") {
+            return {
+                bossMaxHp: 0,
+                totalRaidDamage: 0,
+                bossHpRemaining: 0,
+                bossProgress: 0,
+                bossDefeated: false,
+                raidParticipantCount: 0,
+            };
+        }
+
+        const entries = Object.values(raidStats);
+        const totalRaidDamage = entries.reduce(
+            (sum, r) => sum + (r.totalRaidDamage ?? 0),
+            0,
+        );
+
+        // 🔹 임시 HP: 학생 수 * 200 + 기본 1000
+        const raidParticipantCount = entries.length;
+        const bossMaxHp = 1000 + raidParticipantCount * 200;
+
+        const bossHpRemaining = Math.max(0, bossMaxHp - totalRaidDamage);
+        const bossProgress =
+            bossMaxHp > 0
+                ? Math.min(1, totalRaidDamage / bossMaxHp)
+                : 0;
+
+        const bossDefeated = bossHpRemaining <= 0 && bossMaxHp > 0;
+
+        return {
+            bossMaxHp,
+            totalRaidDamage,
+            bossHpRemaining,
+            bossProgress,
+            bossDefeated,
+            raidParticipantCount,
+        };
+    }, [room, raidStats]);
+
 
     // DB quiz_questions.row -> QDD questionId 문자열로 변환
     function getQddKeyForQuestion(q: QuizQuestionRow): string | null {
@@ -2253,42 +2302,246 @@ export function TeacherRoomLivePage() {
                             </div>
                         )}
 
-                    {/* 🔹 QuizMon 클래스 레이드 v1 – 누적 데미지 랭킹 */}
+                    {/* 🔹 QuizMon 클래스 레이드 v2 – 공유 보스 HP 카드 */}
                     {room?.game_key === "quizmon" &&
                         session &&
                         raidRanking.length > 0 && (
-                            <div className="card" style={{ marginTop: "1rem" }}>
-                                <h2>클래스 레이드 — 누적 데미지 랭킹</h2>
-                                <p className="hint">
-                                    현재 세션 동안 퀴즈몬 정답으로 누적된 데미지 기준 랭킹입니다.
-                                    (정답 1개 = 10 데미지)
-                                </p>
+                            <>
+                                <div
+                                    className="card"
+                                    style={{ marginTop: "1rem" }}
+                                >
+                                    <h2>클래스 레이드 v2 — 보스 HP</h2>
+                                    <p className="hint">
+                                        현재 세션 동안 퀴즈몬 정답으로 누적된
+                                        데미지를 모아 공유 보스 HP를 깎습니다.
+                                        (임시 HP = 1000 + 학생 수 × 200)
+                                    </p>
 
-                                <div style={{ overflowX: "auto", marginTop: "0.5rem" }}>
-                                    <table className="simple-table">
-                                        <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>학생</th>
-                                            <th>정답 수</th>
-                                            <th>정답률</th>
-                                            <th>누적 데미지</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {raidRanking.map((r, idx) => (
-                                            <tr key={r.studentKey ?? idx}>
-                                                <td>{idx + 1}</td>
-                                                <td>{r.nickname ?? r.studentKey ?? "무명 트레이너"}</td>
-                                                <td>{r.correctAnswers} / {r.totalAnswers}</td>
-                                                <td>{r.accuracy}%</td>
-                                                <td>{r.totalRaidDamage}</td>
-                                            </tr>
-                                        ))}
-                                        </tbody>
-                                    </table>
+                                    <div
+                                        style={{
+                                            marginTop: "0.75rem",
+                                            padding: "0.6rem 0.8rem",
+                                            borderRadius: 8,
+                                            border: "1px solid #111827",
+                                            background: "#020617",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                fontSize: 13,
+                                            }}
+                                        >
+                                            <span
+                                                style={{
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                Boss HP
+                                            </span>
+                                            <span
+                                                style={{
+                                                    fontVariantNumeric:
+                                                        "tabular-nums",
+                                                }}
+                                            >
+                                                {bossHpRemaining} / {bossMaxHp}
+                                            </span>
+                                        </div>
+
+                                        {/* HP 바 */}
+                                        <div
+                                            style={{
+                                                marginTop: 6,
+                                                height: 10,
+                                                borderRadius: 999,
+                                                background: "#111827",
+                                                overflow: "hidden",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: `${
+                                                        bossProgress * 100
+                                                    }%`,
+                                                    height: "100%",
+                                                    background: bossDefeated
+                                                        ? "linear-gradient(90deg,#22c55e,#a3e635)"
+                                                        : "linear-gradient(90deg,#ef4444,#f97316)",
+                                                    transition:
+                                                        "width 0.25s ease-out",
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* 상태 텍스트 */}
+                                        <div
+                                            style={{
+                                                marginTop: 4,
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                fontSize: 11,
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            <span>
+                                                누적 데미지:{" "}
+                                                <strong>
+                                                    {totalRaidDamage}
+                                                </strong>
+                                                {" / "}
+                                                필요 데미지:{" "}
+                                                <strong>{bossMaxHp}</strong>
+                                            </span>
+                                            <span>
+                                                참여 학생:{" "}
+                                                <strong>
+                                                    {raidParticipantCount}명
+                                                </strong>
+                                            </span>
+                                        </div>
+
+                                        {/* 레이드 상태 메시지 */}
+                                        <div
+                                            style={{
+                                                marginTop: 6,
+                                                fontSize: 12,
+                                                color: bossDefeated
+                                                    ? "#a3e635"
+                                                    : "#e5e7eb",
+                                                fontWeight: 500,
+                                            }}
+                                        >
+                                            {bossDefeated ? (
+                                                <>✅ 보스가 쓰러졌습니다! (보상 분배 UI는 추후 연동 예정)</>
+                                            ) : (
+                                                <>학생들이 정답을 맞출수록 보스 HP가 줄어듭니다.</>
+                                            )}
+                                        </div>
+
+                                        {/* v2 테스트용 간단 메뉴 버튼 */}
+                                        <div
+                                            style={{
+                                                marginTop: 8,
+                                                display: "flex",
+                                                justifyContent: "flex-end",
+                                                gap: 8,
+                                                fontSize: 12,
+                                            }}
+                                        >
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setRaidStats({})
+                                                }
+                                                style={{
+                                                    padding:
+                                                        "0.3rem 0.7rem",
+                                                    borderRadius: 999,
+                                                    border:
+                                                        "1px solid #4b5563",
+                                                    background: "#020617",
+                                                    color: "#e5e7eb",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                레이드 초기화
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    window.alert(
+                                                        "보상 분배 메뉴는 v2에서 실제 보상 로직과 함께 연결할 예정입니다.",
+                                                    );
+                                                }}
+                                                style={{
+                                                    padding:
+                                                        "0.3rem 0.7rem",
+                                                    borderRadius: 999,
+                                                    border:
+                                                        "1px solid #b91c1c",
+                                                    background:
+                                                        "linear-gradient(90deg,#b91c1c,#f97316)",
+                                                    color: "#fef2f2",
+                                                    cursor: "pointer",
+                                                    fontWeight: 600,
+                                                }}
+                                            >
+                                                보상 메뉴 (베타)
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+
+                                {/* 🔹 QuizMon 클래스 레이드 v2 – 누적 데미지 랭킹 */}
+                                <div
+                                    className="card"
+                                    style={{ marginTop: "0.75rem" }}
+                                >
+                                    <h2>
+                                        클래스 레이드 — 누적 데미지 랭킹
+                                    </h2>
+                                    <p className="hint">
+                                        현재 세션 동안 퀴즈몬 정답으로
+                                        누적된 데미지 기준 랭킹입니다.
+                                        (정답 1개 ≒ 10 데미지)
+                                    </p>
+
+                                    <div
+                                        style={{
+                                            overflowX: "auto",
+                                            marginTop: "0.5rem",
+                                        }}
+                                    >
+                                        <table className="simple-table">
+                                            <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>학생</th>
+                                                <th>정답 수</th>
+                                                <th>정답률</th>
+                                                <th>누적 데미지</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {raidRanking.map((r, idx) => (
+                                                <tr
+                                                    key={
+                                                        r.studentKey ??
+                                                        idx
+                                                    }
+                                                >
+                                                    <td>{idx + 1}</td>
+                                                    <td>
+                                                        {r.nickname ??
+                                                            r.studentKey ??
+                                                            "무명 트레이너"}
+                                                    </td>
+                                                    <td>
+                                                        {
+                                                            r.correctAnswers
+                                                        }{" "}
+                                                        /{" "}
+                                                        {r.totalAnswers}
+                                                    </td>
+                                                    <td>
+                                                        {r.accuracy}%
+                                                    </td>
+                                                    <td>
+                                                        {
+                                                            r.totalRaidDamage
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
                         )}
                 </div>
             </div>

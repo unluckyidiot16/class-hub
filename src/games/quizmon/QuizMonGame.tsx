@@ -1639,13 +1639,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     {/* 🎉 배틀 결산 오버레이 */}
                     {showResultOverlay && (
                         <QuizMonResultOverlay
+                            // ✅ roomId / gameSessionId / studentId 가 모두 있으면
+                            //    “클래스 레이드 모드”로 간주
+                            variant={
+                                roomId && gameSessionId && studentId ? "raid" : "dungeon"
+                            }
                             resultMessage={resultMessage}
                             stats={battleStats}
                             accuracyPercent={accuracyPercent}
                             playerMon={playerMon}
                             enemyMon={enemyMon}
                             onBackToMenu={() => {
-                                // 메인 메뉴로 돌아가기 (던전 종료)
+                                // 메인 메뉴로 돌아가기
                                 setViewState("lobby");
                             }}
                             onRetry={() => {
@@ -1654,7 +1659,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             }}
                         />
                     )}
-
                 </div>
             </div>
 
