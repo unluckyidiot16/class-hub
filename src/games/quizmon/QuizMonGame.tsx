@@ -76,7 +76,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.0,
         recommendedMinLevel: 1,
         recommendedMaxLevel: 5,
-        arenaKey: "forest",
+        arenaKey: "forest_bg",
     },
     {
         id: "forest-normal-1",
@@ -89,7 +89,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.5,
         recommendedMinLevel: 3,
         recommendedMaxLevel: 8,
-        arenaKey: "forest",
+        arenaKey: "forest_bg",
     },
     {
         id: "tower-hard-1",
@@ -102,7 +102,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 2.0,
         recommendedMinLevel: 5,
         recommendedMaxLevel: 12,
-        arenaKey: "grass",
+        arenaKey: "forest_bg",
     },
 ];
 
@@ -1035,7 +1035,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
         DUNGEON_CONFIGS[0];
 
-    const battleBgUrl = getArenaSprite(selectedDungeon.arenaKey ?? "forest-01");
+    const battleBgUrl = getArenaSprite(selectedDungeon.arenaKey ?? "forest_bg");
 
     let resultMessage = "접전 끝에 무승부!";
     if (playerMon.hp > 0 && enemyMon.hp <= 0) {
