@@ -1211,20 +1211,15 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onSaveParty={handleSaveParty}
                             canContinue={canContinue}
                             onContinue={handleContinue}
-                            // 🔹 모드 플래그 전달
-                            isClassRaid={isClassRaid}
-                            // 🔹 던전 모드: 던전 선택 창 열기
+                            // 🔹 던전: 던전 선택 오버레이 열기
                             onSelectDungeon={() => setViewState("dungeon")}
-                            // 🔹 레이드 모드: 바로 레이드 전투 진입
-                            onSelectRaid={
-                                isClassRaid
-                                    ? () => {
-                                        // 새 레이드 전투로 진입
-                                        handleReset();
-                                    }
-                                    : undefined
-                            }
-                            onSelectGacha={() => setViewState("gacha")}
+                            // 🔹 레이드: 바로 새 배틀 시작 (공유 레이드용)
+                            onSelectRaid={() => {
+                                handleReset(); // 프로필 파티 기준으로 전투 리셋 + 배틀 진입
+                            }}
+                            onSelectGacha={() => {
+                                setViewState("gacha");
+                            }}
                             lastRaidResult={props.lastRaidResult ?? null}
                             onBuyExpDust={handleBuyExpDust}
                         />

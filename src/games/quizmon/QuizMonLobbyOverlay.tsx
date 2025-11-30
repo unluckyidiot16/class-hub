@@ -28,15 +28,9 @@ export type QuizMonLobbyOverlayProps = {
     canContinue: boolean;
     onContinue: () => void;
 
-    /** 🔹 클래스 레이드 모드 여부 (roomId + gameSessionId + studentId 유무) */
-    isClassRaid?: boolean;
-
-    /** 🔹 던전 모드용: 던전 선택 창으로 이동 */
+    // 🔹 던전 / 레이드 둘 다 수업용
     onSelectDungeon: () => void;
-
-    /** 🔹 클래스 레이드 모드용: 바로 레이드 전투 진입 */
-    onSelectRaid?: () => void;
-
+    onSelectRaid: () => void;
     onSelectGacha: () => void;
 
     lastRaidResult?: { correct: number; total: number } | null;
@@ -57,7 +51,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onSaveParty,
         canContinue,
         onContinue,
-        isClassRaid,      // 🔹 추가
         onSelectDungeon,
         onSelectRaid,     // 🔹 추가
         onSelectGacha,
@@ -242,6 +235,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 gap: 12,
                             }}
                         >
+                            {/* 제목/설명 */}
                             <div>
                                 <div
                                     style={{
@@ -262,98 +256,141 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 </div>
                             </div>
 
+                            {/* 계속하기 버튼 */}
+                            <button
+                                type="button"
+                                onClick={canContinue ? onContinue : undefined}
+                                disabled={!canContinue}
+                                style={{
+                                    width: "100%",
+                                    padding: "0.5rem 0.75rem",
+                                    borderRadius: 6,
+                                    border: "1px solid #4b5563",
+                                    backgroundColor: canContinue
+                                        ? "#e5e7eb0d"
+                                        : "rgba(15,23,42,0.6)",
+                                    color: canContinue ? "#e5e7eb" : "#4b5563",
+                                    fontSize: 13,
+                                    textAlign: "left",
+                                    cursor: canContinue ? "pointer" : "default",
+                                }}
+                            >
+                                ▶ 계속하기
+                            </button>
+
+                            {/* 수업용 던전 / 레이드 / 가챠 섹션 */}
                             <div
                                 style={{
-                                    marginTop: 8,
+                                    marginTop: 4,
+                                    paddingTop: 8,
+                                    borderTop: "1px dashed #374151",
                                     display: "flex",
                                     flexDirection: "column",
                                     gap: 8,
                                 }}
                             >
-                                {/* 진행 중인 배틀 있을 때만 노출 */}
-                                {canContinue && (
-                                    <button
-                                        type="button"
-                                        onClick={onContinue}
-                                        style={{
-                                            width: "100%",
-                                            padding: "0.5rem 0.75rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #4b5563",
-                                            backgroundColor: "#e5e7eb0d",
-                                            color: "#e5e7eb",
-                                            fontSize: 13,
-                                            textAlign: "left",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        ▶ 계속하기
-                                    </button>
-                                )}
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#f97316",
+                                    }}
+                                >
+                                    ▼ 여기부터 수업 시간용 던전 / 레이드 메뉴입니다.
+                                </div>
 
-                                /* 🔻 여기부터 교체 */
-                                {isClassRaid && onSelectRaid ? (
-                                    // 🔹 클래스 레이드 모드: 바로 레이드 전투 진입
-                                    <button
-                                        type="button"
-                                        onClick={onSelectRaid}
-                                        style={{
-                                            width: "100%",
-                                            padding: "0.5rem 0.75rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #b91c1c",
-                                            backgroundColor: "#7f1d1d",
-                                            color: "#fee2e2",
-                                            fontSize: 13,
-                                            textAlign: "left",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        ⚔ 클래스 레이드 시작
-                                    </button>
-                                ) : (
-                                    // 🔹 일반 모드: 던전 선택 창으로 이동
-                                    <button
-                                        type="button"
-                                        onClick={onSelectDungeon}
-                                        style={{
-                                            width: "100%",
-                                            padding: "0.5rem 0.75rem",
-                                            borderRadius: 6,
-                                            border: "1px solid #4b5563",
-                                            backgroundColor: "#e5e7eb0d",
-                                            color: "#e5e7eb",
-                                            fontSize: 13,
-                                            textAlign: "left",
-                                            cursor: "pointer",
-                                        }}
-                                    >
-                                        🌲 새 레이드 시작 (던전)
-                                    </button>
-                                )}
+                                {/* 던전: 던전 선택 오버레이로 이동 */}
+                                <button
+                                    type="button"
+                                    onClick={onSelectDungeon}
+                                    style={{
+                                        width: "100%",
+                                        textAlign: "left",
+                                        borderRadius: 8,
+                                        border: "1px solid #1d4ed8",
+                                        background:
+                                            "linear-gradient(90deg,#1d4ed8,#3b82f6)",
+                                        color: "#e5f2ff",
+                                        padding: "0.65rem 0.9rem",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    🌲 던전 돌기 (스테이지 선택)
+                                </button>
 
+                                {/* 레이드: 바로 클래스 레이드 전투 진입 */}
+                                <button
+                                    type="button"
+                                    onClick={onSelectRaid}
+                                    style={{
+                                        width: "100%",
+                                        textAlign: "left",
+                                        borderRadius: 8,
+                                        border: "1px solid #7f1d1d",
+                                        background:
+                                            "linear-gradient(90deg,#991b1b,#b91c1c)",
+                                        color: "#fee2e2",
+                                        padding: "0.65rem 0.9rem",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    ✖ 클래스 레이드 시작
+                                </button>
 
-                                {/* 가챠 씬 열기 */}
+                                {/* 공통: 가챠 (보상 뽑기) */}
                                 <button
                                     type="button"
                                     onClick={onSelectGacha}
                                     style={{
                                         width: "100%",
-                                        padding: "0.5rem 0.75rem",
-                                        borderRadius: 6,
-                                        border: "1px solid #4b5563",
-                                        backgroundColor: "#e5e7eb0d",
-                                        color: "#e5e7eb",
-                                        fontSize: 13,
                                         textAlign: "left",
+                                        borderRadius: 8,
+                                        border: "1px solid #374151",
+                                        backgroundColor: "#020617",
+                                        color: "#e5e7eb",
+                                        padding: "0.65rem 0.9rem",
+                                        fontSize: 13,
                                         cursor: "pointer",
                                     }}
                                 >
                                     가챠 (보상 뽑기)
                                 </button>
+
+                                {/* 최근 레이드 결과 (있을 때만 표시) */}
+                                {lastRaidResult && (
+                                    <div
+                                        style={{
+                                            marginTop: 4,
+                                            padding: "0.55rem 0.75rem",
+                                            borderRadius: 8,
+                                            border: "1px solid #1f2937",
+                                            backgroundColor: "rgba(15,23,42,0.9)",
+                                            fontSize: 12,
+                                            color: "#e5e7eb",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                fontSize: 11,
+                                                color: "#9ca3af",
+                                                marginBottom: 2,
+                                            }}
+                                        >
+                                            최근 레이드 결과
+                                        </div>
+                                        <div>
+                                            정답 {lastRaidResult.correct} /{" "}
+                                            {lastRaidResult.total} 문제
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
+
 
                     {/* 몬스터 탭 */}
                     {menuTab === "monsters" && (
