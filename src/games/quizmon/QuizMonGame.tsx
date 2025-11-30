@@ -38,14 +38,74 @@ import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 // =========================
 // 🌆 배틀 BG / 하단 패널용 헬퍼
 // =========================
-const BATTLE_BG_URL = getArenaSprite("forest_bg");
-const PLAYER_SPECIES_ID = "0001";
+const BATTLE_BG_URL = getArenaSprite;
+const PLAYER_SPECIES_ID = "poke-0001" as const;
 
 // viewState 는 던전 단위 상태(DungeonState) 역할
 // - "lobby": 메인 메뉴 오버레이
 // - "battle": 실제 전투 진행 화면
 // - "result": 배틀 결산 오버레이
-type ViewState = "lobby" | "dungeon" | "gacha" | "battle" | "result";
+// viewState 는 던전 단위 상태(DungeonState) 역할
+type ViewState = "title" | "lobby" | "battle" | "result" | "gacha" | "dungeon";
+
+// 🔹 던전 타입 / 설정
+type DungeonDifficulty = "easy" | "normal" | "hard";
+
+export type DungeonConfig = {
+    id: string;
+    name: string;
+    description: string;
+    difficulty: DungeonDifficulty;
+    /** UI용 난이도 라벨 (한글) */
+    difficultyLabel: string;
+    /** 나중에 적 세트 테이블/JSON과 연결할 키 */
+    enemySetId: string;
+    /** 보상 계수 (코인/Exp/아이템 드랍 등) */
+    rewardMultiplier: number;
+    /** 권장 레벨 범위 */
+    recommendedMinLevel: number;
+    recommendedMaxLevel: number;
+};
+
+/** 🏰 6-A: 던전 리스트 (데이터 분리) */
+export const DUNGEON_CONFIGS: DungeonConfig[] = [
+    {
+        id: "forest-easy-1",
+        name: "숲 입구 튜토리얼",
+        description: "HP가 낮은 적이 등장하는 튜토리얼용 레이드입니다.",
+        difficulty: "easy",
+        difficultyLabel: "쉬움",
+        enemySetId: "forest-set-1",
+        rewardMultiplier: 1.0,
+        recommendedMinLevel: 1,
+        recommendedMaxLevel: 5,
+    },
+    {
+        id: "forest-normal-1",
+        name: "숲 깊은 곳",
+        description:
+            "조금 더 강한 적이 등장하는 실전 수업용 던전입니다.",
+        difficulty: "normal",
+        difficultyLabel: "보통",
+        enemySetId: "forest-set-2",
+        rewardMultiplier: 1.5,
+        recommendedMinLevel: 3,
+        recommendedMaxLevel: 8,
+    },
+    {
+        id: "tower-hard-1",
+        name: "연습 타워 (하드)",
+        description:
+            "정답률이 높을수록 보상이 크게 늘어나는 도전용 던전입니다.",
+        difficulty: "hard",
+        difficultyLabel: "어려움",
+        enemySetId: "tower-set-1",
+        rewardMultiplier: 2.0,
+        recommendedMinLevel: 5,
+        recommendedMaxLevel: 12,
+    },
+];
+
 
 // 배열 셔플 유틸 (Fisher–Yates)
 function shuffleArray<T>(arr: T[]): T[] {
@@ -160,7 +220,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
-    const canPaidGacha = !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
+
+    // 🔹 현재 선택된 던전 (UI용)
+    const [selectedDungeonId, setSelectedDungeonId] = useState<string>(
+        DUNGEON_CONFIGS[0]?.id ?? "forest-easy-1",
+    );
+
+    const canPaidGacha =
+        !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
 
     const handleBuyExpDust = async () => {
         if (!buyExpDust) return;
@@ -950,10 +1017,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const accuracyPercent =
         battleStats.total > 0
             ? Math.round((battleStats.correct / battleStats.total) * 100)
-            : 0;
+            : null;
 
-    const battleFinished = state.phase === "finished";
-    const showResultOverlay = viewState === "result" && battleFinished;
+    const battleFinished =
+        state.player.monsters.every((m) => m.hp <= 0) ||
+        state.enemy.monsters.every((m) => m.hp <= 0);
+
+    const showResultOverlay =
+        viewState === "result" || (battleFinished && viewState === "battle");
+
+    // 🔹 현재 선택된 던전 객체
+    const selectedDungeon =
+        DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
+        DUNGEON_CONFIGS[0];
+
 
     let resultMessage = "접전 끝에 무승부!";
     if (playerMon.hp > 0 && enemyMon.hp <= 0) {
@@ -961,7 +1038,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     } else if (playerMon.hp <= 0 && enemyMon.hp > 0) {
         resultMessage = "아쉽다… 패배했다!";
     }
-
+    
 
     return (
         <div
@@ -1176,34 +1253,100 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     던전 선택
                                 </div>
 
-                                {/* 지금은 테스트 던전 하나만 – 나중에 리스트로 확장 */}
+                                {/* 🔹 DUNGEON_CONFIGS 기반 던전 리스트 */}
                                 <div
                                     style={{
-                                        borderRadius: 8,
-                                        border: "1px solid #1f2937",
-                                        background: "#020617",
-                                        padding: "0.6rem 0.75rem",
-                                        fontSize: 13,
-                                        marginBottom: 10,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 8,
+                                        marginBottom: 8,
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            fontWeight: 600,
-                                            marginBottom: 2,
-                                        }}
-                                    >
-                                        테스트 레이드 던전
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 12,
-                                            color: "#9ca3af",
-                                        }}
-                                    >
-                                        단일 보스 · 난이도: 쉬움 ·
-                                        정답 1개당 코인 1개 획득
-                                    </div>
+                                    {DUNGEON_CONFIGS.map((dungeon) => {
+                                        const isSelected = dungeon.id === selectedDungeonId;
+                                        return (
+                                            <button
+                                                key={dungeon.id}
+                                                type="button"
+                                                onClick={() =>
+                                                    setSelectedDungeonId(dungeon.id)
+                                                }
+                                                style={{
+                                                    width: "100%",
+                                                    textAlign: "left",
+                                                    borderRadius: 8,
+                                                    border: `1px solid ${
+                                                        isSelected ? "#f97316" : "#1f2937"
+                                                    }`,
+                                                    background: isSelected
+                                                        ? "linear-gradient(135deg, rgba(30,64,175,0.9), rgba(234,88,12,0.9))"
+                                                        : "#020617",
+                                                    padding: "0.55rem 0.7rem",
+                                                    fontSize: 13,
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        marginBottom: 2,
+                                                    }}
+                                                >
+                                <span style={{ fontWeight: 600 }}>
+                                    {dungeon.name}
+                                </span>
+                                                    <span
+                                                        style={{
+                                                            fontSize: 11,
+                                                            padding: "0 0.45rem",
+                                                            borderRadius: 999,
+                                                            border: "1px solid #4b5563",
+                                                            color: "#e5e7eb",
+                                                        }}
+                                                    >
+                                    {dungeon.difficultyLabel}
+                                </span>
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 12,
+                                                        color: "#9ca3af",
+                                                    }}
+                                                >
+                                                    {dungeon.description}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        marginTop: 4,
+                                                        fontSize: 11,
+                                                        color: "#9ca3af",
+                                                    }}
+                                                >
+                                                    추천 레벨 {dungeon.recommendedMinLevel}~
+                                                    {dungeon.recommendedMaxLevel} · 보상 ×
+                                                    {dungeon.rewardMultiplier.toFixed(1)}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* 현재 선택된 던전 요약 */}
+                                <div
+                                    style={{
+                                        fontSize: 11,
+                                        color: "#9ca3af",
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    선택된 던전:{" "}
+                                    <span style={{ color: "#e5e7eb", fontWeight: 600 }}>
+                    {selectedDungeon.name}
+                </span>{" "}
+                                    (난이도 {selectedDungeon.difficultyLabel} · 보상 ×
+                                    {selectedDungeon.rewardMultiplier.toFixed(1)})
                                 </div>
 
                                 <div
@@ -1232,6 +1375,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     <button
                                         type="button"
                                         onClick={() => {
+                                            // TODO: selectedDungeon.enemySetId / rewardMultiplier 를
+                                            //       실제 적 생성/보상 계산에 반영 (6-B에서 서비스와 연동)
+                                            console.log(
+                                                "[QuizMonGame] Start dungeon:",
+                                                selectedDungeonId,
+                                            );
                                             handleReset();          // 새 배틀 상태로 리셋
                                             setViewState("battle"); // 배틀 화면으로 진입
                                         }}

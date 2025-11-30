@@ -10,7 +10,7 @@ export type BattleStats = {
 export type QuizMonResultOverlayProps = {
     resultMessage: string;
     stats: BattleStats;
-    accuracyPercent: number;
+    accuracyPercent: number | null;
     playerMon: Monster;
     enemyMon: Monster;
     onBackToMenu: () => void;
@@ -78,9 +78,12 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                         marginBottom: 8,
                     }}
                 >
-                    정답 {stats.correct} / {stats.total} ({accuracyPercent}
-                    %)
+                    정답 {stats.correct} / {stats.total}
+                    {stats.total > 0 &&
+                        typeof accuracyPercent === "number" &&
+                        ` (${accuracyPercent}%)`}
                 </div>
+
 
                 {/* 내 파트너 / 상대 포켓몬 요약 */}
                 <div
