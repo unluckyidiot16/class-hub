@@ -19,6 +19,7 @@ import {
     calcQuizMod,
     pushLog,
     rollHit,
+    applyAbilityDamageModifier,
 } from "./logic";
 import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
@@ -35,7 +36,20 @@ import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 
 
 
+function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
+    // HP 1/3 이하일 때 풀 기술 1.5배
+    if (species.element === "grass") {
+        return "overgrow" as const;
+    }
 
+    // 물 기술 받는 피해 0.8배
+    if (species.element === "water") {
+        return "water_guard" as const;
+    }
+
+    // 그 외는 아직 특성 없음
+    return null;
+}
 
 // viewState 는 던전 단위 상태(DungeonState) 역할
 // - "lobby": 메인 메뉴 오버레이
@@ -467,9 +481,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
             );
 
             // 3) battleFactory로 Monster 빌드
-            // 3) battleFactory로 Monster 빌드
-            const partyMonsters: Monster[] = aliveOwnedRows
-                .map((owned) => {
+            const partyMonsters = aliveOwnedRows
+                .map((owned): Monster | null => {
                     const species = speciesMap.get(owned.species_id);
                     if (!species) return null;
 
@@ -496,10 +509,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         );
                     }
 
-                    // 최종적으로 전투에서 사용할 moves를 덮어쓴 Monster 반환
+                    // ✅ v1 특성: 종족 기반으로 abilityId 주입
+                    const abilityId = getDefaultAbilityForSpecies(species);
+
                     return {
                         ...base,
                         moves: moveList,
+                        abilityId,            // 🔹 여기 한 줄 추가
                     };
                 })
                 .filter((m): m is Monster => m !== null);
@@ -901,13 +917,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
             } (명중률 ${hitChance.toFixed(1)}%) → `;
 
             if (rollHit(hitChance)) {
-                const dmg = calcDamage(
+                const baseDmg = calcDamage(
                     prevPlayerMon,
                     prevEnemyMon,
                     prev.pendingPlayerMove.move,
                 );
-                const newEnemyMon = applyDamageToMonster(prevEnemyMon, dmg);
-                const newEnemyMons = [...prev.enemy.monsters];
+                const dmg = applyAbilityDamageModifier(
+                    prevPlayerMon,
+                    prevEnemyMon,
+                    prev.pendingPlayerMove.move,
+                    baseDmg,
+                );
+
+            const newEnemyMon = applyDamageToMonster(prevEnemyMon, dmg);
+            const newEnemyMons = [...prev.enemy.monsters];
                 newEnemyMons[prev.enemy.activeIndex] = newEnemyMon;
 
                 next = {
@@ -936,11 +959,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 } (명중률 ${enemyHitChance.toFixed(1)}%) → `;
 
                 if (rollHit(enemyHitChance)) {
-                    const dmg = calcDamage(
+                    const baseDmg = calcDamage(
                         prevEnemyMon,
                         prevPlayerMon,
                         prev.pendingEnemyMove.move,
                     );
+                    const dmg = applyAbilityDamageModifier(
+                        prevEnemyMon,
+                        prevPlayerMon,
+                        prev.pendingEnemyMove.move,
+                        baseDmg,
+                    );
+
                     const newPlayerMon = applyDamageToMonster(
                         prevPlayerMon,
                         dmg,

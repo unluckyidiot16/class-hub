@@ -295,7 +295,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                         color: "#f97316",
                                     }}
                                 >
-                                    ▼ 여기부터 수업 시간용 던전 / 레이드 메뉴입니다.
                                 </div>
 
                                 {/* 던전: 던전 선택 오버레이로 이동 */}

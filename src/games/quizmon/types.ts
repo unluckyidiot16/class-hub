@@ -17,6 +17,14 @@ export type MoveCategory = "physical" | "special" | "status";
  */
 export type MoveTarget = "enemy" | "ally" | "self" | "field";
 
+export type AbilityId = "overgrow" | "water_guard";
+
+export type Ability = {
+    id: AbilityId;
+    name: string;
+    description: string;
+};
+
 /**
  * 상태 이상 (기본 포켓몬식 + 확장 여지)
  */
@@ -110,6 +118,9 @@ export type Monster = {
 
     // 보유 스킬 (최대 4개 사용 권장; 타입은 유연하게 배열로 둠)
     moves: Move[];
+
+    // ✅ v1 특성 (optional)
+    abilityId?: AbilityId | null;
 };
 
 

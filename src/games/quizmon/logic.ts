@@ -1,5 +1,5 @@
 // src/games/quizmon/logic.ts
-import type { Move, QuizAnswerResult } from "./types";
+import type { Monster, Move, QuizAnswerResult } from "./types";
 import { getPokemonDimension } from "./pokemonDimensions";
 
 /**
@@ -31,6 +31,47 @@ export function calcQuizMod(result: QuizAnswerResult | null): number {
     }
     // 8초 이상 느린 정답
     return 1.0;
+}
+
+// ✅ v1 특성 데미지 보정
+export function applyAbilityDamageModifier(
+    attacker: Monster,
+    defender: Monster,
+    move: Move,
+    baseDamage: number,
+): number {
+    let damage = baseDamage;
+    const moveElement = (move as any).element ?? (move as any).type;
+
+    // ----------------------------
+    // 1) 공격자 특성
+    // ----------------------------
+
+    // "HP 1/3 이하일 때 풀(Grass) 기술 1.5배" (Overgrow 느낌)
+    if (attacker.abilityId === "overgrow") {
+        const ratio =
+            attacker.maxHp > 0 ? attacker.hp / attacker.maxHp : 0;
+        if (ratio <= 1 / 3 && moveElement === "grass") {
+            damage = Math.round(damage * 1.5);
+        }
+    }
+
+    // ----------------------------
+    // 2) 방어자 특성
+    // ----------------------------
+
+    // "물(Water) 기술 받는 피해 0.8배"
+    if (defender.abilityId === "water_guard") {
+        if (moveElement === "water") {
+            damage = Math.round(damage * 0.8);
+        }
+    }
+
+    // 데미지는 최소 1 보장
+    if (!Number.isFinite(damage) || damage < 1) {
+        return 1;
+    }
+    return damage;
 }
 
 /**
