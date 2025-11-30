@@ -1,0 +1,43 @@
+[
+  {
+    "id": "tackle",
+    "name": "Tackle",
+    "nameKo": "몸통박치기",
+    "element": "normal",
+    "category": "physical",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 35,
+    "priority": 0,
+    "target": "enemy",
+    "meta": {}
+  },
+  {
+    "id": "vine_whip",
+    "name": "Vine Whip",
+    "nameKo": "덩굴채찍",
+    "element": "grass",
+    "category": "physical",
+    "power": 45,
+    "accuracy": 100,
+    "pp": 25,
+    "priority": 0,
+    "target": "enemy",
+    "meta": {}
+  },
+  {
+    "id": "growl",
+    "name": "Growl",
+    "nameKo": "울부짖기",
+    "element": "normal",
+    "category": "status",
+    "power": null,
+    "accuracy": 100,
+    "pp": 40,
+    "priority": 0,
+    "target": "enemy",
+    "meta": {
+      "atkStageChange": -1
+    }
+  }
+]

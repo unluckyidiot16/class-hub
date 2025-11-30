@@ -1,0 +1,11 @@
+[
+  {
+    "speciesId": "poke-0001",
+    "learn": [
+      { "level": 1, "moveId": "tackle" },
+      { "level": 3, "moveId": "vine_whip" },
+      { "level": 7, "moveId": "razor_leaf" },
+      { "level": 12, "moveId": "seed_bomb" }
+    ]
+  }
+]
