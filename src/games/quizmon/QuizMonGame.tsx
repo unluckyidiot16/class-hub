@@ -1201,7 +1201,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     {viewState === "lobby" && (
                         <QuizMonLobbyOverlay
                             menuTab={menuTab}
-                            onMenuTabChange={setMenuTab}
+                            onMenuTabChange={(tab) => setMenuTab(tab)}
                             localProfile={localProfile}
                             profile={props.profile ?? null}
                             monsters={props.monsters}
@@ -1211,17 +1211,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onSaveParty={handleSaveParty}
                             canContinue={canContinue}
                             onContinue={handleContinue}
-                            onSelectDungeon={() => {
-                                if (isClassRaid) {
-                                    handleReset();
-                                    setViewState("battle");
-                                } else {
-                                    setViewState("dungeon");
-                                }
-                            }}
-                            onSelectGacha={() => {
-                                setViewState("gacha");
-                            }}
+                            // 🔹 모드 플래그 전달
+                            isClassRaid={isClassRaid}
+                            // 🔹 던전 모드: 던전 선택 창 열기
+                            onSelectDungeon={() => setViewState("dungeon")}
+                            // 🔹 레이드 모드: 바로 레이드 전투 진입
+                            onSelectRaid={
+                                isClassRaid
+                                    ? () => {
+                                        // 새 레이드 전투로 진입
+                                        handleReset();
+                                    }
+                                    : undefined
+                            }
+                            onSelectGacha={() => setViewState("gacha")}
                             lastRaidResult={props.lastRaidResult ?? null}
                             onBuyExpDust={handleBuyExpDust}
                         />

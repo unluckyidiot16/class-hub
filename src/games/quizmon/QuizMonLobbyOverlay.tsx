@@ -22,18 +22,27 @@ export type QuizMonLobbyOverlayProps = {
     monsters?: QuizmonOwnedMonsterRow[];
     collectionLoading?: boolean;
     collectionError?: string | null;
-    onPullFreeGacha?: () => void | Promise<void>;
     onHealAll?: () => void | Promise<void>;
     onSaveParty?: (partyIds: (string | null)[]) => void | Promise<void>;
 
     canContinue: boolean;
     onContinue: () => void;
+
+    /** 🔹 클래스 레이드 모드 여부 (roomId + gameSessionId + studentId 유무) */
+    isClassRaid?: boolean;
+
+    /** 🔹 던전 모드용: 던전 선택 창으로 이동 */
     onSelectDungeon: () => void;
+
+    /** 🔹 클래스 레이드 모드용: 바로 레이드 전투 진입 */
+    onSelectRaid?: () => void;
+
     onSelectGacha: () => void;
 
     lastRaidResult?: { correct: number; total: number } | null;
     onBuyExpDust?: (quantity?: number) => Promise<void> | void;
 };
+
 
 export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
     const {
@@ -44,16 +53,18 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         monsters,
         collectionLoading,
         collectionError,
-        onPullFreeGacha,
         onHealAll,
         onSaveParty,
         canContinue,
         onContinue,
+        isClassRaid,      // 🔹 추가
         onSelectDungeon,
+        onSelectRaid,     // 🔹 추가
         onSelectGacha,
         lastRaidResult,
-        onBuyExpDust,      
+        onBuyExpDust,
     } = props;
+
 
     // 🔹 우선순위: localProfile(가챠/상점 등으로 갱신된 최신 프로필) → fallback profile
     const effectiveProfile = localProfile ?? profile;
@@ -280,24 +291,47 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                     </button>
                                 )}
 
-                                {/* 새 레이드 (던전) */}
-                                <button
-                                    type="button"
-                                    onClick={onSelectDungeon}
-                                    style={{
-                                        width: "100%",
-                                        padding: "0.5rem 0.75rem",
-                                        borderRadius: 6,
-                                        border: "1px solid #4b5563",
-                                        backgroundColor: "#e5e7eb0d",
-                                        color: "#e5e7eb",
-                                        fontSize: 13,
-                                        textAlign: "left",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    새 레이드 시작 (던전)
-                                </button>
+                                /* 🔻 여기부터 교체 */
+                                {isClassRaid && onSelectRaid ? (
+                                    // 🔹 클래스 레이드 모드: 바로 레이드 전투 진입
+                                    <button
+                                        type="button"
+                                        onClick={onSelectRaid}
+                                        style={{
+                                            width: "100%",
+                                            padding: "0.5rem 0.75rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #b91c1c",
+                                            backgroundColor: "#7f1d1d",
+                                            color: "#fee2e2",
+                                            fontSize: 13,
+                                            textAlign: "left",
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        ⚔ 클래스 레이드 시작
+                                    </button>
+                                ) : (
+                                    // 🔹 일반 모드: 던전 선택 창으로 이동
+                                    <button
+                                        type="button"
+                                        onClick={onSelectDungeon}
+                                        style={{
+                                            width: "100%",
+                                            padding: "0.5rem 0.75rem",
+                                            borderRadius: 6,
+                                            border: "1px solid #4b5563",
+                                            backgroundColor: "#e5e7eb0d",
+                                            color: "#e5e7eb",
+                                            fontSize: 13,
+                                            textAlign: "left",
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        🌲 새 레이드 시작 (던전)
+                                    </button>
+                                )}
+
 
                                 {/* 가챠 씬 열기 */}
                                 <button
@@ -328,7 +362,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             monsters={monsters}
                             collectionLoading={collectionLoading}
                             collectionError={collectionError}
-                            onPullFreeGacha={onPullFreeGacha}
                             onHealAll={onHealAll}
                             onSaveParty={onSaveParty}
                         />
