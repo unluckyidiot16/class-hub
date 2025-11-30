@@ -35,11 +35,7 @@ import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 
 
 
-// =========================
-// 🌆 배틀 BG / 하단 패널용 헬퍼
-// =========================
-const BATTLE_BG_URL = getArenaSprite;
-const PLAYER_SPECIES_ID = "poke-0001" as const;
+
 
 // viewState 는 던전 단위 상태(DungeonState) 역할
 // - "lobby": 메인 메뉴 오버레이
@@ -65,6 +61,7 @@ export type DungeonConfig = {
     /** 권장 레벨 범위 */
     recommendedMinLevel: number;
     recommendedMaxLevel: number;
+    arenaKey : string;
 };
 
 /** 🏰 6-A: 던전 리스트 (데이터 분리) */
@@ -79,6 +76,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.0,
         recommendedMinLevel: 1,
         recommendedMaxLevel: 5,
+        arenaKey: "forest-01",
     },
     {
         id: "forest-normal-1",
@@ -91,6 +89,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.5,
         recommendedMinLevel: 3,
         recommendedMaxLevel: 8,
+        arenaKey: "forest-01",
     },
     {
         id: "tower-hard-1",
@@ -103,6 +102,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 2.0,
         recommendedMinLevel: 5,
         recommendedMaxLevel: 12,
+        arenaKey: "forest-01",
     },
 ];
 
@@ -117,7 +117,11 @@ function shuffleArray<T>(arr: T[]): T[] {
     return copy;
 }
 
+// =========================
+// 🌆 배틀 BG / 하단 패널용 헬퍼
+// =========================
 
+const PLAYER_SPECIES_ID = "poke-0001" as const;
 
 // =========================
 // 🎮 Game 컴포넌트
@@ -1031,6 +1035,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
         DUNGEON_CONFIGS[0];
 
+    const battleBgUrl = getArenaSprite(selectedDungeon.arenaKey ?? "forest-01");
 
     let resultMessage = "접전 끝에 무승부!";
     if (playerMon.hp > 0 && enemyMon.hp <= 0) {
@@ -1162,7 +1167,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         style={{
                             position: "absolute",
                             inset: 0,
-                            backgroundImage: `url(${BATTLE_BG_URL})`,
+                            backgroundImage: `url(${battleBgUrl})`,
                             backgroundRepeat: "no-repeat",
                             backgroundSize: "cover",
                             backgroundPosition: "center bottom",
