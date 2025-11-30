@@ -76,7 +76,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.0,
         recommendedMinLevel: 1,
         recommendedMaxLevel: 5,
-        arenaKey: "forest-01",
+        arenaKey: "forest",
     },
     {
         id: "forest-normal-1",
@@ -89,7 +89,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.5,
         recommendedMinLevel: 3,
         recommendedMaxLevel: 8,
-        arenaKey: "forest-01",
+        arenaKey: "forest",
     },
     {
         id: "tower-hard-1",
@@ -102,7 +102,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 2.0,
         recommendedMinLevel: 5,
         recommendedMaxLevel: 12,
-        arenaKey: "forest-01",
+        arenaKey: "grass",
     },
 ];
 
