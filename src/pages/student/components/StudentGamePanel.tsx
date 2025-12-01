@@ -104,6 +104,15 @@ export function StudentGamePanel(props: Props) {
     const isReactGame = spec.mode === "react-component";
     const isGameRoom = isIframeGame || isReactGame;
 
+    const canToggleFullscreen =
+        !!session &&
+        session.status === "running" &&
+        typeof onToggleFullscreen === "function" &&
+        (
+            (isIframeGame && !!iframeSrc) || // QDD / Pixel
+            isReactGame                       // QuizMon 같은 React 게임
+        );
+
     const title = isGameRoom ? "현재 게임" : "현재 문제";
 
     // 라이브 세션용 builtin-quiz 모드 여부
@@ -116,8 +125,19 @@ export function StudentGamePanel(props: Props) {
         <div
             className="card"
             style={{
-                maxWidth: isIframeGame ? "100%" : 720,
-                margin: "0 auto",
+                // QDD/Pixel은 16:9 넓게, 나머지는 1080 고정
+                maxWidth: isIframeGame ? 1920 : 1080,
+                margin: isGameFullscreen ? "0 auto" : "0 auto 1.5rem",
+                padding: isGameFullscreen ? 0 : "1rem",
+                // 전체 화면일 때는 세로도 꽉 채우기 (헤더 높이만큼 빼줌)
+                ...(isGameFullscreen
+                    ? {
+                        position: "fixed",
+                        inset: "0",
+                        zIndex: 999,
+                        borderRadius: 0,
+                    }
+                    : {}),
             }}
         >
             {/* 카드 상단: 제목 + 전체화면 버튼 */}
@@ -132,23 +152,16 @@ export function StudentGamePanel(props: Props) {
             >
                 <h2 style={{ margin: 0 }}>{title}</h2>
 
-                {isIframeGame &&
-                    session &&
-                    session.status === "running" &&
-                    iframeSrc &&
-                    typeof onToggleFullscreen === "function" && (
-                        <button
-                            type="button"
-                            className="secondary-btn"
-                            style={{
-                                fontSize: "0.8rem",
-                                padding: "0.25rem 0.5rem",
-                            }}
-                            onClick={() => onToggleFullscreen(true)}
-                        >
-                            게임만 보기
-                        </button>
-                    )}
+                {canToggleFullscreen && (
+                    <button
+                        type="button"
+                        className="secondary-btn"
+                        style={{ fontSize: "0.8rem", padding: "0.25rem 0.5rem" }}
+                        onClick={() => onToggleFullscreen?.(true)}
+                    >
+                        게임만 보기
+                    </button>
+                )}
             </div>
 
             {/* === builtin-quiz 모드 === */}
