@@ -143,6 +143,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
             <div
                 style={{
                     width: "min(1040px, 100%)",
+                    // 🔽 추가: 카드 높이를 화면 기준으로 고정
                     height: "min(720px, 90vh)",
                     maxHeight: "90vh",
                     padding: "1.1rem 1.3rem",
@@ -155,7 +156,8 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     flexDirection: "column",
                 }}
             >
-                {/* 헤더 + 탭 */}
+
+            {/* 헤더 + 탭 */}
                 <div style={{ marginBottom: 16, flex: "0 0 auto" }}>
                     <div style={{ fontSize: 12, color: "#9ca3af" }}>
                         QuizMon Class · Beta
