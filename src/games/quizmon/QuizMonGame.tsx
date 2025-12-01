@@ -264,11 +264,15 @@ export function QuizMonGame(props: QuizMonGameProps) {
     
     const [hpSynced, setHpSynced] = useState(false);
 
-    // Bulbasaur(0001) 임시 전투 스프라이트 – 이후 파티 기반으로 교체 가능
-    const bulbasaurFrontJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "front");
-    const bulbasaurFrontPng = getMonsterSprite(PLAYER_SPECIES_ID, "front");
-    const bulbasaurBackJson = getMonsterAnimJson(PLAYER_SPECIES_ID, "back");
-    const bulbasaurBackPng = getMonsterSprite(PLAYER_SPECIES_ID, "back");
+    const [spriteSpeciesId, setSpriteSpeciesId] = useState<string>(
+        PLAYER_SPECIES_ID,
+    );
+    
+    // 선택된 종 ID 기준으로 전투 스프라이트 경로 계산
+    const playerFrontJson = getMonsterAnimJson(spriteSpeciesId, "front");
+    const playerFrontPng = getMonsterSprite(spriteSpeciesId, "front");
+    const playerBackJson = getMonsterAnimJson(spriteSpeciesId, "back");
+    const playerBackPng = getMonsterSprite(spriteSpeciesId, "back");
 
     const [hasBattleInitialized, setHasBattleInitialized] = useState(false);
     const handleContinue = () => {
@@ -299,17 +303,16 @@ export function QuizMonGame(props: QuizMonGameProps) {
     
     // ✅ 플레이어: 백 스프라이트 애니메이션 (왼쪽 아래, 우리 편)
     const renderPlayerSprite = () =>
-        bulbasaurBackJson && bulbasaurBackPng ? (
+        playerBackJson && playerBackPng ? (
             <SpriteAnimation
-                jsonUrl={bulbasaurBackJson}
-                imageUrlOverride={bulbasaurBackPng}
+                jsonUrl={playerBackJson}
+                imageUrlOverride={playerBackPng}
                 fps={12}
                 frameFilter={(frame) => {
                     const n = parseInt(frame.filename.replace(".png", ""), 10);
                     return !Number.isNaN(n) && n >= 1 && n <= 20;
                 }}
                 style={{
-                    // 🔹 원근감: 플레이어 쪽만 더 크게
                     transform: `scale(${PLAYER_SCALE})`,
                     transformOrigin: "bottom left",
                 }}
@@ -317,10 +320,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
         ) : null;
 
     const renderEnemySprite = () =>
-        bulbasaurFrontJson && bulbasaurFrontPng ? (
+        playerFrontJson && playerFrontPng ? (
             <SpriteAnimation
-                jsonUrl={bulbasaurFrontJson}
-                imageUrlOverride={bulbasaurFrontPng}
+                jsonUrl={playerFrontJson}
+                imageUrlOverride={playerFrontPng}
                 fps={12}
                 frameFilter={(frame) => {
                     const n = parseInt(frame.filename.replace(".png", ""), 10);
@@ -332,6 +335,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 }}
             />
         ) : null;
+
 
     /**
      * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
@@ -415,6 +419,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setViewState("lobby");
                 setHasBattleInitialized(false);
                 return;
+            }
+
+            const firstAlive = aliveOwnedRows[0];
+            if (firstAlive?.species_id) {
+                setSpriteSpeciesId(firstAlive.species_id);
             }
 
 

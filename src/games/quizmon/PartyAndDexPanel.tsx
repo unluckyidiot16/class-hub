@@ -705,7 +705,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         });
         setEquipDirty(true);
     }
-
+    
     const dexList = useMemo(
         () =>
             [...enhancedMonsters].sort(
@@ -714,10 +714,12 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         [enhancedMonsters],
     );
 
+
     const selectedSlotIndex = selected
         ? partyIds.findIndex((id) => id === selected.id)
         : -1;
-
+    
+    
     return (
         <>
             <div
