@@ -13,6 +13,22 @@ import {
     type DexMoveInfo,
     type DexAbilityInfo,
 } from "./DexEntryDetailPanel";
+import { getElementLabelAndColor } from "./elementUtils";
+
+type SpeciesLevelupMoveRow = {
+    species_id: string;
+    level: number;
+    sort_order: number;
+    move: {
+        id: string;
+        name: string;
+        description: string;
+        element: string;
+        category: string; // 'physical' | 'special' | 'status'
+        power: number | null;
+        accuracy: number | null;
+    }[]; // 👈 Supabase가 배열로 줘서 이렇게 맞춰줌
+};
 
 type DexTabProps = {
     monsters?: QuizmonOwnedMonsterRow[];
@@ -112,6 +128,13 @@ export function DexTab(props: DexTabProps) {
         string | null
     >(selectedSpeciesId);
 
+    // 🔹 종별 레벨업 기술 캐시
+    const [speciesMoveMap, setSpeciesMoveMap] = useState<
+        Record<string, DexMoveInfo[]>
+    >({});
+    const [movesLoading, setMovesLoading] = useState(false);
+
+    // 부모에서 넘어온 선택값 동기화
     useEffect(() => {
         setInternalSelectedId(selectedSpeciesId);
     }, [selectedSpeciesId]);
@@ -144,6 +167,82 @@ export function DexTab(props: DexTabProps) {
             }
         })();
 
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    // ✅ 레벨업 기술 전체 로딩
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadLevelupMoves() {
+            setMovesLoading(true);
+            const { data, error } = await supabase
+                .from("quizmon_species_levelup_moves")
+                .select(
+                    `
+                species_id,
+                level,
+                sort_order,
+                move:quizmon_moves (
+                    id,
+                    name,
+                    description,
+                    element,
+                    category,
+                    power,
+                    accuracy
+                )
+            `,
+                )
+                .order("species_id", { ascending: true })
+                .order("level", { ascending: true })
+                .order("sort_order", { ascending: true });
+
+            if (error) {
+                console.error("[DexTab] loadLevelupMoves error", error);
+                if (!cancelled) setMovesLoading(false);
+                return;
+            }
+
+            const map: Record<string, DexMoveInfo[]> = {};
+
+            for (const row of (data ?? []) as SpeciesLevelupMoveRow[]) {
+                const mv = row.move && row.move[0]; // 👈 관계상 항상 1개만 올 거라 첫 번째만 사용
+                if (!mv) continue;
+
+                const { label: elementLabel } = getElementLabelAndColor(mv.element);
+                const categoryLabel =
+                    mv.category === "physical"
+                        ? "물리"
+                        : mv.category === "special"
+                            ? "특수"
+                            : "변화";
+
+                const entry: DexMoveInfo = {
+                    id: mv.id,
+                    name: mv.name,
+                    description: mv.description,
+                    elementLabel,
+                    categoryLabel,
+                    power: mv.power ?? null,
+                    accuracy: mv.accuracy ?? null,
+                    learnMethodLabel: "레벨업",
+                    learnAtLabel: `Lv.${row.level}`,
+                } as DexMoveInfo;
+
+                if (!map[row.species_id]) map[row.species_id] = [];
+                map[row.species_id].push(entry);
+            }
+
+            if (!cancelled) {
+                setSpeciesMoveMap(map);
+                setMovesLoading(false);
+            }
+        }
+
+        void loadLevelupMoves();
         return () => {
             cancelled = true;
         };
@@ -195,6 +294,11 @@ export function DexTab(props: DexTabProps) {
         ? getElementMeta(selectedSpecies.element as any)
         : { label: "", color: "#e5e7eb" };
 
+    const movesForSelected: DexMoveInfo[] = useMemo(() => {
+        if (!selectedSpecies) return [];
+        return speciesMoveMap[selectedSpecies.id] ?? [];
+    }, [selectedSpecies, speciesMoveMap]);
+
     const handleSelect = (id: string) => {
         setInternalSelectedId(id);
         onSelectSpecies?.(id);
@@ -241,7 +345,9 @@ export function DexTab(props: DexTabProps) {
                                     key={f.key}
                                     type="button"
                                     onClick={() =>
-                                        setFilterMode(f.key as typeof filterMode)
+                                        setFilterMode(
+                                            f.key as typeof filterMode,
+                                        )
                                     }
                                     style={{
                                         padding: "4px 8px",
@@ -274,7 +380,9 @@ export function DexTab(props: DexTabProps) {
                                     key={s.key}
                                     type="button"
                                     onClick={() =>
-                                        setSortMode(s.key as typeof sortMode)
+                                        setSortMode(
+                                            s.key as typeof sortMode,
+                                        )
                                     }
                                     style={{
                                         padding: "4px 8px",
@@ -396,7 +504,8 @@ export function DexTab(props: DexTabProps) {
                                                     style={{
                                                         width: 40,
                                                         height: 40,
-                                                        imageRendering: "pixelated",
+                                                        imageRendering:
+                                                            "pixelated",
                                                         filter: discovered
                                                             ? "none"
                                                             : "grayscale(1) brightness(0.3)",
@@ -409,8 +518,8 @@ export function DexTab(props: DexTabProps) {
                                                         color: "#4b5563",
                                                     }}
                                                 >
-                          ??
-                        </span>
+                                                    ??
+                                                </span>
                                             )}
                                         </div>
                                         <div style={{ textAlign: "left" }}>
@@ -435,9 +544,10 @@ export function DexTab(props: DexTabProps) {
                                                     color: "#9ca3af",
                                                 }}
                                             >
-                        <span>
-                          No.{(s as any).pokedex_no ?? "??"}
-                        </span>
+                                                <span>
+                                                    No.{(s as any).pokedex_no ??
+                                                    "??"}
+                                                </span>
                                                 <span
                                                     style={{
                                                         padding: "0 6px",
@@ -447,8 +557,8 @@ export function DexTab(props: DexTabProps) {
                                                         fontWeight: 600,
                                                     }}
                                                 >
-                          {label}
-                        </span>
+                                                    {label}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -481,10 +591,12 @@ export function DexTab(props: DexTabProps) {
                         code={selectedSpecies.id}
                         elementLabel={selectedElementMeta.label}
                         elementColor={selectedElementMeta.color}
-                        spriteUrl={getMonsterSprite(selectedSpecies.id) || undefined}
+                        spriteUrl={
+                            getMonsterSprite(selectedSpecies.id) || undefined
+                        }
                         flavorText={selectedSpecies.description ?? ""}
                         stats={toDexStats(selectedSpecies)}
-                        moves={[] as DexMoveInfo[]} // v1: 나중에 채움
+                        moves={movesForSelected}
                         abilities={toDexAbilities(selectedSpecies)}
                         firstObtainedAt={null} // TODO: 나중에 얻게 되면 연동
                     />
@@ -504,6 +616,21 @@ export function DexTab(props: DexTabProps) {
                         }}
                     >
                         왼쪽에서 포켓몬을 선택하면 상세 정보를 보여줄게요.
+                    </div>
+                )}
+
+                {/* 필요하면 기술 로딩 표시도 여기 살짝 추가 가능 */}
+                {movesLoading && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            right: 24,
+                            bottom: 24,
+                            fontSize: "0.75rem",
+                            color: "#9ca3af",
+                        }}
+                    >
+                        기술 정보 불러오는 중...
                     </div>
                 )}
             </div>
