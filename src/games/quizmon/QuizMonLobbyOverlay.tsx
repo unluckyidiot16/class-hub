@@ -147,7 +147,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     background: "rgba(15,23,42,0.98)",
                     border: "1px solid #1f2937",
                     boxShadow: "0 22px 60px rgba(0,0,0,0.8)",
-                    overflowY: "auto",
+                    overflowY: "hidden",
                     display: "flex",
                     flexDirection: "column",
                 }}

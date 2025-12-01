@@ -201,16 +201,16 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        padding: "0.75rem",
+                        overflow: "hidden",
                     }}
                 >
                     {spriteUrl && spriteJsonUrl ? (
                         <SpriteAnimation
-                            key={spriteJsonUrl}             // 🔹 종이 바뀔 때마다 컴포넌트 리마운트
+                            key={spriteJsonUrl}          // ✅ 종이 바뀔 때 리셋
                             jsonUrl={spriteJsonUrl}
                             imageUrlOverride={spriteUrl}
-                            fps={8}
-                            frameFilter={(frame) => {       // 🔹 QuizMonGame과 동일한 필터
+                            fps={12}                     // ✅ 전투와 동일
+                            frameFilter={(frame) => {
                                 const n = parseInt(
                                     frame.filename.replace(".png", ""),
                                     10,
@@ -220,6 +220,8 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                             style={{
                                 width: 144,
                                 height: 144,
+                                transform: "scale(1.8)",  // 도감용 적당한 스케일
+                                transformOrigin: "bottom center",
                                 imageRendering: "pixelated",
                             }}
                         />
@@ -231,7 +233,7 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                                 backgroundImage: `url(${spriteUrl})`,
                                 backgroundRepeat: "no-repeat",
                                 backgroundPosition: "center",
-                                backgroundSize: "350% 350%", // 숫자 조절해서 프레임 크기 맞추기
+                                backgroundSize: "350% 350%",
                                 imageRendering: "pixelated",
                                 borderRadius: 24,
                             }}
@@ -241,13 +243,13 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                             style={{
                                 fontSize: "0.8rem",
                                 color: "var(--text-sub)",
-                                textAlign: "center",
                             }}
                         >
-                            이미지 없음
+                            도감 이미지 준비 중
                         </div>
                     )}
                 </div>
+
                 <div
                     style={{
                         fontSize: "0.85rem",

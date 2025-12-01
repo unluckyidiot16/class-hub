@@ -303,13 +303,13 @@ export function DexTab(props: DexTabProps) {
         if (!selectedSpecies) return [];
         return speciesMoveMap[selectedSpecies.id] ?? [];
     }, [selectedSpecies, speciesMoveMap]);
-    
+
     const spriteUrl = selectedSpecies
-        ? getMonsterSprite(selectedSpecies.id) ?? undefined
+        ? getMonsterSprite(selectedSpecies.id, "front") ?? undefined
         : undefined;
 
     const spriteJsonUrl = selectedSpecies
-        ? getMonsterAnimJson(selectedSpecies.id) ?? undefined
+        ? getMonsterAnimJson(selectedSpecies.id, "front") ?? undefined
         : undefined;
 
     const handleSelect = (id: string) => {
