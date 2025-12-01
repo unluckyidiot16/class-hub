@@ -6,9 +6,6 @@ require("dotenv").config({ path: ".env.seed" }); // 필요하면 경로 바꿔�
 const fs = require("fs");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
-const fs = require("fs");
-const path = require("path");
-
 
 /** ---------- 0. Supabase 클라이언트 생성 ---------- */
 
@@ -38,6 +35,11 @@ const MOVES_JSON_PATH = path.resolve(
 const LEARNSETS_JSON_PATH = path.resolve(
     __dirname,
     "../src/games/quizmon/data/learnsets.json",
+);
+
+const SPECIES_JSON_PATH = path.resolve(
+    __dirname,
+    "../src/games/quizmon/data/species.json", // 실제 위치에 맞게 조정
 );
 
 function loadJson(jsonPath) {
@@ -215,6 +217,68 @@ async function seedSpeciesAbilitiesFromJson() {
     console.log("[seedQuizmon] quizmon_species_abilities seeding 완료");
 }
 
+async function seedSpeciesFromJson() {
+    let list;
+    try {
+        const raw = fs.readFileSync(SPECIES_JSON_PATH, "utf8");
+        list = JSON.parse(raw);
+    } catch (e) {
+        console.error("[seedQuizmon] species.json 로드 실패 (스킵):", e.message);
+        return;
+    }
+
+    if (!Array.isArray(list) || list.length === 0) {
+        console.log("[seedQuizmon] species.json 비어 있음, 스킵");
+        return;
+    }
+
+    console.log(`[seedQuizmon] species.json 로드: ${list.length}개`);
+
+    const rows = list.map((sp) => {
+        const stats = sp.baseStats || {};
+        const evo = sp.evolution || {};
+
+        return {
+            id: sp.id,
+            name: sp.name,
+            element: sp.element,
+            rarity: sp.rarity ?? 1,
+
+            base_hp: stats.hp ?? 10,
+            base_atk: stats.atk ?? 10,
+            base_def: stats.def ?? 10,
+            base_spd: stats.spd ?? 10,
+            base_spatk: stats.spAtk ?? stats.atk ?? null,
+            base_spdef: stats.spDef ?? stats.def ?? null,
+
+            pokedex_no: sp.pokedexNo ?? null,
+            sprite_key: sp.spriteKey ?? null,
+            description: sp.description ?? null,
+
+            height_dm: sp.heightDm ?? null,
+            weight_hg: sp.weightHg ?? null,
+
+            evolves_to_id: evo.evolvesToId ?? null,
+            evolution_trigger: evo.trigger ?? null,      // "level" | "item" | "special" | null
+            evolution_level: evo.level ?? null,
+            evolution_item_id: evo.itemId ?? null,
+            evolution_special_key: evo.specialKey ?? null,
+        };
+    });
+
+    const { error } = await supabase
+        .from("quizmon_species")
+        .upsert(rows, { onConflict: "id" });
+
+    if (error) {
+        console.error("[seedQuizmon] quizmon_species upsert 에러:", error);
+        throw error;
+    }
+
+    console.log("[seedQuizmon] quizmon_species seeding 완료");
+}
+
+
 
 /** ---------- 3. quizmon_species_levelup_moves 초기화 & insert ---------- */
 
@@ -299,13 +363,15 @@ async function seedLevelupLearnsets() {
 async function main() {
     console.log("=== QuizMon JSON → Supabase seeder 시작 ===");
 
-    await seedMoves();
-    await seedLevelupLearnsets();
-    await seedAbilitiesFromJson();          // ✅ 추가
-    await seedSpeciesAbilitiesFromJson();   // ✅ 추가
+    await seedSpeciesFromJson();          // ✅ 종 마스터 먼저
+    await seedMoves();                    // 기술 마스터
+    await seedLevelupLearnsets();         // 레벨업 기술 (species + moves FK)
+    await seedAbilitiesFromJson();        // 특성 마스터
+    await seedSpeciesAbilitiesFromJson(); // 종별 특성 매핑
 
     console.log("=== QuizMon seeding 완료 ===");
 }
+
 
 
 main()

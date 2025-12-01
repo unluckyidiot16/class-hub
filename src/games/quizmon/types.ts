@@ -190,6 +190,13 @@ export type QuizmonSpeciesRow = {
     sprite_key: string | null;
     description: string | null;
 
+    // 🔹 DB 원본 (Supabase quizmon_species 높이/무게 컬럼)
+    //    - fetchSpeciesFromPokeApi.cjs → species.json.heightDm/weightHg
+    //    - seedQuizmonFromJson.cjs → quizmon_species.height_dm / weight_hg
+    height_dm?: number | null; // 데시미터(dm)
+    weight_hg?: number | null; // 헥토그램(hg)
+
+    // 🔹 m/kg 단위 캐시(있으면 사용, 없으면 height_dm/weight_hg에서 계산)
     height_m?: number | null;
     weight_kg?: number | null;
 
@@ -200,6 +207,7 @@ export type QuizmonSpeciesRow = {
     evolution_item_id?: string | null;
     evolution_special_key?: string | null;
 };
+
 
 export type QuizmonPartner = {
     speciesId: string;   // "starter-001" 등

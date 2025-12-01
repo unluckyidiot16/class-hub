@@ -1,8 +1,65 @@
 [
   {
-    "speciesId": "poke-0001",
-    "abilities": [
-      { "abilityId": "overgrow", "slot": 1, "isHidden": false }
-    ]
+    "id": "poke-0001",
+    "pokedexNo": 1,
+    "name": "이상해씨",
+    "nameEn": "Bulbasaur",
+    "element": "grass",
+    "rarity": 1,
+    "baseStats": {
+      "hp": 45,
+      "atk": 49,
+      "def": 49,
+      "spAtk": 65,
+      "spDef": 65,
+      "spd": 45
+    },
+    "heightDm": 7,
+    "weightHg": 69,
+    "spriteKey": "0001",
+    "description": "태어났을 때부터 등에 이상한 씨앗이 심어져 있으며 몸과 함께 자란다고 한다.",
+    "evolution": null
+  },
+  {
+    "id": "poke-0004",
+    "pokedexNo": 4,
+    "name": "파이리",
+    "nameEn": "Charmander",
+    "element": "fire",
+    "rarity": 1,
+    "baseStats": {
+      "hp": 39,
+      "atk": 52,
+      "def": 43,
+      "spAtk": 60,
+      "spDef": 50,
+      "spd": 65
+    },
+    "heightDm": 6,
+    "weightHg": 85,
+    "spriteKey": "0004",
+    "description": "꼬리의 불꽃은 파이리의 생명력의 상징이다. 건강할 때 왕성하게 불타오른다.",
+    "evolution": null
+  },
+  {
+    "id": "poke-0007",
+    "pokedexNo": 7,
+    "name": "꼬부기",
+    "nameEn": "Squirtle",
+    "element": "water",
+    "rarity": 1,
+    "baseStats": {
+      "hp": 44,
+      "atk": 48,
+      "def": 65,
+      "spAtk": 50,
+      "spDef": 64,
+      "spd": 43
+    },
+    "heightDm": 5,
+    "weightHg": 90,
+    "spriteKey": "0007",
+    "description": "등껍질에 숨어 몸을 보호한다. 상대의 빈틈을 놓치지 않고 물을 뿜어내어 반격한다.",
+    "evolution": null
   }
 ]

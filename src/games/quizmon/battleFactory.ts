@@ -109,6 +109,21 @@ export function buildBattleMonsterFromSpecies(
 
     const moves = resolveMovesForBattle(species, owned);
 
+    // 🔹 포켓덱스 번호 + 키/몸무게 계산 (m/kg 단위)
+    const pokedexNo = species.pokedex_no ?? null;
+
+    const heightM =
+        species.height_m ??
+        (typeof species.height_dm === "number"
+            ? species.height_dm / 10
+            : null);
+
+    const weightKg =
+        species.weight_kg ??
+        (typeof species.weight_hg === "number"
+            ? species.weight_hg / 10
+            : null);
+
     const baseMonster: Monster = {
         // 기본 전투 상태값
         accStage: 0,
@@ -129,6 +144,11 @@ export function buildBattleMonsterFromSpecies(
         speciesId: species.id,
         level,
         element: anySpecies.element ?? "normal",
+
+        // 🔹 덩치 정보 (logic.ts에서 명중률 계산에 사용)
+        pokedexNo,
+        heightM: heightM ?? undefined,
+        weightKg: weightKg ?? undefined,
 
         // 스탯
         atk: derived.atk,

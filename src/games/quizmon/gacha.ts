@@ -14,7 +14,7 @@ function rollSpeciesId(): string {
     return GACHA_POOL[idx];
 }
 
-export type GachaCostType = "gems" | "free"; // ← 타입은 유지하되
+export type GachaCostType = "gems"; // ← 타입은 유지하되
 // 실제 게임에서는 "gems"만 사용(테스트용으로 free 남겨둔 상태)
 
 export type GachaDrawResult = {
