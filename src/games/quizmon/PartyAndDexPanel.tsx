@@ -163,6 +163,9 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             }),
         [props.monsters, monsterOverrides],
     );
+
+    // 선택된 파트너
+    const [selectedId, setSelectedId] = useState<string | null>(null);
     
     const selected =
         enhancedMonsters.find((m) => m.id === selectedId) ?? null;
@@ -222,10 +225,6 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             cancelled = true;
                         };
                 }, [props.monsters]);
-    
-    
-    // 선택된 파트너
-    const [selectedId, setSelectedId] = useState<string | null>(null);
 
 
     const selectedSpecies: QuizmonSpeciesRow | undefined = useMemo(
