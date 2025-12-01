@@ -37,6 +37,10 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
     const backButtonLabel = isRaid ? "레이드 메뉴로" : "던전 선택으로";
     const retryButtonLabel = isRaid ? "다음 레이드" : "다시 도전";
 
+    // 레이드: 빨간 테두리 / 던전: 파란 테두리
+    const borderColor = isRaid ? "#b91c1c" : "#2563eb"; // red-700 / blue-600 느낌
+    const headerColor = isRaid ? "#fecaca" : "#bfdbfe"; // 레이드/던전 헤더 텍스트 색
+
     return (
         <div
             style={{
@@ -54,7 +58,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                     width: "100%",
                     maxWidth: 480,
                     borderRadius: 8,
-                    border: "2px solid #b91c1c",
+                    border: `2px solid ${borderColor}`,
                     background:
                         "linear-gradient(180deg,#111827 0%,#020617 100%)",
                     padding: "0.9rem 1rem 0.8rem",
@@ -65,7 +69,7 @@ export function QuizMonResultOverlay(props: QuizMonResultOverlayProps) {
                 <div
                     style={{
                         fontSize: 12,
-                        color: "#fecaca",
+                        color: headerColor,
                         marginBottom: 4,
                     }}
                 >

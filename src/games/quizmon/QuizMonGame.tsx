@@ -1087,23 +1087,68 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 next = pushLog(next, enemyLog);
             }
 
-            // 3) 승패 체크
-            const playerHp =
-                next.player.monsters[next.player.activeIndex].hp;
-            const enemyHp =
-                next.enemy.monsters[next.enemy.activeIndex].hp;
+            // 3) 승패 체크 + 파티 교체 로직
+            const playerMons = next.player.monsters;
+            const enemyMons = next.enemy.monsters;
+
+            // 🔁 플레이어: 현재 포켓몬이 쓰러졌으면 다음 살아있는 파티원으로 자동 교체
+            let playerActiveIndex = next.player.activeIndex;
+            if (playerMons[playerActiveIndex]?.hp <= 0) {
+                const nextAliveIndex = playerMons.findIndex((m) => m.hp > 0);
+                if (nextAliveIndex >= 0 && nextAliveIndex !== playerActiveIndex) {
+                    next = {
+                        ...next,
+                        player: {
+                            ...next.player,
+                            activeIndex: nextAliveIndex,
+                        },
+                    };
+                    playerActiveIndex = nextAliveIndex;
+                    next = pushLog(
+                        next,
+                        `[시스템] ${playerMons[nextAliveIndex].name}(이)가 대신 싸우러 나왔습니다!`,
+                    );
+                }
+            }
+
+            // 🔁 적도 동일하게 처리 (지금은 1마리지만, 나중 확장 대비)
+            let enemyActiveIndex = next.enemy.activeIndex;
+            if (enemyMons[enemyActiveIndex]?.hp <= 0) {
+                const nextAliveIndex = enemyMons.findIndex((m) => m.hp > 0);
+                if (nextAliveIndex >= 0 && nextAliveIndex !== enemyActiveIndex) {
+                    next = {
+                        ...next,
+                        enemy: {
+                            ...next.enemy,
+                            activeIndex: nextAliveIndex,
+                        },
+                    };
+                    enemyActiveIndex = nextAliveIndex;
+                    next = pushLog(
+                        next,
+                        `[시스템] 상대의 ${enemyMons[nextAliveIndex].name}(이)가 대신 나왔습니다!`,
+                    );
+                }
+            }
+
+            // 🔚 진짜로 모든 포켓몬이 쓰러졌는지 체크
+            const allPlayerDown = playerMons.every((m) => m.hp <= 0);
+            const allEnemyDown = enemyMons.every((m) => m.hp <= 0);
+
             let phase: typeof next.phase = "command";
 
-            if (playerHp <= 0 || enemyHp <= 0) {
+            if (allPlayerDown || allEnemyDown) {
                 phase = "finished";
+
                 const resultText =
-                    playerHp <= 0 && enemyHp <= 0
+                    allPlayerDown && allEnemyDown
                         ? "무승부!"
-                        : playerHp <= 0
+                        : allPlayerDown
                             ? "패배…"
                             : "승리!";
                 next = pushLog(next, `[시스템] 배틀 종료: ${resultText}`);
             }
+
 
             return {
                 ...next,
@@ -1176,25 +1221,27 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
 
     return (
-                <div
+        <div
             ref={rootRef}
-                style={{
-                        padding: "1.5rem",
-                            width: "100%",
-                            maxWidth: "100%",
-                            margin: "0 auto",
-                            color: "#e5e7eb",
-                            // 전체화면일 땐 세로도 꽉 채우도록
-                                ...(isFullscreen
-                            ? {
-                                      height: "100vh",
-                                      boxSizing: "border-box",
-                                      overflow: "hidden",
-                                  }
-                            : {}),
-                    }}
-            >
-                <div
+            style={{
+                // 전체 화면에서는 세로 패딩 조금 줄이기
+                padding: isFullscreen ? "0.75rem 1.5rem 1rem" : "1.5rem",
+                width: "100%",
+                maxWidth: "100%",
+                margin: "0 auto",
+                color: "#e5e7eb",
+                // 전체화면일 땐 세로도 꽉 채우되, 아래가 잘리지 않게 스크롤 허용
+                ...(isFullscreen
+                    ? {
+                        height: "100vh",
+                        boxSizing: "border-box",
+                        overflowX: "hidden",
+                        overflowY: "auto",
+                    }
+                    : {}),
+            }}
+        >
+        <div
                 style={{
                             display: "flex",
                                 alignItems: "flex-start",
@@ -1307,19 +1354,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
             )}
 
 
-                    <div
-                        style={{
-                            marginTop: "1rem",
-                            borderRadius: 12,
-                            border: "1px solid #0f172a",
-                            background: "#020617",
-                            padding: "0.75rem",
-                            // 🔹 화면 전체 폭을 사용하는 쪽으로 변경
-                            width: "100%",
-                        }}
-                    >
+            <div
+                style={{
+                    marginTop: isFullscreen ? "0.5rem" : "1rem",
+                    borderRadius: 12,
+                    border: "1px solid #0f172a",
+                    background: "#020617",
+                    padding: "0.75rem",
+                    width: "100%",
+                }}
+            >
 
-                    {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
+
+            {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
                 <div
                     style={{
                         position: "relative",
