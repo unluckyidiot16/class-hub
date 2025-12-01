@@ -1263,20 +1263,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
             )}
 
 
-            <div
-                style={{
-                    marginTop: "1rem",
-                    borderRadius: 12,
-                    border: "1px solid #0f172a",
-                    background: "#020617",
-                    padding: "0.75rem",
-                    // 🔹 너무 넓어지는 것 방지: 최대 1200px
-                    maxWidth: 1200,
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                }}
-            >
-                {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
+                    <div
+                        style={{
+                            marginTop: "1rem",
+                            borderRadius: 12,
+                            border: "1px solid #0f172a",
+                            background: "#020617",
+                            padding: "0.75rem",
+                            // 🔹 화면 전체 폭을 사용하는 쪽으로 변경
+                            width: "100%",
+                        }}
+                    >
+
+                    {/* 🔹 배틀 필드 전체 (BG + 포켓몬 + HUD + 명령창) */}
                 <div
                     style={{
                         position: "relative",

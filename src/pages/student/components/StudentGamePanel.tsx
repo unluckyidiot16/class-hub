@@ -125,11 +125,15 @@ export function StudentGamePanel(props: Props) {
         <div
             className="card"
             style={{
-                // QDD/Pixel은 16:9 넓게, 나머지는 1080 고정
-                maxWidth: isIframeGame ? 1920 : 1080,
+                width: "100%",
+                // 🔹 평소엔 1080/1920, "게임만 보기"일 땐 화면 전체 사용
+                maxWidth: isGameFullscreen
+                    ? "100%"
+                    : isIframeGame
+                        ? 1920
+                        : 1080,
                 margin: isGameFullscreen ? "0 auto" : "0 auto 1.5rem",
                 padding: isGameFullscreen ? 0 : "1rem",
-                // 전체 화면일 때는 세로도 꽉 채우기 (헤더 높이만큼 빼줌)
                 ...(isGameFullscreen
                     ? {
                         position: "fixed",
