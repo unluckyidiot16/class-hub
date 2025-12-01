@@ -585,6 +585,38 @@ export function QuizMonGame(props: QuizMonGameProps) {
             }
 
             // 4) 기존 mock 기반 상태를 가져와서 player 쪽만 교체
+// 4) 기존 mock 기반 상태를 가져와서
+//    player + enemy를 모두 실제 데이터 기반으로 재구성
+
+// 현재 선택된 던전 정보
+            const currentDungeon =
+                DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
+                DUNGEON_CONFIGS[0];
+
+// 난이도별 HP 배수 (대략적인 값, 나중에 조정 가능)
+            let hpMultiplier = 1.5;
+            if (currentDungeon?.difficulty === "normal") hpMultiplier = 2.0;
+            if (currentDungeon?.difficulty === "hard") hpMultiplier = 3.0;
+
+// 플레이어 파티를 기준으로 "테스트용 적 파티" 생성
+// - 종/스탯/기술은 그대로 사용
+// - HP/최대 HP만 배수로 늘려서 여러 턴 동안 전투가 유지되게 함
+            const enemyMonsters: Monster[] = partyMonsters.map((mon, index) => {
+                const maxHp = Math.max(
+                    1,
+                    Math.floor(mon.maxHp * hpMultiplier),
+                );
+
+                return {
+                    ...mon,
+                    id: `enemy-${index}-${mon.speciesId ?? mon.id}`,
+                    // 이름은 그대로 두거나, 필요하면 `연습용 ${mon.name}` 등으로 변경 가능
+                    name: mon.name,
+                    hp: maxHp,
+                    maxHp,
+                };
+            });
+
             const base = createInitialBattleState();
 
             const newState: BattleState = {
@@ -592,6 +624,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 player: {
                     ...base.player,
                     monsters: partyMonsters,
+                    activeIndex: 0,
+                },
+                enemy: {
+                    ...base.enemy,
+                    monsters: enemyMonsters.length
+                        ? enemyMonsters
+                        : base.enemy.monsters, // 혹시라도 비어 있으면 기존 mock 유지
                     activeIndex: 0,
                 },
                 phase: "command",
