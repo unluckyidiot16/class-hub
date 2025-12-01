@@ -306,26 +306,30 @@ export function QuizMonGame(props: QuizMonGameProps) {
             window.alert(message);
         }
     };
-    
+
     const [hpSynced, setHpSynced] = useState(false);
 
-    const [spriteSpeciesId, setSpriteSpeciesId] = useState<string>(
-        PLAYER_SPECIES_ID,
-    );
-    
-    // 선택된 종 ID 기준으로 전투 스프라이트 경로 계산
-    const playerFrontJson = getMonsterAnimJson(spriteSpeciesId, "front");
-    const playerFrontPng = getMonsterSprite(spriteSpeciesId, "front");
-    const playerBackJson = getMonsterAnimJson(spriteSpeciesId, "back");
-    const playerBackPng = getMonsterSprite(spriteSpeciesId, "back");
+    // ✅ 현재 출전 중인 우리 편 / 적 포켓몬
+    const activePlayerMon = state.player.monsters[state.player.activeIndex];
+    const activeEnemyMon = state.enemy.monsters[state.enemy.activeIndex];
 
-    // ✅ 현재 출전 중인 우리 편 포켓몬이 바뀔 때마다 스프라이트 종 ID 동기화
-    useEffect(() => {
-        const active = state.player.monsters[state.player.activeIndex];
-        if (active?.speciesId) {
-            setSpriteSpeciesId(active.speciesId);
-        }
-    }, [state.player.activeIndex]);
+    // ✅ 각각의 종 ID (Monster에 speciesId 또는 species_id 가 있을 수 있으니 둘 다 대응)
+    const playerSpeciesId =
+        (activePlayerMon as any)?.speciesId ??
+        (activePlayerMon as any)?.species_id ??
+        PLAYER_SPECIES_ID;
+
+    const enemySpeciesId =
+        (activeEnemyMon as any)?.speciesId ??
+        (activeEnemyMon as any)?.species_id ??
+        PLAYER_SPECIES_ID;
+
+    // 선택된 종 ID 기준으로 전투 스프라이트 경로 계산
+    const playerBackJson = getMonsterAnimJson(playerSpeciesId, "back");
+    const playerBackPng = getMonsterSprite(playerSpeciesId, "back");
+
+    const enemyFrontJson = getMonsterAnimJson(enemySpeciesId, "front");
+    const enemyFrontPng = getMonsterSprite(enemySpeciesId, "front");
 
     const [hasBattleInitialized, setHasBattleInitialized] = useState(false);
     const handleContinue = () => {
@@ -373,10 +377,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
         ) : null;
 
     const renderEnemySprite = () =>
-        playerFrontJson && playerFrontPng ? (
+        enemyFrontJson && enemyFrontPng ? (
             <SpriteAnimation
-                jsonUrl={playerFrontJson}
-                imageUrlOverride={playerFrontPng}
+                jsonUrl={enemyFrontJson}
+                imageUrlOverride={enemyFrontPng}
                 fps={12}
                 frameFilter={(frame) => {
                     const n = parseInt(frame.filename.replace(".png", ""), 10);
@@ -473,12 +477,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setHasBattleInitialized(false);
                 return;
             }
-
-            const firstAlive = aliveOwnedRows[0];
-            if (firstAlive?.species_id) {
-                setSpriteSpeciesId(firstAlive.species_id);
-            }
-
 
             if (!ownedRows.length) {
                 console.warn(

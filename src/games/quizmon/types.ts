@@ -184,7 +184,9 @@ export type QuizmonSpeciesRow = {
     rarity: number;
     base_hp: number;
     base_atk: number;
+    base_spatk?: number;
     base_def: number;
+    base_spdef?: number;
     base_spd: number;
     pokedex_no: number | null;
     sprite_key: string | null;
