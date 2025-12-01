@@ -70,6 +70,8 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
     const trainerName =
         effectiveProfile?.trainer_name ?? "미지의 트레이너";
 
+    const isDexTab = menuTab === "dex";
+
     /** 🔹 인벤토리 수량: Exp Dust / 레어 캔디 */
     const [xpDustCount, setXpDustCount] = useState(0);
     const [rareCandyCount, setRareCandyCount] = useState(0);
@@ -228,7 +230,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     style={{
                         flex: "1 1 auto",
                         minHeight: 0,
-                        overflowY: "auto",
+                        overflowY: isDexTab ? "hidden" : "auto",  // ✅ 도감 탭일 땐 스크롤 끔
                     }}
                 >
                     {/* 메인 메뉴 탭 */}
