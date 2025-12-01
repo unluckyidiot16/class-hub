@@ -331,6 +331,7 @@ export function DexTab(props: DexTabProps) {
             <div
                 style={{
                     width: "40%",
+                    height: "100%",          // 🔹 컬럼 자체를 도감 컨테이너 높이에 맞춤
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.5rem",

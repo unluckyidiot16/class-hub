@@ -206,9 +206,17 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                 >
                     {spriteUrl && spriteJsonUrl ? (
                         <SpriteAnimation
+                            key={spriteJsonUrl}             // 🔹 종이 바뀔 때마다 컴포넌트 리마운트
                             jsonUrl={spriteJsonUrl}
                             imageUrlOverride={spriteUrl}
                             fps={8}
+                            frameFilter={(frame) => {       // 🔹 QuizMonGame과 동일한 필터
+                                const n = parseInt(
+                                    frame.filename.replace(".png", ""),
+                                    10,
+                                );
+                                return !Number.isNaN(n) && n >= 1 && n <= 20;
+                            }}
                             style={{
                                 width: 144,
                                 height: 144,

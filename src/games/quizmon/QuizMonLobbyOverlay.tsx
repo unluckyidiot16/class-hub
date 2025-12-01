@@ -445,8 +445,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             style={{
                                 flex: 1,
                                 minHeight: 0,
-                                maxHeight: "640px",  // 필요하면 이런 식으로 상한 지정
-                                overflow: "hidden",
+                                display: "flex", // 높이를 부모(오버레이) 기준으로 꽉 채우기 위함
                             }}
                         >
                             <DexTab
