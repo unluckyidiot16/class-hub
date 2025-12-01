@@ -201,24 +201,18 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        overflow: "hidden",
+                        padding: "0.75rem",
+                        overflow: "hidden",          // ✅ 추가
                     }}
                 >
                     {spriteUrl && spriteJsonUrl ? (
                         <SpriteAnimation
-                            key={spriteJsonUrl}          // ✅ 종이 바뀔 때 리셋
+                            key={spriteJsonUrl}          // 종 바뀔 때 리셋
                             jsonUrl={spriteJsonUrl}
                             imageUrlOverride={spriteUrl}
-                            fps={12}                     // ✅ 전투와 동일
-                            frameFilter={(frame) => {
-                                const n = parseInt(
-                                    frame.filename.replace(".png", ""),
-                                    10,
-                                );
-                                return !Number.isNaN(n) && n >= 1 && n <= 20;
-                            }}
+                            fps={12}                     // 전투랑 비슷하게
                             style={{
-                                transform: "scale(1.8)",  // 도감용 적당한 스케일
+                                transform: "scale(1.8)",      // 크기 필요하면 숫자만 조절
                                 transformOrigin: "bottom center",
                                 imageRendering: "pixelated",
                             }}
