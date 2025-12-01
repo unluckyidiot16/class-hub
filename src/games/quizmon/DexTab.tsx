@@ -30,7 +30,7 @@ type SpeciesLevelupMoveRow = {
     level: number;
     sort_order: number;
     // Supabase join 결과: quizmon_moves 가 배열로 들어옴
-    move: MoveRow[]; // 빈 배열일 수도 있음
+    move: MoveRow | null;
 };
 
 
@@ -209,12 +209,10 @@ export function DexTab(props: DexTabProps) {
             }
 
             const map: Record<string, DexMoveInfo[]> = {};
-
             const rows = (data ?? []) as unknown as SpeciesLevelupMoveRow[];
 
             for (const row of rows) {
-                // Supabase가 move를 배열로 주기 때문에 첫 원소 사용
-                const mv = row.move && row.move[0];
+                const mv = row.move; // 🔧 더 이상 [0] 안 씀
                 if (!mv) continue;
 
                 const { label: elementLabel } = getElementLabelAndColor(mv.element);
@@ -227,14 +225,14 @@ export function DexTab(props: DexTabProps) {
 
                 const entry: DexMoveInfo = {
                     id: mv.id,
-                    name: mv.name,
+                    name: mv.name,              // (원하면 nameKo 우선 사용해도 됨)
                     description: mv.description,
                     elementLabel,
                     categoryLabel,
                     power: mv.power ?? null,
                     accuracy: mv.accuracy ?? null,
                     learnMethodLabel: "레벨업",
-                    learnAtLabel: `Lv.${row.level}`,
+                    learnAt: row.level,         // ⬅️ DexEntryDetailPanel에서 쓰는 필드
                 };
 
                 if (!map[row.species_id]) map[row.species_id] = [];
