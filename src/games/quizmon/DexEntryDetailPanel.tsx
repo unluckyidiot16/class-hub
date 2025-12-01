@@ -218,8 +218,6 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                                 return !Number.isNaN(n) && n >= 1 && n <= 20;
                             }}
                             style={{
-                                width: 144,
-                                height: 144,
                                 transform: "scale(1.8)",  // 도감용 적당한 스케일
                                 transformOrigin: "bottom center",
                                 imageRendering: "pixelated",
