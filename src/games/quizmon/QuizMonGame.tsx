@@ -1,5 +1,5 @@
 // src/games/quizmon/QuizMonGame.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
     BattleState,
     Move,
@@ -193,6 +193,46 @@ export function QuizMonGame(props: QuizMonGameProps) {
         typeof window !== "undefined" ? window.innerWidth : 1024,
     );
 
+    const rootRef = useRef<HTMLDivElement | null>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [fullscreenSupported, setFullscreenSupported] = useState(false);
+    
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+        // 전체화면 지원 여부 체크
+        setFullscreenSupported(!!document.fullscreenEnabled);
+        
+        const handleFsChange = () => {
+            if (!rootRef.current) {
+                setIsFullscreen(false);
+                return;
+            }
+            setIsFullscreen(document.fullscreenElement === rootRef.current);
+        };
+            
+        document.addEventListener("fullscreenchange", handleFsChange);
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFsChange);
+        };
+        }, []);
+    
+    const enterFullscreen = () => {
+        if (typeof document === "undefined") return;
+        const el = rootRef.current;
+        if (!el || !document.fullscreenEnabled) return;
+        el.requestFullscreen().catch((err) => {
+            console.error("[QuizMonGame] requestFullscreen failed", err);
+        });
+    };
+    
+    const exitFullscreen = () => {
+        if (typeof document === "undefined") return;
+        if (!document.fullscreenElement) return;
+        document.exitFullscreen().catch((err) => {
+            console.error("[QuizMonGame] exitFullscreen failed", err);
+        });
+    };
+    
     const { buyExpDust } = useQuizmonContext();
 
     useEffect(() => {
@@ -1089,30 +1129,70 @@ export function QuizMonGame(props: QuizMonGameProps) {
     } else if (playerMon.hp <= 0 && enemyMon.hp > 0) {
         resultMessage = "아쉽다… 패배했다!";
     }
-    
+
 
     return (
-        <div
-            style={{
-                padding: "1.5rem",
-                width: "100%",
-                maxWidth: "100%",
-                margin: "0 auto",
-                color: "#e5e7eb",
-            }}
-        >
-            <h1 style={{ marginBottom: "0.25rem" }}>
-                QuizMon Class – Battle Core
-            </h1>
-            <p
+                <div
+            ref={rootRef}
                 style={{
-                    fontSize: 13,
-                    color: "#9ca3af",
-                    marginTop: 0,
-                }}
+                        padding: "1.5rem",
+                            width: "100%",
+                            maxWidth: "100%",
+                            margin: "0 auto",
+                            color: "#e5e7eb",
+                            // 전체화면일 땐 세로도 꽉 채우도록
+                                ...(isFullscreen
+                            ? {
+                                      height: "100vh",
+                                      boxSizing: "border-box",
+                                      overflow: "hidden",
+                                  }
+                            : {}),
+                    }}
             >
-                quizpackJson 기반 전투 코어 + 포켓로그풍 배틀 UI 테스트 버전입니다.
-            </p>
+                <div
+                style={{
+                            display: "flex",
+                                alignItems: "flex-start",
+                                justifyContent: "space-between",
+                                gap: 8,
+                            }}
+                >
+                    <div>
+                            <h1 style={{ marginBottom: "0.25rem" }}>
+                                QuizMon Class – Battle Core
+                            </h1>
+                            <p
+                                style={{
+                                    fontSize: 13,
+                                    color: "#9ca3af",
+                                    marginTop: 0,
+                                }}
+                            >
+                                quizpackJson 기반 전투 코어 + 포켓로그풍 배틀 UI 테스트
+                                버전입니다.
+                            </p>
+                    </div>
+    
+                        {fullscreenSupported && (
+                            <button
+                        type="button"
+                            onClick={isFullscreen ? exitFullscreen : enterFullscreen}
+                            style={{
+                                    padding: "0.25rem 0.7rem",
+                                        borderRadius: 999,
+                                        border: "1px solid #4b5563",
+                                        background: "#020617",
+                                        color: "#e5e7eb",
+                                        fontSize: 12,
+                                        cursor: "pointer",
+                                        whiteSpace: "nowrap",
+                                    }}
+                        >
+                            {isFullscreen ? "전체화면 종료" : "전체 화면"}
+                        </button>
+                    )}
+                </div>
 
             {localProfile && (
                 <div
