@@ -319,6 +319,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const playerBackJson = getMonsterAnimJson(spriteSpeciesId, "back");
     const playerBackPng = getMonsterSprite(spriteSpeciesId, "back");
 
+    // ✅ 현재 출전 중인 우리 편 포켓몬이 바뀔 때마다 스프라이트 종 ID 동기화
+    useEffect(() => {
+        const active = state.player.monsters[state.player.activeIndex];
+        if (active?.speciesId) {
+            setSpriteSpeciesId(active.speciesId);
+        }
+    }, [state.player.activeIndex]);
+
     const [hasBattleInitialized, setHasBattleInitialized] = useState(false);
     const handleContinue = () => {
         // 이미 배틀 화면이면 아무 것도 안 함
