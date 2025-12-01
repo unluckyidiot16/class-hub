@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import type {
     QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
+    QuizmonSpeciesRow,
+    AbilityId,
 } from "./types";
 import { getMonsterIcon } from "./assets";
 import {
@@ -14,12 +16,71 @@ import {
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 import { supabase } from "../../lib/supabaseClient";
 
-/** quizmon_owned_monsters 1마리를 UI용으로 가공 */
-type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
+// v1 특성 설명 DB (UI 표시용)
+const ABILITY_DB: Record<
+    AbilityId,
+        { name: string; short: string }
+    > = {
+            overgrow: {
+            name: "풀의 힘",
+                short: "HP 1/3 이하일 때 풀 기술 위력 1.5배",
+            },
+    water_guard: {
+            name: "물의 보호",
+                short: "받는 물 기술 피해 0.8배",
+            },
+};
+
+    // 종 데이터 → v1 기본 특성
+        function getDefaultAbilityForSpeciesRow(
+    species: QuizmonSpeciesRow,
+    ): AbilityId | null {
+        if (species.element === "grass") return "overgrow";
+        if (species.element === "water") return "water_guard";
+        return null;
+    }
+
+    // 선택 파트너 카드에서 보여 줄 간단 능력치 타입
+        type DisplayStats = {
+        maxHp: number;
+    atk: number;
+    def: number;
+    spd: number;
+};
+
+    // base_* + level 기반 간단 전투 스탯 계산 (UI용)
+        function calcDisplayStats(
+    owned: QuizmonOwnedMonsterRow,
+        species?: QuizmonSpeciesRow,
+    ): DisplayStats | null {
+        if (!species) return null;
+    
+            const level = owned.level ?? 1;
+        const baseHp = species.base_hp ?? 1;
+        const baseAtk = species.base_atk ?? 1;
+        const baseDef = species.base_def ?? 1;
+        const baseSpd = species.base_spd ?? 1;
+    
+            // 포켓몬식 공식을 간단히 줄인 버전 (UI 표시 전용)
+                const maxHp =
+                Math.floor(((2 * baseHp) * level) / 50) + level + 10;
+        const atk =
+                Math.floor(((2 * baseAtk) * level) / 50) + 5;
+        const def =
+                Math.floor(((2 * baseDef) * level) / 50) + 5;
+        const spd =
+                Math.floor(((2 * baseSpd) * level) / 50) + 5;
+    
+            return { maxHp, atk, def, spd };
+    }
+
+    /** quizmon_owned_monsters 1마리를 UI용으로 가공 */
+    type EnhancedOwnedMonster = QuizmonOwnedMonsterRow & {
     displayName: string;
     statusText: string;
     currentHpText: string;
 };
+
 
 function enhanceOwned(mon: QuizmonOwnedMonsterRow): EnhancedOwnedMonster {
     const anyMon = mon as any;
@@ -102,9 +163,105 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             }),
         [props.monsters, monsterOverrides],
     );
-
+    
+    const selected =
+        enhancedMonsters.find((m) => m.id === selectedId) ?? null;
+    
+    // 🔹 몬스터 종 데이터 (도감/능력치/특성 표시용)
+        const [speciesMap, setSpeciesMap] = useState<
+            Record<string, QuizmonSpeciesRow>
+        >({});
+    
+            useEffect(() => {
+                    const list = props.monsters ?? [];
+                    if (!list.length) {
+                            setSpeciesMap({});
+                            return;
+                        }
+            
+                        const ids = Array.from(
+                            new Set(list.map((m) => m.species_id)),
+                        );
+                    if (!ids.length) {
+                            setSpeciesMap({});
+                            return;
+                        }
+            
+                        let cancelled = false;
+            
+                        (async () => {
+                                try {
+                                        const { data, error } = await supabase
+                                            .from("quizmon_species")
+                                            .select("*")
+                                            .in("id", ids);
+                        
+                                            if (error) {
+                                                console.error(
+                                                        "[PartyAndDexPanel] load species error",
+                                                        error,
+                                                    );
+                                                return;
+                                            }
+                                        if (cancelled || !data) return;
+                        
+                                            const next: Record<string, QuizmonSpeciesRow> = {};
+                                        for (const row of data as QuizmonSpeciesRow[]) {
+                                                next[row.id] = row;
+                                            }
+                                        setSpeciesMap(next);
+                                    } catch (e) {
+                                        console.error(
+                                                "[PartyAndDexPanel] load species error",
+                                                e,
+                                            );
+                                    }
+                            })();
+            
+                        return () => {
+                            cancelled = true;
+                        };
+                }, [props.monsters]);
+    
+    
     // 선택된 파트너
     const [selectedId, setSelectedId] = useState<string | null>(null);
+
+
+    const selectedSpecies: QuizmonSpeciesRow | undefined = useMemo(
+                () =>
+                selected
+                    ? speciesMap[(selected as any).species_id]
+                        : undefined,
+                [selected, speciesMap],
+            );
+    
+            const selectedStats: DisplayStats | null = useMemo(
+                () =>
+                selected
+                    ? calcDisplayStats(
+                                  selected as QuizmonOwnedMonsterRow,
+                                  selectedSpecies,
+                              )
+                        : null,
+                [selected, selectedSpecies],
+            );
+    
+            const selectedAbility = useMemo(() => {
+                if (!selectedSpecies) return null;
+                const abilityId = getDefaultAbilityForSpeciesRow(
+                        selectedSpecies,
+                    );
+                if (!abilityId) return null;
+                const info = ABILITY_DB[abilityId];
+                if (!info) return null;
+                return {
+                        id: abilityId,
+                        name: info.name,
+                        short: info.short,
+                    };
+                }, [selectedSpecies]);
+    
 
     useEffect(() => {
         if (!enhancedMonsters.length) {
@@ -120,8 +277,6 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         setSelectedId(enhancedMonsters[0].id);
     }, [enhancedMonsters, selectedId]);
 
-    const selected =
-        enhancedMonsters.find((m) => m.id === selectedId) ?? null;
 
     // 파티 슬롯 (3칸)
     const [partyIds, setPartyIds] = useState<(string | null)[]>(() =>
@@ -871,7 +1026,52 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             Lv.{selected.level} ·{" "}
                                             {selected.statusText}
                                         </div>
+
+                                        {/* 🔹 간단 능력치 */}
+                                        {selectedStats && (
+                                            <div
+                                                style={{
+                                                    marginTop: 4,
+                                                    fontSize: "0.75rem",
+                                                    color: "#cbd5f5",
+                                                }}
+                                            >
+                                                HP {selectedStats.maxHp} · 공격{" "}
+                                                {selectedStats.atk} · 방어{" "}
+                                                {selectedStats.def} · 스피드{" "}
+                                                {selectedStats.spd}
+                                            </div>
+                                        )}
+
+                                        {/* 🔹 특성 표시 */}
+                                        {selectedAbility && (
+                                            <div
+                                                style={{
+                                                    marginTop: 2,
+                                                    fontSize: "0.75rem",
+                                                    color: "#e5e7eb",
+                                                }}
+                                            >
+                                                특성{" "}
+                                                <span
+                                                    style={{
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                {selectedAbility.name}
+            </span>
+                                                <span
+                                                    style={{
+                                                        marginLeft: 4,
+                                                        opacity: 0.9,
+                                                    }}
+                                                >
+                — {selectedAbility.short}
+            </span>
+                                            </div>
+                                        )}
                                     </div>
+
                                 </div>
 
                                 {/* HP / 파티슬롯 정보 + 레벨업 버튼 */}
