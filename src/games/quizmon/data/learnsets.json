@@ -2,10 +2,4712 @@
   {
     "speciesId": "poke-0001",
     "learn": [
-      { "level": 1, "moveId": "tackle" },
-      { "level": 3, "moveId": "vine_whip" },
-      { "level": 7, "moveId": "razor_leaf" },
-      { "level": 12, "moveId": "seed_bomb" }
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 7,
+        "moveId": "leech-seed"
+      },
+      {
+        "level": 13,
+        "moveId": "vine-whip"
+      },
+      {
+        "level": 20,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 27,
+        "moveId": "razor-leaf"
+      },
+      {
+        "level": 34,
+        "moveId": "growth"
+      },
+      {
+        "level": 41,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 48,
+        "moveId": "solar-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0002",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "leech-seed"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 13,
+        "moveId": "vine-whip"
+      },
+      {
+        "level": 22,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 30,
+        "moveId": "razor-leaf"
+      },
+      {
+        "level": 38,
+        "moveId": "growth"
+      },
+      {
+        "level": 46,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 54,
+        "moveId": "solar-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0003",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "leech-seed"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "vine-whip"
+      },
+      {
+        "level": 22,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 30,
+        "moveId": "razor-leaf"
+      },
+      {
+        "level": 43,
+        "moveId": "growth"
+      },
+      {
+        "level": 55,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 65,
+        "moveId": "solar-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0004",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 9,
+        "moveId": "ember"
+      },
+      {
+        "level": 15,
+        "moveId": "leer"
+      },
+      {
+        "level": 22,
+        "moveId": "rage"
+      },
+      {
+        "level": 30,
+        "moveId": "slash"
+      },
+      {
+        "level": 38,
+        "moveId": "flamethrower"
+      },
+      {
+        "level": 46,
+        "moveId": "fire-spin"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0005",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 15,
+        "moveId": "leer"
+      },
+      {
+        "level": 24,
+        "moveId": "rage"
+      },
+      {
+        "level": 33,
+        "moveId": "slash"
+      },
+      {
+        "level": 42,
+        "moveId": "flamethrower"
+      },
+      {
+        "level": 56,
+        "moveId": "fire-spin"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0006",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 24,
+        "moveId": "rage"
+      },
+      {
+        "level": 36,
+        "moveId": "slash"
+      },
+      {
+        "level": 46,
+        "moveId": "flamethrower"
+      },
+      {
+        "level": 55,
+        "moveId": "fire-spin"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0007",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 8,
+        "moveId": "bubble"
+      },
+      {
+        "level": 15,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 22,
+        "moveId": "bite"
+      },
+      {
+        "level": 28,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 35,
+        "moveId": "skull-bash"
+      },
+      {
+        "level": 42,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0008",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 15,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 24,
+        "moveId": "bite"
+      },
+      {
+        "level": 31,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 39,
+        "moveId": "skull-bash"
+      },
+      {
+        "level": 47,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0009",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 24,
+        "moveId": "bite"
+      },
+      {
+        "level": 31,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 42,
+        "moveId": "skull-bash"
+      },
+      {
+        "level": 52,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0010",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "string-shot"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0011",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "harden"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0012",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 15,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 16,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 17,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 21,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 26,
+        "moveId": "whirlwind"
+      },
+      {
+        "level": 32,
+        "moveId": "psybeam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0013",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 1,
+        "moveId": "string-shot"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0014",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "harden"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0015",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 16,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 20,
+        "moveId": "twineedle"
+      },
+      {
+        "level": 25,
+        "moveId": "rage"
+      },
+      {
+        "level": 30,
+        "moveId": "pin-missile"
+      },
+      {
+        "level": 35,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0016",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "gust"
+      },
+      {
+        "level": 5,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 12,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 19,
+        "moveId": "whirlwind"
+      },
+      {
+        "level": 28,
+        "moveId": "wing-attack"
+      },
+      {
+        "level": 36,
+        "moveId": "agility"
+      },
+      {
+        "level": 44,
+        "moveId": "mirror-move"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0017",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "gust"
+      },
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 12,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 21,
+        "moveId": "whirlwind"
+      },
+      {
+        "level": 31,
+        "moveId": "wing-attack"
+      },
+      {
+        "level": 40,
+        "moveId": "agility"
+      },
+      {
+        "level": 49,
+        "moveId": "mirror-move"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0018",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "gust"
+      },
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 21,
+        "moveId": "whirlwind"
+      },
+      {
+        "level": 31,
+        "moveId": "wing-attack"
+      },
+      {
+        "level": 44,
+        "moveId": "agility"
+      },
+      {
+        "level": 54,
+        "moveId": "mirror-move"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0019",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 7,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 14,
+        "moveId": "hyper-fang"
+      },
+      {
+        "level": 23,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 34,
+        "moveId": "super-fang"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0020",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 14,
+        "moveId": "hyper-fang"
+      },
+      {
+        "level": 27,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 41,
+        "moveId": "super-fang"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0021",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 9,
+        "moveId": "leer"
+      },
+      {
+        "level": 15,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 22,
+        "moveId": "mirror-move"
+      },
+      {
+        "level": 29,
+        "moveId": "drill-peck"
+      },
+      {
+        "level": 36,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0022",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 15,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 25,
+        "moveId": "mirror-move"
+      },
+      {
+        "level": 34,
+        "moveId": "drill-peck"
+      },
+      {
+        "level": 43,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0023",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 10,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 17,
+        "moveId": "bite"
+      },
+      {
+        "level": 24,
+        "moveId": "glare"
+      },
+      {
+        "level": 31,
+        "moveId": "screech"
+      },
+      {
+        "level": 38,
+        "moveId": "acid"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0024",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 17,
+        "moveId": "bite"
+      },
+      {
+        "level": 27,
+        "moveId": "glare"
+      },
+      {
+        "level": 36,
+        "moveId": "screech"
+      },
+      {
+        "level": 47,
+        "moveId": "acid"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0025",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 9,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 16,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 26,
+        "moveId": "swift"
+      },
+      {
+        "level": 33,
+        "moveId": "agility"
+      },
+      {
+        "level": 43,
+        "moveId": "thunder"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0026",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-wave"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0027",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 10,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 17,
+        "moveId": "slash"
+      },
+      {
+        "level": 24,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 31,
+        "moveId": "swift"
+      },
+      {
+        "level": 38,
+        "moveId": "fury-swipes"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0028",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 17,
+        "moveId": "slash"
+      },
+      {
+        "level": 27,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 36,
+        "moveId": "swift"
+      },
+      {
+        "level": 47,
+        "moveId": "fury-swipes"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0029",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 8,
+        "moveId": "scratch"
+      },
+      {
+        "level": 14,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 21,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 29,
+        "moveId": "bite"
+      },
+      {
+        "level": 36,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 43,
+        "moveId": "double-kick"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0030",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 14,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 23,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 32,
+        "moveId": "bite"
+      },
+      {
+        "level": 41,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 50,
+        "moveId": "double-kick"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0031",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 14,
+        "moveId": "poison-sting"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0032",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 8,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 14,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 21,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 29,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 36,
+        "moveId": "horn-drill"
+      },
+      {
+        "level": 43,
+        "moveId": "double-kick"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0033",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 14,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 23,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 32,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 41,
+        "moveId": "horn-drill"
+      },
+      {
+        "level": 50,
+        "moveId": "double-kick"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0034",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "thrash"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0035",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 13,
+        "moveId": "sing"
+      },
+      {
+        "level": 18,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 24,
+        "moveId": "minimize"
+      },
+      {
+        "level": 31,
+        "moveId": "metronome"
+      },
+      {
+        "level": 39,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 48,
+        "moveId": "light-screen"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0036",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 1,
+        "moveId": "metronome"
+      },
+      {
+        "level": 1,
+        "moveId": "minimize"
+      },
+      {
+        "level": 1,
+        "moveId": "sing"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0037",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 16,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 21,
+        "moveId": "roar"
+      },
+      {
+        "level": 28,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 35,
+        "moveId": "flamethrower"
+      },
+      {
+        "level": 42,
+        "moveId": "fire-spin"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0038",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "roar"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0039",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "sing"
+      },
+      {
+        "level": 9,
+        "moveId": "pound"
+      },
+      {
+        "level": 14,
+        "moveId": "disable"
+      },
+      {
+        "level": 19,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 24,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 29,
+        "moveId": "rest"
+      },
+      {
+        "level": 34,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 39,
+        "moveId": "double-edge"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0040",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 1,
+        "moveId": "sing"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0041",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leech-life"
+      },
+      {
+        "level": 10,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 15,
+        "moveId": "bite"
+      },
+      {
+        "level": 21,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 28,
+        "moveId": "wing-attack"
+      },
+      {
+        "level": 36,
+        "moveId": "haze"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0042",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bite"
+      },
+      {
+        "level": 1,
+        "moveId": "leech-life"
+      },
+      {
+        "level": 1,
+        "moveId": "screech"
+      },
+      {
+        "level": 10,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 21,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 32,
+        "moveId": "wing-attack"
+      },
+      {
+        "level": 43,
+        "moveId": "haze"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0043",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "absorb"
+      },
+      {
+        "level": 15,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 17,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 19,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 24,
+        "moveId": "acid"
+      },
+      {
+        "level": 33,
+        "moveId": "petal-dance"
+      },
+      {
+        "level": 46,
+        "moveId": "solar-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0044",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "absorb"
+      },
+      {
+        "level": 1,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 1,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 19,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 28,
+        "moveId": "acid"
+      },
+      {
+        "level": 38,
+        "moveId": "petal-dance"
+      },
+      {
+        "level": 52,
+        "moveId": "solar-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0045",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "acid"
+      },
+      {
+        "level": 1,
+        "moveId": "petal-dance"
+      },
+      {
+        "level": 1,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 1,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 15,
+        "moveId": "poison-powder"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0046",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 13,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 20,
+        "moveId": "leech-life"
+      },
+      {
+        "level": 27,
+        "moveId": "spore"
+      },
+      {
+        "level": 34,
+        "moveId": "slash"
+      },
+      {
+        "level": 41,
+        "moveId": "growth"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0047",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leech-life"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 1,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 30,
+        "moveId": "spore"
+      },
+      {
+        "level": 39,
+        "moveId": "slash"
+      },
+      {
+        "level": 48,
+        "moveId": "growth"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0048",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 24,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 27,
+        "moveId": "leech-life"
+      },
+      {
+        "level": 30,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 35,
+        "moveId": "psybeam"
+      },
+      {
+        "level": 38,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 43,
+        "moveId": "psychic"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0049",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "leech-life"
+      },
+      {
+        "level": 1,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 30,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 38,
+        "moveId": "psybeam"
+      },
+      {
+        "level": 43,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 50,
+        "moveId": "psychic"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0050",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 15,
+        "moveId": "growl"
+      },
+      {
+        "level": 19,
+        "moveId": "dig"
+      },
+      {
+        "level": 24,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 31,
+        "moveId": "slash"
+      },
+      {
+        "level": 40,
+        "moveId": "earthquake"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0051",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "dig"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 24,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 35,
+        "moveId": "slash"
+      },
+      {
+        "level": 47,
+        "moveId": "earthquake"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0052",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 12,
+        "moveId": "bite"
+      },
+      {
+        "level": 17,
+        "moveId": "pay-day"
+      },
+      {
+        "level": 24,
+        "moveId": "screech"
+      },
+      {
+        "level": 33,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 44,
+        "moveId": "slash"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0053",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bite"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 1,
+        "moveId": "screech"
+      },
+      {
+        "level": 17,
+        "moveId": "pay-day"
+      },
+      {
+        "level": 37,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 51,
+        "moveId": "slash"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0054",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 28,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 31,
+        "moveId": "disable"
+      },
+      {
+        "level": 36,
+        "moveId": "confusion"
+      },
+      {
+        "level": 43,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 52,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0055",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 39,
+        "moveId": "confusion"
+      },
+      {
+        "level": 48,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 59,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0056",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 15,
+        "moveId": "karate-chop"
+      },
+      {
+        "level": 21,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 27,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 33,
+        "moveId": "seismic-toss"
+      },
+      {
+        "level": 39,
+        "moveId": "thrash"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0057",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "fury-swipes"
+      },
+      {
+        "level": 1,
+        "moveId": "karate-chop"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 27,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 37,
+        "moveId": "seismic-toss"
+      },
+      {
+        "level": 46,
+        "moveId": "thrash"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0058",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bite"
+      },
+      {
+        "level": 1,
+        "moveId": "roar"
+      },
+      {
+        "level": 18,
+        "moveId": "ember"
+      },
+      {
+        "level": 23,
+        "moveId": "leer"
+      },
+      {
+        "level": 30,
+        "moveId": "take-down"
+      },
+      {
+        "level": 39,
+        "moveId": "agility"
+      },
+      {
+        "level": 50,
+        "moveId": "flamethrower"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0059",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "roar"
+      },
+      {
+        "level": 1,
+        "moveId": "take-down"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0060",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 16,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 19,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 25,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 31,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 38,
+        "moveId": "amnesia"
+      },
+      {
+        "level": 45,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0061",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 1,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 26,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 33,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 41,
+        "moveId": "amnesia"
+      },
+      {
+        "level": 49,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0062",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 1,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 1,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0063",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "teleport"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0064",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "teleport"
+      },
+      {
+        "level": 27,
+        "moveId": "psybeam"
+      },
+      {
+        "level": 31,
+        "moveId": "recover"
+      },
+      {
+        "level": 38,
+        "moveId": "psychic"
+      },
+      {
+        "level": 42,
+        "moveId": "reflect"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0065",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "teleport"
+      },
+      {
+        "level": 27,
+        "moveId": "psybeam"
+      },
+      {
+        "level": 31,
+        "moveId": "recover"
+      },
+      {
+        "level": 38,
+        "moveId": "psychic"
+      },
+      {
+        "level": 42,
+        "moveId": "reflect"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0066",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "karate-chop"
+      },
+      {
+        "level": 20,
+        "moveId": "low-kick"
+      },
+      {
+        "level": 25,
+        "moveId": "leer"
+      },
+      {
+        "level": 32,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 39,
+        "moveId": "seismic-toss"
+      },
+      {
+        "level": 46,
+        "moveId": "submission"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0067",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "karate-chop"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "low-kick"
+      },
+      {
+        "level": 36,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 44,
+        "moveId": "seismic-toss"
+      },
+      {
+        "level": 52,
+        "moveId": "submission"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0068",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "karate-chop"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "low-kick"
+      },
+      {
+        "level": 36,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 44,
+        "moveId": "seismic-toss"
+      },
+      {
+        "level": 52,
+        "moveId": "submission"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0069",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growth"
+      },
+      {
+        "level": 1,
+        "moveId": "vine-whip"
+      },
+      {
+        "level": 13,
+        "moveId": "wrap"
+      },
+      {
+        "level": 15,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 18,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 21,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 26,
+        "moveId": "acid"
+      },
+      {
+        "level": 33,
+        "moveId": "razor-leaf"
+      },
+      {
+        "level": 42,
+        "moveId": "slam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0070",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growth"
+      },
+      {
+        "level": 1,
+        "moveId": "vine-whip"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 15,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 18,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 23,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 29,
+        "moveId": "acid"
+      },
+      {
+        "level": 38,
+        "moveId": "razor-leaf"
+      },
+      {
+        "level": 49,
+        "moveId": "slam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0071",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "acid"
+      },
+      {
+        "level": 1,
+        "moveId": "razor-leaf"
+      },
+      {
+        "level": 1,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 1,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 13,
+        "moveId": "wrap"
+      },
+      {
+        "level": 15,
+        "moveId": "poison-powder"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0072",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "acid"
+      },
+      {
+        "level": 7,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 13,
+        "moveId": "wrap"
+      },
+      {
+        "level": 18,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 22,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 27,
+        "moveId": "constrict"
+      },
+      {
+        "level": 33,
+        "moveId": "barrier"
+      },
+      {
+        "level": 40,
+        "moveId": "screech"
+      },
+      {
+        "level": 48,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0073",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "acid"
+      },
+      {
+        "level": 1,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 18,
+        "moveId": "poison-sting"
+      },
+      {
+        "level": 22,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 27,
+        "moveId": "constrict"
+      },
+      {
+        "level": 35,
+        "moveId": "barrier"
+      },
+      {
+        "level": 43,
+        "moveId": "screech"
+      },
+      {
+        "level": 50,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0074",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 11,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 16,
+        "moveId": "rock-throw"
+      },
+      {
+        "level": 21,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 26,
+        "moveId": "harden"
+      },
+      {
+        "level": 31,
+        "moveId": "earthquake"
+      },
+      {
+        "level": 36,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0075",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 16,
+        "moveId": "rock-throw"
+      },
+      {
+        "level": 21,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 29,
+        "moveId": "harden"
+      },
+      {
+        "level": 36,
+        "moveId": "earthquake"
+      },
+      {
+        "level": 43,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0076",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 16,
+        "moveId": "rock-throw"
+      },
+      {
+        "level": 21,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 29,
+        "moveId": "harden"
+      },
+      {
+        "level": 36,
+        "moveId": "earthquake"
+      },
+      {
+        "level": 43,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0077",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 30,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 32,
+        "moveId": "stomp"
+      },
+      {
+        "level": 35,
+        "moveId": "growl"
+      },
+      {
+        "level": 39,
+        "moveId": "fire-spin"
+      },
+      {
+        "level": 43,
+        "moveId": "take-down"
+      },
+      {
+        "level": 48,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0078",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "stomp"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 39,
+        "moveId": "fire-spin"
+      },
+      {
+        "level": 47,
+        "moveId": "take-down"
+      },
+      {
+        "level": 55,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0079",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 18,
+        "moveId": "disable"
+      },
+      {
+        "level": 22,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 27,
+        "moveId": "growl"
+      },
+      {
+        "level": 33,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 40,
+        "moveId": "amnesia"
+      },
+      {
+        "level": 48,
+        "moveId": "psychic"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0080",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 27,
+        "moveId": "growl"
+      },
+      {
+        "level": 33,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 37,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 44,
+        "moveId": "amnesia"
+      },
+      {
+        "level": 55,
+        "moveId": "psychic"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0081",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 21,
+        "moveId": "sonic-boom"
+      },
+      {
+        "level": 25,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 29,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 35,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 41,
+        "moveId": "swift"
+      },
+      {
+        "level": 47,
+        "moveId": "screech"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0082",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "sonic-boom"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 29,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 38,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 46,
+        "moveId": "swift"
+      },
+      {
+        "level": 54,
+        "moveId": "screech"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0083",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 7,
+        "moveId": "leer"
+      },
+      {
+        "level": 15,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 23,
+        "moveId": "swords-dance"
+      },
+      {
+        "level": 31,
+        "moveId": "agility"
+      },
+      {
+        "level": 39,
+        "moveId": "slash"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0084",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 20,
+        "moveId": "growl"
+      },
+      {
+        "level": 24,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 30,
+        "moveId": "drill-peck"
+      },
+      {
+        "level": 36,
+        "moveId": "rage"
+      },
+      {
+        "level": 40,
+        "moveId": "tri-attack"
+      },
+      {
+        "level": 44,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0085",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 30,
+        "moveId": "drill-peck"
+      },
+      {
+        "level": 39,
+        "moveId": "rage"
+      },
+      {
+        "level": 45,
+        "moveId": "tri-attack"
+      },
+      {
+        "level": 51,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0086",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 30,
+        "moveId": "growl"
+      },
+      {
+        "level": 35,
+        "moveId": "aurora-beam"
+      },
+      {
+        "level": 40,
+        "moveId": "rest"
+      },
+      {
+        "level": 45,
+        "moveId": "take-down"
+      },
+      {
+        "level": 50,
+        "moveId": "ice-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0087",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "aurora-beam"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 44,
+        "moveId": "rest"
+      },
+      {
+        "level": 50,
+        "moveId": "take-down"
+      },
+      {
+        "level": 56,
+        "moveId": "ice-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0088",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 30,
+        "moveId": "poison-gas"
+      },
+      {
+        "level": 33,
+        "moveId": "minimize"
+      },
+      {
+        "level": 37,
+        "moveId": "sludge"
+      },
+      {
+        "level": 42,
+        "moveId": "harden"
+      },
+      {
+        "level": 48,
+        "moveId": "screech"
+      },
+      {
+        "level": 55,
+        "moveId": "acid-armor"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0089",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "poison-gas"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 33,
+        "moveId": "minimize"
+      },
+      {
+        "level": 37,
+        "moveId": "sludge"
+      },
+      {
+        "level": 45,
+        "moveId": "harden"
+      },
+      {
+        "level": 53,
+        "moveId": "screech"
+      },
+      {
+        "level": 60,
+        "moveId": "acid-armor"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0090",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 18,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 23,
+        "moveId": "clamp"
+      },
+      {
+        "level": 30,
+        "moveId": "aurora-beam"
+      },
+      {
+        "level": 39,
+        "moveId": "leer"
+      },
+      {
+        "level": 50,
+        "moveId": "ice-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0091",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "aurora-beam"
+      },
+      {
+        "level": 1,
+        "moveId": "clamp"
+      },
+      {
+        "level": 1,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 1,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 50,
+        "moveId": "spike-cannon"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0092",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 1,
+        "moveId": "lick"
+      },
+      {
+        "level": 1,
+        "moveId": "night-shade"
+      },
+      {
+        "level": 27,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 35,
+        "moveId": "dream-eater"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0093",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 1,
+        "moveId": "lick"
+      },
+      {
+        "level": 1,
+        "moveId": "night-shade"
+      },
+      {
+        "level": 29,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 38,
+        "moveId": "dream-eater"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0094",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 1,
+        "moveId": "lick"
+      },
+      {
+        "level": 1,
+        "moveId": "night-shade"
+      },
+      {
+        "level": 29,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 38,
+        "moveId": "dream-eater"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0095",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "screech"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 15,
+        "moveId": "bind"
+      },
+      {
+        "level": 19,
+        "moveId": "rock-throw"
+      },
+      {
+        "level": 25,
+        "moveId": "rage"
+      },
+      {
+        "level": 33,
+        "moveId": "slam"
+      },
+      {
+        "level": 43,
+        "moveId": "harden"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0096",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 12,
+        "moveId": "disable"
+      },
+      {
+        "level": 17,
+        "moveId": "confusion"
+      },
+      {
+        "level": 24,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 29,
+        "moveId": "poison-gas"
+      },
+      {
+        "level": 32,
+        "moveId": "psychic"
+      },
+      {
+        "level": 37,
+        "moveId": "meditate"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0097",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 24,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 33,
+        "moveId": "poison-gas"
+      },
+      {
+        "level": 37,
+        "moveId": "psychic"
+      },
+      {
+        "level": 43,
+        "moveId": "meditate"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0098",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 20,
+        "moveId": "vice-grip"
+      },
+      {
+        "level": 25,
+        "moveId": "guillotine"
+      },
+      {
+        "level": 30,
+        "moveId": "stomp"
+      },
+      {
+        "level": 35,
+        "moveId": "crabhammer"
+      },
+      {
+        "level": 40,
+        "moveId": "harden"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0099",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "vice-grip"
+      },
+      {
+        "level": 25,
+        "moveId": "guillotine"
+      },
+      {
+        "level": 34,
+        "moveId": "stomp"
+      },
+      {
+        "level": 42,
+        "moveId": "crabhammer"
+      },
+      {
+        "level": 49,
+        "moveId": "harden"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0100",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "screech"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 17,
+        "moveId": "sonic-boom"
+      },
+      {
+        "level": 22,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 29,
+        "moveId": "light-screen"
+      },
+      {
+        "level": 36,
+        "moveId": "swift"
+      },
+      {
+        "level": 43,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0101",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "screech"
+      },
+      {
+        "level": 1,
+        "moveId": "sonic-boom"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 22,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 29,
+        "moveId": "light-screen"
+      },
+      {
+        "level": 40,
+        "moveId": "swift"
+      },
+      {
+        "level": 50,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0102",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "barrage"
+      },
+      {
+        "level": 1,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 25,
+        "moveId": "reflect"
+      },
+      {
+        "level": 28,
+        "moveId": "leech-seed"
+      },
+      {
+        "level": 32,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 37,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 42,
+        "moveId": "solar-beam"
+      },
+      {
+        "level": 48,
+        "moveId": "sleep-powder"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0103",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "barrage"
+      },
+      {
+        "level": 1,
+        "moveId": "hypnosis"
+      },
+      {
+        "level": 28,
+        "moveId": "stomp"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0104",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bone-club"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 25,
+        "moveId": "leer"
+      },
+      {
+        "level": 31,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 38,
+        "moveId": "thrash"
+      },
+      {
+        "level": 43,
+        "moveId": "bonemerang"
+      },
+      {
+        "level": 46,
+        "moveId": "rage"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0105",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bone-club"
+      },
+      {
+        "level": 1,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 41,
+        "moveId": "thrash"
+      },
+      {
+        "level": 48,
+        "moveId": "bonemerang"
+      },
+      {
+        "level": 55,
+        "moveId": "rage"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0106",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "double-kick"
+      },
+      {
+        "level": 1,
+        "moveId": "meditate"
+      },
+      {
+        "level": 33,
+        "moveId": "rolling-kick"
+      },
+      {
+        "level": 38,
+        "moveId": "jump-kick"
+      },
+      {
+        "level": 43,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 48,
+        "moveId": "high-jump-kick"
+      },
+      {
+        "level": 53,
+        "moveId": "mega-kick"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0107",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "agility"
+      },
+      {
+        "level": 1,
+        "moveId": "comet-punch"
+      },
+      {
+        "level": 33,
+        "moveId": "fire-punch"
+      },
+      {
+        "level": 38,
+        "moveId": "ice-punch"
+      },
+      {
+        "level": 43,
+        "moveId": "thunder-punch"
+      },
+      {
+        "level": 48,
+        "moveId": "mega-punch"
+      },
+      {
+        "level": 53,
+        "moveId": "counter"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0108",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 7,
+        "moveId": "stomp"
+      },
+      {
+        "level": 15,
+        "moveId": "disable"
+      },
+      {
+        "level": 23,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 31,
+        "moveId": "slam"
+      },
+      {
+        "level": 39,
+        "moveId": "screech"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0109",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "smog"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 32,
+        "moveId": "sludge"
+      },
+      {
+        "level": 37,
+        "moveId": "smokescreen"
+      },
+      {
+        "level": 40,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 45,
+        "moveId": "haze"
+      },
+      {
+        "level": 48,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0110",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "sludge"
+      },
+      {
+        "level": 1,
+        "moveId": "smog"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 39,
+        "moveId": "smokescreen"
+      },
+      {
+        "level": 43,
+        "moveId": "self-destruct"
+      },
+      {
+        "level": 49,
+        "moveId": "haze"
+      },
+      {
+        "level": 53,
+        "moveId": "explosion"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0111",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 30,
+        "moveId": "stomp"
+      },
+      {
+        "level": 35,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 40,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 45,
+        "moveId": "horn-drill"
+      },
+      {
+        "level": 50,
+        "moveId": "leer"
+      },
+      {
+        "level": 55,
+        "moveId": "take-down"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0112",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "stomp"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 48,
+        "moveId": "horn-drill"
+      },
+      {
+        "level": 55,
+        "moveId": "leer"
+      },
+      {
+        "level": 64,
+        "moveId": "take-down"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0113",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 24,
+        "moveId": "sing"
+      },
+      {
+        "level": 30,
+        "moveId": "growl"
+      },
+      {
+        "level": 38,
+        "moveId": "minimize"
+      },
+      {
+        "level": 44,
+        "moveId": "defense-curl"
+      },
+      {
+        "level": 48,
+        "moveId": "light-screen"
+      },
+      {
+        "level": 54,
+        "moveId": "double-edge"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0114",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bind"
+      },
+      {
+        "level": 1,
+        "moveId": "constrict"
+      },
+      {
+        "level": 29,
+        "moveId": "absorb"
+      },
+      {
+        "level": 32,
+        "moveId": "poison-powder"
+      },
+      {
+        "level": 36,
+        "moveId": "stun-spore"
+      },
+      {
+        "level": 39,
+        "moveId": "sleep-powder"
+      },
+      {
+        "level": 45,
+        "moveId": "slam"
+      },
+      {
+        "level": 49,
+        "moveId": "growth"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0115",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "comet-punch"
+      },
+      {
+        "level": 1,
+        "moveId": "rage"
+      },
+      {
+        "level": 26,
+        "moveId": "bite"
+      },
+      {
+        "level": 31,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 36,
+        "moveId": "mega-punch"
+      },
+      {
+        "level": 41,
+        "moveId": "leer"
+      },
+      {
+        "level": 46,
+        "moveId": "dizzy-punch"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0116",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 19,
+        "moveId": "smokescreen"
+      },
+      {
+        "level": 24,
+        "moveId": "leer"
+      },
+      {
+        "level": 30,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 37,
+        "moveId": "agility"
+      },
+      {
+        "level": 45,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0117",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bubble"
+      },
+      {
+        "level": 1,
+        "moveId": "smokescreen"
+      },
+      {
+        "level": 24,
+        "moveId": "leer"
+      },
+      {
+        "level": 30,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 41,
+        "moveId": "agility"
+      },
+      {
+        "level": 52,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0118",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 19,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 24,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 30,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 37,
+        "moveId": "waterfall"
+      },
+      {
+        "level": 45,
+        "moveId": "horn-drill"
+      },
+      {
+        "level": 54,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0119",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 1,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 1,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 24,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 30,
+        "moveId": "fury-attack"
+      },
+      {
+        "level": 39,
+        "moveId": "waterfall"
+      },
+      {
+        "level": 48,
+        "moveId": "horn-drill"
+      },
+      {
+        "level": 54,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0120",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 17,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 22,
+        "moveId": "harden"
+      },
+      {
+        "level": 27,
+        "moveId": "recover"
+      },
+      {
+        "level": 32,
+        "moveId": "swift"
+      },
+      {
+        "level": 37,
+        "moveId": "minimize"
+      },
+      {
+        "level": 42,
+        "moveId": "light-screen"
+      },
+      {
+        "level": 47,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0121",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "harden"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0122",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "barrier"
+      },
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 23,
+        "moveId": "light-screen"
+      },
+      {
+        "level": 31,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 39,
+        "moveId": "meditate"
+      },
+      {
+        "level": 47,
+        "moveId": "substitute"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0123",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 17,
+        "moveId": "leer"
+      },
+      {
+        "level": 20,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 24,
+        "moveId": "double-team"
+      },
+      {
+        "level": 29,
+        "moveId": "slash"
+      },
+      {
+        "level": 35,
+        "moveId": "swords-dance"
+      },
+      {
+        "level": 42,
+        "moveId": "agility"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0124",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "lovely-kiss"
+      },
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 18,
+        "moveId": "lick"
+      },
+      {
+        "level": 23,
+        "moveId": "double-slap"
+      },
+      {
+        "level": 31,
+        "moveId": "ice-punch"
+      },
+      {
+        "level": 39,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 47,
+        "moveId": "thrash"
+      },
+      {
+        "level": 58,
+        "moveId": "blizzard"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0125",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 34,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 37,
+        "moveId": "screech"
+      },
+      {
+        "level": 42,
+        "moveId": "thunder-punch"
+      },
+      {
+        "level": 49,
+        "moveId": "light-screen"
+      },
+      {
+        "level": 54,
+        "moveId": "thunder"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0126",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 36,
+        "moveId": "leer"
+      },
+      {
+        "level": 39,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 43,
+        "moveId": "fire-punch"
+      },
+      {
+        "level": 48,
+        "moveId": "smokescreen"
+      },
+      {
+        "level": 52,
+        "moveId": "smog"
+      },
+      {
+        "level": 55,
+        "moveId": "flamethrower"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0127",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "vice-grip"
+      },
+      {
+        "level": 25,
+        "moveId": "seismic-toss"
+      },
+      {
+        "level": 30,
+        "moveId": "guillotine"
+      },
+      {
+        "level": 36,
+        "moveId": "focus-energy"
+      },
+      {
+        "level": 43,
+        "moveId": "harden"
+      },
+      {
+        "level": 49,
+        "moveId": "slash"
+      },
+      {
+        "level": 54,
+        "moveId": "swords-dance"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0128",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 21,
+        "moveId": "stomp"
+      },
+      {
+        "level": 28,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 35,
+        "moveId": "leer"
+      },
+      {
+        "level": 44,
+        "moveId": "rage"
+      },
+      {
+        "level": 51,
+        "moveId": "take-down"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0129",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "splash"
+      },
+      {
+        "level": 15,
+        "moveId": "tackle"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0130",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "bite"
+      },
+      {
+        "level": 1,
+        "moveId": "dragon-rage"
+      },
+      {
+        "level": 1,
+        "moveId": "hydro-pump"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 52,
+        "moveId": "hyper-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0131",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "growl"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 16,
+        "moveId": "sing"
+      },
+      {
+        "level": 20,
+        "moveId": "mist"
+      },
+      {
+        "level": 25,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 31,
+        "moveId": "confuse-ray"
+      },
+      {
+        "level": 38,
+        "moveId": "ice-beam"
+      },
+      {
+        "level": 46,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0132",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "transform"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0133",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 27,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 31,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 37,
+        "moveId": "bite"
+      },
+      {
+        "level": 45,
+        "moveId": "take-down"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0134",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 37,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 40,
+        "moveId": "bite"
+      },
+      {
+        "level": 42,
+        "moveId": "acid-armor"
+      },
+      {
+        "level": 44,
+        "moveId": "haze"
+      },
+      {
+        "level": 48,
+        "moveId": "mist"
+      },
+      {
+        "level": 54,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0135",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 37,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 40,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 42,
+        "moveId": "double-kick"
+      },
+      {
+        "level": 44,
+        "moveId": "agility"
+      },
+      {
+        "level": 48,
+        "moveId": "pin-missile"
+      },
+      {
+        "level": 54,
+        "moveId": "thunder"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0136",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ember"
+      },
+      {
+        "level": 1,
+        "moveId": "quick-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "sand-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 37,
+        "moveId": "tail-whip"
+      },
+      {
+        "level": 40,
+        "moveId": "bite"
+      },
+      {
+        "level": 42,
+        "moveId": "leer"
+      },
+      {
+        "level": 44,
+        "moveId": "fire-spin"
+      },
+      {
+        "level": 48,
+        "moveId": "rage"
+      },
+      {
+        "level": 54,
+        "moveId": "flamethrower"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0137",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "conversion"
+      },
+      {
+        "level": 1,
+        "moveId": "sharpen"
+      },
+      {
+        "level": 1,
+        "moveId": "tackle"
+      },
+      {
+        "level": 23,
+        "moveId": "psybeam"
+      },
+      {
+        "level": 28,
+        "moveId": "recover"
+      },
+      {
+        "level": 35,
+        "moveId": "agility"
+      },
+      {
+        "level": 42,
+        "moveId": "tri-attack"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0138",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 1,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 34,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 39,
+        "moveId": "leer"
+      },
+      {
+        "level": 46,
+        "moveId": "spike-cannon"
+      },
+      {
+        "level": 53,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0139",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "horn-attack"
+      },
+      {
+        "level": 1,
+        "moveId": "water-gun"
+      },
+      {
+        "level": 1,
+        "moveId": "withdraw"
+      },
+      {
+        "level": 39,
+        "moveId": "leer"
+      },
+      {
+        "level": 44,
+        "moveId": "spike-cannon"
+      },
+      {
+        "level": 49,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0140",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "harden"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 34,
+        "moveId": "absorb"
+      },
+      {
+        "level": 39,
+        "moveId": "slash"
+      },
+      {
+        "level": 44,
+        "moveId": "leer"
+      },
+      {
+        "level": 49,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0141",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "absorb"
+      },
+      {
+        "level": 1,
+        "moveId": "harden"
+      },
+      {
+        "level": 1,
+        "moveId": "scratch"
+      },
+      {
+        "level": 39,
+        "moveId": "slash"
+      },
+      {
+        "level": 46,
+        "moveId": "leer"
+      },
+      {
+        "level": 53,
+        "moveId": "hydro-pump"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0142",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "agility"
+      },
+      {
+        "level": 1,
+        "moveId": "wing-attack"
+      },
+      {
+        "level": 33,
+        "moveId": "supersonic"
+      },
+      {
+        "level": 38,
+        "moveId": "bite"
+      },
+      {
+        "level": 45,
+        "moveId": "take-down"
+      },
+      {
+        "level": 54,
+        "moveId": "hyper-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0143",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "amnesia"
+      },
+      {
+        "level": 1,
+        "moveId": "headbutt"
+      },
+      {
+        "level": 1,
+        "moveId": "rest"
+      },
+      {
+        "level": 35,
+        "moveId": "body-slam"
+      },
+      {
+        "level": 41,
+        "moveId": "harden"
+      },
+      {
+        "level": 48,
+        "moveId": "double-edge"
+      },
+      {
+        "level": 56,
+        "moveId": "hyper-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0144",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "ice-beam"
+      },
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 51,
+        "moveId": "blizzard"
+      },
+      {
+        "level": 55,
+        "moveId": "agility"
+      },
+      {
+        "level": 60,
+        "moveId": "mist"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0145",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "drill-peck"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-shock"
+      },
+      {
+        "level": 51,
+        "moveId": "thunder"
+      },
+      {
+        "level": 55,
+        "moveId": "agility"
+      },
+      {
+        "level": 60,
+        "moveId": "light-screen"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0146",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "fire-spin"
+      },
+      {
+        "level": 1,
+        "moveId": "peck"
+      },
+      {
+        "level": 51,
+        "moveId": "leer"
+      },
+      {
+        "level": 55,
+        "moveId": "agility"
+      },
+      {
+        "level": 60,
+        "moveId": "sky-attack"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0147",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 10,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 20,
+        "moveId": "agility"
+      },
+      {
+        "level": 30,
+        "moveId": "slam"
+      },
+      {
+        "level": 40,
+        "moveId": "dragon-rage"
+      },
+      {
+        "level": 50,
+        "moveId": "hyper-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0148",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 20,
+        "moveId": "agility"
+      },
+      {
+        "level": 35,
+        "moveId": "slam"
+      },
+      {
+        "level": 45,
+        "moveId": "dragon-rage"
+      },
+      {
+        "level": 55,
+        "moveId": "hyper-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0149",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "agility"
+      },
+      {
+        "level": 1,
+        "moveId": "leer"
+      },
+      {
+        "level": 1,
+        "moveId": "thunder-wave"
+      },
+      {
+        "level": 1,
+        "moveId": "wrap"
+      },
+      {
+        "level": 35,
+        "moveId": "slam"
+      },
+      {
+        "level": 45,
+        "moveId": "dragon-rage"
+      },
+      {
+        "level": 60,
+        "moveId": "hyper-beam"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0150",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "confusion"
+      },
+      {
+        "level": 1,
+        "moveId": "disable"
+      },
+      {
+        "level": 1,
+        "moveId": "psychic"
+      },
+      {
+        "level": 1,
+        "moveId": "swift"
+      },
+      {
+        "level": 63,
+        "moveId": "barrier"
+      },
+      {
+        "level": 70,
+        "moveId": "recover"
+      },
+      {
+        "level": 75,
+        "moveId": "mist"
+      },
+      {
+        "level": 81,
+        "moveId": "amnesia"
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0151",
+    "learn": [
+      {
+        "level": 1,
+        "moveId": "pound"
+      },
+      {
+        "level": 10,
+        "moveId": "transform"
+      },
+      {
+        "level": 20,
+        "moveId": "mega-punch"
+      },
+      {
+        "level": 30,
+        "moveId": "metronome"
+      },
+      {
+        "level": 40,
+        "moveId": "psychic"
+      }
     ]
   }
 ]

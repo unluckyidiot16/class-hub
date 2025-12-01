@@ -234,9 +234,201 @@ async function seedSpeciesFromJson() {
 
     console.log(`[seedQuizmon] species.json 로드: ${list.length}개`);
 
+
+    // 🔹 종 ID 집합 (evolves_to_id FK 안전용, 필요시 활용)
+    const speciesIdSet = new Set(list.map((sp) => sp.id));
+
+
+    // 1) species.json 안에서 모든 evolution.itemId 수집 → quizmon_items에 진화아이템 자동 생성
+    const evoItemIds = Array.from(
+        new Set(
+            list
+                .map((sp) => sp.evolution?.itemId)
+                .filter((id) => typeof id === "string" && id.startsWith("evo-")),
+        ),
+    );
+
+    if (evoItemIds.length > 0) {
+        console.log(
+            `[seedQuizmon] evolution item ids 감지: ${evoItemIds.length}개`,
+        );
+
+        // 사람이 이름/설명을 정의해 둔 프리셋 (알고 있는 것들 우선)
+        const EVOLUTION_ITEM_PRESET = {
+            "evo-fire-stone": {
+                name: "불꽃의 돌",
+                description:
+                    "일부 불꽃 타입 포켓몬을 진화시키는 돌입니다.",
+            },
+            "evo-thunder-stone": {
+                name: "썬더스톤",
+                description:
+                    "일부 전기 타입 포켓몬을 진화시키는 돌입니다.",
+            },
+            "evo-water-stone": {
+                name: "물의 돌",
+                description: "일부 물 타입 포켓몬을 진화시키는 돌입니다.",
+            },
+            "evo-leaf-stone": {
+                name: "리프의 돌",
+                description: "일부 풀 타입 포켓몬을 진화시키는 돌입니다.",
+            },
+            "evo-moon-stone": {
+                name: "달의 돌",
+                description:
+                    "특정 포켓몬을 진화시키는 신비한 돌입니다.",
+            },
+            "evo-sun-stone": {
+                name: "태양의 돌",
+                description:
+                    "태양빛의 힘으로 특정 포켓몬을 진화시키는 돌입니다.",
+            },
+            "evo-dusk-stone": {
+                name: "어둠의 돌",
+                description:
+                    "어둠의 힘을 품은 돌로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-dawn-stone": {
+                name: "각성의 돌",
+                description:
+                    "특정 포켓몬을 각성시키는 신비한 돌입니다.",
+            },
+            "evo-shiny-stone": {
+                name: "빛의 돌",
+                description:
+                    "눈부신 빛을 내는 돌로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-ice-stone": {
+                name: "얼음의 돌",
+                description:
+                    "차가운 기운을 담은 돌로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-oval-stone": {
+                name: "타원형석",
+                description:
+                    "특정 포켓몬을 진화시키는 특수한 돌입니다.",
+            },
+            "evo-kings-rock": {
+                name: "왕의 징표석",
+                description:
+                    "들고 싸우면 상대를 풀죽게 만들며, 일부 포켓몬을 진화시키는 돌입니다.",
+            },
+            "evo-metal-coat": {
+                name: "금속코트",
+                description:
+                    "강철의 기운을 담고 있는 코트로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-dragon-scale": {
+                name: "용의비늘",
+                description:
+                    "용의 힘을 품은 비늘로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-up-grade": {
+                name: "업그레이드",
+                description:
+                    "특수한 디스크로, 특정 포켓몬을 진화시킵니다.",
+            },
+            "evo-dubious-disc": {
+                name: "의문의 디스크",
+                description:
+                    "수수께끼의 디스크로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-protector": {
+                name: "프로텍터",
+                description:
+                    "단단한 보호 장비로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-magmarizer": {
+                name: "마그마부스터",
+                description:
+                    "뜨거운 에너지를 담은 장치로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-electirizer": {
+                name: "에레키부스터",
+                description:
+                    "전기를 담고 있는 장치로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-reaper-cloth": {
+                name: "영혼의천",
+                description:
+                    "섬뜩한 기운이 감도는 천으로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-razor-claw": {
+                name: "예리한발톱",
+                description:
+                    "예리한 발톱으로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-razor-fang": {
+                name: "예리한이빨",
+                description:
+                    "예리한 이빨로, 일부 포켓몬을 진화시킵니다.",
+            },
+            "evo-black-augurite": {
+                name: "흑요석 조각",
+                description:
+                    "특정 포켓몬을 진화시키는 검은색 광석 조각입니다.",
+            },
+        };
+
+        function buildEvolutionItemRow(id) {
+            const preset = EVOLUTION_ITEM_PRESET[id];
+
+            // id: "evo-thunder-stone" → "Thunder Stone" 같은 임시 이름
+            const baseLabel = id.replace(/^evo-/, "").replace(/-/g, " ");
+            const prettyLabel =
+                baseLabel
+                    .split(" ")
+                    .map((w) =>
+                        w ? w[0].toUpperCase() + w.slice(1) : "",
+                    )
+                    .join(" ") || id;
+
+            return {
+                id,
+                name: preset?.name ?? prettyLabel,
+                description:
+                    preset?.description ??
+                    "포켓몬을 진화시키는 특수한 아이템입니다.",
+                item_type: "evo_item",
+                price_gold: 500,
+                price_gems: null,
+                rarity: "rare",
+                tags: ["evo_item"],
+                xp_value: null,
+                level_up_value: null,
+                tm_move_id: null,
+                target_species_id: null,
+            };
+        }
+
+        const evoItemRows = evoItemIds.map(buildEvolutionItemRow);
+
+        const { error: evoItemError } = await supabase
+            .from("quizmon_items")
+            .upsert(evoItemRows, { onConflict: "id" });
+
+        if (evoItemError) {
+            console.error(
+                "[seedQuizmon] quizmon_items evolution upsert 에러:",
+                evoItemError,
+            );
+            throw evoItemError;
+        }
+
+        console.log(
+            "[seedQuizmon] quizmon_items evolution items upsert 완료:",
+            evoItemRows.length,
+        );
+    }
+
+    // 🔹 quizmon_species rows 생성
     const rows = list.map((sp) => {
         const stats = sp.baseStats || {};
-        const evo = sp.evolution || {};
+        const evo = sp.evolution || null;
+
+        // cross-gen 진화 중, 대상 종이 species.json에 없으면 진화 정보는 버림
+        const hasValidEvoTarget =
+            !!evo && !!evo.toId && speciesIdSet.has(evo.toId);
 
         return {
             id: sp.id,
@@ -258,11 +450,26 @@ async function seedSpeciesFromJson() {
             height_dm: sp.heightDm ?? null,
             weight_hg: sp.weightHg ?? null,
 
-            evolves_to_id: evo.evolvesToId ?? null,
-            evolution_trigger: evo.trigger ?? null,      // "level" | "item" | "special" | null
-            evolution_level: evo.level ?? null,
-            evolution_item_id: evo.itemId ?? null,
-            evolution_special_key: evo.specialKey ?? null,
+            popularity_rank: sp.popularityRank ?? null,
+            is_legendary: sp.isLegendary ?? false,
+            is_mythical: sp.isMythical ?? false,
+            gacha_weight: sp.gachaWeight ?? 100,
+
+            // 🔹 새 필드: generation / is_playable
+            generation: sp.generation ?? null,
+            is_playable:
+                typeof sp.isPlayable === "boolean"
+                    ? sp.isPlayable
+                    : sp.generation === 1, // species.json에 isPlayable 없으면 1세대만 true
+
+            // 🔹 진화 정보 (타겟 유효할 때만)
+            evolves_to_id: hasValidEvoTarget ? evo.toId : null,
+            evolution_trigger: hasValidEvoTarget ? evo.trigger ?? null : null,
+            evolution_level: hasValidEvoTarget ? evo.minLevel ?? null : null,
+            evolution_item_id: hasValidEvoTarget ? evo.itemId ?? null : null,
+            evolution_special_key: hasValidEvoTarget
+                ? evo.specialKey ?? null
+                : null,
         };
     });
 

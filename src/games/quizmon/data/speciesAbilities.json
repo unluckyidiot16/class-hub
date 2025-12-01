@@ -2,7 +2,2731 @@
   {
     "speciesId": "poke-0001",
     "abilities": [
-      { "abilityId": "overgrow", "slot": 1, "isHidden": false }
+      {
+        "abilityId": "overgrow",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "chlorophyll",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0002",
+    "abilities": [
+      {
+        "abilityId": "overgrow",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "chlorophyll",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0003",
+    "abilities": [
+      {
+        "abilityId": "overgrow",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "chlorophyll",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0004",
+    "abilities": [
+      {
+        "abilityId": "blaze",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "solar-power",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0005",
+    "abilities": [
+      {
+        "abilityId": "blaze",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "solar-power",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0006",
+    "abilities": [
+      {
+        "abilityId": "blaze",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "solar-power",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0007",
+    "abilities": [
+      {
+        "abilityId": "torrent",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rain-dish",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0008",
+    "abilities": [
+      {
+        "abilityId": "torrent",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rain-dish",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0009",
+    "abilities": [
+      {
+        "abilityId": "torrent",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rain-dish",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0010",
+    "abilities": [
+      {
+        "abilityId": "shield-dust",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "run-away",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0011",
+    "abilities": [
+      {
+        "abilityId": "shed-skin",
+        "slot": 1,
+        "isHidden": false
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0012",
+    "abilities": [
+      {
+        "abilityId": "compound-eyes",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tinted-lens",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0013",
+    "abilities": [
+      {
+        "abilityId": "shield-dust",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "run-away",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0014",
+    "abilities": [
+      {
+        "abilityId": "shed-skin",
+        "slot": 1,
+        "isHidden": false
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0015",
+    "abilities": [
+      {
+        "abilityId": "swarm",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sniper",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0016",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tangled-feet",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "big-pecks",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0017",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tangled-feet",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "big-pecks",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0018",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tangled-feet",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "big-pecks",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0019",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "guts",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hustle",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0020",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "guts",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hustle",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0021",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sniper",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0022",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sniper",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0023",
+    "abilities": [
+      {
+        "abilityId": "intimidate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shed-skin",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unnerve",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0024",
+    "abilities": [
+      {
+        "abilityId": "intimidate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shed-skin",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unnerve",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0025",
+    "abilities": [
+      {
+        "abilityId": "static",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "lightning-rod",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0026",
+    "abilities": [
+      {
+        "abilityId": "static",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "lightning-rod",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0027",
+    "abilities": [
+      {
+        "abilityId": "sand-veil",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-rush",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0028",
+    "abilities": [
+      {
+        "abilityId": "sand-veil",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-rush",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0029",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rivalry",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hustle",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0030",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rivalry",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hustle",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0031",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rivalry",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sheer-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0032",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rivalry",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hustle",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0033",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rivalry",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hustle",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0034",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rivalry",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sheer-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0035",
+    "abilities": [
+      {
+        "abilityId": "cute-charm",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "magic-guard",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "friend-guard",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0036",
+    "abilities": [
+      {
+        "abilityId": "cute-charm",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "magic-guard",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unaware",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0037",
+    "abilities": [
+      {
+        "abilityId": "flash-fire",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "drought",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0038",
+    "abilities": [
+      {
+        "abilityId": "flash-fire",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "drought",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0039",
+    "abilities": [
+      {
+        "abilityId": "cute-charm",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "competitive",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "friend-guard",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0040",
+    "abilities": [
+      {
+        "abilityId": "cute-charm",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "competitive",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "frisk",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0041",
+    "abilities": [
+      {
+        "abilityId": "inner-focus",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "infiltrator",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0042",
+    "abilities": [
+      {
+        "abilityId": "inner-focus",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "infiltrator",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0043",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "run-away",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0044",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "stench",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0045",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "effect-spore",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0046",
+    "abilities": [
+      {
+        "abilityId": "effect-spore",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "dry-skin",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0047",
+    "abilities": [
+      {
+        "abilityId": "effect-spore",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "dry-skin",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0048",
+    "abilities": [
+      {
+        "abilityId": "compound-eyes",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tinted-lens",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "run-away",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0049",
+    "abilities": [
+      {
+        "abilityId": "shield-dust",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tinted-lens",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "wonder-skin",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0050",
+    "abilities": [
+      {
+        "abilityId": "sand-veil",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "arena-trap",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0051",
+    "abilities": [
+      {
+        "abilityId": "sand-veil",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "arena-trap",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0052",
+    "abilities": [
+      {
+        "abilityId": "pickup",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "technician",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unnerve",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0053",
+    "abilities": [
+      {
+        "abilityId": "limber",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "technician",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unnerve",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0054",
+    "abilities": [
+      {
+        "abilityId": "damp",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "cloud-nine",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "swift-swim",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0055",
+    "abilities": [
+      {
+        "abilityId": "damp",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "cloud-nine",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "swift-swim",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0056",
+    "abilities": [
+      {
+        "abilityId": "vital-spirit",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "anger-point",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "defiant",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0057",
+    "abilities": [
+      {
+        "abilityId": "vital-spirit",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "anger-point",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "defiant",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0058",
+    "abilities": [
+      {
+        "abilityId": "intimidate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flash-fire",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "justified",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0059",
+    "abilities": [
+      {
+        "abilityId": "intimidate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flash-fire",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "justified",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0060",
+    "abilities": [
+      {
+        "abilityId": "water-absorb",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "swift-swim",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0061",
+    "abilities": [
+      {
+        "abilityId": "water-absorb",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "swift-swim",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0062",
+    "abilities": [
+      {
+        "abilityId": "water-absorb",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "swift-swim",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0063",
+    "abilities": [
+      {
+        "abilityId": "synchronize",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "magic-guard",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0064",
+    "abilities": [
+      {
+        "abilityId": "synchronize",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "magic-guard",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0065",
+    "abilities": [
+      {
+        "abilityId": "synchronize",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "magic-guard",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0066",
+    "abilities": [
+      {
+        "abilityId": "guts",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "no-guard",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "steadfast",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0067",
+    "abilities": [
+      {
+        "abilityId": "guts",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "no-guard",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "steadfast",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0068",
+    "abilities": [
+      {
+        "abilityId": "guts",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "no-guard",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "steadfast",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0069",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "gluttony",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0070",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "gluttony",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0071",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "gluttony",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0072",
+    "abilities": [
+      {
+        "abilityId": "clear-body",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "liquid-ooze",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rain-dish",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0073",
+    "abilities": [
+      {
+        "abilityId": "clear-body",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "liquid-ooze",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rain-dish",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0074",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sturdy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-veil",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0075",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sturdy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-veil",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0076",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sturdy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sand-veil",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0077",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flash-fire",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flame-body",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0078",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flash-fire",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flame-body",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0079",
+    "abilities": [
+      {
+        "abilityId": "oblivious",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "own-tempo",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "regenerator",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0080",
+    "abilities": [
+      {
+        "abilityId": "oblivious",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "own-tempo",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "regenerator",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0081",
+    "abilities": [
+      {
+        "abilityId": "magnet-pull",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sturdy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "analytic",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0082",
+    "abilities": [
+      {
+        "abilityId": "magnet-pull",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sturdy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "analytic",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0083",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "defiant",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0084",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "early-bird",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tangled-feet",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0085",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "early-bird",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "tangled-feet",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0086",
+    "abilities": [
+      {
+        "abilityId": "thick-fat",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hydration",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "ice-body",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0087",
+    "abilities": [
+      {
+        "abilityId": "thick-fat",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hydration",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "ice-body",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0088",
+    "abilities": [
+      {
+        "abilityId": "stench",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sticky-hold",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "poison-touch",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0089",
+    "abilities": [
+      {
+        "abilityId": "stench",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sticky-hold",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "poison-touch",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0090",
+    "abilities": [
+      {
+        "abilityId": "shell-armor",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "skill-link",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "overcoat",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0091",
+    "abilities": [
+      {
+        "abilityId": "shell-armor",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "skill-link",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "overcoat",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0092",
+    "abilities": [
+      {
+        "abilityId": "levitate",
+        "slot": 1,
+        "isHidden": false
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0093",
+    "abilities": [
+      {
+        "abilityId": "levitate",
+        "slot": 1,
+        "isHidden": false
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0094",
+    "abilities": [
+      {
+        "abilityId": "cursed-body",
+        "slot": 1,
+        "isHidden": false
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0095",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sturdy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "weak-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0096",
+    "abilities": [
+      {
+        "abilityId": "insomnia",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "forewarn",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0097",
+    "abilities": [
+      {
+        "abilityId": "insomnia",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "forewarn",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0098",
+    "abilities": [
+      {
+        "abilityId": "hyper-cutter",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shell-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sheer-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0099",
+    "abilities": [
+      {
+        "abilityId": "hyper-cutter",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shell-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sheer-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0100",
+    "abilities": [
+      {
+        "abilityId": "soundproof",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "static",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "aftermath",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0101",
+    "abilities": [
+      {
+        "abilityId": "soundproof",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "static",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "aftermath",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0102",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "harvest",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0103",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "harvest",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0104",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "lightning-rod",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "battle-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0105",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "lightning-rod",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "battle-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0106",
+    "abilities": [
+      {
+        "abilityId": "limber",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "reckless",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unburden",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0107",
+    "abilities": [
+      {
+        "abilityId": "keen-eye",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "iron-fist",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0108",
+    "abilities": [
+      {
+        "abilityId": "own-tempo",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "oblivious",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "cloud-nine",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0109",
+    "abilities": [
+      {
+        "abilityId": "levitate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "neutralizing-gas",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "stench",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0110",
+    "abilities": [
+      {
+        "abilityId": "levitate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "neutralizing-gas",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "stench",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0111",
+    "abilities": [
+      {
+        "abilityId": "lightning-rod",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rock-head",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "reckless",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0112",
+    "abilities": [
+      {
+        "abilityId": "lightning-rod",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rock-head",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "reckless",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0113",
+    "abilities": [
+      {
+        "abilityId": "natural-cure",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "serene-grace",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "healer",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0114",
+    "abilities": [
+      {
+        "abilityId": "chlorophyll",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "leaf-guard",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "regenerator",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0115",
+    "abilities": [
+      {
+        "abilityId": "early-bird",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "scrappy",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "inner-focus",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0116",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sniper",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0117",
+    "abilities": [
+      {
+        "abilityId": "poison-point",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sniper",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "damp",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0118",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "water-veil",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "lightning-rod",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0119",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "water-veil",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "lightning-rod",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0120",
+    "abilities": [
+      {
+        "abilityId": "illuminate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "natural-cure",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "analytic",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0121",
+    "abilities": [
+      {
+        "abilityId": "illuminate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "natural-cure",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "analytic",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0122",
+    "abilities": [
+      {
+        "abilityId": "soundproof",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "filter",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "technician",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0123",
+    "abilities": [
+      {
+        "abilityId": "swarm",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "technician",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "steadfast",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0124",
+    "abilities": [
+      {
+        "abilityId": "oblivious",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "forewarn",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "dry-skin",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0125",
+    "abilities": [
+      {
+        "abilityId": "static",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "vital-spirit",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0126",
+    "abilities": [
+      {
+        "abilityId": "flame-body",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "vital-spirit",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0127",
+    "abilities": [
+      {
+        "abilityId": "hyper-cutter",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "mold-breaker",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "moxie",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0128",
+    "abilities": [
+      {
+        "abilityId": "intimidate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "anger-point",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "sheer-force",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0129",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "rattled",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0130",
+    "abilities": [
+      {
+        "abilityId": "intimidate",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "moxie",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0131",
+    "abilities": [
+      {
+        "abilityId": "water-absorb",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shell-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hydration",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0132",
+    "abilities": [
+      {
+        "abilityId": "limber",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "imposter",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0133",
+    "abilities": [
+      {
+        "abilityId": "run-away",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "adaptability",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "anticipation",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0134",
+    "abilities": [
+      {
+        "abilityId": "water-absorb",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "hydration",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0135",
+    "abilities": [
+      {
+        "abilityId": "volt-absorb",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "quick-feet",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0136",
+    "abilities": [
+      {
+        "abilityId": "flash-fire",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "guts",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0137",
+    "abilities": [
+      {
+        "abilityId": "trace",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "download",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "analytic",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0138",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shell-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "weak-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0139",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "shell-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "weak-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0140",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "battle-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "weak-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0141",
+    "abilities": [
+      {
+        "abilityId": "swift-swim",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "battle-armor",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "weak-armor",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0142",
+    "abilities": [
+      {
+        "abilityId": "rock-head",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "pressure",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unnerve",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0143",
+    "abilities": [
+      {
+        "abilityId": "immunity",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "thick-fat",
+        "slot": 2,
+        "isHidden": false
+      },
+      {
+        "abilityId": "gluttony",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0144",
+    "abilities": [
+      {
+        "abilityId": "pressure",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "snow-cloak",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0145",
+    "abilities": [
+      {
+        "abilityId": "pressure",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "static",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0146",
+    "abilities": [
+      {
+        "abilityId": "pressure",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "flame-body",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0147",
+    "abilities": [
+      {
+        "abilityId": "shed-skin",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "marvel-scale",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0148",
+    "abilities": [
+      {
+        "abilityId": "shed-skin",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "marvel-scale",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0149",
+    "abilities": [
+      {
+        "abilityId": "inner-focus",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "multiscale",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0150",
+    "abilities": [
+      {
+        "abilityId": "pressure",
+        "slot": 1,
+        "isHidden": false
+      },
+      {
+        "abilityId": "unnerve",
+        "slot": 3,
+        "isHidden": true
+      }
+    ]
+  },
+  {
+    "speciesId": "poke-0151",
+    "abilities": [
+      {
+        "abilityId": "synchronize",
+        "slot": 1,
+        "isHidden": false
+      }
     ]
   }
 ]

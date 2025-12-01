@@ -2,7 +2,25 @@
 
 // ===== 공통 타입 =====
 
-export type ElementType = "normal" | "fire" | "water" | "grass" | "electric";
+export type ElementType =
+    | "normal"
+    | "fire"
+    | "water"
+    | "grass"
+    | "electric"
+    | "ice"
+    | "fighting"
+    | "poison"
+    | "ground"
+    | "flying"
+    | "psychic"
+    | "bug"
+    | "rock"
+    | "ghost"
+    | "dragon"
+    | "dark"
+    | "steel"
+    | "fairy";
 
 /**
  * 포켓몬식 스킬 분류

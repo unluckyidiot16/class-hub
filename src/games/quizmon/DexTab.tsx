@@ -6,7 +6,7 @@ import type {
     AbilityId,
 } from "./types";
 import { supabase } from "../../lib/supabaseClient";
-import { getMonsterIcon, getMonsterSprite } from "./assets";
+import { getMonsterIcon, getMonsterSprite, getMonsterAnimJson } from "./assets";
 import {
     DexEntryDetailPanel,
     type DexSpeciesStats,
@@ -304,6 +304,14 @@ export function DexTab(props: DexTabProps) {
         return speciesMoveMap[selectedSpecies.id] ?? [];
     }, [selectedSpecies, speciesMoveMap]);
 
+    const spriteUrl =
+        selectedSpecies
+            ? getMonsterSprite(selectedSpecies.id) || undefined
+            : undefined;
+    const spriteJsonUrl =
+        selectedSpecies
+            ? getMonsterAnimJson(selectedSpecies.id) || undefined
+            : undefined;
     const handleSelect = (id: string) => {
         setInternalSelectedId(id);
         onSelectSpecies?.(id);
@@ -591,14 +599,15 @@ export function DexTab(props: DexTabProps) {
                 }}
             >
                 {selectedSpecies ? (
-                    <DexEntryDetailPanel
+                        <DexEntryDetailPanel
                         name={selectedSpecies.name ?? "알 수 없음"}
                         code={selectedSpecies.id}
                         elementLabel={selectedElementMeta.label}
                         elementColor={selectedElementMeta.color}
                         spriteUrl={
-                            getMonsterSprite(selectedSpecies.id) || undefined
+                            getMonsterSprite(spriteUrl) || undefined
                         }
+                        spriteJsonUrl={spriteJsonUrl}
                         flavorText={selectedSpecies.description ?? ""}
                         stats={toDexStats(selectedSpecies)}
                         moves={movesForSelected}

@@ -1,5 +1,8 @@
 // src/games/quizmon/DexEntryDetailPanel.tsx
 
+import { SpriteAnimation } from "./SpriteAnimation";
+
+
 export type DexSpeciesStats = {
     hp: number;
     atk: number;
@@ -41,6 +44,8 @@ export type DexEntryDetailProps = {
     elementColor?: string;
     /** 도감 일러스트 / 공식 스프라이트 */
     spriteUrl?: string;
+    /** 도감 스프라이트 시트 JSON (있으면 애니메이션) */
+    spriteJsonUrl?: string;
     /** flavor text / 간단 설명 (선택) */
     flavorText?: string;
 
@@ -62,6 +67,7 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
         elementLabel,
         elementColor = "#22c55e",
         spriteUrl,
+        spriteJsonUrl,
         flavorText,
         stats,
         moves,
@@ -186,17 +192,30 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
             >
                 <div
                     style={{
-                        borderRadius: "0.75rem",
-                        border: "1px solid var(--border-subtle)",
+                        width: 160,
+                        height: 160,
+                        borderRadius: 24,
                         background:
-                            "radial-gradient(circle at 30% 10%, rgba(255,255,255,0.15), transparent), radial-gradient(circle at 80% 90%, rgba(56,189,248,0.2), transparent)",
+                            "radial-gradient(circle at 30% 20%, rgba(148,163,253,0.45), rgba(15,23,42,0.95))",
+                        border: "1px solid rgba(30,64,175,0.7)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         padding: "0.75rem",
                     }}
                 >
-                    {spriteUrl ? (
+                    {spriteUrl && spriteJsonUrl ? (
+                        <SpriteAnimation
+                            jsonUrl={spriteJsonUrl}
+                            imageUrlOverride={spriteUrl}
+                            fps={8}
+                            style={{
+                                width: 144,
+                                height: 144,
+                                imageRendering: "pixelated",
+                            }}
+                        />
+                    ) : spriteUrl ? (
                         <img
                             src={spriteUrl}
                             alt={name}
