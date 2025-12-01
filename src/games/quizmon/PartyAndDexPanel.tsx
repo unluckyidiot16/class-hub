@@ -142,10 +142,12 @@ export type PartyAndDexPanelProps = {
     onPullFreeGacha?: () => void | Promise<void>; // 지금은 사용 안 하지만 타입 유지
     onHealAll?: () => void;
     onSaveParty?: (partyIds: (string | null)[]) => void | Promise<void>;
+
+    onNavigateToDex?: (speciesId: string) => void;
 };
 
 export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
-    const { profile, onHealAll } = props;
+    const { profile, onHealAll, onNavigateToDex } = props;
 
     // 🔹 레벨업 등으로 즉시 반영하기 위한 로컬 override
     const [monsterOverrides, setMonsterOverrides] = useState<
@@ -1057,17 +1059,39 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                         fontWeight: 600,
                                                     }}
                                                 >
-                {selectedAbility.name}
-            </span>
+                                        {selectedAbility.name}
+                                             </span>
                                                 <span
                                                     style={{
                                                         marginLeft: 4,
                                                         opacity: 0.9,
                                                     }}
                                                 >
-                — {selectedAbility.short}
-            </span>
+                                        — {selectedAbility.short}
+                                                </span>
                                             </div>
+                                        )}
+                                        {/* ✅ 도감으로 이동 버튼 */}
+                                        {onNavigateToDex && selected && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    onNavigateToDex(String((selected as any).species_id))
+                                                }
+                                                style={{
+                                                    marginTop: 8,
+                                                    padding: "4px 10px",
+                                                    borderRadius: 999,
+                                                    border: "1px solid rgba(148,163,184,0.7)",
+                                                    background: "rgba(15,23,42,0.6)",
+                                                    color: "#e5e7eb",
+                                                    fontSize: "0.75rem",
+                                                    fontWeight: 500,
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                자세히 보기 (도감에서)
+                                            </button>
                                         )}
                                     </div>
 

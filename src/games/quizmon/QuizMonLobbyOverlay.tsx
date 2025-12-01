@@ -8,6 +8,8 @@ import { ProfileTab } from "./ProfileTab";
 import {InventoryTab} from "./InventoryTab.tsx";
 import { useEffect, useState } from "react";
 import { loadPowerItemCounts } from "./quizmonService";
+import { DexTab } from "./DexTab";
+
 
 
 type MainTabKey = "menu" | "monsters" | "dex" | "inventory" | "profile";
@@ -58,6 +60,9 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onBuyExpDust,
     } = props;
 
+    // ✅ 도감 탭에서 포커스할 종
+    const [dexSelectedSpeciesId, setDexSelectedSpeciesId] =
+        useState<string | null>(null);
 
     // 🔹 우선순위: localProfile(가챠/상점 등으로 갱신된 최신 프로필) → fallback profile
     const effectiveProfile = localProfile ?? profile;
@@ -400,6 +405,11 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             collectionError={collectionError}
                             onHealAll={onHealAll}
                             onSaveParty={onSaveParty}
+                            // ✅ “도감에서 보기” 버튼 눌렀을 때
+                            onNavigateToDex={(speciesId) => {
+                                setDexSelectedSpeciesId(speciesId);
+                                onMenuTabChange("dex");
+                            }}
                         />
                     )}
 
@@ -425,6 +435,23 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 xpDustCount={xpDustCount}
                                 rareCandyCount={rareCandyCount}
                                 onBuyExpDust={handleBuyExpDust}
+                            />
+                        </div>
+                    )}
+
+                    {/* 도감 탭 */}
+                    {menuTab === "dex" && (
+                        <div
+                            style={{
+                                flex: 1,
+                                minHeight: 0,
+                                overflow: "hidden",
+                            }}
+                        >
+                            <DexTab
+                                monsters={monsters}
+                                selectedSpeciesId={dexSelectedSpeciesId}
+                                onSelectSpecies={setDexSelectedSpeciesId}
                             />
                         </div>
                     )}
