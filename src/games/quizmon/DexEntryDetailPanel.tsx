@@ -12,6 +12,7 @@ export type DexSpeciesStats = {
 export type DexMoveInfo = {
     id: string;
     name: string;
+    description : string;
     elementLabel: string; // 예: "불꽃", "물", "풀"
     elementColor?: string; // 배지 색 (선택)
     categoryLabel: string; // 예: "물리", "특수", "보조"
@@ -19,6 +20,7 @@ export type DexMoveInfo = {
     accuracy?: number | null;
     learnMethodLabel: string; // 예: "레벨업", "기술머신", "특수"
     learnAt?: number | null; // 레벨, TM 번호 등
+    learnAtLabel?:string | null;
 };
 
 export type DexAbilityInfo = {

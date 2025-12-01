@@ -15,20 +15,24 @@ import {
 } from "./DexEntryDetailPanel";
 import { getElementLabelAndColor } from "./elementUtils";
 
+type MoveRow = {
+    id: string;
+    name: string;
+    description: string;
+    element: string;
+    category: string;
+    power: number | null;
+    accuracy: number | null;
+};
+
 type SpeciesLevelupMoveRow = {
     species_id: string;
     level: number;
     sort_order: number;
-    move: {
-        id: string;
-        name: string;
-        description: string;
-        element: string;
-        category: string; // 'physical' | 'special' | 'status'
-        power: number | null;
-        accuracy: number | null;
-    }[]; // 👈 Supabase가 배열로 줘서 이렇게 맞춰줌
+    // Supabase join 결과: quizmon_moves 가 배열로 들어옴
+    move: MoveRow[]; // 빈 배열일 수도 있음
 };
+
 
 type DexTabProps = {
     monsters?: QuizmonOwnedMonsterRow[];
@@ -180,8 +184,7 @@ export function DexTab(props: DexTabProps) {
             setMovesLoading(true);
             const { data, error } = await supabase
                 .from("quizmon_species_levelup_moves")
-                .select(
-                    `
+                .select(`
                 species_id,
                 level,
                 sort_order,
@@ -194,8 +197,7 @@ export function DexTab(props: DexTabProps) {
                     power,
                     accuracy
                 )
-            `,
-                )
+            `)
                 .order("species_id", { ascending: true })
                 .order("level", { ascending: true })
                 .order("sort_order", { ascending: true });
@@ -208,8 +210,11 @@ export function DexTab(props: DexTabProps) {
 
             const map: Record<string, DexMoveInfo[]> = {};
 
-            for (const row of (data ?? []) as SpeciesLevelupMoveRow[]) {
-                const mv = row.move && row.move[0]; // 👈 관계상 항상 1개만 올 거라 첫 번째만 사용
+            const rows = (data ?? []) as unknown as SpeciesLevelupMoveRow[];
+
+            for (const row of rows) {
+                // Supabase가 move를 배열로 주기 때문에 첫 원소 사용
+                const mv = row.move && row.move[0];
                 if (!mv) continue;
 
                 const { label: elementLabel } = getElementLabelAndColor(mv.element);
@@ -230,11 +235,12 @@ export function DexTab(props: DexTabProps) {
                     accuracy: mv.accuracy ?? null,
                     learnMethodLabel: "레벨업",
                     learnAtLabel: `Lv.${row.level}`,
-                } as DexMoveInfo;
+                };
 
                 if (!map[row.species_id]) map[row.species_id] = [];
                 map[row.species_id].push(entry);
             }
+
 
             if (!cancelled) {
                 setSpeciesMoveMap(map);
@@ -247,6 +253,7 @@ export function DexTab(props: DexTabProps) {
             cancelled = true;
         };
     }, []);
+
 
     // ✅ 발견한 종 집계
     const discoveredSet = useMemo(() => {
