@@ -280,6 +280,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
     // 상위 던전 상태 (메인 메뉴 / 배틀 / 결산)
     const [viewState, setViewState] = useState<ViewState>("lobby");
 
+    // 🔹 이번 전투가 어떤 모드인지(레이드 / 던전)
+    const [battleMode, setBattleMode] = useState<"raid" | "dungeon">(
+        isClassRaid ? "raid" : "dungeon",
+    );
+
     // 🔹 현재 선택된 던전 (UI용)
     const [selectedDungeonId, setSelectedDungeonId] = useState<string>(
         DUNGEON_CONFIGS[0]?.id ?? "forest-easy-1",
@@ -1369,9 +1374,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             canContinue={canContinue}
                             onContinue={handleContinue}
                             // 🔹 던전: 던전 선택 오버레이 열기
-                            onSelectDungeon={() => setViewState("dungeon")}
+                            onSelectDungeon={() => {
+                                setBattleMode("dungeon");
+                                setViewState("dungeon");
+                            }}                          
                             // 🔹 레이드: 바로 새 배틀 시작 (공유 레이드용)
                             onSelectRaid={() => {
+                                setBattleMode("raid");
                                 handleReset(); // 프로필 파티 기준으로 전투 리셋 + 배틀 진입
                             }}
                             onSelectGacha={() => {
@@ -1550,15 +1559,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            // TODO: selectedDungeon.enemySetId / rewardMultiplier 를
-                                            //       실제 적 생성/보상 계산에 반영 (6-B에서 서비스와 연동)
-                                            console.log(
-                                                "[QuizMonGame] Start dungeon:",
-                                                selectedDungeonId,
-                                            );
-                                            handleReset();          // 새 배틀 상태로 리셋
-                                            setViewState("battle"); // 배틀 화면으로 진입
+                                            console.log("[QuizMonGame] Start dungeon:", selectedDungeonId);
+                                            setBattleMode("dungeon");   // ✅ 던전 모드로 고정
+                                            handleReset();              // 새 배틀 상태로 리셋
+                                            setViewState("battle");     // 배틀 화면으로 진입
                                         }}
+
                                         style={{
                                             padding: "0.35rem 0.9rem",
                                             borderRadius: 999,
@@ -1803,20 +1809,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     {/* 🎉 배틀 결산 오버레이 */}
                     {showResultOverlay && (
                         <QuizMonResultOverlay
-                            // ✅ roomId / gameSessionId / studentId 가 모두 있으면
-                            //    “클래스 레이드 모드”로 간주
-                            variant={isClassRaid ? "raid" : "dungeon"}
+                            // ✅ 실제 전투 모드 기준으로 UI 분기
+                            variant={battleMode === "raid" ? "raid" : "dungeon"}
                             resultMessage={resultMessage}
                             stats={battleStats}
                             accuracyPercent={accuracyPercent}
                             playerMon={playerMon}
                             enemyMon={enemyMon}
                             onBackToMenu={() => {
-                                // 메인 메뉴로 돌아가기
                                 setViewState("lobby");
                             }}
                             onRetry={() => {
-                                // 새 배틀 시작
                                 handleReset();
                             }}
                         />
