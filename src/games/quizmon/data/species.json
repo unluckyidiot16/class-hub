@@ -1,0 +1,8 @@
+[
+  {
+    "speciesId": "poke-0001",
+    "abilities": [
+      { "abilityId": "overgrow", "slot": 1, "isHidden": false }
+    ]
+  }
+]

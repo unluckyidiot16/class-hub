@@ -39,5 +39,33 @@
     "meta": {
       "atkStageChange": -1
     }
+  },
+  {
+    "id": "razor_leaf",
+    "name": "Razor Leaf",
+    "nameKo": "잎날가르기",
+    "element": "grass",
+    "category": "physical",
+    "power": 55,
+    "accuracy": 95,
+    "pp": 25,
+    "priority": 0,
+    "target": "enemy",
+    "meta": {
+      "highCrit": true
+    }
+  },
+  {
+    "id": "seed_bomb",
+    "name": "Seed Bomb",
+    "nameKo": "씨폭탄",
+    "element": "grass",
+    "category": "physical",
+    "power": 80,
+    "accuracy": 100,
+    "pp": 15,
+    "priority": 0,
+    "target": "enemy",
+    "meta": {}
   }
 ]

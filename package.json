@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build && cp docs/index.html docs/404.html",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:quizmon": "node scripts/seedQuizmonFromJson.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.81.1",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.0",
     "@vitejs/plugin-react-swc": "^4.2.2",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "overgrow",
+    "name": "Overgrow",
+    "nameKo": "풀의 힘",
+    "description": "When HP is 1/3 or less, Grass-type moves deal 1.5× damage.",
+    "descriptionKo": "HP가 1/3 이하일 때 풀 타입 기술 위력이 1.5배가 됩니다.",
+    "element": "grass",
+    "meta": {
+      "trigger": "hp_fraction_or_below",
+      "threshold": 0.33,
+      "element": "grass",
+      "multiplier": 1.5
+    }
+  }
+]
