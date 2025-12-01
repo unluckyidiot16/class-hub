@@ -216,13 +216,16 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                             }}
                         />
                     ) : spriteUrl ? (
-                        <img
-                            src={spriteUrl}
-                            alt={name}
+                        <div
                             style={{
-                                maxWidth: "100%",
-                                height: "auto",
+                                width: 144,
+                                height: 144,
+                                backgroundImage: `url(${spriteUrl})`,
+                                backgroundRepeat: "no-repeat",
+                                backgroundPosition: "center",
+                                backgroundSize: "350% 350%", // 숫자 조절해서 프레임 크기 맞추기
                                 imageRendering: "pixelated",
+                                borderRadius: 24,
                             }}
                         />
                     ) : (

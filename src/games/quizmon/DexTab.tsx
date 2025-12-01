@@ -303,15 +303,15 @@ export function DexTab(props: DexTabProps) {
         if (!selectedSpecies) return [];
         return speciesMoveMap[selectedSpecies.id] ?? [];
     }, [selectedSpecies, speciesMoveMap]);
+    
+    const spriteUrl = selectedSpecies
+        ? getMonsterSprite(selectedSpecies.id) ?? undefined
+        : undefined;
 
-    const spriteUrl =
-        selectedSpecies
-            ? getMonsterSprite(selectedSpecies.id) || undefined
-            : undefined;
-    const spriteJsonUrl =
-        selectedSpecies
-            ? getMonsterAnimJson(selectedSpecies.id) || undefined
-            : undefined;
+    const spriteJsonUrl = selectedSpecies
+        ? getMonsterAnimJson(selectedSpecies.id) ?? undefined
+        : undefined;
+
     const handleSelect = (id: string) => {
         setInternalSelectedId(id);
         onSelectSpecies?.(id);
@@ -604,9 +604,7 @@ export function DexTab(props: DexTabProps) {
                         code={selectedSpecies.id}
                         elementLabel={selectedElementMeta.label}
                         elementColor={selectedElementMeta.color}
-                        spriteUrl={
-                            getMonsterSprite(spriteUrl) || undefined
-                        }
+                        spriteUrl={spriteUrl}
                         spriteJsonUrl={spriteJsonUrl}
                         flavorText={selectedSpecies.description ?? ""}
                         stats={toDexStats(selectedSpecies)}
