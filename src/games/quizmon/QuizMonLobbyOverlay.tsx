@@ -143,6 +143,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
             <div
                 style={{
                     width: "min(1040px, 100%)",
+                    height: "min(720px, 90vh)",
                     maxHeight: "90vh",
                     padding: "1.1rem 1.3rem",
                     borderRadius: 24,
