@@ -211,7 +211,7 @@ export function DexTab(props: DexTabProps) {
                 return;
             }
 
-            // ⚠️ 데이터 로직 복구 (DexMoveInfo 타입 불일치 해결)
+            // ⚠️ 데이터 로직 복구
             const map: Record<string, DexMoveInfo[]> = {};
             const rows = (data ?? []) as unknown as SpeciesLevelupMoveRow[];
 
@@ -302,7 +302,6 @@ export function DexTab(props: DexTabProps) {
         return speciesList.find((s) => s.id === internalSelectedId) ?? null;
     }, [speciesList, internalSelectedId]);
 
-    // ⚠️ FIX: null 대신 undefined를 반환하도록 수정 (빌드 에러 해결)
     const spriteUrl = useMemo(() => {
         if (!selectedSpecies) return undefined;
         return getMonsterSprite(selectedSpecies.id) ?? undefined;
@@ -364,7 +363,7 @@ export function DexTab(props: DexTabProps) {
                         gap: "0.5rem",
                         alignItems: "center",
                         flexShrink: 0,
-                        height: "40px",  // 고정 높이
+                        height: "40px",
                     }}
                 >
                     <div style={{ display: "flex", gap: 4 }}>
@@ -379,7 +378,7 @@ export function DexTab(props: DexTabProps) {
                                     key={f.key}
                                     type="button"
                                     onClick={() => setFilterMode(f.key as any)}
-                                    style={{ /* 스타일 그대로 */
+                                    style={{
                                         padding: "4px 8px", borderRadius: 999,
                                         border: active ? "1px solid rgba(129,140,248,0.9)" : "1px solid rgba(55,65,81,0.9)",
                                         fontSize: "0.75rem",
@@ -403,7 +402,7 @@ export function DexTab(props: DexTabProps) {
                                     key={s.key}
                                     type="button"
                                     onClick={() => setSortMode(s.key as any)}
-                                    style={{ /* 스타일 그대로 */
+                                    style={{
                                         padding: "4px 8px", borderRadius: 999,
                                         border: active ? "1px solid rgba(129,140,248,0.9)" : "1px solid rgba(55,65,81,0.9)",
                                         fontSize: "0.75rem",
@@ -420,10 +419,11 @@ export function DexTab(props: DexTabProps) {
                 {/* 리스트 영역 - 스크롤 가능 */}
                 <div
                     ref={scrollContainerRef}
+                    className="custom-scrollbar"
                     style={{
                         flex: 1,
-                        minHeight: 0,   // ⭐️ 중요: Flex 자식의 스크롤을 위해 필수
-                        height: "auto", // calc 제거
+                        minHeight: 0,
+                        height: "auto",
                         borderRadius: 16,
                         border: "1px solid rgba(31,41,55,0.9)",
                         background:
@@ -436,9 +436,8 @@ export function DexTab(props: DexTabProps) {
                         scrollbarWidth: "thin",
                         scrollbarColor: "rgba(129,140,248,0.3) transparent",
                     }}
-                    className="custom-scrollbar"
                 >
-                    {/* 스크롤바 스타일을 위한 글로벌 CSS 추가 필요 */}
+                    {/* 스크롤바 스타일 */}
                     <style>{`
                         .custom-scrollbar::-webkit-scrollbar {
                             width: 8px;
@@ -457,44 +456,25 @@ export function DexTab(props: DexTabProps) {
                     `}</style>
 
                     {loading && (
-                        <div
-                            style={{
-                                padding: "0.75rem",
-                                fontSize: "0.8rem",
-                                color: "#9ca3af",
-                            }}
-                        >
+                        <div style={{ padding: "0.75rem", fontSize: "0.8rem", color: "#9ca3af" }}>
                             도감 불러오는 중...
                         </div>
                     )}
                     {error && (
-                        <div
-                            style={{
-                                padding: "0.75rem",
-                                fontSize: "0.8rem",
-                                color: "#fca5a5",
-                            }}
-                        >
+                        <div style={{ padding: "0.75rem", fontSize: "0.8rem", color: "#fca5a5" }}>
                             {error}
                         </div>
                     )}
 
-                    {/* 리스트 아이템들 */}
                     {!loading && !error && (
-                        <div style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "4px",
-                        }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                             {filteredList.map((s) => {
                                 const discovered = discoveredSet.has(s.id);
                                 const ownedCount = (monsters ?? []).filter(
                                     (m) => (m as any).species_id === s.id,
                                 ).length;
                                 const iconUrl = getMonsterIcon(s.id);
-                                const { label, color } = getElementMeta(
-                                    s.element as any,
-                                );
+                                const { label, color } = getElementMeta(s.element as any);
                                 const active = internalSelectedId === s.id;
 
                                 return (
@@ -511,31 +491,27 @@ export function DexTab(props: DexTabProps) {
                                             cursor: "pointer", transition: "all 0.2s ease",
                                         }}
                                         onMouseEnter={(e) => {
-                                            if (!active) {
-                                                e.currentTarget.style.background = "rgba(30,64,175,0.3)";
-                                            }
+                                            if (!active) e.currentTarget.style.background = "rgba(30,64,175,0.3)";
                                         }}
                                         onMouseLeave={(e) => {
-                                            if (!active) {
-                                                e.currentTarget.style.background = "rgba(15,23,42,0.8)";
-                                            }
+                                            if (!active) e.currentTarget.style.background = "rgba(15,23,42,0.8)";
                                         }}
                                     >
-                                        <div style={{display:"flex", alignItems:"center", gap:8}}>
-                                            <div style={{width:40, height:40, borderRadius:10, background: discovered ? "rgba(15,23,42,0.9)" : "rgba(15,23,42,0.95)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden"}}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                            <div style={{ width: 40, height: 40, borderRadius: 10, background: discovered ? "rgba(15,23,42,0.9)" : "rgba(15,23,42,0.95)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                                                 {iconUrl && discovered ? (
-                                                    <img src={iconUrl} alt={s.name ?? ""} style={{width:40, height:40, imageRendering:"pixelated", filter: discovered ? "none" : "grayscale(1) brightness(0.3)"}} />
-                                                ) : <span style={{fontSize:"0.7rem", color:"#4b5563"}}>??</span>}
+                                                    <img src={iconUrl} alt={s.name ?? ""} style={{ width: 40, height: 40, imageRendering: "pixelated", filter: discovered ? "none" : "grayscale(1) brightness(0.3)" }} />
+                                                ) : <span style={{ fontSize: "0.7rem", color: "#4b5563" }}>??</span>}
                                             </div>
-                                            <div style={{textAlign:"left"}}>
-                                                <div style={{fontSize:"0.8rem", fontWeight:600, color: discovered ? "#e5e7eb" : "#6b7280"}}>{discovered ? s.name : "???"}</div>
-                                                <div style={{marginTop:2, display:"flex", alignItems:"center", gap:6, fontSize:"0.7rem", color:"#9ca3af"}}>
+                                            <div style={{ textAlign: "left" }}>
+                                                <div style={{ fontSize: "0.8rem", fontWeight: 600, color: discovered ? "#e5e7eb" : "#6b7280" }}>{discovered ? s.name : "???"}</div>
+                                                <div style={{ marginTop: 2, display: "flex", alignItems: "center", gap: 6, fontSize: "0.7rem", color: "#9ca3af" }}>
                                                     <span>No.{(s as any).pokedex_no ?? "??"}</span>
-                                                    <span style={{padding:"0 6px", borderRadius:999, backgroundColor:color, color:"#020617", fontWeight:600}}>{label}</span>
+                                                    <span style={{ padding: "0 6px", borderRadius: 999, backgroundColor: color, color: "#020617", fontWeight: 600 }}>{label}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div style={{fontSize:"0.7rem", color:"#9ca3af"}}>보유 {ownedCount}마리</div>
+                                        <div style={{ fontSize: "0.7rem", color: "#9ca3af" }}>보유 {ownedCount}마리</div>
                                     </button>
                                 );
                             })}
@@ -544,13 +520,16 @@ export function DexTab(props: DexTabProps) {
                 </div>
             </div>
 
-            {/* 오른쪽: 상세 패널 */}
+            {/* ✅ 오른쪽: 상세 패널 [수정됨] */}
             <div
+                className="custom-scrollbar" // 1. 스크롤바 디자인 적용
                 style={{
                     flex: 1,
                     minWidth: 0,
                     height: "100%",
-                    overflow: "hidden",
+                    overflowY: "auto",     // 2. overflow: hidden -> auto로 변경 (스크롤 허용)
+                    overflowX: "hidden",   // 가로 스크롤 방지
+                    paddingRight: "2px",   // 스크롤바와 컨텐츠 간격 미세 조정
                 }}
             >
                 {selectedSpecies ? (
@@ -565,7 +544,7 @@ export function DexTab(props: DexTabProps) {
                         stats={toDexStats(selectedSpecies)}
                         moves={movesForSelected}
                         abilities={toDexAbilities(selectedSpecies)}
-                        firstObtainedAt={null} // TODO: 나중에 얻게 되면 연동
+                        firstObtainedAt={null}
                     />
                 ) : (
                     <div
@@ -586,7 +565,7 @@ export function DexTab(props: DexTabProps) {
                     </div>
                 )}
 
-                {/* 필요하면 기술 로딩 표시도 여기 살짝 추가 가능 */}
+                {/* 기술 로딩 표시 */}
                 {movesLoading && (
                     <div
                         style={{
@@ -595,6 +574,10 @@ export function DexTab(props: DexTabProps) {
                             bottom: 24,
                             fontSize: "0.75rem",
                             color: "#9ca3af",
+                            background: "rgba(0,0,0,0.5)",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            pointerEvents: "none"
                         }}
                     >
                         기술 정보 불러오는 중...
