@@ -378,27 +378,16 @@ export function DexTab(props: DexTabProps) {
                                 <button
                                     key={f.key}
                                     type="button"
-                                    onClick={() =>
-                                        setFilterMode(
-                                            f.key as typeof filterMode,
-                                        )
-                                    }
-                                    style={{
-                                        padding: "4px 8px",
-                                        borderRadius: 999,
-                                        border: active
-                                            ? "1px solid rgba(129,140,248,0.9)"
-                                            : "1px solid rgba(55,65,81,0.9)",
+                                    onClick={() => setFilterMode(f.key as any)}
+                                    style={{ /* 스타일 그대로 */
+                                        padding: "4px 8px", borderRadius: 999,
+                                        border: active ? "1px solid rgba(129,140,248,0.9)" : "1px solid rgba(55,65,81,0.9)",
                                         fontSize: "0.75rem",
-                                        background: active
-                                            ? "rgba(37,99,235,0.25)"
-                                            : "rgba(15,23,42,0.8)",
+                                        background: active ? "rgba(37,99,235,0.25)" : "rgba(15,23,42,0.8)",
                                         color: active ? "#e5e7eb" : "#9ca3af",
                                         cursor: "pointer",
                                     }}
-                                >
-                                    {f.label}
-                                </button>
+                                >{f.label}</button>
                             );
                         })}
                     </div>
@@ -413,27 +402,16 @@ export function DexTab(props: DexTabProps) {
                                 <button
                                     key={s.key}
                                     type="button"
-                                    onClick={() =>
-                                        setSortMode(
-                                            s.key as typeof sortMode,
-                                        )
-                                    }
-                                    style={{
-                                        padding: "4px 8px",
-                                        borderRadius: 999,
-                                        border: active
-                                            ? "1px solid rgba(129,140,248,0.9)"
-                                            : "1px solid rgba(55,65,81,0.9)",
+                                    onClick={() => setSortMode(s.key as any)}
+                                    style={{ /* 스타일 그대로 */
+                                        padding: "4px 8px", borderRadius: 999,
+                                        border: active ? "1px solid rgba(129,140,248,0.9)" : "1px solid rgba(55,65,81,0.9)",
                                         fontSize: "0.75rem",
-                                        background: active
-                                            ? "rgba(37,99,235,0.25)"
-                                            : "rgba(15,23,42,0.8)",
+                                        background: active ? "rgba(37,99,235,0.25)" : "rgba(15,23,42,0.8)",
                                         color: active ? "#e5e7eb" : "#9ca3af",
                                         cursor: "pointer",
                                     }}
-                                >
-                                    {s.label}
-                                </button>
+                                >{s.label}</button>
                             );
                         })}
                     </div>
@@ -444,7 +422,8 @@ export function DexTab(props: DexTabProps) {
                     ref={scrollContainerRef}
                     style={{
                         flex: 1,
-                        height: "calc(100% - 50px)",  // 필터바 높이를 뺀 나머지
+                        minHeight: 0,   // ⭐️ 중요: Flex 자식의 스크롤을 위해 필수
+                        height: "auto", // calc 제거
                         borderRadius: 16,
                         border: "1px solid rgba(31,41,55,0.9)",
                         background:
@@ -525,20 +504,11 @@ export function DexTab(props: DexTabProps) {
                                         onClick={() => handleSelect(s.id)}
                                         style={{
                                             width: "100%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                            padding: "6px 8px",
-                                            borderRadius: 12,
-                                            marginBottom: 4,
-                                            background: active
-                                                ? "rgba(30,64,175,0.5)"
-                                                : "rgba(15,23,42,0.8)",
-                                            border: active
-                                                ? "1px solid rgba(129,140,248,0.9)"
-                                                : "1px solid rgba(31,41,55,0.9)",
-                                            cursor: "pointer",
-                                            transition: "all 0.2s ease",
+                                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                                            padding: "6px 8px", borderRadius: 12, marginBottom: 4,
+                                            background: active ? "rgba(30,64,175,0.5)" : "rgba(15,23,42,0.8)",
+                                            border: active ? "1px solid rgba(129,140,248,0.9)" : "1px solid rgba(31,41,55,0.9)",
+                                            cursor: "pointer", transition: "all 0.2s ease",
                                         }}
                                         onMouseEnter={(e) => {
                                             if (!active) {
@@ -551,101 +521,21 @@ export function DexTab(props: DexTabProps) {
                                             }
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 8,
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    width: 40,
-                                                    height: 40,
-                                                    borderRadius: 10,
-                                                    background: discovered
-                                                        ? "rgba(15,23,42,0.9)"
-                                                        : "rgba(15,23,42,0.95)",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    overflow: "hidden",
-                                                }}
-                                            >
+                                        <div style={{display:"flex", alignItems:"center", gap:8}}>
+                                            <div style={{width:40, height:40, borderRadius:10, background: discovered ? "rgba(15,23,42,0.9)" : "rgba(15,23,42,0.95)", display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden"}}>
                                                 {iconUrl && discovered ? (
-                                                    <img
-                                                        src={iconUrl}
-                                                        alt={s.name ?? ""}
-                                                        style={{
-                                                            width: 40,
-                                                            height: 40,
-                                                            imageRendering:
-                                                                "pixelated",
-                                                            filter: discovered
-                                                                ? "none"
-                                                                : "grayscale(1) brightness(0.3)",
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        style={{
-                                                            fontSize: "0.7rem",
-                                                            color: "#4b5563",
-                                                        }}
-                                                    >
-                                                        ??
-                                                    </span>
-                                                )}
+                                                    <img src={iconUrl} alt={s.name ?? ""} style={{width:40, height:40, imageRendering:"pixelated", filter: discovered ? "none" : "grayscale(1) brightness(0.3)"}} />
+                                                ) : <span style={{fontSize:"0.7rem", color:"#4b5563"}}>??</span>}
                                             </div>
-                                            <div style={{ textAlign: "left" }}>
-                                                <div
-                                                    style={{
-                                                        fontSize: "0.8rem",
-                                                        fontWeight: 600,
-                                                        color: discovered
-                                                            ? "#e5e7eb"
-                                                            : "#6b7280",
-                                                    }}
-                                                >
-                                                    {discovered ? s.name : "???"}
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        marginTop: 2,
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        gap: 6,
-                                                        fontSize: "0.7rem",
-                                                        color: "#9ca3af",
-                                                    }}
-                                                >
-                                                    <span>
-                                                        No.{(s as any).pokedex_no ??
-                                                        "??"}
-                                                    </span>
-                                                    <span
-                                                        style={{
-                                                            padding: "0 6px",
-                                                            borderRadius: 999,
-                                                            backgroundColor: color,
-                                                            color: "#020617",
-                                                            fontWeight: 600,
-                                                        }}
-                                                    >
-                                                        {label}
-                                                    </span>
+                                            <div style={{textAlign:"left"}}>
+                                                <div style={{fontSize:"0.8rem", fontWeight:600, color: discovered ? "#e5e7eb" : "#6b7280"}}>{discovered ? s.name : "???"}</div>
+                                                <div style={{marginTop:2, display:"flex", alignItems:"center", gap:6, fontSize:"0.7rem", color:"#9ca3af"}}>
+                                                    <span>No.{(s as any).pokedex_no ?? "??"}</span>
+                                                    <span style={{padding:"0 6px", borderRadius:999, backgroundColor:color, color:"#020617", fontWeight:600}}>{label}</span>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div
-                                            style={{
-                                                fontSize: "0.7rem",
-                                                color: "#9ca3af",
-                                            }}
-                                        >
-                                            보유 {ownedCount}마리
-                                        </div>
+                                        <div style={{fontSize:"0.7rem", color:"#9ca3af"}}>보유 {ownedCount}마리</div>
                                     </button>
                                 );
                             })}
