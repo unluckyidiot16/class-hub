@@ -336,7 +336,7 @@ export function TeacherRoomLivePage() {
 
     const { members: presenceMembers, unfocused: presenceUnfocused } =
         usePresence(roomCodeForPresence, "teacher");
-    
+
 
     // 학생 목록 + 메시지 상태
     const [students, setStudents] = useState<StudentSummary[]>([]);
@@ -625,37 +625,37 @@ export function TeacherRoomLivePage() {
     }
 
     const qddStatsByQuestionId: Record<string, QddQuestionStats> = useMemo(
-                () => {
-                    if (!room) return {};
-        
-                    // 🧩 1) QDD: Eng5_9-033 → quiz_questions.id 로 매핑
-                    if (room.game_key === "qdd") {
-                        if (!qddQuestionPrefix) return {};                         
-                        const out: Record<string, QddQuestionStats> = {};
-                        for (const q of questions) {
-                            const key = getQddKeyForQuestion(q);
-                            if (!key) continue;
-                            const s = qddStats[key];
-                            if (s) {
-                                out[q.id] = s;
-                            }
-                        }
-                        return out;
+        () => {
+            if (!room) return {};
+
+            // 🧩 1) QDD: Eng5_9-033 → quiz_questions.id 로 매핑
+            if (room.game_key === "qdd") {
+                if (!qddQuestionPrefix) return {};
+                const out: Record<string, QddQuestionStats> = {};
+                for (const q of questions) {
+                    const key = getQddKeyForQuestion(q);
+                    if (!key) continue;
+                    const s = qddStats[key];
+                    if (s) {
+                        out[q.id] = s;
                     }
-        
-                    // 🧩 2) QuizMon: payload.questionId 를 quiz_questions.id 로 사용
-                    if (room.game_key === "quizmon") {
-                        const out: Record<string, QddQuestionStats> = {};
-                        for (const q of questions) {
-                            const s = qddStats[q.id];
-                            if (s) {
-                                out[q.id] = s;
-                            }
-                        }
-                        return out;
+                }
+                return out;
+            }
+
+            // 🧩 2) QuizMon: payload.questionId 를 quiz_questions.id 로 사용
+            if (room.game_key === "quizmon") {
+                const out: Record<string, QddQuestionStats> = {};
+                for (const q of questions) {
+                    const s = qddStats[q.id];
+                    if (s) {
+                        out[q.id] = s;
                     }
-                    return {};
-                },
+                }
+                return out;
+            }
+            return {};
+        },
         [room?.game_key, qddQuestionPrefix, qddStats, questions],
     );
 
@@ -1051,11 +1051,24 @@ export function TeacherRoomLivePage() {
 
     // 🔹 레이드 시작
     const handleStartRaid = async () => {
-        if (!room || !room.class_id || !activeGameSessionId) return;
+        // ✅ 조건 불만족 시 명확한 에러 메시지 표시
+        if (!room) {
+            setErrorMsg("방 정보를 불러오지 못했습니다.");
+            return;
+        }
+        if (!room.class_id) {
+            setErrorMsg("이 방은 반(class)에 연결되어 있지 않아 레이드를 열 수 없습니다. 방 설정에서 반을 연결해주세요.");
+            return;
+        }
+        if (!activeGameSessionId) {
+            setErrorMsg("게임 세션이 아직 준비되지 않았습니다. 퀴즈 세션을 먼저 시작해주세요.");
+            return;
+        }
         if (raidSaving) return;
 
         try {
             setRaidSaving(true);
+            setErrorMsg(null);
 
             const speciesId = (raidBossSpeciesId || "").trim() || "0001";
             const rawLevel = Number(raidBossLevel);
@@ -1076,6 +1089,9 @@ export function TeacherRoomLivePage() {
             });
 
             setActiveRaidSession(raid);
+        } catch (err) {
+            console.error("[TeacherRoomLive] handleStartRaid error", err);
+            setErrorMsg("레이드를 시작하는 중 오류가 발생했습니다.");
         } finally {
             setRaidSaving(false);
         }
@@ -1090,11 +1106,15 @@ export function TeacherRoomLivePage() {
 
         try {
             setRaidSaving(true);
+            setErrorMsg(null);
             await closeActiveRaidSession({
                 roomId: room.id,
                 gameSessionId: activeGameSessionId,
             });
             setActiveRaidSession(null);
+        } catch (err) {
+            console.error("[TeacherRoomLive] handleEndRaid error", err);
+            setErrorMsg("레이드를 종료하는 중 오류가 발생했습니다.");
         } finally {
             setRaidSaving(false);
         }
@@ -1502,8 +1522,8 @@ export function TeacherRoomLivePage() {
             );
         }
     };
-    
-    
+
+
 
     // ✅ QR 모달 열기
     const handleOpenQrModal = () => {
@@ -2420,15 +2440,32 @@ export function TeacherRoomLivePage() {
                     {/* 🔹 QuizMon 클래스 레이드 v2 – 레이드 컨트롤 + 공유 보스 HP + 랭킹 */}
                     {room?.game_key === "quizmon" && session && (
                         <>
-                            {/* 레이드 컨트롤 패널 (세션이 game_sessions랑 연결된 경우에만) */}
-                            {activeGameSessionId && (
-                                <div className="card" style={{ marginTop: "1rem" }}>
-                                    <h2>QuizMon 레이드 컨트롤</h2>
-                                    <p className="hint">
-                                        이 세션 동안 진행할 레이드를 시작/종료합니다. 레이드가 열려 있어야
-                                        학생 쪽에서 &quot;레이드&quot; 버튼이 활성화됩니다.
-                                    </p>
+                            {/* 레이드 컨트롤 패널 */}
+                            <div className="card" style={{ marginTop: "1rem" }}>
+                                <h2>QuizMon 레이드 컨트롤</h2>
+                                <p className="hint">
+                                    이 세션 동안 진행할 레이드를 시작/종료합니다. 레이드가 열려 있어야
+                                    학생 쪽에서 &quot;레이드&quot; 버튼이 활성화됩니다.
+                                </p>
 
+                                {/* 게임 세션 준비 상태 표시 */}
+                                {!activeGameSessionId && (
+                                    <div
+                                        style={{
+                                            marginTop: "0.5rem",
+                                            padding: "0.75rem",
+                                            borderRadius: 8,
+                                            background: "#1e293b",
+                                            border: "1px solid #f59e0b",
+                                            fontSize: "0.85rem",
+                                            color: "#fbbf24",
+                                        }}
+                                    >
+                                        ⏳ 게임 세션을 준비하는 중입니다... 잠시 기다려주세요.
+                                    </div>
+                                )}
+
+                                {activeGameSessionId && (
                                     <div
                                         style={{
                                             marginTop: "0.5rem",
@@ -2529,7 +2566,17 @@ export function TeacherRoomLivePage() {
                                                             marginBottom: "0.35rem",
                                                         }}
                                                     >
-                                                        현재 열린 레이드가 없습니다.
+                                                        {!session || session.status !== "running" ? (
+                                                            <span style={{ color: "#f59e0b" }}>
+                                                                퀴즈 세션을 먼저 시작해주세요.
+                                                            </span>
+                                                        ) : !room?.class_id ? (
+                                                            <span style={{ color: "#f59e0b" }}>
+                                                                방에 반(class)이 연결되어 있지 않습니다.
+                                                            </span>
+                                                        ) : (
+                                                            "현재 열린 레이드가 없습니다."
+                                                        )}
                                                     </div>
                                                     <button
                                                         className="btn btn-primary"
@@ -2537,7 +2584,8 @@ export function TeacherRoomLivePage() {
                                                         disabled={
                                                             raidSaving ||
                                                             !session ||
-                                                            session.status !== "running"
+                                                            session.status !== "running" ||
+                                                            !room?.class_id
                                                         }
                                                     >
                                                         레이드 오픈
@@ -2546,8 +2594,8 @@ export function TeacherRoomLivePage() {
                                             )}
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
 
                             {/* 공유 보스 HP 카드 */}
                             <div className="card" style={{ marginTop: "1rem" }}>
@@ -3112,7 +3160,7 @@ export function TeacherRoomLivePage() {
                     />
                 </div>
             )}
-            
+
             {/* 학생 상태 + 개별 메시지 모달 */}
             {showStudentStatusModal && (
                 <div
