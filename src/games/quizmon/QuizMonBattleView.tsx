@@ -195,8 +195,8 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                         <div
                             style={{
                                 marginTop: 6,
-                                    display: "flex",
-                                    justifyContent: "flex-end",
+                                display: "flex",
+                                justifyContent: "flex-end",
                             }}
                         >
                             <button
@@ -205,7 +205,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                 disabled={!canSwitch}
                                 style={{
                                     borderRadius: 6,
-                                        border: "1px solid #1f2937",
+                                    border: "1px solid #1f2937",
                                     padding: "0.25rem 0.6rem",
                                     fontSize: 11,
                                     background: canSwitch
@@ -267,13 +267,13 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
     } = props;
 
     const [showSwitchModal, setShowSwitchModal] = useState(false);
-    
+
     const canSwitch =
         state.phase === "command" &&
         state.player.monsters.some(
             (m, idx) => idx !== state.player.activeIndex && m.hp > 0,
         );
-    
+
     const hasQuestions = questions.length > 0;
     const currentQuestion =
         state.phase === "quiz"
@@ -286,8 +286,8 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             <div
                 style={{
                     position: "absolute",
-                    top: 8,
-                    right: 8,
+                    top: 30,    // 기존 8 -> 30 (상단 여백 확보)
+                    right: 20,  // 기존 8 -> 20 (우측 여백 확보)
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-end",
@@ -344,8 +344,8 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             <div
                 style={{
                     position: "absolute",
-                    left: 16,
-                    bottom: 128,
+                    left: 20,    // 기존 16 -> 20
+                    bottom: 280, // 기존 128 -> 280 (하단 패널 위로 확실히 올림)
                     display: "flex",
                     alignItems: "flex-end",
                     gap: 12,
@@ -462,7 +462,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                                         idx === state.player.activeIndex;
                                     const isDead = mon.hp <= 0;
                                     const disabled = isActive || isDead;
-            
+
                                     return (
                                         <button
                                             key={mon.id ?? idx}
@@ -498,36 +498,36 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                                             >
                                                 {mon.name}
                                             </div>
-                                            <div 
+                                            <div
                                                 style={{
-                                                fontSize: 10,
-                                                color: "#9ca3af",
-                                            }}
+                                                    fontSize: 10,
+                                                    color: "#9ca3af",
+                                                }}
                                             >Lv {mon.level} · HP {mon.hp}/{mon.maxHp}
                                             </div>
                                         </button>
                                     );
                                 })}
                             </div>
-                            
+
                             <div
-                            style={{
-                                        marginTop: 10,
-                                            display: "flex",
-                                            justifyContent: "flex-end",
-                                        }}
+                                style={{
+                                    marginTop: 10,
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                }}
                             >
                                 <button
-                                type="button"
+                                    type="button"
                                     onClick={() => setShowSwitchModal(false)}
                                     style={{
-                                            borderRadius: 6,
-                                                border: "1px solid #374151",
-                                                padding: "0.25rem 0.6rem",
-                                                fontSize: 12,
-                                                background: "#020617",
-                                                color: "#e5e7eb",
-                                            }}
+                                        borderRadius: 6,
+                                        border: "1px solid #374151",
+                                        padding: "0.25rem 0.6rem",
+                                        fontSize: 12,
+                                        background: "#020617",
+                                        color: "#e5e7eb",
+                                    }}
                                 >
                                     취소
                                 </button>
@@ -535,7 +535,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                         </div>
                     </div>
                 )}
-                
+
                 <QuizBottomPanel
                     phase={state.phase}
                     currentQuestion={currentQuestion}
