@@ -64,17 +64,48 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
     // 👉 나머지 던전이 더 있으면 여기 그대로 이어서 복붙
 ];
 
-/** (다음 단계용) 던전 적 세트 정의 타입 */
+// -----------------------------
+//  던전 적 세트 정의
+// -----------------------------
+
 export type EnemySlot = {
-    speciesId: string; // quizmon_species.id
+    /** quizmon_species.id (예: "poke-0001") */
+    speciesId: string;
+    /** 이 던전에서 등장하는 레벨 */
     level: number;
 };
 
-/** (다음 단계에서 채워갈 예정) 던전 ID → 적 파티 목록 */
+/**
+ * ENEMY_SETS
+ *  - key: DUNGEON_CONFIGS.enemySetId
+ *  - value: 해당 던전에 등장하는 적 포켓몬 목록
+ *
+ *  ⚠️ speciesId 는 실제 quizmon_species.id 와 일치해야 함
+ *     (예: poke-0001 = 이상해씨, poke-0004 = 파이리, poke-0007 = 꼬부기)
+ */
 export const ENEMY_SETS: Record<string, EnemySlot[]> = {
-    // 예시:
-    // "forest-set-1": [
-    //   { speciesId: "poke-0001", level: 3 },
-    //   { speciesId: "poke-0010", level: 4 },
-    // ],
+    /** 숲 입구 튜토리얼: 스타터 3종이 낮은 레벨로 등장 */
+    "forest-set-1": [
+        { speciesId: "poke-0001", level: 3 }, // 이상해씨
+        { speciesId: "poke-0004", level: 3 }, // 파이리
+        { speciesId: "poke-0007", level: 3 }, // 꼬부기
+    ],
+
+    /** 숲 깊은 곳: 풀/벌레/비행 타입 섞인 구성 (예시) */
+    "forest-set-2": [
+        { speciesId: "poke-0010", level: 6 }, // 캐터피
+        { speciesId: "poke-0013", level: 7 }, // 뿔충이
+        { speciesId: "poke-0016", level: 8 }, // 구구
+    ],
+
+    /** 연습 타워: 스타터 최종 진화 + 강한 적 (예시) */
+    "tower-set-1": [
+        { speciesId: "poke-0003", level: 12 }, // 이상해꽃
+        { speciesId: "poke-0006", level: 12 }, // 리자몽
+        { speciesId: "poke-0009", level: 12 }, // 거북왕
+    ],
+
+    // 필요하면 여기 계속 추가:
+    // "cave-set-1": [ ... ],
+    // "sea-set-1": [ ... ],
 };

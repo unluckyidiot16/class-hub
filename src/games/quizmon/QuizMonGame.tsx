@@ -22,7 +22,7 @@ import { QuizMonBattleView } from "./QuizMonBattleView";
 import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
 import { useQuizmonContext } from "./QuizmonProvider";
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
-import { DUNGEON_CONFIGS } from "./dungeonEnemySets";
+import { DUNGEON_CONFIGS, ENEMY_SETS } from "./dungeonEnemySets";
 
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
@@ -434,11 +434,28 @@ export function QuizMonGame(props: QuizMonGameProps) {
             }
 
             // 2) 필요한 종 정보 모아서 quizmon_species 조회
+            //    - 플레이어 파티 종
+            //    - (던전 모드일 경우) 해당 던전 ENEMY_SETS에 쓰인 종
+                    
+            let enemySetSpeciesIds: string[] = [];
+            
+            if (battleMode === "dungeon") {
+                const currentDungeon =
+                    DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
+                    null;
+                
+                if (currentDungeon?.enemySetId) {
+                    const slots = ENEMY_SETS[currentDungeon.enemySetId] ?? [];
+                    enemySetSpeciesIds = slots.map((slot) => slot.speciesId);
+                }
+            }
+            
             const speciesIds = Array.from(
                 new Set(
-                    ownedRows
-                        .map((o) => o.species_id)
-                        .filter((id): id is string => !!id),
+                    [
+                        ...ownedRows.map((o) => o.species_id),
+                        ...enemySetSpeciesIds,
+                    ].filter((id): id is string => !!id),
                 ),
             );
 
@@ -535,38 +552,86 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 return;
             }
 
-            // 4) 기존 mock 기반 상태를 가져와서 player 쪽만 교체
-// 4) 기존 mock 기반 상태를 가져와서
-//    player + enemy를 모두 실제 데이터 기반으로 재구성
-
-// 현재 선택된 던전 정보
+            // 4) 기존 mock 기반 상태를 가져와서
+            //    player + enemy를 모두 실제 데이터 기반으로 재구성
+                
+            // 현재 선택된 던전 정보
             const currentDungeon =
                 DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
                 DUNGEON_CONFIGS[0];
+            
+            // 🔹 ENEMY_SETS 기반 적 파티 생성 (던전 모드 전용)
+            let enemyMonsters: Monster[] = [];
+            
+            if (battleMode === "dungeon" && currentDungeon?.enemySetId) {
+                const slots = ENEMY_SETS[currentDungeon.enemySetId] ?? [];
+                
+                enemyMonsters = slots
+                    .map((slot, index): Monster | null => {
+                        const species = speciesMap.get(slot.speciesId);
+                        if (!species) {
+                            console.warn(
+                                "[QuizMonGame] enemy species not found for slot",
+                                slot,
+                            );
+                            return null;
+                        }
+                    
+                        // 던전 적은 "야생 몬스터" 느낌으로 임시 ownedRow 생성
+                        const tempOwned: QuizmonOwnedMonsterRow = {
+                            id: `enemy-${currentDungeon.id}-${index}`,
+                            profile_id: "dungeon-enemy",
+                            species_id: species.id,
+                            level: slot.level,
+                            exp: 0,
+                            party_slot: null,
+                            current_hp: null,
+                            is_fainted: false,
+                            learned_moves: [],
+                            equipped_moves: [],
+                            ability_id: null,
+                            // 🔹 배틀용 더미 값 (DB에 안 들어가고, buildBattleMonsterFromSpecies용으로만 사용)
+                            created_at: new Date().toISOString() as any,
+                            updated_at: new Date().toISOString() as any,
+                        };
 
-// 난이도별 HP 배수 (대략적인 값, 나중에 조정 가능)
-            let hpMultiplier = 1.5;
-            if (currentDungeon?.difficulty === "normal") hpMultiplier = 2.0;
-            if (currentDungeon?.difficulty === "hard") hpMultiplier = 3.0;
-
-// 플레이어 파티를 기준으로 "테스트용 적 파티" 생성
-// - 종/스탯/기술은 그대로 사용
-// - HP/최대 HP만 배수로 늘려서 여러 턴 동안 전투가 유지되게 함
-            const enemyMonsters: Monster[] = partyMonsters.map((mon, index) => {
-                const maxHp = Math.max(
-                    1,
-                    Math.floor(mon.maxHp * hpMultiplier),
-                );
-
-                return {
-                    ...mon,
-                    id: `enemy-${index}-${mon.speciesId ?? mon.id}`,
-                    // 이름은 그대로 두거나, 필요하면 `연습용 ${mon.name}` 등으로 변경 가능
-                    name: mon.name,
-                    hp: maxHp,
-                    maxHp,
-                };
-            });
+                        const base = buildBattleMonsterFromSpecies(
+                            species,
+                            tempOwned,
+                        );
+                    
+                        return {
+                            ...base,
+                            id: tempOwned.id,
+                        };
+                    })
+                    .filter((m): m is Monster => m !== null);
+            }
+            
+            // 🔁 ENEMY_SETS에 유효한 적이 하나도 없으면 기존 거울 복사 방식으로 fallback
+            if (!enemyMonsters.length) {
+                // 난이도별 HP 배수 (대략적인 값, 나중에 조정 가능)
+                let hpMultiplier = 1.5;
+                if (currentDungeon?.difficulty === "normal")
+                    hpMultiplier = 2.0;
+                if (currentDungeon?.difficulty === "hard") hpMultiplier = 3.0;
+                
+                // 플레이어 파티를 기준으로 "테스트용 적 파티" 생성
+                enemyMonsters = partyMonsters.map((mon, index) => {
+                    const maxHp = Math.max(
+                        1,
+                        Math.floor(mon.maxHp * hpMultiplier),
+                    );
+                    
+                    return {
+                        ...mon,
+                        id: `enemy-${index}-${mon.speciesId ?? mon.id}`,
+                        name: mon.name,
+                        hp: maxHp,
+                        maxHp,
+                    };
+                });
+            }
 
             const base = createInitialBattleState();
 
