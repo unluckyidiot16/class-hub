@@ -668,6 +668,19 @@ export function TeacherRoomLivePage() {
         useState<QuizmonRaidSessionRow | null>(null);
     const [raidSaving, setRaidSaving] = useState(false);
 
+    // 🔹 레이드 보스 설정 (교사용 UI)
+    const [raidBossSpeciesId, setRaidBossSpeciesId] = useState<string>("0001");
+    const [raidBossLevel, setRaidBossLevel] = useState<number>(30);
+
+    useEffect(() => {
+        if (activeRaidSession) {
+            setRaidBossSpeciesId(activeRaidSession.boss_species_id);
+            setRaidBossLevel(activeRaidSession.boss_level);
+        }
+        // 레이드가 없을 때는 이전에 입력해둔 값 그대로 둠
+    }, [activeRaidSession]);
+
+
     // origin 한 번만 세팅
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -1044,13 +1057,22 @@ export function TeacherRoomLivePage() {
         try {
             setRaidSaving(true);
 
-            // TODO: MVP에서는 임시로 "0001" (1번 포켓몬) 고정 보스
+            const speciesId = (raidBossSpeciesId || "").trim() || "0001";
+            const rawLevel = Number(raidBossLevel);
+            const safeLevel = Number.isFinite(rawLevel)
+                ? Math.max(1, Math.min(100, rawLevel))
+                : 1;
+
+            // 입력값을 한 번 정리해서 state에도 반영
+            setRaidBossSpeciesId(speciesId);
+            setRaidBossLevel(safeLevel);
+
             const raid = await createRaidSession({
                 roomId: room.id,
                 classId: room.class_id,
                 gameSessionId: activeGameSessionId,
-                bossSpeciesId: "0001",
-                bossLevel: 30,
+                bossSpeciesId: speciesId,
+                bossLevel: safeLevel,
             });
 
             setActiveRaidSession(raid);
@@ -1058,6 +1080,7 @@ export function TeacherRoomLivePage() {
             setRaidSaving(false);
         }
     };
+
 
     // 🔹 레이드 종료
     const handleEndRaid = async () => {
@@ -2394,250 +2417,287 @@ export function TeacherRoomLivePage() {
                             </div>
                         )}
 
-                    {/* 🔹 QuizMon 클래스 레이드 v2 – 공유 보스 HP 카드 */}
-                    {room?.game_key === "quizmon" &&
-                        session &&
-                        raidRanking.length > 0 && (
-                            <>
-                                <div
-                                    className="card"
-                                    style={{ marginTop: "1rem" }}
-                                >
-                                    <h2>클래스 레이드 v2 — 보스 HP</h2>
+                    {/* 🔹 QuizMon 클래스 레이드 v2 – 레이드 컨트롤 + 공유 보스 HP + 랭킹 */}
+                    {room?.game_key === "quizmon" && session && (
+                        <>
+                            {/* 레이드 컨트롤 패널 (세션이 game_sessions랑 연결된 경우에만) */}
+                            {activeGameSessionId && (
+                                <div className="card" style={{ marginTop: "1rem" }}>
+                                    <h2>QuizMon 레이드 컨트롤</h2>
                                     <p className="hint">
-                                        현재 세션 동안 퀴즈몬 정답으로 누적된
-                                        데미지를 모아 공유 보스 HP를 깎습니다.
-                                        (임시 HP = 1000 + 학생 수 × 200)
+                                        이 세션 동안 진행할 레이드를 시작/종료합니다. 레이드가 열려 있어야
+                                        학생 쪽에서 &quot;레이드&quot; 버튼이 활성화됩니다.
                                     </p>
 
                                     <div
                                         style={{
-                                            marginTop: "0.75rem",
-                                            padding: "0.6rem 0.8rem",
-                                            borderRadius: 8,
-                                            border: "1px solid #111827",
-                                            background: "#020617",
+                                            marginTop: "0.5rem",
+                                            display: "flex",
+                                            flexWrap: "wrap",
+                                            gap: "0.75rem",
+                                            justifyContent: "space-between",
+                                            alignItems: "flex-end",
+                                        }}
+                                    >
+                                        {/* 왼쪽: 보스 설정 폼 */}
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: "0.4rem",
+                                                flex: "1 1 220px",
+                                                maxWidth: "340px",
+                                            }}
+                                        >
+                                            <label
+                                                className="form-field"
+                                                style={{ fontSize: "0.85rem" }}
+                                            >
+                                                <span>보스 종 ID</span>
+                                                <input
+                                                    type="text"
+                                                    value={raidBossSpeciesId}
+                                                    onChange={(e) =>
+                                                        setRaidBossSpeciesId(e.target.value)
+                                                    }
+                                                    placeholder="예: 0001"
+                                                    disabled={!!activeRaidSession || raidSaving}
+                                                />
+                                            </label>
+                                            <label
+                                                className="form-field"
+                                                style={{ fontSize: "0.85rem" }}
+                                            >
+                                                <span>보스 레벨</span>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={100}
+                                                    value={raidBossLevel}
+                                                    onChange={(e) =>
+                                                        setRaidBossLevel(
+                                                            Number(e.target.value) || 1,
+                                                        )
+                                                    }
+                                                    disabled={!!activeRaidSession || raidSaving}
+                                                />
+                                            </label>
+                                            <p className="hint" style={{ marginTop: "0.1rem" }}>
+                                                * 종 ID는 나중에 실제 도감 데이터(예: 0001, 0004)와
+                                                연결할 예정입니다.
+                                            </p>
+                                        </div>
+
+                                        {/* 오른쪽: 상태 + 버튼 */}
+                                        <div
+                                            style={{
+                                                flex: "0 0 auto",
+                                                minWidth: "170px",
+                                                textAlign: "right",
+                                            }}
+                                        >
+                                            {activeRaidSession ? (
+                                                <>
+                                                    <div
+                                                        style={{
+                                                            fontSize: "0.85rem",
+                                                            marginBottom: "0.35rem",
+                                                        }}
+                                                    >
+                                                        <div>
+                                                            <strong>상태:</strong> 진행 중
+                                                        </div>
+                                                        <div>
+                                                            <strong>보스:</strong>{" "}
+                                                            {activeRaidSession.boss_species_id}{" "}
+                                                            (Lv.{activeRaidSession.boss_level})
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        className="btn btn-secondary"
+                                                        onClick={handleEndRaid}
+                                                        disabled={raidSaving}
+                                                    >
+                                                        레이드 종료
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div
+                                                        style={{
+                                                            fontSize: "0.85rem",
+                                                            marginBottom: "0.35rem",
+                                                        }}
+                                                    >
+                                                        현재 열린 레이드가 없습니다.
+                                                    </div>
+                                                    <button
+                                                        className="btn btn-primary"
+                                                        onClick={handleStartRaid}
+                                                        disabled={
+                                                            raidSaving ||
+                                                            !session ||
+                                                            session.status !== "running"
+                                                        }
+                                                    >
+                                                        레이드 오픈
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 공유 보스 HP 카드 */}
+                            <div className="card" style={{ marginTop: "1rem" }}>
+                                <h2>클래스 레이드 v2 — 보스 HP</h2>
+                                <p className="hint">
+                                    현재 세션 동안 퀴즈몬 정답으로 누적된 데미지를 모아 공유 보스 HP를
+                                    깎습니다. (임시 HP = 1000 + 학생 수 × 200)
+                                </p>
+
+                                <div
+                                    style={{
+                                        marginTop: "0.75rem",
+                                        padding: "0.6rem 0.8rem",
+                                        borderRadius: 8,
+                                        border: "1px solid #111827",
+                                        background: "#020617",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            fontSize: 13,
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: 600 }}>Boss HP</span>
+                                        <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                        {bossHpRemaining} / {bossMaxHp}
+                    </span>
+                                    </div>
+
+                                    {/* HP 바 */}
+                                    <div
+                                        style={{
+                                            marginTop: 6,
+                                            height: 10,
+                                            borderRadius: 999,
+                                            background: "#111827",
+                                            overflow: "hidden",
                                         }}
                                     >
                                         <div
                                             style={{
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                alignItems: "center",
-                                                fontSize: 13,
+                                                width: `${bossProgress * 100}%`,
+                                                height: "100%",
+                                                background: bossDefeated
+                                                    ? "linear-gradient(90deg,#22c55e,#a3e635)"
+                                                    : "linear-gradient(90deg,#ef4444,#f97316)",
+                                                transition: "width 0.25s ease-out",
                                             }}
-                                        >
-                                            <span
-                                                style={{
-                                                    fontWeight: 600,
-                                                }}
-                                            >
-                                                Boss HP
-                                            </span>
-                                            <span
-                                                style={{
-                                                    fontVariantNumeric:
-                                                        "tabular-nums",
-                                                }}
-                                            >
-                                                {bossHpRemaining} / {bossMaxHp}
-                                            </span>
-                                        </div>
-
-                                        {/* HP 바 */}
-                                        <div
-                                            style={{
-                                                marginTop: 6,
-                                                height: 10,
-                                                borderRadius: 999,
-                                                background: "#111827",
-                                                overflow: "hidden",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    width: `${
-                                                        bossProgress * 100
-                                                    }%`,
-                                                    height: "100%",
-                                                    background: bossDefeated
-                                                        ? "linear-gradient(90deg,#22c55e,#a3e635)"
-                                                        : "linear-gradient(90deg,#ef4444,#f97316)",
-                                                    transition:
-                                                        "width 0.25s ease-out",
-                                                }}
-                                            />
-                                        </div>
-
-                                        {/* 상태 텍스트 */}
-                                        <div
-                                            style={{
-                                                marginTop: 4,
-                                                display: "flex",
-                                                justifyContent: "space-between",
-                                                fontSize: 11,
-                                                color: "#9ca3af",
-                                            }}
-                                        >
-                                            <span>
-                                                누적 데미지:{" "}
-                                                <strong>
-                                                    {totalRaidDamage}
-                                                </strong>
-                                                {" / "}
-                                                필요 데미지:{" "}
-                                                <strong>{bossMaxHp}</strong>
-                                            </span>
-                                            <span>
-                                                참여 학생:{" "}
-                                                <strong>
-                                                    {raidParticipantCount}명
-                                                </strong>
-                                            </span>
-                                        </div>
-
-                                        {/* 레이드 상태 메시지 */}
-                                        <div
-                                            style={{
-                                                marginTop: 6,
-                                                fontSize: 12,
-                                                color: bossDefeated
-                                                    ? "#a3e635"
-                                                    : "#e5e7eb",
-                                                fontWeight: 500,
-                                            }}
-                                        >
-                                            {bossDefeated ? (
-                                                <>✅ 보스가 쓰러졌습니다! (보상 분배 UI는 추후 연동 예정)</>
-                                            ) : (
-                                                <>학생들이 정답을 맞출수록 보스 HP가 줄어듭니다.</>
-                                            )}
-                                        </div>
-
-                                        {/* v2 테스트용 간단 메뉴 버튼 */}
-                                        <div
-                                            style={{
-                                                marginTop: 8,
-                                                display: "flex",
-                                                justifyContent: "flex-end",
-                                                gap: 8,
-                                                fontSize: 12,
-                                            }}
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setRaidStats({})
-                                                }
-                                                style={{
-                                                    padding:
-                                                        "0.3rem 0.7rem",
-                                                    borderRadius: 999,
-                                                    border:
-                                                        "1px solid #4b5563",
-                                                    background: "#020617",
-                                                    color: "#e5e7eb",
-                                                    cursor: "pointer",
-                                                }}
-                                            >
-                                                레이드 초기화
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    window.alert(
-                                                        "보상 분배 메뉴는 v2에서 실제 보상 로직과 함께 연결할 예정입니다.",
-                                                    );
-                                                }}
-                                                style={{
-                                                    padding:
-                                                        "0.3rem 0.7rem",
-                                                    borderRadius: 999,
-                                                    border:
-                                                        "1px solid #b91c1c",
-                                                    background:
-                                                        "linear-gradient(90deg,#b91c1c,#f97316)",
-                                                    color: "#fef2f2",
-                                                    cursor: "pointer",
-                                                    fontWeight: 600,
-                                                }}
-                                            >
-                                                보상 메뉴 (베타)
-                                            </button>
-                                        </div>
+                                        />
                                     </div>
-                                </div>
 
-                                {/* 🔹 QuizMon 레이드 컨트롤 패널 */}
-                                {room?.game_key === "quizmon" && activeGameSessionId && (
-                                    <div className="card" style={{ marginTop: "1rem" }}>
-                                        <h2>QuizMon 레이드 컨트롤</h2>
-                                        <p className="hint">
-                                            이 세션 동안 진행할 레이드를 시작/종료합니다. 레이드가
-                                            열려 있어야 학생 쪽에서 "레이드" 버튼이 활성화됩니다.
-                                        </p>
+                                    {/* 상태 텍스트 */}
+                                    <div
+                                        style={{
+                                            marginTop: 4,
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            fontSize: 11,
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                    <span>
+                        누적 데미지: <strong>{totalRaidDamage}</strong>{" "}
+                        / 필요 데미지: <strong>{bossMaxHp}</strong>
+                    </span>
+                                        <span>
+                        참여 학생: <strong>{raidParticipantCount}명</strong>
+                    </span>
+                                    </div>
 
-                                        {activeRaidSession ? (
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "space-between",
-                                                    marginTop: "0.5rem",
-                                                }}
-                                            >
-                                                <div>
-                                                    <div>
-                                                        <strong>상태:</strong> 진행 중
-                                                    </div>
-                                                    <div>
-                                                        <strong>보스:</strong>{" "}
-                                                        {activeRaidSession.boss_species_id}{" "}
-                                                        (Lv.{activeRaidSession.boss_level})
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    className="btn btn-secondary"
-                                                    onClick={handleEndRaid}
-                                                    disabled={raidSaving}
-                                                >
-                                                    레이드 종료
-                                                </button>
-                                            </div>
+                                    {/* 레이드 상태 메시지 */}
+                                    <div
+                                        style={{
+                                            marginTop: 6,
+                                            fontSize: 12,
+                                            color:
+                                                raidParticipantCount === 0
+                                                    ? "#e5e7eb"
+                                                    : bossDefeated
+                                                        ? "#a3e635"
+                                                        : "#e5e7eb",
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {raidParticipantCount === 0 ? (
+                                            <>아직 레이드에 참여한 학생이 없습니다. 퀴즈 정답이 쌓이면 보스 HP가 줄어듭니다.</>
+                                        ) : bossDefeated ? (
+                                            <>✅ 보스가 쓰러졌습니다! (보상 분배 UI는 추후 연동 예정)</>
                                         ) : (
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "space-between",
-                                                    marginTop: "0.5rem",
-                                                }}
-                                            >
-                                                <span>현재 열린 레이드가 없습니다.</span>
-                                                <button
-                                                    className="btn btn-primary"
-                                                    onClick={handleStartRaid}
-                                                    disabled={raidSaving}
-                                                >
-                                                    레이드 시작
-                                                </button>
-                                            </div>
+                                            <>학생들이 정답을 맞출수록 보스 HP가 줄어듭니다.</>
                                         )}
                                     </div>
-                                )}
 
+                                    {/* v2 테스트용 간단 메뉴 버튼 */}
+                                    <div
+                                        style={{
+                                            marginTop: 8,
+                                            display: "flex",
+                                            justifyContent: "flex-end",
+                                            gap: 8,
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setRaidStats({})}
+                                            style={{
+                                                padding: "0.3rem 0.7rem",
+                                                borderRadius: 999,
+                                                border: "1px solid #4b5563",
+                                                background: "#020617",
+                                                color: "#e5e7eb",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            레이드 초기화
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                window.alert(
+                                                    "보상 분배 메뉴는 v2에서 실제 보상 로직과 함께 연결할 예정입니다.",
+                                                );
+                                            }}
+                                            style={{
+                                                padding: "0.3rem 0.7rem",
+                                                borderRadius: 999,
+                                                border: "1px solid #b91c1c",
+                                                background:
+                                                    "linear-gradient(90deg,#b91c1c,#f97316)",
+                                                color: "#fef2f2",
+                                                cursor: "pointer",
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            보상 메뉴 (베타)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
-                                {/* 🔹 QuizMon 클래스 레이드 v2 – 누적 데미지 랭킹 */}
-                                <div
-                                    className="card"
-                                    style={{ marginTop: "0.75rem" }}
-                                >
-                                    <h2>
-                                        클래스 레이드 — 누적 데미지 랭킹
-                                    </h2>
+                            {/* 누적 데미지 랭킹은 데이터가 있을 때만 */}
+                            {raidRanking.length > 0 && (
+                                <div className="card" style={{ marginTop: "0.75rem" }}>
+                                    <h2>클래스 레이드 — 누적 데미지 랭킹</h2>
                                     <p className="hint">
-                                        현재 세션 동안 퀴즈몬 정답으로
-                                        누적된 데미지 기준 랭킹입니다.
+                                        현재 세션 동안 퀴즈몬 정답으로 누적된 데미지 기준 랭킹입니다.
                                         (정답 1개 ≒ 10 데미지)
                                     </p>
 
@@ -2659,12 +2719,7 @@ export function TeacherRoomLivePage() {
                                             </thead>
                                             <tbody>
                                             {raidRanking.map((r, idx) => (
-                                                <tr
-                                                    key={
-                                                        r.studentKey ??
-                                                        idx
-                                                    }
-                                                >
+                                                <tr key={r.studentKey ?? idx}>
                                                     <td>{idx + 1}</td>
                                                     <td>
                                                         {r.nickname ??
@@ -2672,28 +2727,19 @@ export function TeacherRoomLivePage() {
                                                             "무명 트레이너"}
                                                     </td>
                                                     <td>
-                                                        {
-                                                            r.correctAnswers
-                                                        }{" "}
-                                                        /{" "}
-                                                        {r.totalAnswers}
+                                                        {r.correctAnswers} / {r.totalAnswers}
                                                     </td>
-                                                    <td>
-                                                        {r.accuracy}%
-                                                    </td>
-                                                    <td>
-                                                        {
-                                                            r.totalRaidDamage
-                                                        }
-                                                    </td>
+                                                    <td>{r.accuracy}%</td>
+                                                    <td>{r.totalRaidDamage}</td>
                                                 </tr>
                                             ))}
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                            </>
-                        )}
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
 
