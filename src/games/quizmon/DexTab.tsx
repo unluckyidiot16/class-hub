@@ -1,5 +1,5 @@
 // src/games/quizmon/DexTab.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import type {
     QuizmonOwnedMonsterRow,
     QuizmonSpeciesRow,
@@ -138,6 +138,9 @@ export function DexTab(props: DexTabProps) {
     >({});
     const [movesLoading, setMovesLoading] = useState(false);
 
+    // 스크롤 컨테이너 ref
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     // 부모에서 넘어온 선택값 동기화
     useEffect(() => {
         setInternalSelectedId(selectedSpeciesId);
@@ -208,14 +211,17 @@ export function DexTab(props: DexTabProps) {
                 return;
             }
 
+            // ⚠️ 데이터 로직 복구 (DexMoveInfo 타입 불일치 해결)
             const map: Record<string, DexMoveInfo[]> = {};
             const rows = (data ?? []) as unknown as SpeciesLevelupMoveRow[];
 
             for (const row of rows) {
-                const mv = row.move; // 🔧 더 이상 [0] 안 씀
+                const mv = row.move;
                 if (!mv) continue;
 
                 const { label: elementLabel } = getElementLabelAndColor(mv.element);
+
+                // category 변환
                 const categoryLabel =
                     mv.category === "physical"
                         ? "물리"
@@ -225,20 +231,19 @@ export function DexTab(props: DexTabProps) {
 
                 const entry: DexMoveInfo = {
                     id: mv.id,
-                    name: mv.name,              // (원하면 nameKo 우선 사용해도 됨)
+                    name: mv.name,
                     description: mv.description,
                     elementLabel,
                     categoryLabel,
                     power: mv.power ?? null,
                     accuracy: mv.accuracy ?? null,
                     learnMethodLabel: "레벨업",
-                    learnAt: row.level,         // ⬅️ DexEntryDetailPanel에서 쓰는 필드
+                    learnAt: row.level,
                 };
 
                 if (!map[row.species_id]) map[row.species_id] = [];
                 map[row.species_id].push(entry);
             }
-
 
             if (!cancelled) {
                 setSpeciesMoveMap(map);
@@ -252,66 +257,76 @@ export function DexTab(props: DexTabProps) {
         };
     }, []);
 
-
-    // ✅ 발견한 종 집계
+    // ✅ 보유 포켓몬의 종류 ID들 추출
     const discoveredSet = useMemo(() => {
-        const set = new Set<string>();
+        const ids = new Set<string>();
         (monsters ?? []).forEach((m) => {
-            const id = (m as any).species_id as string | null;
-            if (id) set.add(id);
+            const sid = (m as any).species_id;
+            if (sid) ids.add(sid);
         });
-        return set;
+        return ids;
     }, [monsters]);
 
-    // ✅ 정렬/필터 적용된 리스트
+    // ✅ 필터/정렬 적용한 리스트
     const filteredList = useMemo(() => {
-        let list = [...speciesList];
+        let filtered = [...speciesList];
 
+        // 필터
         if (filterMode === "seen") {
-            list = list.filter((s) => discoveredSet.has(s.id));
+            filtered = filtered.filter((s) => discoveredSet.has(s.id));
         } else if (filterMode === "unseen") {
-            list = list.filter((s) => !discoveredSet.has(s.id));
+            filtered = filtered.filter((s) => !discoveredSet.has(s.id));
         }
 
-        if (sortMode === "name") {
-            list.sort((a, b) =>
-                (a.name ?? "").localeCompare(b.name ?? "", "ko"),
-            );
+        // 정렬
+        if (sortMode === "pokedex") {
+            filtered.sort((a, b) => {
+                const noA = (a as any).pokedex_no ?? 999;
+                const noB = (b as any).pokedex_no ?? 999;
+                return noA - noB;
+            });
         } else {
-            // pokedex_no 기준 정렬 (없으면 id)
-            list.sort((a, b) => {
-                const aNo = (a as any).pokedex_no ?? 9999;
-                const bNo = (b as any).pokedex_no ?? 9999;
-                if (aNo !== bNo) return aNo - bNo;
-                return a.id.localeCompare(b.id);
+            filtered.sort((a, b) => {
+                const nA = a.name ?? "";
+                const nB = b.name ?? "";
+                return nA.localeCompare(nB);
             });
         }
 
-        return list;
+        return filtered;
     }, [speciesList, filterMode, sortMode, discoveredSet]);
 
-    const selectedSpecies =
-        filteredList.find((s) => s.id === internalSelectedId) ??
-        speciesList.find((s) => s.id === internalSelectedId) ??
-        null;
+    // ✅ 선택된 종
+    const selectedSpecies = useMemo(() => {
+        if (!internalSelectedId) return null;
+        return speciesList.find((s) => s.id === internalSelectedId) ?? null;
+    }, [speciesList, internalSelectedId]);
 
-    const selectedElementMeta = selectedSpecies
-        ? getElementMeta(selectedSpecies.element as any)
-        : { label: "", color: "#e5e7eb" };
+    // ⚠️ FIX: null 대신 undefined를 반환하도록 수정 (빌드 에러 해결)
+    const spriteUrl = useMemo(() => {
+        if (!selectedSpecies) return undefined;
+        return getMonsterSprite(selectedSpecies.id) ?? undefined;
+    }, [selectedSpecies]);
 
-    const movesForSelected: DexMoveInfo[] = useMemo(() => {
+    const spriteJsonUrl = useMemo(() => {
+        if (!selectedSpecies) return undefined;
+        return getMonsterAnimJson(selectedSpecies.id) ?? undefined;
+    }, [selectedSpecies]);
+
+    const selectedElementMeta = useMemo(() => {
+        if (!selectedSpecies) {
+            return { label: "노말", color: "#e5e7eb" };
+        }
+        return getElementMeta((selectedSpecies as any).element);
+    }, [selectedSpecies]);
+
+    // ✅ 선택된 종의 기술 목록
+    const movesForSelected = useMemo(() => {
         if (!selectedSpecies) return [];
         return speciesMoveMap[selectedSpecies.id] ?? [];
     }, [selectedSpecies, speciesMoveMap]);
 
-    const spriteUrl = selectedSpecies
-        ? getMonsterSprite(selectedSpecies.id, "front") ?? undefined
-        : undefined;
-
-    const spriteJsonUrl = selectedSpecies
-        ? getMonsterAnimJson(selectedSpecies.id, "front") ?? undefined
-        : undefined;
-
+    // 클릭 핸들러
     const handleSelect = (id: string) => {
         setInternalSelectedId(id);
         onSelectSpecies?.(id);
@@ -323,30 +338,33 @@ export function DexTab(props: DexTabProps) {
                 display: "flex",
                 flexDirection: "row",
                 gap: "1rem",
+                width: "100%",
                 height: "100%",
-                minHeight: 0,
-                overflow: "hidden",
+                position: "relative",
             }}
         >
             {/* 왼쪽: 필터 + 도감 리스트 */}
             <div
                 style={{
                     width: "40%",
-                    height: "100%",          // 🔹 컬럼 자체를 도감 컨테이너 높이에 맞춤
+                    minWidth: 300,
+                    maxWidth: 400,
+                    height: "100%",
                     display: "flex",
                     flexDirection: "column",
                     gap: "0.5rem",
-                    minWidth: 0,
-                    overflow: "hidden",      // 🔹 부모 컨테이너에서 overflow 제어
+                    position: "relative",
                 }}
             >
-                {/* 필터/정렬 바 */}
+                {/* 필터/정렬 바 - 고정 높이 */}
                 <div
                     style={{
                         display: "flex",
                         justifyContent: "space-between",
                         gap: "0.5rem",
                         alignItems: "center",
+                        flexShrink: 0,
+                        height: "40px",  // 고정 높이
                     }}
                 >
                     <div style={{ display: "flex", gap: 4 }}>
@@ -421,11 +439,12 @@ export function DexTab(props: DexTabProps) {
                     </div>
                 </div>
 
-                {/* 리스트 영역 */}
+                {/* 리스트 영역 - 스크롤 가능 */}
                 <div
+                    ref={scrollContainerRef}
                     style={{
                         flex: 1,
-                        minHeight: 0,
+                        height: "calc(100% - 50px)",  // 필터바 높이를 뺀 나머지
                         borderRadius: 16,
                         border: "1px solid rgba(31,41,55,0.9)",
                         background:
@@ -434,8 +453,30 @@ export function DexTab(props: DexTabProps) {
                         overflowY: "auto",
                         overflowX: "hidden",
                         position: "relative",
+                        // 스크롤바 커스텀 스타일
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "rgba(129,140,248,0.3) transparent",
                     }}
+                    className="custom-scrollbar"
                 >
+                    {/* 스크롤바 스타일을 위한 글로벌 CSS 추가 필요 */}
+                    <style>{`
+                        .custom-scrollbar::-webkit-scrollbar {
+                            width: 8px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-track {
+                            background: rgba(15,23,42,0.3);
+                            border-radius: 4px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-thumb {
+                            background: rgba(129,140,248,0.5);
+                            border-radius: 4px;
+                        }
+                        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                            background: rgba(129,140,248,0.7);
+                        }
+                    `}</style>
+
                     {loading && (
                         <div
                             style={{
@@ -459,139 +500,157 @@ export function DexTab(props: DexTabProps) {
                         </div>
                     )}
 
-                    {!loading &&
-                        !error &&
-                        filteredList.map((s) => {
-                            const discovered = discoveredSet.has(s.id);
-                            const ownedCount = (monsters ?? []).filter(
-                                (m) => (m as any).species_id === s.id,
-                            ).length;
-                            const iconUrl = getMonsterIcon(s.id);
-                            const { label, color } = getElementMeta(
-                                s.element as any,
-                            );
-                            const active = internalSelectedId === s.id;
+                    {/* 리스트 아이템들 */}
+                    {!loading && !error && (
+                        <div style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "4px",
+                        }}>
+                            {filteredList.map((s) => {
+                                const discovered = discoveredSet.has(s.id);
+                                const ownedCount = (monsters ?? []).filter(
+                                    (m) => (m as any).species_id === s.id,
+                                ).length;
+                                const iconUrl = getMonsterIcon(s.id);
+                                const { label, color } = getElementMeta(
+                                    s.element as any,
+                                );
+                                const active = internalSelectedId === s.id;
 
-                            return (
-                                <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => handleSelect(s.id)}
-                                    style={{
-                                        width: "100%",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        padding: "6px 8px",
-                                        borderRadius: 12,
-                                        marginBottom: 4,
-                                        background: active
-                                            ? "rgba(30,64,175,0.5)"
-                                            : "rgba(15,23,42,0.8)",
-                                        border: active
-                                            ? "1px solid rgba(129,140,248,0.9)"
-                                            : "1px solid rgba(31,41,55,0.9)",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <div
+                                return (
+                                    <button
+                                        key={s.id}
+                                        type="button"
+                                        onClick={() => handleSelect(s.id)}
                                         style={{
+                                            width: "100%",
                                             display: "flex",
                                             alignItems: "center",
-                                            gap: 8,
+                                            justifyContent: "space-between",
+                                            padding: "6px 8px",
+                                            borderRadius: 12,
+                                            marginBottom: 4,
+                                            background: active
+                                                ? "rgba(30,64,175,0.5)"
+                                                : "rgba(15,23,42,0.8)",
+                                            border: active
+                                                ? "1px solid rgba(129,140,248,0.9)"
+                                                : "1px solid rgba(31,41,55,0.9)",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            if (!active) {
+                                                e.currentTarget.style.background = "rgba(30,64,175,0.3)";
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!active) {
+                                                e.currentTarget.style.background = "rgba(15,23,42,0.8)";
+                                            }
                                         }}
                                     >
                                         <div
                                             style={{
-                                                width: 40,
-                                                height: 40,
-                                                borderRadius: 10,
-                                                background: discovered
-                                                    ? "rgba(15,23,42,0.9)"
-                                                    : "rgba(15,23,42,0.95)",
                                                 display: "flex",
                                                 alignItems: "center",
-                                                justifyContent: "center",
-                                                overflow: "hidden",
+                                                gap: 8,
                                             }}
                                         >
-                                            {iconUrl && discovered ? (
-                                                <img
-                                                    src={iconUrl}
-                                                    alt={s.name ?? ""}
-                                                    style={{
-                                                        width: 40,
-                                                        height: 40,
-                                                        imageRendering:
-                                                            "pixelated",
-                                                        filter: discovered
-                                                            ? "none"
-                                                            : "grayscale(1) brightness(0.3)",
-                                                    }}
-                                                />
-                                            ) : (
-                                                <span
-                                                    style={{
-                                                        fontSize: "0.7rem",
-                                                        color: "#4b5563",
-                                                    }}
-                                                >
-                                                    ??
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div style={{ textAlign: "left" }}>
                                             <div
                                                 style={{
-                                                    fontSize: "0.8rem",
-                                                    fontWeight: 600,
-                                                    color: discovered
-                                                        ? "#e5e7eb"
-                                                        : "#6b7280",
-                                                }}
-                                            >
-                                                {discovered ? s.name : "???"}
-                                            </div>
-                                            <div
-                                                style={{
-                                                    marginTop: 2,
+                                                    width: 40,
+                                                    height: 40,
+                                                    borderRadius: 10,
+                                                    background: discovered
+                                                        ? "rgba(15,23,42,0.9)"
+                                                        : "rgba(15,23,42,0.95)",
                                                     display: "flex",
                                                     alignItems: "center",
-                                                    gap: 6,
-                                                    fontSize: "0.7rem",
-                                                    color: "#9ca3af",
+                                                    justifyContent: "center",
+                                                    overflow: "hidden",
                                                 }}
                                             >
-                                                <span>
-                                                    No.{(s as any).pokedex_no ??
-                                                    "??"}
-                                                </span>
-                                                <span
+                                                {iconUrl && discovered ? (
+                                                    <img
+                                                        src={iconUrl}
+                                                        alt={s.name ?? ""}
+                                                        style={{
+                                                            width: 40,
+                                                            height: 40,
+                                                            imageRendering:
+                                                                "pixelated",
+                                                            filter: discovered
+                                                                ? "none"
+                                                                : "grayscale(1) brightness(0.3)",
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <span
+                                                        style={{
+                                                            fontSize: "0.7rem",
+                                                            color: "#4b5563",
+                                                        }}
+                                                    >
+                                                        ??
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div style={{ textAlign: "left" }}>
+                                                <div
                                                     style={{
-                                                        padding: "0 6px",
-                                                        borderRadius: 999,
-                                                        backgroundColor: color,
-                                                        color: "#020617",
+                                                        fontSize: "0.8rem",
                                                         fontWeight: 600,
+                                                        color: discovered
+                                                            ? "#e5e7eb"
+                                                            : "#6b7280",
                                                     }}
                                                 >
-                                                    {label}
-                                                </span>
+                                                    {discovered ? s.name : "???"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        marginTop: 2,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: 6,
+                                                        fontSize: "0.7rem",
+                                                        color: "#9ca3af",
+                                                    }}
+                                                >
+                                                    <span>
+                                                        No.{(s as any).pokedex_no ??
+                                                        "??"}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            padding: "0 6px",
+                                                            borderRadius: 999,
+                                                            backgroundColor: color,
+                                                            color: "#020617",
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div
-                                        style={{
-                                            fontSize: "0.7rem",
-                                            color: "#9ca3af",
-                                        }}
-                                    >
-                                        보유 {ownedCount}마리
-                                    </div>
-                                </button>
-                            );
-                        })}
+                                        <div
+                                            style={{
+                                                fontSize: "0.7rem",
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            보유 {ownedCount}마리
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -600,7 +659,8 @@ export function DexTab(props: DexTabProps) {
                 style={{
                     flex: 1,
                     minWidth: 0,
-                    minHeight: 0,
+                    height: "100%",
+                    overflow: "hidden",
                 }}
             >
                 {selectedSpecies ? (
