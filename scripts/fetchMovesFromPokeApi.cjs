@@ -21,6 +21,13 @@ function extractName(names, lang) {
     return entry ? entry.name : null;
 }
 
+function extractEffect(effectEntries, lang) {
+    if (!Array.isArray(effectEntries)) return null;
+    const entry = effectEntries.find((e) => e.language.name === lang);
+    if (!entry) return null;
+    return entry.short_effect || entry.effect || null;
+}
+
 function mapTarget(targetName) {
     if (!targetName) return "enemy";
 
@@ -57,6 +64,11 @@ function buildMove(data) {
         extractName(data.names, "ja-Hrkt") ||
         nameEn;
 
+    const descEn = extractEffect(data.effect_entries, "en");
+    const descKo =
+        extractEffect(data.effect_entries, "ko") ||
+        descEn;
+
     return {
         id: data.name, // "tackle"
         name: nameEn,  // "Tackle"
@@ -68,6 +80,8 @@ function buildMove(data) {
         pp: data.pp,
         priority: data.priority,
         target: mapTarget(data.target && data.target.name),
+        description: descEn || "",
+        descriptionKo: descKo || "",
         meta: buildMeta(data),
     };
 }

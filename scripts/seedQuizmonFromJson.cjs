@@ -434,6 +434,7 @@ async function seedSpeciesFromJson() {
             id: sp.id,
             name: sp.name,
             element: sp.element,
+            element2: sp.element2 ?? null,
             rarity: sp.rarity ?? 1,
 
             base_hp: stats.hp ?? 10,

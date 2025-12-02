@@ -25,6 +25,11 @@ function getPrimaryType(types) {
     return (types.find((t) => t.slot === 1) ?? types[0]).type.name;
 }
 
+function getSecondaryType(types) {
+    const second = types.find((t) => t.slot === 2);
+    return second ? second.type.name : null;
+}
+
 function getStat(stats, name) {
     return stats.find((s) => s.stat.name === name)?.base_stat ?? 0;
 }
@@ -168,6 +173,7 @@ async function fetchAllSpecies() {
             name: pickLocalizedName(species.names, "ko"),
             nameEn: pickLocalizedName(species.names, "en"),
             element: getPrimaryType(pokemon.types),
+            element2: getSecondaryType(pokemon.types),
             rarity: 1, // 기본값, 나중에 테이블로 조정
             baseStats,
             heightDm: pokemon.height,
