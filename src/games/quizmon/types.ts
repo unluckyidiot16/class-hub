@@ -229,6 +229,8 @@ export type BattleState = {
     turn: number;
     pendingPlayerMove: PendingMove | null;
     pendingEnemyMove: PendingMove | null;
+    /** 퀴즈를 풀고 나서 교체할 대상 인덱스 (없으면 null) */
+    pendingPlayerSwitchIndex: number | null;
     currentQuestion: QuizQuestionLite | null;
     questionStartedAt: number | null;
     lastQuizResult: QuizAnswerResult | null;

@@ -184,6 +184,7 @@ export function useQuizmonBattle(
         setState((prev) => ({
             ...prev,
             pendingPlayerMove: { side: "player", move },
+            pendingPlayerSwitchIndex: null,
             currentQuestion: question,
             questionStartedAt: now,
             lastQuizResult: null,
@@ -192,32 +193,45 @@ export function useQuizmonBattle(
         }));
     };
     const handleSwitch = (targetIndex: number) => {
-        // v1: 커맨드 단계에서만, 살아있는 다른 포켓몬으로만 교체 허용
-        setState((prev) => {
-            if (prev.phase === "finished") return prev;
-            if (prev.phase !== "command") return prev;
+        // v2: 커맨드 단계에서만, 살아있는 다른 포켓몬으로만 교체 예약
+        if (state.phase === "finished") return;
+        if (state.phase !== "command") return;
 
-            const nextMon = prev.player.monsters[targetIndex];
-            if (!nextMon) return prev;
-            if (targetIndex === prev.player.activeIndex) return prev;
-            if (nextMon.hp <= 0) return prev;
+        const targetMon = state.player.monsters[targetIndex];
+        if (!targetMon) return;
+        if (targetIndex === state.player.activeIndex) return;
+        if (targetMon.hp <= 0) return;
 
-            let next: BattleState = {
-                ...prev,
-                player: {
-                    ...prev.player,
-                    activeIndex: targetIndex,
-                },
-            };
-
-            next = pushLog(
-                next,
-                `[시스템] ${nextMon.name}(으)로 교체했습니다.`,
+        if (!questions.length) {
+            setState((prev) =>
+                pushLog(prev, "[시스템] 이 퀴즈팩에는 문제가 없습니다."),
             );
+            return;
+        }
 
-            return next;
-        });
+        const question = getNextQuestion();
+        if (!question) {
+            setState((prev) =>
+                pushLog(prev, "[시스템] 문제를 불러오는 중 오류가 발생했습니다."),
+            );
+            return;
+        }
+
+        const now = Date.now();
+
+        setState((prev) => ({
+            ...prev,
+            // 공격은 예약하지 않고, 교체 대상 인덱스만 기억
+            pendingPlayerMove: null,
+            pendingEnemyMove: null,
+            pendingPlayerSwitchIndex: targetIndex,
+            currentQuestion: question,
+            questionStartedAt: now,
+            lastQuizResult: null,
+            phase: "quiz",
+        }));
     };
+
 
     const handleAnswer = (optionIndex: number) => {
         if (state.phase !== "quiz" || !state.currentQuestion) return;
@@ -275,7 +289,9 @@ export function useQuizmonBattle(
 
         // 한 번에 player → enemy 순으로만 처리 (샌드박스 단순화)
         setState((prev) => {
-            if (!prev.pendingPlayerMove) {
+            const hasPendingSwitch = prev.pendingPlayerSwitchIndex != null;
+            const hasPendingMove = !!prev.pendingPlayerMove;
+            if (!hasPendingMove && !hasPendingSwitch) {
                 return {
                     ...prev,
                     lastQuizResult: quizResult,
@@ -287,31 +303,257 @@ export function useQuizmonBattle(
 
             let next: BattleState = { ...prev, lastQuizResult: quizResult };
 
-            // 최신 몬스터 상태는 prev에서 다시 뽑자 (클로저 오염 방지)
+            // 🔹 1) 교체 액션 우선 처리
+            if (hasPendingSwitch) {
+                const switchIndex = prev.pendingPlayerSwitchIndex!;
+                const targetMonBeforeCheck = prev.player.monsters[switchIndex];
+
+                // 타겟이 없거나 이미 쓰러져 있으면 교체 취소
+                if (!targetMonBeforeCheck || targetMonBeforeCheck.hp <= 0) {
+                    next = pushLog(
+                        next,
+                        "[시스템] 교체 대상 포켓몬이 유효하지 않아 교체에 실패했습니다.",
+                    );
+
+                    return {
+                        ...next,
+                        pendingPlayerMove: null,
+                        pendingEnemyMove: null,
+                        pendingPlayerSwitchIndex: null,
+                        currentQuestion: null,
+                        questionStartedAt: null,
+                        phase: "command",
+                    };
+                }
+
+                // 1-1) 우선 교체부터 반영
+                next = {
+                    ...next,
+                    player: {
+                        ...next.player,
+                        activeIndex: switchIndex,
+                    },
+                };
+
+                const switchedMon =
+                    next.player.monsters[next.player.activeIndex];
+
+                // ✅ 정답인 경우: 데미지 없이 안전하게 교체만 하고 턴 종료
+                if (quizResult.correct) {
+                    next = pushLog(
+                        next,
+                        `[시스템] 문제를 맞추고 ${switchedMon.name}(으)로 안전하게 교체했습니다.`,
+                    );
+
+                    return {
+                        ...next,
+                        pendingPlayerMove: null,
+                        pendingEnemyMove: null,
+                        pendingPlayerSwitchIndex: null,
+                        currentQuestion: null,
+                        questionStartedAt: null,
+                        phase: "command",
+                    };
+                }
+
+                // ❌ 오답인 경우: 교체는 되지만 적의 무료 공격 1회 허용
+                next = pushLog(
+                    next,
+                    `[시스템] 문제를 틀려 교체 도중 공격을 받았습니다!`,
+                );
+
+                const enemyActive = prev.enemy.monsters[prev.enemy.activeIndex];
+
+                if (enemyActive.hp > 0 && prev.pendingEnemyMove) {
+                    const defenderBefore =
+                        next.player.monsters[next.player.activeIndex];
+
+                    const enemyQuizMod = 1.0;
+                    const enemyHitChance = calcHitChance(
+                        defenderBefore, // 새로 나온 포켓몬을 수비측으로
+                        prev.pendingEnemyMove.move,
+                        enemyQuizMod,
+                    );
+
+                    let enemyLog = `[적] ${prev.pendingEnemyMove.move.name}으로 교체한 ${defenderBefore.name}(을)를 노렸습니다! `;
+                    if (rollHit(enemyHitChance)) {
+                        const baseDmg = calcDamage(
+                            enemyActive,
+                            defenderBefore,
+                            prev.pendingEnemyMove.move,
+                        );
+                        const dmg = applyAbilityDamageModifier(
+                            enemyActive,
+                            defenderBefore,
+                            prev.pendingEnemyMove.move,
+                            baseDmg,
+                        );
+
+                        const damaged = applyDamageToMonster(
+                            defenderBefore,
+                            dmg,
+                        );
+                        const newPlayerMons = [...next.player.monsters];
+                        newPlayerMons[next.player.activeIndex] = damaged;
+
+                        next = {
+                            ...next,
+                            player: {
+                                ...next.player,
+                                monsters: newPlayerMons,
+                            },
+                        };
+
+                        enemyLog += `${dmg} 데미지! (HP ${defenderBefore.hp} → ${damaged.hp})`;
+                    } else {
+                        enemyLog += "하지만 빗나갔다!";
+                    }
+
+                    next = pushLog(next, enemyLog);
+                } else {
+                    // 적이 이미 쓰러졌거나 기술이 없으면 추가 피해 없음
+                    next = pushLog(
+                        next,
+                        "[시스템] 상대 포켓몬이 공격 준비가 되어 있지 않아 추가 피해는 없었습니다.",
+                    );
+                }
+
+                // 🧹 교체 후에도 쓰러진 포켓몬/승패 여부는 챙겨줘야 함
+                const playerMonsAfter = next.player.monsters;
+                const enemyMonsAfter = next.enemy.monsters;
+
+                // 자동 교체 (플레이어)
+                if (
+                    playerMonsAfter[next.player.activeIndex] &&
+                    playerMonsAfter[next.player.activeIndex].hp <= 0
+                ) {
+                    const nextAliveIndex = playerMonsAfter.findIndex(
+                        (m) => m.hp > 0,
+                    );
+                    if (
+                        nextAliveIndex >= 0 &&
+                        nextAliveIndex !== next.player.activeIndex
+                    ) {
+                        next = {
+                            ...next,
+                            player: {
+                                ...next.player,
+                                activeIndex: nextAliveIndex,
+                            },
+                        };
+                        next = pushLog(
+                            next,
+                            `[시스템] ${playerMonsAfter[nextAliveIndex].name}(이)가 대신 싸우러 나왔습니다!`,
+                        );
+                    }
+                }
+
+                // 자동 교체 (적)
+                if (
+                    enemyMonsAfter[next.enemy.activeIndex] &&
+                    enemyMonsAfter[next.enemy.activeIndex].hp <= 0
+                ) {
+                    const nextAliveIndex = enemyMonsAfter.findIndex(
+                        (m) => m.hp > 0,
+                    );
+                    if (
+                        nextAliveIndex >= 0 &&
+                        nextAliveIndex !== next.enemy.activeIndex
+                    ) {
+                        next = {
+                            ...next,
+                            enemy: {
+                                ...next.enemy,
+                                activeIndex: nextAliveIndex,
+                            },
+                        };
+                        next = pushLog(
+                            next,
+                            `[시스템] 상대의 ${enemyMonsAfter[nextAliveIndex].name}(이)가 대신 나왔습니다!`,
+                        );
+                    }
+                }
+
+                // 전멸 체크
+                const playerAllFainted = next.player.monsters.every(
+                    (m) => m.hp <= 0,
+                );
+                const enemyAllFainted = next.enemy.monsters.every(
+                    (m) => m.hp <= 0,
+                );
+
+                if (playerAllFainted || enemyAllFainted) {
+                    next = {
+                        ...next,
+                        phase: "finished",
+                    };
+                    const resultText = playerAllFainted
+                        ? enemyAllFainted
+                            ? "무승부!"
+                            : "패배…"
+                        : "승리!";
+                    next = pushLog(
+                        next,
+                        `[시스템] 배틀 종료: ${resultText}`,
+                    );
+                } else {
+                    next = {
+                        ...next,
+                        phase: "command",
+                    };
+                }
+
+                return {
+                    ...next,
+                    pendingPlayerMove: null,
+                    pendingEnemyMove: null,
+                    pendingPlayerSwitchIndex: null,
+                    currentQuestion: null,
+                    questionStartedAt: null,
+                };
+            }
+
+            //  최신 몬스터 상태는 prev에서 다시 뽑자 (클로저 오염 방지)
             const prevPlayerMon =
                 prev.player.monsters[prev.player.activeIndex];
             const prevEnemyMon =
                 prev.enemy.monsters[prev.enemy.activeIndex];
 
+            // 🔒 여기서 한 번 더 널 가드 (TS18047 방지용)
+            const pendingPlayerMove = prev.pendingPlayerMove;
+            if (!pendingPlayerMove) {
+                // 논리상 거의 안 오는 분기지만, 안전하게 커맨드로 복귀
+                return {
+                    ...next,
+                    pendingPlayerMove: null,
+                    pendingEnemyMove: null,
+                    pendingPlayerSwitchIndex: null,
+                    currentQuestion: null,
+                    questionStartedAt: null,
+                    phase: "command",
+                };
+            }
+
+
             // 1) 플레이어 공격
             const quizMod = calcQuizMod(quizResult);
             const hitChance = calcHitChance(
                 prevEnemyMon, // defender
-                prev.pendingPlayerMove.move,
+                pendingPlayerMove.move,
                 quizMod,
             );
             
-            let playerLog = `[플레이어] ${prev.pendingPlayerMove.move.name}을(를) 사용했다! (명중률 ${hitChance.toFixed(1)}%) `;
+            let playerLog = `[플레이어] ${pendingPlayerMove.move.name}을(를) 사용했다! (명중률 ${hitChance.toFixed(1)}%) `;
             if (rollHit(hitChance)) {
                 const baseDmg = calcDamage(
                     prevPlayerMon,
                     prevEnemyMon,
-                    prev.pendingPlayerMove.move,
+                    pendingPlayerMove.move,
                 );
                 const dmg = applyAbilityDamageModifier(
                     prevPlayerMon,
                     prevEnemyMon,
-                    prev.pendingPlayerMove.move,
+                    pendingPlayerMove.move,
                     baseDmg,
                 );
                 const newEnemyMon = applyDamageToMonster(prevEnemyMon, dmg);
@@ -462,6 +704,7 @@ export function useQuizmonBattle(
                 ...next,
                 pendingPlayerMove: null,
                 pendingEnemyMove: null,
+                pendingPlayerSwitchIndex: null,
                 currentQuestion: null,
                 questionStartedAt: null,
             };

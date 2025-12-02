@@ -135,6 +135,7 @@ export function createInitialBattleState(): BattleState {
         turn: 1,
         pendingPlayerMove: null,
         pendingEnemyMove: null,
+        pendingPlayerSwitchIndex: null,
         currentQuestion: null,
         questionStartedAt: null,
         lastQuizResult: null,
