@@ -1,26 +1,15 @@
 // src/games/quizmon/QuizMonGame.tsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
     BattleState,
     Move,
     QuizAnswerResult,
-    QuizQuestionLite,
     Monster,
     QuizmonOwnedMonsterRow,
     QuizmonSpeciesRow,
     QuizmonProfileRow,
 } from "./types";
-import { quizPackToLiteQuestions } from "./quizSource";
-import { logGameEvent } from "../../api/gameSessions";
-import {
-    applyDamageToMonster,
-    calcDamage,
-    calcHitChance,
-    calcQuizMod,
-    pushLog,
-    rollHit,
-    applyAbilityDamageModifier,
-} from "./logic";
+import { useQuizmonBattle } from "./useQuizmonBattle";
 import { createInitialBattleState } from "./mockData";
 import { supabase } from "../../lib/supabaseClient";
 import { buildBattleMonsterFromSpecies } from "./battleFactory";
@@ -261,17 +250,31 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onProfileUpdated: setLocalProfile,
     });
 
-    // 1) 전투 상태
-    const [state, setState] = useState<BattleState>(() =>
-        createInitialBattleState(),
-    );
-    const [questionIndex, setQuestionIndex] = useState(0);
-    // 🔹 문제 순서를 랜덤으로 돌리기 위한 인덱스 배열
-    const [questionOrder, setQuestionOrder] = useState<number[]>([]);
-
-    // 이번 배틀에서 학생이 푼 퀴즈 집계
-    const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
-    const [hasReportedEnd, setHasReportedEnd] = useState(false);
+    // 1) 전투 상태 + 퀴즈 로직은 useQuizmonBattle 훅으로 분리
+    const {
+        state,
+        setState,
+        questions,
+        setQuestionIndex,
+        setQuestionOrder,
+        battleStats,
+        setBattleStats,
+        setHasReportedEnd,
+        playerMon,
+        enemyMon,
+        canSelectMove,
+        accuracyPercent,
+        battleFinished,
+        handleSelectMove,
+        handleAnswer,
+    } = useQuizmonBattle({
+        quizpack,
+        roomId,
+        gameSessionId,
+        studentId,
+        onQuizAnswer,
+        onBattleEnd,
+    });
 
     type LobbyMenuTab = "menu" | "monsters" | "dex" | "inventory" | "profile";
 
@@ -727,60 +730,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
 
-    // 2) 퀴즈 소스: quizpackJson → Lite 배열
-    const questions: QuizQuestionLite[] = useMemo(
-        () => quizPackToLiteQuestions(quizpack),
-        [quizpack],
-    );
-
-    // 🔹 quizpack이 준비되면 한 번 문제 순서를 섞어 둔다
-    useEffect(() => {
-        if (!questions.length) {
-            setQuestionOrder([]);
-            setQuestionIndex(0);
-            return;
-        }
-
-        const indices = questions.map((_, idx) => idx);
-        setQuestionOrder(shuffleArray(indices));
-        setQuestionIndex(0);
-    }, [questions]);
-
-
-    const playerMon = useMemo(
-        () => state.player.monsters[state.player.activeIndex],
-        [state.player],
-    );
-    const enemyMon = useMemo(
-        () => state.enemy.monsters[state.enemy.activeIndex],
-        [state.enemy],
-    );
-
-    // 적은 일단 영구히 첫 번째 기술만 쓰는 더미 AI
-    useEffect(() => {
-        if (!state.pendingEnemyMove && state.phase === "command") {
-            const enemyMove = enemyMon.moves[0];
-            setState((prev) => ({
-                ...prev,
-                pendingEnemyMove: {
-                    side: "enemy",
-                    move: enemyMove,
-                },
-            }));
-        }
-    }, [state.phase, state.pendingEnemyMove, enemyMon]);
-
-    // 배틀이 끝난 시점에 한 번만 onBattleEnd 호출
-    useEffect(() => {
-        if (!onBattleEnd) return;
-        if (state.phase !== "finished") return;
-        if (hasReportedEnd) return;
-        if (battleStats.total <= 0) return; // 한 문제도 풀지 않았다면 스킵
-
-        onBattleEnd({ ...battleStats });
-        setHasReportedEnd(true);
-    }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
-
+    
     // 배틀 종료 시 → viewState 를 result 로 전환 + HP DB 저장 + 컬렉션 refresh
     useEffect(() => {
         // 배틀이 안 끝났으면 플래그만 리셋하고 종료
@@ -851,323 +801,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         props.onRefreshCollection,
     ]);
 
-
-
-
-
-
-    /** 현재 질문 선택 (없으면 null)
-     *  - questions: 원본 질문 배열
-     *  - questionOrder: 랜덤으로 섞인 인덱스 배열
-     *  - 보기(option)도 매번 섞어서 반환
-     */
-    const getNextQuestion = (): QuizQuestionLite | null => {
-        if (!questions || questions.length === 0) return null;
-        if (!questionOrder.length) return null;
-
-        const orderIdx = questionIndex % questionOrder.length;
-        const baseIdx = questionOrder[orderIdx];
-        const baseQuestion = questions[baseIdx];
-        if (!baseQuestion) return null;
-
-        // 보기 인덱스를 셔플해서 옵션/정답 위치 함께 섞기
-        const optionIndices = baseQuestion.options.map((_, idx) => idx);
-        const shuffledOptionIndices = shuffleArray(optionIndices);
-
-        const shuffledOptions = shuffledOptionIndices.map(
-            (optIdx) => baseQuestion.options[optIdx],
-        );
-
-        const newAnswerIndex = shuffledOptionIndices.indexOf(
-            baseQuestion.answerIndex,
-        );
-
-        return {
-            ...baseQuestion,
-            options: shuffledOptions,
-            answerIndex: newAnswerIndex,
-        };
-    };
-
-
-    const handleSelectMove = (move: Move) => {
-        // 최소한의 안전 가드만 유지
-        if (state.phase === "finished") return;
-        if (playerMon.hp <= 0 || enemyMon.hp <= 0) return;
-        if (!questions.length) {
-            setState(prev =>
-                pushLog(prev, "[시스템] 이 퀴즈팩에는 문제가 없습니다."),
-            );
-            return;
-        }
-
-        const question = getNextQuestion();
-        if (!question) {
-            setState(prev =>
-                pushLog(prev, "[시스템] 문제를 불러오는 중 오류가 발생했습니다."),
-            );
-            return;
-        }
-
-        const now = Date.now();
-        setQuestionIndex(idx => idx + 1);
-
-        setState(prev => ({
-            ...prev,
-            pendingPlayerMove: { side: "player", move },
-            currentQuestion: question,
-            questionStartedAt: now,
-            lastQuizResult: null,
-            // 여기서 phase를 확실히 quiz 로 전환
-            phase: "quiz",
-        }));
-    };
-
-
-    const handleAnswer = (optionIndex: number) => {
-        if (state.phase !== "quiz" || !state.currentQuestion) return;
-        const now = Date.now();
-        const timeMs =
-            state.questionStartedAt != null
-                ? now - state.questionStartedAt
-                : 9999;
-
-        const correct = optionIndex === state.currentQuestion.answerIndex;
-        const quizResult: QuizAnswerResult = {
-            questionId: state.currentQuestion.id,
-            chosenIndex: optionIndex,
-            correct,
-            timeMs,
-        };
-
-        // 🔹 이번 정답이 레이드에서 줄 "누적 데미지" 점수
-        //    v1에서는 "정답 1개 = 10 데미지"로 단순하게 고정
-        const raidDamage = correct ? 10 : 0;
-
-        // 🔹 이번 배틀 통계에 반영
-        setBattleStats((prev) => ({
-            correct: prev.correct + (correct ? 1 : 0),
-            total: prev.total + 1,
-        }));
-
-        // 밖으로도 한번 전달 (부모에서 별도 처리할 수 있도록)
-        onQuizAnswer?.(quizResult);
-
-        // 🎯 Supabase game_events 로깅
-        if (roomId && gameSessionId && studentId) {
-            logGameEvent({
-                roomId,
-                gameSessionId,
-                studentId,
-                eventType: "quizmon-answer",
-                payload: {
-                    source: "quizmon",
-                    questionId: quizResult.questionId,
-                    answerIndex: quizResult.chosenIndex,
-                    correct: quizResult.correct,
-                    timeMs: quizResult.timeMs ?? null,
-                    // 🔹 클래스 레이드용 누적 데미지
-                    raidDamage,
-                },
-            }).catch((err) => {
-                console.warn(
-                    "[QuizMonGame] failed to log game event",
-                    err,
-                );
-            });
-        } else {
-            console.warn("[QuizMonGame] skip logGameEvent – missing ids", {
-                roomId,
-                gameSessionId,
-                studentId,
-            });
-        }
-
-        // 한 번에 player → enemy 순으로만 처리 (샌드박스 단순화)
-        setState((prev) => {
-            if (!prev.pendingPlayerMove) {
-                return {
-                    ...prev,
-                    lastQuizResult: quizResult,
-                    phase: "command",
-                    currentQuestion: null,
-                    questionStartedAt: null,
-                };
-            }
-
-            let next: BattleState = { ...prev, lastQuizResult: quizResult };
-
-            // 최신 몬스터 상태는 prev에서 다시 뽑자 (클로저 오염 방지)
-            const prevPlayerMon =
-                prev.player.monsters[prev.player.activeIndex];
-            const prevEnemyMon =
-                prev.enemy.monsters[prev.enemy.activeIndex];
-
-            // 1) 플레이어 공격
-            const quizMod = calcQuizMod(quizResult);
-            const hitChance = calcHitChance(
-                prevEnemyMon, // defender
-                prev.pendingPlayerMove.move,
-                quizMod,
-            );
-
-            let logText = `[플레이어] ${
-                prev.pendingPlayerMove.move.name
-            } (명중률 ${hitChance.toFixed(1)}%) → `;
-
-            if (rollHit(hitChance)) {
-                const baseDmg = calcDamage(
-                    prevPlayerMon,
-                    prevEnemyMon,
-                    prev.pendingPlayerMove.move,
-                );
-                const dmg = applyAbilityDamageModifier(
-                    prevPlayerMon,
-                    prevEnemyMon,
-                    prev.pendingPlayerMove.move,
-                    baseDmg,
-                );
-
-            const newEnemyMon = applyDamageToMonster(prevEnemyMon, dmg);
-            const newEnemyMons = [...prev.enemy.monsters];
-                newEnemyMons[prev.enemy.activeIndex] = newEnemyMon;
-
-                next = {
-                    ...next,
-                    enemy: { ...prev.enemy, monsters: newEnemyMons },
-                };
-                logText += `${dmg} 데미지! (HP ${prevEnemyMon.hp} → ${newEnemyMon.hp})`;
-            } else {
-                logText += "빗나갔다!";
-            }
-
-            next = pushLog(next, logText);
-
-            // 2) 적이 살아 있으면 적 공격도 처리 (퀴즈 영향 없이 평균값으로)
-            const enemyStillAlive =
-                next.enemy.monsters[next.enemy.activeIndex].hp > 0;
-            if (enemyStillAlive && prev.pendingEnemyMove) {
-                const enemyQuizMod = 1.0; // 적은 항상 평균 정도라고 가정
-                const enemyHitChance = calcHitChance(
-                    prevPlayerMon, // defender
-                    prev.pendingEnemyMove.move,
-                    enemyQuizMod,
-                );
-                let enemyLog = `[적] ${
-                    prev.pendingEnemyMove.move.name
-                } (명중률 ${enemyHitChance.toFixed(1)}%) → `;
-
-                if (rollHit(enemyHitChance)) {
-                    const baseDmg = calcDamage(
-                        prevEnemyMon,
-                        prevPlayerMon,
-                        prev.pendingEnemyMove.move,
-                    );
-                    const dmg = applyAbilityDamageModifier(
-                        prevEnemyMon,
-                        prevPlayerMon,
-                        prev.pendingEnemyMove.move,
-                        baseDmg,
-                    );
-
-                    const newPlayerMon = applyDamageToMonster(
-                        prevPlayerMon,
-                        dmg,
-                    );
-                    const newPlayerMons = [...prev.player.monsters];
-                    newPlayerMons[prev.player.activeIndex] = newPlayerMon;
-
-                    next = {
-                        ...next,
-                        player: {
-                            ...prev.player,
-                            monsters: newPlayerMons,
-                        },
-                    };
-
-                    enemyLog += `${dmg} 데미지! (HP ${prevPlayerMon.hp} → ${newPlayerMon.hp})`;
-                } else {
-                    enemyLog += "빗나갔다!";
-                }
-
-                next = pushLog(next, enemyLog);
-            }
-
-            // 3) 승패 체크 + 파티 교체 로직
-            const playerMons = next.player.monsters;
-            const enemyMons = next.enemy.monsters;
-
-            // 🔁 플레이어: 현재 포켓몬이 쓰러졌으면 다음 살아있는 파티원으로 자동 교체
-            let playerActiveIndex = next.player.activeIndex;
-            if (playerMons[playerActiveIndex]?.hp <= 0) {
-                const nextAliveIndex = playerMons.findIndex((m) => m.hp > 0);
-                if (nextAliveIndex >= 0 && nextAliveIndex !== playerActiveIndex) {
-                    next = {
-                        ...next,
-                        player: {
-                            ...next.player,
-                            activeIndex: nextAliveIndex,
-                        },
-                    };
-                    playerActiveIndex = nextAliveIndex;
-                    next = pushLog(
-                        next,
-                        `[시스템] ${playerMons[nextAliveIndex].name}(이)가 대신 싸우러 나왔습니다!`,
-                    );
-                }
-            }
-
-            // 🔁 적도 동일하게 처리 (지금은 1마리지만, 나중 확장 대비)
-            let enemyActiveIndex = next.enemy.activeIndex;
-            if (enemyMons[enemyActiveIndex]?.hp <= 0) {
-                const nextAliveIndex = enemyMons.findIndex((m) => m.hp > 0);
-                if (nextAliveIndex >= 0 && nextAliveIndex !== enemyActiveIndex) {
-                    next = {
-                        ...next,
-                        enemy: {
-                            ...next.enemy,
-                            activeIndex: nextAliveIndex,
-                        },
-                    };
-                    enemyActiveIndex = nextAliveIndex;
-                    next = pushLog(
-                        next,
-                        `[시스템] 상대의 ${enemyMons[nextAliveIndex].name}(이)가 대신 나왔습니다!`,
-                    );
-                }
-            }
-
-            // 🔚 진짜로 모든 포켓몬이 쓰러졌는지 체크
-            const allPlayerDown = playerMons.every((m) => m.hp <= 0);
-            const allEnemyDown = enemyMons.every((m) => m.hp <= 0);
-
-            let phase: typeof next.phase = "command";
-
-            if (allPlayerDown || allEnemyDown) {
-                phase = "finished";
-
-                const resultText =
-                    allPlayerDown && allEnemyDown
-                        ? "무승부!"
-                        : allPlayerDown
-                            ? "패배…"
-                            : "승리!";
-                next = pushLog(next, `[시스템] 배틀 종료: ${resultText}`);
-            }
-
-
-            return {
-                ...next,
-                phase,
-                currentQuestion: null,
-                questionStartedAt: null,
-                pendingPlayerMove: null,
-                pendingEnemyMove: null,
-                turn: prev.turn + 1,
-            };
-        });
-    };
-
     const handleReset = () => {
         // 🔹 새 레이드마다 문제 순서도 다시 셔플
         if (questions.length > 0) {
@@ -1178,7 +811,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setQuestionOrder([]);
             setQuestionIndex(0);
         }
-        
+
         if (profileId) {
             // 학생 프로필이 있으면 항상 "실제 파티" 기준으로 리셋
             void resetBattleWithProfileParty(profileId);
@@ -1192,21 +825,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setHasBattleInitialized(true);
         }
     };
-
-    const canSelectMove =
-        state.phase !== "finished" &&
-        questions.length > 0 &&
-        playerMon.hp > 0 &&
-        enemyMon.hp > 0;
-
-    const accuracyPercent =
-        battleStats.total > 0
-            ? Math.round((battleStats.correct / battleStats.total) * 100)
-            : null;
-
-    const battleFinished =
-        state.player.monsters.every((m) => m.hp <= 0) ||
-        state.enemy.monsters.every((m) => m.hp <= 0);
 
     const showResultOverlay =
         viewState === "result" || (battleFinished && viewState === "battle");
