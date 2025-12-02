@@ -11,6 +11,12 @@ import {ensureGameSession, endGameSession } from "../../api/gameSessions";
 
 import { QuizMonClassPanel } from "../../games/quizmon/QuizMonClassPanel";
 import {QuizmonProvider} from "../../games/quizmon/QuizmonProvider";
+import type { QuizmonRaidSessionRow } from "../../games/quizmon/quizmonRaidSessions";
+import {
+    getActiveRaidSession,
+    createRaidSession,
+    closeActiveRaidSession,
+} from "../../games/quizmon/quizmonRaidSessions";
 
 
 // 🔹 PEM 한 판 클리어 기록 (pem_runs 테이블)
@@ -653,10 +659,14 @@ export function TeacherRoomLivePage() {
         [room?.game_key, qddQuestionPrefix, qddStats, questions],
     );
 
+    // 현재 퀴즈 세션과 연결된 game_sessions.id (QDD/QuizMon 공용)
+    const [activeGameSessionId, setActiveGameSessionId] =
+        useState<string | null>(null);
 
-    // 현재 퀴즈 세션과 연결된 game_sessions.id (QDD용)
-    const [activeGameSessionId, setActiveGameSessionId] = useState<string | null>(null);
-
+    // 🔹 QuizMon 레이드 세션 상태
+    const [activeRaidSession, setActiveRaidSession] =
+        useState<QuizmonRaidSessionRow | null>(null);
+    const [raidSaving, setRaidSaving] = useState(false);
 
     // origin 한 번만 세팅
     useEffect(() => {
@@ -712,6 +722,46 @@ export function TeacherRoomLivePage() {
             cancelled = true;
         };
     }, [room?.id, room?.game_key, pack?.id, session?.id, session?.status]);
+
+
+    // 🔹 QuizMon 레이드 세션 동기화
+    useEffect(() => {
+        if (
+            !room ||
+            room.game_key !== "quizmon" ||
+            !room.class_id ||
+            !activeGameSessionId
+        ) {
+            setActiveRaidSession(null);
+            return;
+        }
+
+        let cancelled = false;
+
+        const syncRaidSession = async () => {
+            try {
+                const raid = await getActiveRaidSession({
+                    roomId: room.id,
+                    gameSessionId: activeGameSessionId,
+                });
+                if (!cancelled) {
+                    setActiveRaidSession(raid);
+                }
+            } catch (e) {
+                console.error(
+                    "[TeacherRoomLive] syncRaidSession error",
+                    e,
+                );
+            }
+        };
+
+        void syncRaidSession();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [room?.id, room?.class_id, room?.game_key, activeGameSessionId]);
+
 
 
     useEffect(() => {
@@ -985,6 +1035,48 @@ export function TeacherRoomLivePage() {
         session?.id,          // ⬅ 추가
         activeGameSessionId,
     ]);
+
+    // 🔹 레이드 시작
+    const handleStartRaid = async () => {
+        if (!room || !room.class_id || !activeGameSessionId) return;
+        if (raidSaving) return;
+
+        try {
+            setRaidSaving(true);
+
+            // TODO: MVP에서는 임시로 "0001" (1번 포켓몬) 고정 보스
+            const raid = await createRaidSession({
+                roomId: room.id,
+                classId: room.class_id,
+                gameSessionId: activeGameSessionId,
+                bossSpeciesId: "0001",
+                bossLevel: 30,
+            });
+
+            setActiveRaidSession(raid);
+        } finally {
+            setRaidSaving(false);
+        }
+    };
+
+    // 🔹 레이드 종료
+    const handleEndRaid = async () => {
+        if (!room || !activeGameSessionId) return;
+        if (!activeRaidSession) return;
+        if (raidSaving) return;
+
+        try {
+            setRaidSaving(true);
+            await closeActiveRaidSession({
+                roomId: room.id,
+                gameSessionId: activeGameSessionId,
+            });
+            setActiveRaidSession(null);
+        } finally {
+            setRaidSaving(false);
+        }
+    };
+
 
     // 🔹 PEM 토너먼트 자동 편성 (단순 셔플 + 순서대로 매칭)
     const handleBuildPemTournament = () => {
@@ -2475,6 +2567,65 @@ export function TeacherRoomLivePage() {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* 🔹 QuizMon 레이드 컨트롤 패널 */}
+                                {room?.game_key === "quizmon" && activeGameSessionId && (
+                                    <div className="card" style={{ marginTop: "1rem" }}>
+                                        <h2>QuizMon 레이드 컨트롤</h2>
+                                        <p className="hint">
+                                            이 세션 동안 진행할 레이드를 시작/종료합니다. 레이드가
+                                            열려 있어야 학생 쪽에서 "레이드" 버튼이 활성화됩니다.
+                                        </p>
+
+                                        {activeRaidSession ? (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "space-between",
+                                                    marginTop: "0.5rem",
+                                                }}
+                                            >
+                                                <div>
+                                                    <div>
+                                                        <strong>상태:</strong> 진행 중
+                                                    </div>
+                                                    <div>
+                                                        <strong>보스:</strong>{" "}
+                                                        {activeRaidSession.boss_species_id}{" "}
+                                                        (Lv.{activeRaidSession.boss_level})
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    onClick={handleEndRaid}
+                                                    disabled={raidSaving}
+                                                >
+                                                    레이드 종료
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "space-between",
+                                                    marginTop: "0.5rem",
+                                                }}
+                                            >
+                                                <span>현재 열린 레이드가 없습니다.</span>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={handleStartRaid}
+                                                    disabled={raidSaving}
+                                                >
+                                                    레이드 시작
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
 
                                 {/* 🔹 QuizMon 클래스 레이드 v2 – 누적 데미지 랭킹 */}
                                 <div

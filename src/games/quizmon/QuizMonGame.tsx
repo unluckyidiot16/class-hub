@@ -23,7 +23,8 @@ import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
 import { useQuizmonContext } from "./QuizmonProvider";
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 import { DUNGEON_CONFIGS, ENEMY_SETS } from "./dungeonEnemySets";
-
+import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
+import { getActiveRaidSession } from "./quizmonRaidSessions";
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
     // HP 1/3 이하일 때 풀 기술 1.5배
@@ -62,6 +63,11 @@ function shuffleArray<T>(arr: T[]): T[] {
 // =========================
 
 const PLAYER_SPECIES_ID = "poke-0001" as const;
+
+const [activeRaidSession, setActiveRaidSession] =
+    useState<QuizmonRaidSessionRow | null>(null);
+const [raidSessionLoading, setRaidSessionLoading] = useState(false);
+
 
 // =========================
 // 🎮 Game 컴포넌트
@@ -732,8 +738,48 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
+    // 🔹 현재 세션에 열린 레이드가 있는지 확인
+    useEffect(() => {
+        if (!props.roomId || !props.gameSessionId) {
+            setActiveRaidSession(null);
+            return;
+        }
 
-    
+        let cancelled = false;
+
+        const syncRaidSession = async () => {
+            try {
+                setRaidSessionLoading(true);
+                const raid = await getActiveRaidSession({
+                    roomId: props.roomId!,
+                    gameSessionId: props.gameSessionId!,
+                });
+                if (!cancelled) {
+                    setActiveRaidSession(raid);
+                }
+            } catch (e) {
+                console.error(
+                    "[QuizMonGame] syncRaidSession error",
+                    e,
+                );
+            } finally {
+                if (!cancelled) {
+                    setRaidSessionLoading(false);
+                }
+            }
+        };
+
+        void syncRaidSession();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [props.roomId, props.gameSessionId]);
+
+    const hasActiveRaid =
+        !!activeRaidSession && activeRaidSession.status === "open";
+
+
     // 배틀 종료 시 → viewState 를 result 로 전환 + HP DB 저장 + 컬렉션 refresh
     useEffect(() => {
         // 배틀이 안 끝났으면 플래그만 리셋하고 종료
@@ -1052,12 +1098,19 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onSelectDungeon={() => {
                                 setBattleMode("dungeon");
                                 setViewState("dungeon");
-                            }}                          
-                            // 🔹 레이드: 바로 새 배틀 시작 (공유 레이드용)
+                            }}
+                            // 🔹 레이드: 현재 열린 레이드가 있을 때만 진입
                             onSelectRaid={() => {
+                                if (!hasActiveRaid) {
+                                    alert(
+                                        "현재 진행 중인 레이드가 없습니다.\n선생님이 레이드를 시작하면 참여할 수 있어요.",
+                                    );
+                                    return;
+                                }
                                 setBattleMode("raid");
                                 handleReset(); // 프로필 파티 기준으로 전투 리셋 + 배틀 진입
                             }}
+
                             onSelectGacha={() => {
                                 setViewState("gacha");
                             }}
@@ -1066,7 +1119,15 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         />
                     )}
 
-
+                    {props.roomId && props.gameSessionId && (
+                        <p style={{ marginTop: 4, fontSize: 12, opacity: 0.8 }}>
+                            {raidSessionLoading
+                                ? "레이드 상태를 확인하는 중..."
+                                : hasActiveRaid
+                                    ? "레이드가 열려 있습니다! 레이드 버튼으로 참여해 보세요."
+                                    : "현재 레이드는 열려 있지 않습니다."}
+                        </p>
+                    )}
 
                     {/* 🏰 던전 선택 오버레이 */}
                     {viewState === "dungeon" && (
