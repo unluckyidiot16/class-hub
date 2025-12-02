@@ -353,18 +353,65 @@ export function useQuizmonBattle(
                 }
             }
 
-            // 3) 승패 체크
+            // 3) 승패 체크 + 파티 교체 로직
+            const playerMons = next.player.monsters;
+            const enemyMons = next.enemy.monsters;
+            
+            // 🔁 플레이어: 현재 포켓몬이 쓰러졌으면 다음 살아있는 파티원으로 자동 교체
+            if (playerMons[next.player.activeIndex]?.hp <= 0) {
+                const nextAliveIndex = playerMons.findIndex((m) => m.hp > 0);
+                if (
+                    nextAliveIndex >= 0 &&
+                    nextAliveIndex !== next.player.activeIndex
+                ) {
+                    next = {
+                        ...next,
+                            player: {
+                            ...next.player,
+                                    activeIndex: nextAliveIndex,
+                            },
+                    };
+                    next = pushLog(
+                        next,
+                        `[시스템] ${playerMons[nextAliveIndex].name}(이)가 대신 싸우러 나왔습니다!`,
+                    );
+                }
+            }
+            
+            // 🔁 적도 동일하게 처리 (던전에서 적 여러 마리 대비)
+            if (enemyMons[next.enemy.activeIndex]?.hp <= 0) {
+                const nextAliveIndex = enemyMons.findIndex((m) => m.hp > 0);
+                if (
+                    nextAliveIndex >= 0 &&
+                    nextAliveIndex !== next.enemy.activeIndex
+                ) {
+                    next = {
+                        ...next,
+                            enemy: {
+                            ...next.enemy,
+                                    activeIndex: nextAliveIndex,
+                            },
+                    };
+                    next = pushLog(
+                        next,
+                        `[시스템] 상대의 ${enemyMons[nextAliveIndex].name}(이)가 대신 나왔습니다!`,
+                    );
+                }
+            }
+            
+            // 🔚 진짜로 모든 포켓몬이 쓰러졌는지 체크
             const playerAllFainted = next.player.monsters.every(
                 (m) => m.hp <= 0,
             );
             const enemyAllFainted = next.enemy.monsters.every(
                 (m) => m.hp <= 0,
             );
-
+            
             if (playerAllFainted || enemyAllFainted) {
+                // 배틀 종료
                 next = {
                     ...next,
-                    phase: "finished",
+                        phase: "finished",
                 };
                 const resultText = playerAllFainted
                     ? enemyAllFainted
