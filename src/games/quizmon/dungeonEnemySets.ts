@@ -45,6 +45,9 @@ export type DungeonConfig = {
     /** 과목/학년 메타 (필요 시 필터에 사용) */
     subject?: DungeonSubject;
     grade?: DungeonGrade;
+
+    /** 👉 동시에 상대할 몬스터 수 (생략 시 세트 전체 길이 사용) */
+    enemyCount?: number;
 };
 
 /** 적 슬롯: 한 마리 정보 */
@@ -73,6 +76,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "korean",
         grade: 2,
         arenaKey: "forest_bg",
+        enemyCount: 1,   // ✅ 쉬움: 1마리만 상대
+
     },
     {
         id: "forest-easy-2",
@@ -87,6 +92,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "korean",
         grade: 2,
         arenaKey: "forest_bg",
+        enemyCount: 2,   // ✅ 조금 더 어렵게: 2마리
+
     },
     {
         id: "forest-normal-1",
@@ -101,6 +108,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "korean",
         grade: 3,
         arenaKey: "forest_bg",
+        enemyCount: 3,   // ✅ 보통: 3마리
+
     },
     {
         id: "tower-normal-1",
@@ -115,6 +124,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "general",
         grade: 3,
         arenaKey: "forest_bg",
+        enemyCount: 3,   // 타워는 계속 3마리 유지
+
     },
 ];
 
@@ -127,7 +138,13 @@ export const ENEMY_SETS: Record<string, EnemySlot[]> = {
     /** 숲 1-1: 스타터 1단계들 */
     "forest-easy-1": [
         { speciesId: "poke-0001", level: 3 }, // 이상해씨
+    ],
+
+    "forest-easy-1-A": [
         { speciesId: "poke-0004", level: 3 }, // 파이리
+    ],
+
+    "forest-easy-1-B": [
         { speciesId: "poke-0007", level: 3 }, // 꼬부기
     ],
 

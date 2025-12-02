@@ -22,7 +22,11 @@ import { QuizMonBattleView } from "./QuizMonBattleView";
 import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
 import { useQuizmonContext } from "./QuizmonProvider";
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
-import { DUNGEON_CONFIGS, ENEMY_SETS } from "./dungeonEnemySets";
+import {
+    DUNGEON_CONFIGS,
+    ENEMY_SETS,
+    type EnemySlot,
+} from "./dungeonEnemySets";
 import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
 
@@ -444,20 +448,45 @@ export function QuizMonGame(props: QuizMonGameProps) {
             // 2) 필요한 종 정보 모아서 quizmon_species 조회
             //    - 플레이어 파티 종
             //    - (던전 모드일 경우) 해당 던전 ENEMY_SETS에 쓰인 종
-                    
+
+            // ✅ 이번 전투에서 실제로 사용할 "랜덤 선택된 적 슬롯"
+            let chosenEnemySlots: EnemySlot[] = [];
+
             let enemySetSpeciesIds: string[] = [];
-            
+
             if (battleMode === "dungeon") {
                 const currentDungeon =
-                    DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
-                    null;
-                
+                    DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ?? null;
+
                 if (currentDungeon?.enemySetId) {
-                    const slots = ENEMY_SETS[currentDungeon.enemySetId] ?? [];
-                    enemySetSpeciesIds = slots.map((slot) => slot.speciesId);
+                    const baseKey = currentDungeon.enemySetId;
+
+                    // ENEMY_SETS 안에서 이 던전에 해당하는 후보 키들:
+                    // - "forest-easy-1" (기본)
+                    // - "forest-easy-1-A", "forest-easy-1-B" ... (있다면)
+                    const allKeys = Object.keys(ENEMY_SETS);
+                    const candidateKeys = allKeys.filter(
+                        (key) => key === baseKey || key.startsWith(`${baseKey}-`),
+                    );
+
+                    const chosenKey =
+                        candidateKeys.length > 0
+                            ? candidateKeys[
+                                Math.floor(Math.random() * candidateKeys.length)
+                                ]
+                            : baseKey;
+
+                    const baseSlots = ENEMY_SETS[chosenKey] ?? [];
+
+                    // 🔹 여기서는 enemyCount 는 "최대 몇 마리까지 쓰나"로만 사용하고,
+                    //    species 로딩은 일단 전체 baseSlots 기준으로 해도 괜찮음.
+                    chosenEnemySlots = baseSlots;
+
+                    enemySetSpeciesIds = baseSlots.map((slot) => slot.speciesId);
                 }
             }
-            
+
+
             const speciesIds = Array.from(
                 new Set(
                     [
@@ -567,13 +596,30 @@ export function QuizMonGame(props: QuizMonGameProps) {
             const currentDungeon =
                 DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
                 DUNGEON_CONFIGS[0];
-            
+
             // 🔹 ENEMY_SETS 기반 적 파티 생성 (던전 모드 전용)
             let enemyMonsters: Monster[] = [];
-            
+
             if (battleMode === "dungeon" && currentDungeon?.enemySetId) {
-                const slots = ENEMY_SETS[currentDungeon.enemySetId] ?? [];
-                
+                // 1) 이번 전투에서 사용할 기본 슬롯: 위에서 뽑아둔 랜덤 세트 우선
+                const baseSlots =
+                    chosenEnemySlots.length > 0
+                        ? chosenEnemySlots
+                        : ENEMY_SETS[currentDungeon.enemySetId] ?? [];
+
+                // 2) 이 던전에서 동시에 상대할 몬스터 수
+                const maxEnemyCountFromConfig =
+                    typeof currentDungeon.enemyCount === "number"
+                        ? currentDungeon.enemyCount
+                        : baseSlots.length;
+
+                // 3) 실제 사용할 몬스터 슬롯 (앞에서부터 N개 사용)
+                const useCount = Math.max(
+                    1,
+                    Math.min(maxEnemyCountFromConfig, baseSlots.length),
+                );
+                const slots = baseSlots.slice(0, useCount);
+
                 enemyMonsters = slots
                     .map((slot, index): Monster | null => {
                         const species = speciesMap.get(slot.speciesId);
@@ -584,8 +630,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             );
                             return null;
                         }
-                    
-                        // 던전 적은 "야생 몬스터" 느낌으로 임시 ownedRow 생성
+
                         const tempOwned: QuizmonOwnedMonsterRow = {
                             id: `enemy-${currentDungeon.id}-${index}`,
                             profile_id: "dungeon-enemy",
@@ -598,7 +643,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             learned_moves: [],
                             equipped_moves: [],
                             ability_id: null,
-                            // 🔹 배틀용 더미 값 (DB에 안 들어가고, buildBattleMonsterFromSpecies용으로만 사용)
                             created_at: new Date().toISOString() as any,
                             updated_at: new Date().toISOString() as any,
                         };
@@ -607,7 +651,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             species,
                             tempOwned,
                         );
-                    
+
                         return {
                             ...base,
                             id: tempOwned.id,
@@ -615,7 +659,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     })
                     .filter((m): m is Monster => m !== null);
             }
-            
+
+
+
             // 🔁 ENEMY_SETS에 유효한 적이 하나도 없으면 기존 거울 복사 방식으로 fallback
             if (!enemyMonsters.length) {
                 // 난이도별 HP 배수 (대략적인 값, 나중에 조정 가능)
