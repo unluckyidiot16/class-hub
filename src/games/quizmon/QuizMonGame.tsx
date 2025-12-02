@@ -204,6 +204,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         battleFinished,
         handleSelectMove,
         handleAnswer,
+        handleSwitch,
     } = useQuizmonBattle({
         quizpack,
         roomId,
@@ -1027,6 +1028,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             canSelectMove={canSelectMove}
                             onSelectMove={handleSelectMove}
                             onAnswer={handleAnswer}
+                            onRequestSwitch={handleSwitch}
                             playerSprite={renderPlayerSprite()}
                             enemySprite={renderEnemySprite()}
                         />

@@ -70,6 +70,7 @@ export type UseQuizmonBattleResult = {
     // 액션
     handleSelectMove: (move: Move) => void;
     handleAnswer: (optionIndex: number) => void;
+    handleSwitch: (targetIndex: number) => void;
 };
 
 export function useQuizmonBattle(
@@ -189,6 +190,33 @@ export function useQuizmonBattle(
             // 여기서 phase를 확실히 quiz 로 전환
             phase: "quiz",
         }));
+    };
+    const handleSwitch = (targetIndex: number) => {
+        // v1: 커맨드 단계에서만, 살아있는 다른 포켓몬으로만 교체 허용
+        setState((prev) => {
+            if (prev.phase === "finished") return prev;
+            if (prev.phase !== "command") return prev;
+
+            const nextMon = prev.player.monsters[targetIndex];
+            if (!nextMon) return prev;
+            if (targetIndex === prev.player.activeIndex) return prev;
+            if (nextMon.hp <= 0) return prev;
+
+            let next: BattleState = {
+                ...prev,
+                player: {
+                    ...prev.player,
+                    activeIndex: targetIndex,
+                },
+            };
+
+            next = pushLog(
+                next,
+                `[시스템] ${nextMon.name}(으)로 교체했습니다.`,
+            );
+
+            return next;
+        });
     };
 
     const handleAnswer = (optionIndex: number) => {
@@ -500,5 +528,6 @@ export function useQuizmonBattle(
         battleFinished,
         handleSelectMove,
         handleAnswer,
+        handleSwitch,
     };
 }
