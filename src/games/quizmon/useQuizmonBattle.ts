@@ -362,30 +362,34 @@ export function useQuizmonBattle(
                     `[시스템] 문제를 틀려 교체 도중 공격을 받았습니다!`,
                 );
 
-                const enemyActive = prev.enemy.monsters[prev.enemy.activeIndex];
+// ▶ "지금" 전투에 나와 있는 적과 교체된 우리 포켓몬 기준으로 다시 계산
+                const enemyActive =
+                    next.enemy.monsters[next.enemy.activeIndex];
+                const defenderBefore =
+                    next.player.monsters[next.player.activeIndex];
 
-                if (enemyActive.hp > 0 && prev.pendingEnemyMove) {
-                    const defenderBefore =
-                        next.player.monsters[next.player.activeIndex];
+// 적이 살아 있고, 사용할 기술이 하나라도 있을 때만 무료 공격
+                const enemyMove = enemyActive?.moves?.[0];
 
+                if (enemyActive && enemyActive.hp > 0 && enemyMove) {
                     const enemyQuizMod = 1.0;
                     const enemyHitChance = calcHitChance(
-                        defenderBefore, // 새로 나온 포켓몬을 수비측으로
-                        prev.pendingEnemyMove.move,
+                        defenderBefore,      // 수비: 방금 교체된 포켓몬
+                        enemyMove,           // 공격 기술
                         enemyQuizMod,
                     );
 
-                    let enemyLog = `[적] ${prev.pendingEnemyMove.move.name}으로 교체한 ${defenderBefore.name}(을)를 노렸습니다! `;
+                    let enemyLog = `[적] ${enemyMove.name}으로 교체한 ${defenderBefore.name}(을)를 노렸습니다! `;
                     if (rollHit(enemyHitChance)) {
                         const baseDmg = calcDamage(
                             enemyActive,
                             defenderBefore,
-                            prev.pendingEnemyMove.move,
+                            enemyMove,
                         );
                         const dmg = applyAbilityDamageModifier(
                             enemyActive,
                             defenderBefore,
-                            prev.pendingEnemyMove.move,
+                            enemyMove,
                             baseDmg,
                         );
 
@@ -411,7 +415,7 @@ export function useQuizmonBattle(
 
                     next = pushLog(next, enemyLog);
                 } else {
-                    // 적이 이미 쓰러졌거나 기술이 없으면 추가 피해 없음
+                    // 적이 이미 쓰러졌거나 쓸 기술이 없으면 추가 피해 없음
                     next = pushLog(
                         next,
                         "[시스템] 상대 포켓몬이 공격 준비가 되어 있지 않아 추가 피해는 없었습니다.",
