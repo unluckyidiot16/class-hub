@@ -33,7 +33,10 @@ export async function getActiveRaidSession(
 ): Promise<QuizmonRaidSessionRow | null> {
     const { roomId, gameSessionId } = params;
 
-    if (!roomId || !gameSessionId) return null;
+    if (!roomId || !gameSessionId) {
+        console.log("[quizmonRaidSessions] getActiveRaidSession: missing params", { roomId, gameSessionId });
+        return null;
+    }
 
     const { data, error } = await supabase
         .from("quizmon_raid_sessions")
@@ -47,12 +50,18 @@ export async function getActiveRaidSession(
     if (error) {
         console.error(
             "[quizmonRaidSessions] getActiveRaidSession error",
-            error,
+            {
+                error,
+                code: error?.code,
+                message: error?.message,
+                details: error?.details,
+            },
         );
         return null;
     }
 
     const rows = (data ?? []) as QuizmonRaidSessionRow[];
+    console.log("[quizmonRaidSessions] getActiveRaidSession result:", rows.length > 0 ? rows[0] : "none");
     return rows.length > 0 ? rows[0] : null;
 }
 
@@ -79,33 +88,59 @@ export async function createRaidSession(
         bossLevel = 50,
     } = params;
 
-    // 1) 기존 열린 레이드 세션 닫기
     const nowIso = new Date().toISOString();
-    const { error: closeError } = await supabase
+
+    // 1) 기존 열린 레이드 세션 확인
+    const { data: existingOpen, error: checkError } = await supabase
         .from("quizmon_raid_sessions")
-        .update({
-            status: "closed",
-            closed_at: nowIso,
-        })
+        .select("id, status")
         .eq("room_id", roomId)
         .eq("game_session_id", gameSessionId)
         .eq("status", "open");
 
-    if (closeError) {
+    if (checkError) {
         console.warn(
-            "[quizmonRaidSessions] createRaidSession close old error",
-            closeError,
+            "[quizmonRaidSessions] createRaidSession check existing error",
+            checkError,
         );
     }
 
-    // 2) 새 레이드 세션 생성
+    console.log("[quizmonRaidSessions] existing open raids:", existingOpen);
+
+    // 2) 기존 열린 레이드가 있으면 모두 닫기 (id 기준으로 개별 처리)
+    if (existingOpen && existingOpen.length > 0) {
+        for (const raid of existingOpen) {
+            const { error: closeError } = await supabase
+                .from("quizmon_raid_sessions")
+                .update({
+                    status: "closed",
+                    closed_at: nowIso,
+                })
+                .eq("id", raid.id);
+
+            if (closeError) {
+                console.error(
+                    "[quizmonRaidSessions] failed to close raid",
+                    raid.id,
+                    closeError,
+                );
+            } else {
+                console.log("[quizmonRaidSessions] closed existing raid:", raid.id);
+            }
+        }
+
+        // 닫은 후 잠시 대기 (DB 동기화)
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    // 3) 새 레이드 세션 생성
     const { data, error } = await supabase
         .from("quizmon_raid_sessions")
         .insert({
             room_id: roomId,
             class_id: classId,
             game_session_id: gameSessionId,
-            boss_species_id: bossSpeciesId, // TODO: 보스 선택 UI 붙이면 여기 값만 바꾸면 됨
+            boss_species_id: bossSpeciesId,
             boss_level: bossLevel,
             status: "open",
         })
@@ -113,13 +148,29 @@ export async function createRaidSession(
         .limit(1);
 
     if (error || !data || data.length === 0) {
+        // 상세 에러 정보 출력
         console.error(
             "[quizmonRaidSessions] createRaidSession insert error",
-            error,
+            {
+                error,
+                code: error?.code,
+                message: error?.message,
+                details: error?.details,
+                hint: error?.hint,
+            },
         );
+
+        // 409 에러면 UNIQUE 제약 조건 충돌 가능성 높음
+        if (error?.code === "23505" || error?.message?.includes("duplicate") || error?.message?.includes("unique")) {
+            throw new Error(
+                "이미 열린 레이드 세션이 있습니다. 기존 레이드를 먼저 종료해주세요.",
+            );
+        }
+
         throw error ?? new Error("Failed to create raid session");
     }
 
+    console.log("[quizmonRaidSessions] created new raid session:", data[0]);
     return data[0] as QuizmonRaidSessionRow;
 }
 
@@ -137,7 +188,9 @@ export async function closeActiveRaidSession(
     const { roomId, gameSessionId } = params;
     const nowIso = new Date().toISOString();
 
-    const { error } = await supabase
+    console.log("[quizmonRaidSessions] closeActiveRaidSession:", { roomId, gameSessionId });
+
+    const { data, error } = await supabase
         .from("quizmon_raid_sessions")
         .update({
             status: "closed",
@@ -145,13 +198,21 @@ export async function closeActiveRaidSession(
         })
         .eq("room_id", roomId)
         .eq("game_session_id", gameSessionId)
-        .eq("status", "open");
+        .eq("status", "open")
+        .select("id");
 
     if (error) {
         console.error(
             "[quizmonRaidSessions] closeActiveRaidSession error",
-            error,
+            {
+                error,
+                code: error?.code,
+                message: error?.message,
+                details: error?.details,
+            },
         );
         throw error;
     }
+
+    console.log("[quizmonRaidSessions] closed raids:", data);
 }
