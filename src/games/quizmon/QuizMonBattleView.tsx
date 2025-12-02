@@ -61,7 +61,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                 display: "grid",
                 gridTemplateColumns: "2.2fr 1.5fr",
                 gap: 8,
-                fontSize: 12,
+                fontSize: "clamp(12px, 2vmin, 14px)", // 반응형 폰트
             }}
         >
             {/* 왼쪽: 메세지 + (퀴즈 phase일 때) 보기 4개 */}
@@ -71,7 +71,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                     border: "1px solid #020617",
                     background: "#020617",
                     padding: "0.4rem 0.5rem",
-                    minHeight: 60,
+                    minHeight: "clamp(60px, 10vh, 100px)", // 높이도 약간 반응형
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
@@ -79,9 +79,10 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
             >
                 <div
                     style={{
-                        fontSize: 13,
+                        fontSize: "clamp(13px, 2.2vmin, 16px)", // 메인 텍스트 반응형
                         fontWeight: 600,
                         marginBottom: isQuizPhase ? 6 : 0,
+                        lineHeight: 1.4,
                     }}
                 >
                     {mainText}
@@ -110,7 +111,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                         textAlign: "left",
                                         background: "#020617",
                                         color: "#e5e7eb",
-                                        fontSize: 12,
+                                        fontSize: "clamp(11px, 2vmin, 14px)", // 보기 텍스트 반응형
                                         cursor: "pointer",
                                     }}
                                 >
@@ -129,14 +130,14 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                     border: "1px solid #020617",
                     background: "#020617",
                     padding: "0.4rem 0.5rem",
-                    minHeight: 60,
+                    minHeight: "clamp(60px, 10vh, 100px)",
                 }}
             >
                 {showSkillGrid && (
                     <>
                         <div
                             style={{
-                                fontSize: 11,
+                                fontSize: "clamp(10px, 1.8vmin, 12px)",
                                 color: "#9ca3af",
                                 marginBottom: 4,
                             }}
@@ -166,7 +167,6 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                             ? "#020617"
                                             : "#02061780",
                                         color: "#e5e7eb",
-                                        fontSize: 12,
                                         cursor: canSelectMove
                                             ? "pointer"
                                             : "default",
@@ -176,18 +176,18 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                         style={{
                                             fontWeight: 600,
                                             marginBottom: 2,
+                                            fontSize: "clamp(11px, 2vmin, 14px)",
                                         }}
                                     >
                                         {move.name}
                                     </div>
                                     <div
                                         style={{
-                                            fontSize: 11,
+                                            fontSize: "clamp(10px, 1.6vmin, 12px)",
                                             color: "#9ca3af",
                                         }}
                                     >
-                                        위력 {move.power} · 명중률{" "}
-                                        {`${move.baseAcc ?? "-"}%`}
+                                        위력 {move.power} · 명중 {`${move.baseAcc ?? "-"}%`}
                                     </div>
                                 </button>
                             ))}
@@ -207,7 +207,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                                     borderRadius: 6,
                                     border: "1px solid #1f2937",
                                     padding: "0.25rem 0.6rem",
-                                    fontSize: 11,
+                                    fontSize: "clamp(10px, 1.8vmin, 12px)",
                                     background: canSwitch
                                         ? "#020617"
                                         : "#02061780",
@@ -226,7 +226,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                 {isFinished && (
                     <div
                         style={{
-                            fontSize: 12,
+                            fontSize: "clamp(12px, 2vmin, 14px)",
                             color: "#e5e7eb",
                         }}
                     >
@@ -282,117 +282,138 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
 
     return (
         <>
-            {/* 적 측: 상단 우측 HP + 포켓몬 */}
+            {/* 1. 적 HP UI (좌측 상단으로 이동 - 크로스 배치) */}
             <div
                 style={{
                     position: "absolute",
-                    top: 30,    // 기존 8 -> 30 (상단 여백 확보)
-                    right: 20,  // 기존 8 -> 20 (우측 여백 확보)
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                    gap: 8,
+                    top: "5%",
+                    left: "5%",
+                    zIndex: 10, // 스프라이트보다 위에 보이도록 안전장치
                 }}
             >
                 <div
                     style={{
-                        minWidth: 180,
-                        padding: "0.35rem 0.5rem",
+                        minWidth: "clamp(160px, 25vw, 240px)",
+                        padding: "0.5rem 0.75rem",
                         borderRadius: 8,
-                        background: "rgba(15,23,42,0.92)",
-                        border: "1px solid #020617",
-                        textAlign: "right",
-                        fontSize: 12,
+                        background: "rgba(15,23,42,0.85)", // 약간 투명하게
+                        border: "1px solid #334155",
+                        textAlign: "left",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.3)",
                     }}
                 >
                     <div
                         style={{
                             fontWeight: 700,
-                            marginBottom: 2,
+                            marginBottom: 4,
+                            fontSize: "clamp(12px, 2.5vmin, 16px)", // 이름 반응형
+                            display: "flex",
+                            justifyContent: "space-between",
                         }}
                     >
-                        {enemyMon.name}
+                        <span>{enemyMon.name}</span>
+                        <span style={{ fontSize: "0.9em", color: "#fbbf24" }}>Lv.{enemyMon.level}</span>
                     </div>
-                    <div
-                        style={{
-                            fontSize: 11,
-                            marginBottom: 2,
-                        }}
-                    >
-                        HP {enemyMon.hp}/{enemyMon.maxHp}
-                    </div>
+
                     <HpBar
                         current={enemyMon.hp}
                         max={enemyMon.maxHp}
                     />
-                </div>
-
-                <div
-                    style={{
-                        width: 96,
-                        height: 96,
-                        display: "flex",
-                        alignItems: "flex-end",
-                        justifyContent: "flex-end",
-                    }}
-                >
-                    {enemySprite}
+                    <div
+                        style={{
+                            fontSize: "clamp(10px, 1.8vmin, 12px)", // HP 숫자 반응형
+                            marginTop: 2,
+                            textAlign: "right",
+                            color: "#cbd5e1"
+                        }}
+                    >
+                        {enemyMon.hp}/{enemyMon.maxHp}
+                    </div>
                 </div>
             </div>
 
-            {/* 플레이어 측: 하단 좌측 포켓몬 + HP */}
+            {/* 2. 적 스프라이트 (우측 상단 유지) */}
             <div
                 style={{
                     position: "absolute",
-                    left: 20,    // 기존 16 -> 20
-                    bottom: 280, // 기존 128 -> 280 (하단 패널 위로 확실히 올림)
+                    top: "12%",
+                    right: "10%",
+                    width: 96,
+                    height: 96,
                     display: "flex",
                     alignItems: "flex-end",
-                    gap: 12,
+                    justifyContent: "flex-end",
+                    zIndex: 5,
+                }}
+            >
+                {enemySprite}
+            </div>
+
+            {/* 3. 플레이어 스프라이트 (좌측 하단 유지 - UI와 분리됨) */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: "8%",
+                    bottom: "28%", // 하단 패널 위로 충분히 띄움
+                    width: 96,
+                    height: 96,
+                    display: "flex",
+                    alignItems: "flex-end",
+                    justifyContent: "flex-start",
+                    zIndex: 5,
+                }}
+            >
+                {playerSprite}
+            </div>
+
+            {/* 4. 플레이어 HP UI (우측 하단으로 이동 - 크로스 배치) */}
+            <div
+                style={{
+                    position: "absolute",
+                    bottom: "30%", // 스프라이트와 비슷한 높이, 하지만 반대편
+                    right: "5%",
+                    zIndex: 10,
                 }}
             >
                 <div
                     style={{
-                        width: 96,
-                        height: 96,
-                        display: "flex",
-                        alignItems: "flex-end",
-                        justifyContent: "flex-start",
-                    }}
-                >
-                    {playerSprite}
-                </div>
-
-                <div
-                    style={{
-                        minWidth: 180,
-                        padding: "0.35rem 0.5rem",
+                        minWidth: "clamp(180px, 28vw, 260px)",
+                        padding: "0.5rem 0.75rem",
                         borderRadius: 8,
-                        background: "rgba(15,23,42,0.92)",
-                        border: "1px solid #020617",
-                        fontSize: 12,
+                        background: "rgba(15,23,42,0.85)",
+                        border: "1px solid #334155",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.3)",
                     }}
                 >
                     <div
                         style={{
                             fontWeight: 700,
-                            marginBottom: 2,
+                            marginBottom: 4,
+                            fontSize: "clamp(13px, 2.5vmin, 18px)", // 플레이어 이름 조금 더 크게
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center"
                         }}
                     >
-                        {playerMon.name}
+                        <span>{playerMon.name}</span>
+                        <span style={{ fontSize: "0.85em", color: "#fbbf24" }}>Lv.{playerMon.level}</span>
                     </div>
-                    <div
-                        style={{
-                            fontSize: 11,
-                            marginBottom: 2,
-                        }}
-                    >
-                        HP {playerMon.hp}/{playerMon.maxHp}
-                    </div>
+
                     <HpBar
                         current={playerMon.hp}
                         max={playerMon.maxHp}
                     />
+                    <div
+                        style={{
+                            fontSize: "clamp(11px, 2vmin, 13px)",
+                            marginTop: 2,
+                            textAlign: "right",
+                            fontWeight: 600,
+                            color: "#e2e8f0"
+                        }}
+                    >
+                        {playerMon.hp} / {playerMon.maxHp}
+                    </div>
                 </div>
             </div>
 
@@ -403,10 +424,12 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    padding: "0.6rem 0.75rem",
+                    // 패널 높이 확보
+                    padding: "0.8rem 1rem",
                     background:
-                        "linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(15,23,42,1) 60%, #020617 100%)",
-                    borderTop: "1px solid #020617",
+                        "linear-gradient(180deg, rgba(15,23,42,0.95) 0%, #020617 100%)",
+                    borderTop: "1px solid #1e293b",
+                    zIndex: 20, // UI 최상단
                 }}
             >
                 {showSwitchModal && (
@@ -423,16 +446,16 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     >
                         <div
                             style={{
-                                width: "min(360px, 100% - 2rem)",
+                                width: "min(360px, 90vw)",
                                 borderRadius: 12,
                                 border: "1px solid #1f2937",
                                 background: "#020617",
-                                padding: "0.75rem 0.85rem",
+                                padding: "1rem",
                             }}
                         >
                             <div
                                 style={{
-                                    fontSize: 14,
+                                    fontSize: "1.1rem",
                                     fontWeight: 600,
                                     color: "#e5e7eb",
                                     marginBottom: 4,
@@ -442,9 +465,9 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                             </div>
                             <div
                                 style={{
-                                    fontSize: 11,
+                                    fontSize: "0.85rem",
                                     color: "#9ca3af",
-                                    marginBottom: 8,
+                                    marginBottom: 12,
                                 }}
                             >
                                 현재 HP가 남아있는 포켓몬만 선택할 수 있습니다.
@@ -454,7 +477,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                                     display: "grid",
                                     gridTemplateColumns:
                                         "repeat(3, minmax(0, 1fr))",
-                                    gap: 6,
+                                    gap: 8,
                                 }}
                             >
                                 {state.player.monsters.map((mon, idx) => {
@@ -476,7 +499,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                                             style={{
                                                 borderRadius: 8,
                                                 border: "1px solid #1f2937",
-                                                padding: "0.3rem 0.35rem",
+                                                padding: "0.5rem",
                                                 textAlign: "left",
                                                 background: disabled
                                                     ? "#02061760"
@@ -487,23 +510,34 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                                                 cursor: disabled
                                                     ? "default"
                                                     : "pointer",
-                                                fontSize: 11,
+                                                fontSize: "0.8rem",
+                                                position: "relative",
                                             }}
                                         >
                                             <div
                                                 style={{
                                                     fontWeight: 600,
                                                     marginBottom: 2,
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap"
                                                 }}
                                             >
                                                 {mon.name}
                                             </div>
                                             <div
                                                 style={{
-                                                    fontSize: 10,
+                                                    fontSize: "0.75rem",
                                                     color: "#9ca3af",
                                                 }}
-                                            >Lv {mon.level} · HP {mon.hp}/{mon.maxHp}
+                                            >Lv.{mon.level}</div>
+                                            <div
+                                                style={{
+                                                    fontSize: "0.75rem",
+                                                    color: isDead ? "#ef4444" : "#9ca3af",
+                                                }}
+                                            >
+                                                {mon.hp}/{mon.maxHp}
                                             </div>
                                         </button>
                                     );
@@ -512,7 +546,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
 
                             <div
                                 style={{
-                                    marginTop: 10,
+                                    marginTop: 16,
                                     display: "flex",
                                     justifyContent: "flex-end",
                                 }}
@@ -523,10 +557,11 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                                     style={{
                                         borderRadius: 6,
                                         border: "1px solid #374151",
-                                        padding: "0.25rem 0.6rem",
-                                        fontSize: 12,
+                                        padding: "0.4rem 1rem",
+                                        fontSize: "0.9rem",
                                         background: "#020617",
                                         color: "#e5e7eb",
+                                        cursor: "pointer"
                                     }}
                                 >
                                     취소
