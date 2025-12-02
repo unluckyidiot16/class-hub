@@ -10,6 +10,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Drains half the damage inflicted to heal the user.",
+    "descriptionKo": "Drains half the damage inflicted to heal the user.",
     "meta": {}
   },
   {
@@ -23,6 +25,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to lower the target’s Special Defense by one stage.",
+    "descriptionKo": "Has a 10% chance to lower the target’s Special Defense by one stage.",
     "meta": {}
   },
   {
@@ -36,6 +40,8 @@
     "pp": 20,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Defense by two stages.",
+    "descriptionKo": "Raises the user’s Defense by two stages.",
     "meta": {}
   },
   {
@@ -49,6 +55,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Speed by two stages.",
+    "descriptionKo": "Raises the user’s Speed by two stages.",
     "meta": {}
   },
   {
@@ -62,6 +70,8 @@
     "pp": 20,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Special Defense by two stages.",
+    "descriptionKo": "Raises the user’s Special Defense by two stages.",
     "meta": {}
   },
   {
@@ -75,6 +85,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to lower the target’s Attack by one stage.",
+    "descriptionKo": "Has a 10% chance to lower the target’s Attack by one stage.",
     "meta": {}
   },
   {
@@ -88,6 +100,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -101,6 +115,8 @@
     "pp": 20,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Defense by two stages.",
+    "descriptionKo": "Raises the user’s Defense by two stages.",
     "meta": {}
   },
   {
@@ -114,6 +130,8 @@
     "pp": 10,
     "priority": 1,
     "target": "self",
+    "description": "User waits for two turns, then hits back for twice the damage it took.",
+    "descriptionKo": "User waits for two turns, then hits back for twice the damage it took.",
     "meta": {}
   },
   {
@@ -127,6 +145,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
+    "descriptionKo": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
     "meta": {}
   },
   {
@@ -140,6 +160,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to make the target flinch.",
+    "descriptionKo": "Has a 30% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -153,6 +175,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to freeze the target.",
+    "descriptionKo": "Has a 10% chance to freeze the target.",
     "meta": {}
   },
   {
@@ -166,6 +190,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to paralyze the target.",
+    "descriptionKo": "Has a 30% chance to paralyze the target.",
     "meta": {}
   },
   {
@@ -179,6 +205,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to make the target flinch.",
+    "descriptionKo": "Has a 10% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -192,6 +220,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits twice in one turn.",
+    "descriptionKo": "Hits twice in one turn.",
     "meta": {}
   },
   {
@@ -205,6 +235,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to lower the target’s Speed by one stage.",
+    "descriptionKo": "Has a 10% chance to lower the target’s Speed by one stage.",
     "meta": {}
   },
   {
@@ -218,6 +250,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to lower the target’s Speed by one stage.",
+    "descriptionKo": "Has a 10% chance to lower the target’s Speed by one stage.",
     "meta": {}
   },
   {
@@ -231,6 +265,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
+    "descriptionKo": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
     "meta": {}
   },
   {
@@ -244,6 +280,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -257,6 +295,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Confuses the target.",
+    "descriptionKo": "Confuses the target.",
     "meta": {}
   },
   {
@@ -270,6 +310,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to confuse the target.",
+    "descriptionKo": "Has a 10% chance to confuse the target.",
     "meta": {}
   },
   {
@@ -283,6 +325,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to lower the target’s Speed by one stage.",
+    "descriptionKo": "Has a 10% chance to lower the target’s Speed by one stage.",
     "meta": {}
   },
   {
@@ -296,6 +340,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "User’s type changes to the type of one of its moves at random.",
+    "descriptionKo": "User’s type changes to the type of one of its moves at random.",
     "meta": {}
   },
   {
@@ -309,6 +355,8 @@
     "pp": 20,
     "priority": -5,
     "target": "enemy",
+    "description": "Inflicts twice the damage the user received from the last physical hit it took.",
+    "descriptionKo": "Inflicts twice the damage the user received from the last physical hit it took.",
     "meta": {}
   },
   {
@@ -322,6 +370,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has an increased chance for a critical hit.",
+    "descriptionKo": "Has an increased chance for a critical hit.",
     "meta": {
       "highCrit": true
     }
@@ -337,6 +387,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -350,6 +402,8 @@
     "pp": 40,
     "priority": 0,
     "target": "self",
+    "description": "Raises user’s Defense by one stage.",
+    "descriptionKo": "Raises user’s Defense by one stage.",
     "meta": {}
   },
   {
@@ -363,6 +417,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "User digs underground, dodging all attacks, and hits next turn.",
+    "descriptionKo": "User digs underground, dodging all attacks, and hits next turn.",
     "meta": {}
   },
   {
@@ -376,6 +432,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Disables the target’s last used move for 1-8 turns.",
+    "descriptionKo": "Disables the target’s last used move for 1-8 turns.",
     "meta": {}
   },
   {
@@ -389,6 +447,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 20% chance to confuse the target.",
+    "descriptionKo": "Has a 20% chance to confuse the target.",
     "meta": {}
   },
   {
@@ -402,6 +462,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "User receives 1/3 the damage inflicted in recoil.",
+    "descriptionKo": "User receives 1/3 the damage inflicted in recoil.",
     "meta": {}
   },
   {
@@ -415,6 +477,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits twice in one turn.",
+    "descriptionKo": "Hits twice in one turn.",
     "meta": {}
   },
   {
@@ -428,6 +492,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -441,6 +507,8 @@
     "pp": 15,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s evasion by one stage.",
+    "descriptionKo": "Raises the user’s evasion by one stage.",
     "meta": {}
   },
   {
@@ -454,6 +522,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts 40 points of damage.",
+    "descriptionKo": "Inflicts 40 points of damage.",
     "meta": {}
   },
   {
@@ -467,6 +537,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Only works on sleeping Pokémon.  Drains half the damage inflicted to heal the user.",
+    "descriptionKo": "Only works on sleeping Pokémon.  Drains half the damage inflicted to heal the user.",
     "meta": {}
   },
   {
@@ -480,6 +552,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -493,6 +567,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage and can hit Dig users.",
+    "descriptionKo": "Inflicts regular damage and can hit Dig users.",
     "meta": {}
   },
   {
@@ -506,6 +582,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -519,6 +597,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to burn the target.",
+    "descriptionKo": "Has a 10% chance to burn the target.",
     "meta": {}
   },
   {
@@ -532,6 +612,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "User faints.",
+    "descriptionKo": "User faints.",
     "meta": {}
   },
   {
@@ -545,6 +627,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to burn the target.",
+    "descriptionKo": "Has a 10% chance to burn the target.",
     "meta": {}
   },
   {
@@ -558,6 +642,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to burn the target.",
+    "descriptionKo": "Has a 10% chance to burn the target.",
     "meta": {}
   },
   {
@@ -571,6 +657,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
+    "descriptionKo": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
     "meta": {}
   },
   {
@@ -584,6 +672,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Causes a one-hit KO.",
+    "descriptionKo": "Causes a one-hit KO.",
     "meta": {}
   },
   {
@@ -597,6 +687,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to burn the target.",
+    "descriptionKo": "Has a 10% chance to burn the target.",
     "meta": {}
   },
   {
@@ -610,6 +702,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s accuracy by one stage.",
+    "descriptionKo": "Lowers the target’s accuracy by one stage.",
     "meta": {}
   },
   {
@@ -623,6 +717,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "User flies high into the air, dodging all attacks, and hits next turn.",
+    "descriptionKo": "User flies high into the air, dodging all attacks, and hits next turn.",
     "meta": {}
   },
   {
@@ -636,6 +732,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "Increases the user’s chance to score a critical hit.",
+    "descriptionKo": "Increases the user’s chance to score a critical hit.",
     "meta": {}
   },
   {
@@ -649,6 +747,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -662,6 +762,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -675,6 +777,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Paralyzes the target.",
+    "descriptionKo": "Paralyzes the target.",
     "meta": {}
   },
   {
@@ -688,6 +792,8 @@
     "pp": 40,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s Attack by one stage.",
+    "descriptionKo": "Lowers the target’s Attack by one stage.",
     "meta": {}
   },
   {
@@ -701,6 +807,8 @@
     "pp": 20,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Attack and Special Attack by one stage.",
+    "descriptionKo": "Raises the user’s Attack and Special Attack by one stage.",
     "meta": {}
   },
   {
@@ -714,6 +822,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Causes a one-hit KO.",
+    "descriptionKo": "Causes a one-hit KO.",
     "meta": {}
   },
   {
@@ -727,6 +837,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage and can hit Pokémon in the air.",
+    "descriptionKo": "Inflicts regular damage and can hit Pokémon in the air.",
     "meta": {}
   },
   {
@@ -740,6 +852,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Defense by one stage.",
+    "descriptionKo": "Raises the user’s Defense by one stage.",
     "meta": {}
   },
   {
@@ -753,6 +867,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Resets all Pokémon’s stats, accuracy, and evasion.",
+    "descriptionKo": "Resets all Pokémon’s stats, accuracy, and evasion.",
     "meta": {}
   },
   {
@@ -766,6 +882,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to make the target flinch.",
+    "descriptionKo": "Has a 30% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -779,6 +897,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "If the user misses, it takes half the damage it would have inflicted in recoil.",
+    "descriptionKo": "If the user misses, it takes half the damage it would have inflicted in recoil.",
     "meta": {}
   },
   {
@@ -792,6 +912,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -805,6 +927,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Causes a one-hit KO.",
+    "descriptionKo": "Causes a one-hit KO.",
     "meta": {}
   },
   {
@@ -818,6 +942,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -831,6 +957,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "User foregoes its next turn to recharge.",
+    "descriptionKo": "User foregoes its next turn to recharge.",
     "meta": {}
   },
   {
@@ -844,6 +972,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to make the target flinch.",
+    "descriptionKo": "Has a 10% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -857,6 +987,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Puts the target to sleep.",
+    "descriptionKo": "Puts the target to sleep.",
     "meta": {}
   },
   {
@@ -870,6 +1002,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to freeze the target.",
+    "descriptionKo": "Has a 10% chance to freeze the target.",
     "meta": {}
   },
   {
@@ -883,6 +1017,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to freeze the target.",
+    "descriptionKo": "Has a 10% chance to freeze the target.",
     "meta": {}
   },
   {
@@ -896,6 +1032,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "If the user misses, it takes half the damage it would have inflicted in recoil.",
+    "descriptionKo": "If the user misses, it takes half the damage it would have inflicted in recoil.",
     "meta": {}
   },
   {
@@ -909,6 +1047,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Has an increased chance for a critical hit.",
+    "descriptionKo": "Has an increased chance for a critical hit.",
     "meta": {
       "highCrit": true
     }
@@ -924,6 +1064,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s accuracy by one stage.",
+    "descriptionKo": "Lowers the target’s accuracy by one stage.",
     "meta": {}
   },
   {
@@ -937,6 +1079,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Drains half the damage inflicted to heal the user.",
+    "descriptionKo": "Drains half the damage inflicted to heal the user.",
     "meta": {}
   },
   {
@@ -950,6 +1094,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Seeds the target, stealing HP from it every turn.",
+    "descriptionKo": "Seeds the target, stealing HP from it every turn.",
     "meta": {}
   },
   {
@@ -963,6 +1109,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s Defense by one stage.",
+    "descriptionKo": "Lowers the target’s Defense by one stage.",
     "meta": {}
   },
   {
@@ -976,6 +1124,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to paralyze the target.",
+    "descriptionKo": "Has a 30% chance to paralyze the target.",
     "meta": {}
   },
   {
@@ -989,6 +1139,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "Reduces damage from special attacks by 50% for five turns.",
+    "descriptionKo": "Reduces damage from special attacks by 50% for five turns.",
     "meta": {}
   },
   {
@@ -1002,6 +1154,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Puts the target to sleep.",
+    "descriptionKo": "Puts the target to sleep.",
     "meta": {}
   },
   {
@@ -1015,6 +1169,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts more damage to heavier targets, with a maximum of 120 power.",
+    "descriptionKo": "Inflicts more damage to heavier targets, with a maximum of 120 power.",
     "meta": {}
   },
   {
@@ -1028,6 +1184,8 @@
     "pp": 40,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Attack by one stage.",
+    "descriptionKo": "Raises the user’s Attack by one stage.",
     "meta": {}
   },
   {
@@ -1041,6 +1199,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Drains half the damage inflicted to heal the user.",
+    "descriptionKo": "Drains half the damage inflicted to heal the user.",
     "meta": {}
   },
   {
@@ -1054,6 +1214,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1067,6 +1229,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1080,6 +1244,8 @@
     "pp": 10,
     "priority": 0,
     "target": "self",
+    "description": "Randomly selects and uses any move in the game.",
+    "descriptionKo": "Randomly selects and uses any move in the game.",
     "meta": {}
   },
   {
@@ -1093,6 +1259,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Copies the target’s last used move.",
+    "descriptionKo": "Copies the target’s last used move.",
     "meta": {}
   },
   {
@@ -1106,6 +1274,8 @@
     "pp": 10,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s evasion by two stages.",
+    "descriptionKo": "Raises the user’s evasion by two stages.",
     "meta": {}
   },
   {
@@ -1119,6 +1289,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Uses the target’s last used move.",
+    "descriptionKo": "Uses the target’s last used move.",
     "meta": {}
   },
   {
@@ -1132,6 +1304,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "Protects the user’s stats from being changed by enemy moves.",
+    "descriptionKo": "Protects the user’s stats from being changed by enemy moves.",
     "meta": {}
   },
   {
@@ -1145,6 +1319,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts damage equal to the user’s level.",
+    "descriptionKo": "Inflicts damage equal to the user’s level.",
     "meta": {}
   },
   {
@@ -1158,6 +1334,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Scatters money on the ground worth five times the user’s level.",
+    "descriptionKo": "Scatters money on the ground worth five times the user’s level.",
     "meta": {}
   },
   {
@@ -1171,6 +1349,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1184,6 +1364,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits every turn for 2-3 turns, then confuses the user.",
+    "descriptionKo": "Hits every turn for 2-3 turns, then confuses the user.",
     "meta": {}
   },
   {
@@ -1197,6 +1379,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -1210,6 +1394,8 @@
     "pp": 40,
     "priority": 0,
     "target": "enemy",
+    "description": "Poisons the target.",
+    "descriptionKo": "Poisons the target.",
     "meta": {}
   },
   {
@@ -1223,6 +1409,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Poisons the target.",
+    "descriptionKo": "Poisons the target.",
     "meta": {}
   },
   {
@@ -1236,6 +1424,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to poison the target.",
+    "descriptionKo": "Has a 30% chance to poison the target.",
     "meta": {}
   },
   {
@@ -1249,6 +1439,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1262,6 +1454,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to confuse the target.",
+    "descriptionKo": "Has a 10% chance to confuse the target.",
     "meta": {}
   },
   {
@@ -1275,6 +1469,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to lower the target’s Special Defense by one stage.",
+    "descriptionKo": "Has a 10% chance to lower the target’s Special Defense by one stage.",
     "meta": {}
   },
   {
@@ -1288,6 +1484,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts damage between 50% and 150% of the user’s level.",
+    "descriptionKo": "Inflicts damage between 50% and 150% of the user’s level.",
     "meta": {}
   },
   {
@@ -1301,6 +1499,8 @@
     "pp": 30,
     "priority": 1,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1314,6 +1514,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "If the user is hit after using this move, its Attack rises by one stage.",
+    "descriptionKo": "If the user is hit after using this move, its Attack rises by one stage.",
     "meta": {}
   },
   {
@@ -1327,6 +1529,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Has an increased chance for a critical hit.",
+    "descriptionKo": "Has an increased chance for a critical hit.",
     "meta": {
       "highCrit": true
     }
@@ -1342,6 +1546,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Requires a turn to charge before attacking.",
+    "descriptionKo": "Requires a turn to charge before attacking.",
     "meta": {
       "highCrit": true
     }
@@ -1357,6 +1563,8 @@
     "pp": 5,
     "priority": 0,
     "target": "self",
+    "description": "Heals the user by half its max HP.",
+    "descriptionKo": "Heals the user by half its max HP.",
     "meta": {}
   },
   {
@@ -1370,6 +1578,8 @@
     "pp": 20,
     "priority": 0,
     "target": "self",
+    "description": "Reduces damage from physical attacks by half.",
+    "descriptionKo": "Reduces damage from physical attacks by half.",
     "meta": {}
   },
   {
@@ -1383,6 +1593,8 @@
     "pp": 5,
     "priority": 0,
     "target": "self",
+    "description": "User sleeps for two turns, completely healing itself.",
+    "descriptionKo": "User sleeps for two turns, completely healing itself.",
     "meta": {}
   },
   {
@@ -1396,6 +1608,8 @@
     "pp": 20,
     "priority": -6,
     "target": "enemy",
+    "description": "Immediately ends wild battles.  Forces trainers to switch Pokémon.",
+    "descriptionKo": "Immediately ends wild battles.  Forces trainers to switch Pokémon.",
     "meta": {}
   },
   {
@@ -1409,6 +1623,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to make the target flinch.",
+    "descriptionKo": "Has a 30% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -1422,6 +1638,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1435,6 +1653,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to make the target flinch.",
+    "descriptionKo": "Has a 30% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -1448,6 +1668,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s accuracy by one stage.",
+    "descriptionKo": "Lowers the target’s accuracy by one stage.",
     "meta": {}
   },
   {
@@ -1461,6 +1683,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1474,6 +1698,8 @@
     "pp": 40,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s Defense by two stages.",
+    "descriptionKo": "Lowers the target’s Defense by two stages.",
     "meta": {}
   },
   {
@@ -1487,6 +1713,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts damage equal to the user’s level.",
+    "descriptionKo": "Inflicts damage equal to the user’s level.",
     "meta": {}
   },
   {
@@ -1500,6 +1728,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "User faints.",
+    "descriptionKo": "User faints.",
     "meta": {}
   },
   {
@@ -1513,6 +1743,8 @@
     "pp": 30,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Attack by one stage.",
+    "descriptionKo": "Raises the user’s Attack by one stage.",
     "meta": {}
   },
   {
@@ -1526,6 +1758,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Puts the target to sleep.",
+    "descriptionKo": "Puts the target to sleep.",
     "meta": {}
   },
   {
@@ -1539,6 +1773,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Raises the user’s Defense by one stage.  User charges for one turn before attacking.",
+    "descriptionKo": "Raises the user’s Defense by one stage.  User charges for one turn before attacking.",
     "meta": {}
   },
   {
@@ -1552,6 +1788,8 @@
     "pp": 5,
     "priority": 0,
     "target": "enemy",
+    "description": "User charges for one turn before attacking.  Has a 30% chance to make the target flinch.",
+    "descriptionKo": "User charges for one turn before attacking.  Has a 30% chance to make the target flinch.",
     "meta": {
       "highCrit": true
     }
@@ -1567,6 +1805,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1580,6 +1820,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has an increased chance for a critical hit.",
+    "descriptionKo": "Has an increased chance for a critical hit.",
     "meta": {
       "highCrit": true
     }
@@ -1595,6 +1837,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Puts the target to sleep.",
+    "descriptionKo": "Puts the target to sleep.",
     "meta": {}
   },
   {
@@ -1608,6 +1852,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to poison the target.",
+    "descriptionKo": "Has a 30% chance to poison the target.",
     "meta": {}
   },
   {
@@ -1621,6 +1867,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 40% chance to poison the target.",
+    "descriptionKo": "Has a 40% chance to poison the target.",
     "meta": {}
   },
   {
@@ -1634,6 +1882,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s accuracy by one stage.",
+    "descriptionKo": "Lowers the target’s accuracy by one stage.",
     "meta": {}
   },
   {
@@ -1647,6 +1897,8 @@
     "pp": 5,
     "priority": 0,
     "target": "self",
+    "description": "Heals the user by half its max HP.",
+    "descriptionKo": "Heals the user by half its max HP.",
     "meta": {}
   },
   {
@@ -1660,6 +1912,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Requires a turn to charge before attacking.",
+    "descriptionKo": "Requires a turn to charge before attacking.",
     "meta": {}
   },
   {
@@ -1673,6 +1927,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts 20 points of damage.",
+    "descriptionKo": "Inflicts 20 points of damage.",
     "meta": {}
   },
   {
@@ -1686,6 +1942,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits 2-5 times in one turn.",
+    "descriptionKo": "Hits 2-5 times in one turn.",
     "meta": {}
   },
   {
@@ -1699,6 +1957,8 @@
     "pp": 40,
     "priority": 0,
     "target": "self",
+    "description": "Does nothing.",
+    "descriptionKo": "Does nothing.",
     "meta": {}
   },
   {
@@ -1712,6 +1972,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Puts the target to sleep.",
+    "descriptionKo": "Puts the target to sleep.",
     "meta": {}
   },
   {
@@ -1725,6 +1987,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to make the target flinch.",
+    "descriptionKo": "Has a 30% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -1738,6 +2002,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1751,6 +2017,8 @@
     "pp": 40,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s Speed by two stages.",
+    "descriptionKo": "Lowers the target’s Speed by two stages.",
     "meta": {}
   },
   {
@@ -1764,6 +2032,8 @@
     "pp": 1,
     "priority": 0,
     "target": "enemy",
+    "description": "User takes 1/4 its max HP in recoil.",
+    "descriptionKo": "User takes 1/4 its max HP in recoil.",
     "meta": {}
   },
   {
@@ -1777,6 +2047,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Paralyzes the target.",
+    "descriptionKo": "Paralyzes the target.",
     "meta": {}
   },
   {
@@ -1790,6 +2062,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "User receives 1/4 the damage it inflicts in recoil.",
+    "descriptionKo": "User receives 1/4 the damage it inflicts in recoil.",
     "meta": {}
   },
   {
@@ -1803,6 +2077,8 @@
     "pp": 10,
     "priority": 0,
     "target": "self",
+    "description": "Transfers 1/4 of the user’s max HP into a doll, protecting the user from further damage or status changes until it breaks.",
+    "descriptionKo": "Transfers 1/4 of the user’s max HP into a doll, protecting the user from further damage or status changes until it breaks.",
     "meta": {}
   },
   {
@@ -1816,6 +2092,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts damage equal to half the target’s HP.",
+    "descriptionKo": "Inflicts damage equal to half the target’s HP.",
     "meta": {}
   },
   {
@@ -1829,6 +2107,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Confuses the target.",
+    "descriptionKo": "Confuses the target.",
     "meta": {}
   },
   {
@@ -1842,6 +2122,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage and can hit Dive users.",
+    "descriptionKo": "Inflicts regular damage and can hit Dive users.",
     "meta": {}
   },
   {
@@ -1855,6 +2137,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Never misses.",
+    "descriptionKo": "Never misses.",
     "meta": {}
   },
   {
@@ -1868,6 +2152,8 @@
     "pp": 20,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Attack by two stages.",
+    "descriptionKo": "Raises the user’s Attack by two stages.",
     "meta": {}
   },
   {
@@ -1881,6 +2167,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -1894,6 +2182,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Lowers the target’s Defense by one stage.",
+    "descriptionKo": "Lowers the target’s Defense by one stage.",
     "meta": {}
   },
   {
@@ -1907,6 +2197,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "User receives 1/4 the damage it inflicts in recoil.",
+    "descriptionKo": "User receives 1/4 the damage it inflicts in recoil.",
     "meta": {}
   },
   {
@@ -1920,6 +2212,8 @@
     "pp": 20,
     "priority": -6,
     "target": "self",
+    "description": "Immediately ends wild battles.  No effect otherwise.",
+    "descriptionKo": "Immediately ends wild battles.  No effect otherwise.",
     "meta": {}
   },
   {
@@ -1933,6 +2227,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits every turn for 2-3 turns, then confuses the user.",
+    "descriptionKo": "Hits every turn for 2-3 turns, then confuses the user.",
     "meta": {}
   },
   {
@@ -1946,6 +2242,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 30% chance to paralyze the target.",
+    "descriptionKo": "Has a 30% chance to paralyze the target.",
     "meta": {}
   },
   {
@@ -1959,6 +2257,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to paralyze the target.",
+    "descriptionKo": "Has a 10% chance to paralyze the target.",
     "meta": {}
   },
   {
@@ -1972,6 +2272,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to paralyze the target.",
+    "descriptionKo": "Has a 10% chance to paralyze the target.",
     "meta": {}
   },
   {
@@ -1985,6 +2287,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Paralyzes the target.",
+    "descriptionKo": "Paralyzes the target.",
     "meta": {}
   },
   {
@@ -1998,6 +2302,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 10% chance to paralyze the target.",
+    "descriptionKo": "Has a 10% chance to paralyze the target.",
     "meta": {}
   },
   {
@@ -2011,6 +2317,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Badly poisons the target, inflicting more damage every turn.",
+    "descriptionKo": "Badly poisons the target, inflicting more damage every turn.",
     "meta": {}
   },
   {
@@ -2024,6 +2332,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "User becomes a copy of the target until it leaves battle.",
+    "descriptionKo": "User becomes a copy of the target until it leaves battle.",
     "meta": {}
   },
   {
@@ -2037,6 +2347,8 @@
     "pp": 10,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 20% chance to burn, freeze, or paralyze the target.",
+    "descriptionKo": "Has a 20% chance to burn, freeze, or paralyze the target.",
     "meta": {}
   },
   {
@@ -2050,6 +2362,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Hits twice in the same turn.  Has a 20% chance to poison the target.",
+    "descriptionKo": "Hits twice in the same turn.  Has a 20% chance to poison the target.",
     "meta": {}
   },
   {
@@ -2063,6 +2377,8 @@
     "pp": 30,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -2076,6 +2392,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -2089,6 +2407,8 @@
     "pp": 25,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -2102,6 +2422,8 @@
     "pp": 15,
     "priority": 0,
     "target": "enemy",
+    "description": "Has a 20% chance to make the target flinch.",
+    "descriptionKo": "Has a 20% chance to make the target flinch.",
     "meta": {}
   },
   {
@@ -2115,6 +2437,8 @@
     "pp": 20,
     "priority": -6,
     "target": "enemy",
+    "description": "Immediately ends wild battles.  Forces trainers to switch Pokémon.",
+    "descriptionKo": "Immediately ends wild battles.  Forces trainers to switch Pokémon.",
     "meta": {}
   },
   {
@@ -2128,6 +2452,8 @@
     "pp": 35,
     "priority": 0,
     "target": "enemy",
+    "description": "Inflicts regular damage with no additional effect.",
+    "descriptionKo": "Inflicts regular damage with no additional effect.",
     "meta": {}
   },
   {
@@ -2141,6 +2467,8 @@
     "pp": 40,
     "priority": 0,
     "target": "self",
+    "description": "Raises the user’s Defense by one stage.",
+    "descriptionKo": "Raises the user’s Defense by one stage.",
     "meta": {}
   },
   {
@@ -2154,6 +2482,8 @@
     "pp": 20,
     "priority": 0,
     "target": "enemy",
+    "description": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
+    "descriptionKo": "Prevents the target from fleeing and inflicts damage for 2-5 turns.",
     "meta": {}
   }
 ]

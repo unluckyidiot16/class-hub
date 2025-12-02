@@ -1,5 +1,6 @@
 // src/games/quizmon/battleFactory.ts
 import type {
+    AbilityMeta,
     Monster,
     Move,
     QuizmonOwnedMonsterRow,
@@ -7,6 +8,8 @@ import type {
 } from "./types";
 import { calcDerivedStats } from "./stats";
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
+import { ABILITY_DB } from "./abilityData";            // 추가
+import { getTypeEffectiveness } from "./elementUtils";
 
 export type BattleMonsterCore = Monster;
 export type QuizmonSpeciesLike = QuizmonSpeciesRow;
@@ -144,6 +147,7 @@ export function buildBattleMonsterFromSpecies(
         speciesId: species.id,
         level,
         element: anySpecies.element ?? "normal",
+        element2: anySpecies.element2 ?? null,
 
         // 🔹 덩치 정보 (logic.ts에서 명중률 계산에 사용)
         pokedexNo,
@@ -158,8 +162,10 @@ export function buildBattleMonsterFromSpecies(
         // 기술
         moves,
 
-        // extra 로 덮어쓸 수 있도록 최소 필드만 채움
+        // 특성
+        abilityId: (owned as any)?.ability_id ?? null,
     };
+
 
     const monster: Monster = extra
         ? ({ ...baseMonster, ...extra } as Monster)
@@ -167,3 +173,131 @@ export function buildBattleMonsterFromSpecies(
 
     return monster;
 }
+
+// ---- 대미지 보정: STAB + 타입 상성 + 특성(meta) ----
+
+function getHpRatio(mon: Monster): number {
+    if (!mon.maxHp || mon.maxHp <= 0) return 1;
+    return Math.max(0, Math.min(1, mon.hp / mon.maxHp));
+}
+
+function getAbilityMetaById(abilityId: string | null | undefined): AbilityMeta | undefined {
+    if (!abilityId) return undefined;
+    const ability = ABILITY_DB[abilityId];
+    return ability?.meta;
+}
+
+function computeAbilityDamageOutModifier(
+    meta: AbilityMeta | undefined,
+    attacker: Monster,
+    move: Move,
+): number {
+    if (!meta?.damageOut || !Array.isArray(meta.damageOut)) return 1;
+
+    const hpRatio = getHpRatio(attacker);
+    let mul = 1;
+
+    for (const rule of meta.damageOut) {
+        const elementOk =
+            !rule.element || rule.element === move.element;
+        const hpOk =
+            typeof rule.whenHpBelowOrEqual === "number"
+                ? hpRatio <= rule.whenHpBelowOrEqual
+                : true;
+
+        if (elementOk && hpOk && typeof rule.multiplier === "number") {
+            mul *= rule.multiplier;
+        }
+    }
+
+    return mul;
+}
+
+function computeAbilityDamageInModifier(
+    meta: AbilityMeta | undefined,
+    defender: Monster,
+    move: Move,
+): number {
+    if (!meta?.damageIn || !Array.isArray(meta.damageIn)) return 1;
+
+    const hpRatio = getHpRatio(defender);
+    let mul = 1;
+
+    for (const rule of meta.damageIn) {
+        const elementOk =
+            !rule.element || rule.element === move.element;
+        const hpOk =
+            typeof rule.whenHpBelowOrEqual === "number"
+                ? hpRatio <= rule.whenHpBelowOrEqual
+                : true;
+
+        if (elementOk && hpOk && typeof rule.multiplier === "number") {
+            mul *= rule.multiplier;
+        }
+    }
+
+    return mul;
+}
+
+export type DamageMultiplierBreakdown = {
+    stab: number;
+    type: number;
+    ability: number;
+    total: number;
+};
+
+/**
+ * STAB + 타입 상성 + 특성(meta) 보정을 한 번에 계산
+ */
+export function computeDamageMultiplier(
+    attacker: Monster,
+    defender: Monster,
+    move: Move,
+): DamageMultiplierBreakdown {
+    const moveElement = move.element;
+
+    // 1) STAB
+    const atkAbilityMeta = getAbilityMetaById(attacker.abilityId ?? null);
+    const hasStab =
+        attacker.element === moveElement ||
+        attacker.element2 === moveElement;
+
+    const baseStab = hasStab ? 1.5 : 1.0;
+    const abilityStab = hasStab && typeof atkAbilityMeta?.stabMultiplier === "number"
+        ? atkAbilityMeta.stabMultiplier
+        : baseStab;
+    const stab = abilityStab;
+
+    // 2) 타입 상성 (1차/2차 모두 반영)
+    const defenderTypes = [
+        defender.element ?? null,
+        defender.element2 && defender.element2 !== defender.element
+            ? defender.element2
+            : null,
+    ];
+    const typeMult = getTypeEffectiveness(moveElement, defenderTypes);
+
+    // 3) 특성(meta) 보정
+    const defAbilityMeta = getAbilityMetaById(defender.abilityId ?? null);
+    const abilityOut = computeAbilityDamageOutModifier(
+        atkAbilityMeta,
+        attacker,
+        move,
+    );
+    const abilityIn = computeAbilityDamageInModifier(
+        defAbilityMeta,
+        defender,
+        move,
+    );
+    const abilityMult = abilityOut * abilityIn;
+
+    const total = stab * typeMult * abilityMult;
+
+    return {
+        stab,
+        type: typeMult,
+        ability: abilityMult,
+        total,
+    };
+}
+

@@ -1,6 +1,7 @@
 // src/games/quizmon/logic.ts
 import type { Monster, Move, QuizAnswerResult } from "./types";
 import { getPokemonDimension } from "./pokemonDimensions";
+import { computeDamageMultiplier } from "./battleFactory";
 
 /**
  * 퀴즈 결과 → 공격/명중 공통 배율
@@ -191,26 +192,37 @@ export type MonsterLike = {
  * - 실제 포켓몬 공식보다 단순하게:
  *   dmg ≒ (공격력 * 위력 / 방어력) * 랜덤(0.85~1.15)
  */
-export function calcDamage<
-    TAttacker extends MonsterLike,
-    TDefender extends MonsterLike
->(
-    attacker: TAttacker,
-    defender: TDefender,
-    move: Move,
-): number {
+export function calcDamage(attacker: Monster, defender: Monster, move: Move): number {
     const basePower = move.power ?? 40;
-    const atk = attacker.atk;
-    const def = Math.max(1, defender.def);
 
-    const raw = (atk * basePower) / def;
+    const attackStat = attacker.atk;
+    const defenseStat = defender.def;
 
-    // 약간의 랜덤 보정
-    const variance = 0.85 + Math.random() * 0.3; // 0.85 ~ 1.15
-    const dmg = Math.floor(raw * variance);
+    // 포켓몬식 기본 공식에 가까운 형태 (단순화 버전)
+    const levelFactor = (2 * attacker.level) / 5 + 2;
+    const baseDamage =
+        (((levelFactor * basePower * (attackStat / Math.max(1, defenseStat))) /
+                50) +
+            2) | 0;
 
-    return Math.max(1, dmg);
+    // STAB + 타입 상성 + 특성(meta) 보정
+    const { total: typeAndAbilityMultiplier } = computeDamageMultiplier(
+        attacker,
+        defender,
+        move,
+    );
+
+    // 랜덤 요소 (±15%)
+    const rand = 0.85 + Math.random() * 0.3;
+
+    const final = Math.max(
+        1,
+        Math.round(baseDamage * typeAndAbilityMultiplier * rand),
+    );
+
+    return final;
 }
+
 
 /**
  * 몬스터 HP 감소 적용

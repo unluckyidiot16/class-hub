@@ -35,12 +35,58 @@ export type MoveCategory = "physical" | "special" | "status";
  */
 export type MoveTarget = "enemy" | "ally" | "self" | "field";
 
-export type AbilityId = "overgrow" | "water_guard";
+// 특성 ID는 이제 문자열 전체 허용 (DB/JSON 기반)
+export type AbilityId = string;
+
+export type AbilityDamageRule = {
+    /**
+     * 이 룰이 적용될 기술/피해 타입
+     * - 공격 측: move.element 와 비교
+     * - 방어 측: 들어오는 공격의 타입과 비교
+     */
+    element?: ElementType;
+
+    /**
+     * (선택) 현재 HP 비율 조건
+     * - 예: 0.33 → HP가 1/3 이하일 때만 적용 (Overgrow 류)
+     */
+    whenHpBelowOrEqual?: number;
+
+    /**
+     * 배율 (예: 1.5, 0.8, 0)
+     */
+    multiplier: number;
+};
+
+export type AbilityMeta = {
+    /**
+     * 공격 시 최종 대미지 배율에 곱해지는 룰 목록
+     * - 예: Overgrow / Blaze / Torrent / Swarm
+     */
+    damageOut?: AbilityDamageRule[];
+
+    /**
+     * 피격 시 최종 대미지 배율에 곱해지는 룰 목록
+     * - 예: 물 기술 피해 0.8배 같은 방어형 특성
+     */
+    damageIn?: AbilityDamageRule[];
+
+    /**
+     * STAB(같은 타입 보너스) 배율 커스텀
+     * - 기본 1.5, 예: Adaptability → 2.0
+     */
+    stabMultiplier?: number;
+
+    // 필요하면 이후 crit / status 등 더 확장 가능
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+};
 
 export type Ability = {
     id: AbilityId;
     name: string;
     description: string;
+    meta?: AbilityMeta;
 };
 
 /**
@@ -108,6 +154,8 @@ export type Monster = {
     speciesId?: string;  // 종 ID (quizmon_species.id)
     name: string;
     element: ElementType;
+    element2?: ElementType | null;  // 서브 타입 (없으면 null/undefined)
+
 
     // 레벨/경험치 (QuizMon에서는 항상 채워짐)
     level: number;
@@ -137,7 +185,7 @@ export type Monster = {
     // 보유 스킬 (최대 4개 사용 권장; 타입은 유연하게 배열로 둠)
     moves: Move[];
 
-    // ✅ v1 특성 (optional)
+    // ✅ 특성: 없을 수도 있으므로 optional + nullable
     abilityId?: AbilityId | null;
 };
 
@@ -199,6 +247,7 @@ export type QuizmonSpeciesRow = {
     id: string;
     name: string;
     element: ElementType;
+    element2?: ElementType | null;  // 서브 타입
     rarity: number;
     base_hp: number;
     base_atk: number;
@@ -275,6 +324,9 @@ export type QuizmonOwnedMonsterRow = {
     learned_moves: string[];   // TM/레벨업으로 배운 전체 기술
     equipped_moves: string[];  // 실제 전투에서 사용하는 1~4개 기술
 
+    // ✅ 개체가 가진 특성 (없으면 null)
+    ability_id?: AbilityId | null;
+    
     created_at: string | null;
     updated_at: string | null;
 };

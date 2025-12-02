@@ -5,6 +5,7 @@
     "name": "이상해씨",
     "nameEn": "Bulbasaur",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -38,6 +39,7 @@
     "name": "이상해풀",
     "nameEn": "Ivysaur",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -71,6 +73,7 @@
     "name": "이상해꽃",
     "nameEn": "Venusaur",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -98,6 +101,7 @@
     "name": "파이리",
     "nameEn": "Charmander",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 39,
@@ -131,6 +135,7 @@
     "name": "리자드",
     "nameEn": "Charmeleon",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -164,6 +169,7 @@
     "name": "리자몽",
     "nameEn": "Charizard",
     "element": "fire",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -191,6 +197,7 @@
     "name": "꼬부기",
     "nameEn": "Squirtle",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 44,
@@ -224,6 +231,7 @@
     "name": "어니부기",
     "nameEn": "Wartortle",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -257,6 +265,7 @@
     "name": "거북왕",
     "nameEn": "Blastoise",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 79,
@@ -284,6 +293,7 @@
     "name": "캐터피",
     "nameEn": "Caterpie",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -317,6 +327,7 @@
     "name": "단데기",
     "nameEn": "Metapod",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -350,6 +361,7 @@
     "name": "버터플",
     "nameEn": "Butterfree",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -377,6 +389,7 @@
     "name": "뿔충이",
     "nameEn": "Weedle",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -410,6 +423,7 @@
     "name": "딱충이",
     "nameEn": "Kakuna",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -443,6 +457,7 @@
     "name": "독침붕",
     "nameEn": "Beedrill",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -470,6 +485,7 @@
     "name": "구구",
     "nameEn": "Pidgey",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -503,6 +519,7 @@
     "name": "피죤",
     "nameEn": "Pidgeotto",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 63,
@@ -536,6 +553,7 @@
     "name": "피죤투",
     "nameEn": "Pidgeot",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 83,
@@ -563,6 +581,7 @@
     "name": "꼬렛",
     "nameEn": "Rattata",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -596,6 +615,7 @@
     "name": "레트라",
     "nameEn": "Raticate",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -623,6 +643,7 @@
     "name": "깨비참",
     "nameEn": "Spearow",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -656,6 +677,7 @@
     "name": "깨비드릴조",
     "nameEn": "Fearow",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -683,6 +705,7 @@
     "name": "아보",
     "nameEn": "Ekans",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -716,6 +739,7 @@
     "name": "아보크",
     "nameEn": "Arbok",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -743,6 +767,7 @@
     "name": "피카츄",
     "nameEn": "Pikachu",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -776,6 +801,7 @@
     "name": "라이츄",
     "nameEn": "Raichu",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -803,6 +829,7 @@
     "name": "모래두지",
     "nameEn": "Sandshrew",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -836,6 +863,7 @@
     "name": "고지",
     "nameEn": "Sandslash",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -863,6 +891,7 @@
     "name": "니드런♀",
     "nameEn": "Nidoran♀",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -896,6 +925,7 @@
     "name": "니드리나",
     "nameEn": "Nidorina",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -929,6 +959,7 @@
     "name": "니드퀸",
     "nameEn": "Nidoqueen",
     "element": "poison",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -956,6 +987,7 @@
     "name": "니드런♂",
     "nameEn": "Nidoran♂",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 46,
@@ -989,6 +1021,7 @@
     "name": "니드리노",
     "nameEn": "Nidorino",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -1022,6 +1055,7 @@
     "name": "니드킹",
     "nameEn": "Nidoking",
     "element": "poison",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 81,
@@ -1049,6 +1083,7 @@
     "name": "삐삐",
     "nameEn": "Clefairy",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -1082,6 +1117,7 @@
     "name": "픽시",
     "nameEn": "Clefable",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -1109,6 +1145,7 @@
     "name": "식스테일",
     "nameEn": "Vulpix",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -1142,6 +1179,7 @@
     "name": "나인테일",
     "nameEn": "Ninetales",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 73,
@@ -1169,6 +1207,7 @@
     "name": "푸린",
     "nameEn": "Jigglypuff",
     "element": "normal",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 115,
@@ -1202,6 +1241,7 @@
     "name": "푸크린",
     "nameEn": "Wigglytuff",
     "element": "normal",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 140,
@@ -1229,6 +1269,7 @@
     "name": "주뱃",
     "nameEn": "Zubat",
     "element": "poison",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -1262,6 +1303,7 @@
     "name": "골뱃",
     "nameEn": "Golbat",
     "element": "poison",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -1295,6 +1337,7 @@
     "name": "뚜벅쵸",
     "nameEn": "Oddish",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -1328,6 +1371,7 @@
     "name": "냄새꼬",
     "nameEn": "Gloom",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -1361,6 +1405,7 @@
     "name": "라플레시아",
     "nameEn": "Vileplume",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -1388,6 +1433,7 @@
     "name": "파라스",
     "nameEn": "Paras",
     "element": "bug",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -1421,6 +1467,7 @@
     "name": "파라섹트",
     "nameEn": "Parasect",
     "element": "bug",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -1448,6 +1495,7 @@
     "name": "콘팡",
     "nameEn": "Venonat",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -1481,6 +1529,7 @@
     "name": "도나리",
     "nameEn": "Venomoth",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -1508,6 +1557,7 @@
     "name": "디그다",
     "nameEn": "Diglett",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 10,
@@ -1541,6 +1591,7 @@
     "name": "닥트리오",
     "nameEn": "Dugtrio",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -1568,6 +1619,7 @@
     "name": "나옹",
     "nameEn": "Meowth",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -1601,6 +1653,7 @@
     "name": "페르시온",
     "nameEn": "Persian",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -1628,6 +1681,7 @@
     "name": "고라파덕",
     "nameEn": "Psyduck",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -1661,6 +1715,7 @@
     "name": "골덕",
     "nameEn": "Golduck",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -1688,6 +1743,7 @@
     "name": "망키",
     "nameEn": "Mankey",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -1721,6 +1777,7 @@
     "name": "성원숭",
     "nameEn": "Primeape",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -1754,6 +1811,7 @@
     "name": "가디",
     "nameEn": "Growlithe",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -1787,6 +1845,7 @@
     "name": "윈디",
     "nameEn": "Arcanine",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -1814,6 +1873,7 @@
     "name": "발챙이",
     "nameEn": "Poliwag",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -1847,6 +1907,7 @@
     "name": "슈륙챙이",
     "nameEn": "Poliwhirl",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -1880,6 +1941,7 @@
     "name": "강챙이",
     "nameEn": "Poliwrath",
     "element": "water",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -1907,6 +1969,7 @@
     "name": "캐이시",
     "nameEn": "Abra",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 25,
@@ -1940,6 +2003,7 @@
     "name": "윤겔라",
     "nameEn": "Kadabra",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -1973,6 +2037,7 @@
     "name": "후딘",
     "nameEn": "Alakazam",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -2000,6 +2065,7 @@
     "name": "알통몬",
     "nameEn": "Machop",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -2033,6 +2099,7 @@
     "name": "근육몬",
     "nameEn": "Machoke",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -2066,6 +2133,7 @@
     "name": "괴력몬",
     "nameEn": "Machamp",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -2093,6 +2161,7 @@
     "name": "모다피",
     "nameEn": "Bellsprout",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -2126,6 +2195,7 @@
     "name": "우츠동",
     "nameEn": "Weepinbell",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -2159,6 +2229,7 @@
     "name": "우츠보트",
     "nameEn": "Victreebel",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -2186,6 +2257,7 @@
     "name": "왕눈해",
     "nameEn": "Tentacool",
     "element": "water",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -2219,6 +2291,7 @@
     "name": "독파리",
     "nameEn": "Tentacruel",
     "element": "water",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -2246,6 +2319,7 @@
     "name": "꼬마돌",
     "nameEn": "Geodude",
     "element": "rock",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -2279,6 +2353,7 @@
     "name": "데구리",
     "nameEn": "Graveler",
     "element": "rock",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -2312,6 +2387,7 @@
     "name": "딱구리",
     "nameEn": "Golem",
     "element": "rock",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -2339,6 +2415,7 @@
     "name": "포니타",
     "nameEn": "Ponyta",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -2372,6 +2449,7 @@
     "name": "날쌩마",
     "nameEn": "Rapidash",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -2399,6 +2477,7 @@
     "name": "야돈",
     "nameEn": "Slowpoke",
     "element": "water",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -2432,6 +2511,7 @@
     "name": "야도란",
     "nameEn": "Slowbro",
     "element": "water",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -2459,6 +2539,7 @@
     "name": "코일",
     "nameEn": "Magnemite",
     "element": "electric",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 25,
@@ -2492,6 +2573,7 @@
     "name": "레어코일",
     "nameEn": "Magneton",
     "element": "electric",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -2525,6 +2607,7 @@
     "name": "파오리",
     "nameEn": "Farfetch’d",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 52,
@@ -2558,6 +2641,7 @@
     "name": "두두",
     "nameEn": "Doduo",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -2591,6 +2675,7 @@
     "name": "두트리오",
     "nameEn": "Dodrio",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -2618,6 +2703,7 @@
     "name": "쥬쥬",
     "nameEn": "Seel",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -2651,6 +2737,7 @@
     "name": "쥬레곤",
     "nameEn": "Dewgong",
     "element": "water",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -2678,6 +2765,7 @@
     "name": "질퍽이",
     "nameEn": "Grimer",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -2711,6 +2799,7 @@
     "name": "질뻐기",
     "nameEn": "Muk",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -2738,6 +2827,7 @@
     "name": "셀러",
     "nameEn": "Shellder",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -2771,6 +2861,7 @@
     "name": "파르셀",
     "nameEn": "Cloyster",
     "element": "water",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -2798,6 +2889,7 @@
     "name": "고오스",
     "nameEn": "Gastly",
     "element": "ghost",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -2831,6 +2923,7 @@
     "name": "고우스트",
     "nameEn": "Haunter",
     "element": "ghost",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -2864,6 +2957,7 @@
     "name": "팬텀",
     "nameEn": "Gengar",
     "element": "ghost",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -2891,6 +2985,7 @@
     "name": "롱스톤",
     "nameEn": "Onix",
     "element": "rock",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -2924,6 +3019,7 @@
     "name": "슬리프",
     "nameEn": "Drowzee",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -2957,6 +3053,7 @@
     "name": "슬리퍼",
     "nameEn": "Hypno",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -2984,6 +3081,7 @@
     "name": "크랩",
     "nameEn": "Krabby",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -3017,6 +3115,7 @@
     "name": "킹크랩",
     "nameEn": "Kingler",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -3044,6 +3143,7 @@
     "name": "찌리리공",
     "nameEn": "Voltorb",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -3077,6 +3177,7 @@
     "name": "붐볼",
     "nameEn": "Electrode",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -3104,6 +3205,7 @@
     "name": "아라리",
     "nameEn": "Exeggcute",
     "element": "grass",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -3137,6 +3239,7 @@
     "name": "나시",
     "nameEn": "Exeggutor",
     "element": "grass",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -3164,6 +3267,7 @@
     "name": "탕구리",
     "nameEn": "Cubone",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -3197,6 +3301,7 @@
     "name": "텅구리",
     "nameEn": "Marowak",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -3224,6 +3329,7 @@
     "name": "시라소몬",
     "nameEn": "Hitmonlee",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -3251,6 +3357,7 @@
     "name": "홍수몬",
     "nameEn": "Hitmonchan",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -3278,6 +3385,7 @@
     "name": "내루미",
     "nameEn": "Lickitung",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -3311,6 +3419,7 @@
     "name": "또가스",
     "nameEn": "Koffing",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -3344,6 +3453,7 @@
     "name": "또도가스",
     "nameEn": "Weezing",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -3371,6 +3481,7 @@
     "name": "뿔카노",
     "nameEn": "Rhyhorn",
     "element": "ground",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -3404,6 +3515,7 @@
     "name": "코뿌리",
     "nameEn": "Rhydon",
     "element": "ground",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -3437,6 +3549,7 @@
     "name": "럭키",
     "nameEn": "Chansey",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 250,
@@ -3470,6 +3583,7 @@
     "name": "덩쿠리",
     "nameEn": "Tangela",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -3503,6 +3617,7 @@
     "name": "캥카",
     "nameEn": "Kangaskhan",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -3530,6 +3645,7 @@
     "name": "쏘드라",
     "nameEn": "Horsea",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -3563,6 +3679,7 @@
     "name": "시드라",
     "nameEn": "Seadra",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -3596,6 +3713,7 @@
     "name": "콘치",
     "nameEn": "Goldeen",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -3629,6 +3747,7 @@
     "name": "왕콘치",
     "nameEn": "Seaking",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -3656,6 +3775,7 @@
     "name": "별가사리",
     "nameEn": "Staryu",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -3689,6 +3809,7 @@
     "name": "아쿠스타",
     "nameEn": "Starmie",
     "element": "water",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -3716,6 +3837,7 @@
     "name": "마임맨",
     "nameEn": "Mr. Mime",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -3749,6 +3871,7 @@
     "name": "스라크",
     "nameEn": "Scyther",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -3782,6 +3905,7 @@
     "name": "루주라",
     "nameEn": "Jynx",
     "element": "ice",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -3809,6 +3933,7 @@
     "name": "에레브",
     "nameEn": "Electabuzz",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -3842,6 +3967,7 @@
     "name": "마그마",
     "nameEn": "Magmar",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -3875,6 +4001,7 @@
     "name": "쁘사이저",
     "nameEn": "Pinsir",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -3902,6 +4029,7 @@
     "name": "켄타로스",
     "nameEn": "Tauros",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -3929,6 +4057,7 @@
     "name": "잉어킹",
     "nameEn": "Magikarp",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 20,
@@ -3962,6 +4091,7 @@
     "name": "갸라도스",
     "nameEn": "Gyarados",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -3989,6 +4119,7 @@
     "name": "라프라스",
     "nameEn": "Lapras",
     "element": "water",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 130,
@@ -4016,6 +4147,7 @@
     "name": "메타몽",
     "nameEn": "Ditto",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -4043,6 +4175,7 @@
     "name": "이브이",
     "nameEn": "Eevee",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -4076,6 +4209,7 @@
     "name": "샤미드",
     "nameEn": "Vaporeon",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 130,
@@ -4103,6 +4237,7 @@
     "name": "쥬피썬더",
     "nameEn": "Jolteon",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -4130,6 +4265,7 @@
     "name": "부스터",
     "nameEn": "Flareon",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -4157,6 +4293,7 @@
     "name": "폴리곤",
     "nameEn": "Porygon",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -4190,6 +4327,7 @@
     "name": "암나이트",
     "nameEn": "Omanyte",
     "element": "rock",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -4223,6 +4361,7 @@
     "name": "암스타",
     "nameEn": "Omastar",
     "element": "rock",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -4250,6 +4389,7 @@
     "name": "투구",
     "nameEn": "Kabuto",
     "element": "rock",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -4283,6 +4423,7 @@
     "name": "투구푸스",
     "nameEn": "Kabutops",
     "element": "rock",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -4310,6 +4451,7 @@
     "name": "프테라",
     "nameEn": "Aerodactyl",
     "element": "rock",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -4337,6 +4479,7 @@
     "name": "잠만보",
     "nameEn": "Snorlax",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 160,
@@ -4364,6 +4507,7 @@
     "name": "프리져",
     "nameEn": "Articuno",
     "element": "ice",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -4391,6 +4535,7 @@
     "name": "썬더",
     "nameEn": "Zapdos",
     "element": "electric",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -4418,6 +4563,7 @@
     "name": "파이어",
     "nameEn": "Moltres",
     "element": "fire",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -4445,6 +4591,7 @@
     "name": "미뇽",
     "nameEn": "Dratini",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 41,
@@ -4478,6 +4625,7 @@
     "name": "신뇽",
     "nameEn": "Dragonair",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -4511,6 +4659,7 @@
     "name": "망나뇽",
     "nameEn": "Dragonite",
     "element": "dragon",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 91,
@@ -4538,6 +4687,7 @@
     "name": "뮤츠",
     "nameEn": "Mewtwo",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 106,
@@ -4565,6 +4715,7 @@
     "name": "뮤",
     "nameEn": "Mew",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -4592,6 +4743,7 @@
     "name": "치코리타",
     "nameEn": "Chikorita",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -4625,6 +4777,7 @@
     "name": "베이리프",
     "nameEn": "Bayleef",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -4658,6 +4811,7 @@
     "name": "메가니움",
     "nameEn": "Meganium",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -4685,6 +4839,7 @@
     "name": "브케인",
     "nameEn": "Cyndaquil",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 39,
@@ -4718,6 +4873,7 @@
     "name": "마그케인",
     "nameEn": "Quilava",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -4751,6 +4907,7 @@
     "name": "블레이범",
     "nameEn": "Typhlosion",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -4778,6 +4935,7 @@
     "name": "리아코",
     "nameEn": "Totodile",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -4811,6 +4969,7 @@
     "name": "엘리게이",
     "nameEn": "Croconaw",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -4844,6 +5003,7 @@
     "name": "장크로다일",
     "nameEn": "Feraligatr",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -4871,6 +5031,7 @@
     "name": "꼬리선",
     "nameEn": "Sentret",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -4904,6 +5065,7 @@
     "name": "다꼬리",
     "nameEn": "Furret",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -4931,6 +5093,7 @@
     "name": "부우부",
     "nameEn": "Hoothoot",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -4964,6 +5127,7 @@
     "name": "야부엉",
     "nameEn": "Noctowl",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -4991,6 +5155,7 @@
     "name": "레디바",
     "nameEn": "Ledyba",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -5024,6 +5189,7 @@
     "name": "레디안",
     "nameEn": "Ledian",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -5051,6 +5217,7 @@
     "name": "페이검",
     "nameEn": "Spinarak",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -5084,6 +5251,7 @@
     "name": "아리아도스",
     "nameEn": "Ariados",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -5111,6 +5279,7 @@
     "name": "크로뱃",
     "nameEn": "Crobat",
     "element": "poison",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -5138,6 +5307,7 @@
     "name": "초라기",
     "nameEn": "Chinchou",
     "element": "water",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -5171,6 +5341,7 @@
     "name": "랜턴",
     "nameEn": "Lanturn",
     "element": "water",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 125,
@@ -5198,6 +5369,7 @@
     "name": "피츄",
     "nameEn": "Pichu",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 20,
@@ -5231,6 +5403,7 @@
     "name": "삐",
     "nameEn": "Cleffa",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -5264,6 +5437,7 @@
     "name": "푸푸린",
     "nameEn": "Igglybuff",
     "element": "normal",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -5297,6 +5471,7 @@
     "name": "토게피",
     "nameEn": "Togepi",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -5330,6 +5505,7 @@
     "name": "토게틱",
     "nameEn": "Togetic",
     "element": "fairy",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -5363,6 +5539,7 @@
     "name": "네이티",
     "nameEn": "Natu",
     "element": "psychic",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -5396,6 +5573,7 @@
     "name": "네이티오",
     "nameEn": "Xatu",
     "element": "psychic",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -5423,6 +5601,7 @@
     "name": "메리프",
     "nameEn": "Mareep",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -5456,6 +5635,7 @@
     "name": "보송송",
     "nameEn": "Flaaffy",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -5489,6 +5669,7 @@
     "name": "전룡",
     "nameEn": "Ampharos",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -5516,6 +5697,7 @@
     "name": "아르코",
     "nameEn": "Bellossom",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -5543,6 +5725,7 @@
     "name": "마릴",
     "nameEn": "Marill",
     "element": "water",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -5576,6 +5759,7 @@
     "name": "마릴리",
     "nameEn": "Azumarill",
     "element": "water",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -5603,6 +5787,7 @@
     "name": "꼬지모",
     "nameEn": "Sudowoodo",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -5630,6 +5815,7 @@
     "name": "왕구리",
     "nameEn": "Politoed",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -5657,6 +5843,7 @@
     "name": "통통코",
     "nameEn": "Hoppip",
     "element": "grass",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -5690,6 +5877,7 @@
     "name": "두코",
     "nameEn": "Skiploom",
     "element": "grass",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -5723,6 +5911,7 @@
     "name": "솜솜코",
     "nameEn": "Jumpluff",
     "element": "grass",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -5750,6 +5939,7 @@
     "name": "에이팜",
     "nameEn": "Aipom",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -5783,6 +5973,7 @@
     "name": "해너츠",
     "nameEn": "Sunkern",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -5816,6 +6007,7 @@
     "name": "해루미",
     "nameEn": "Sunflora",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -5843,6 +6035,7 @@
     "name": "왕자리",
     "nameEn": "Yanma",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -5876,6 +6069,7 @@
     "name": "우파",
     "nameEn": "Wooper",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -5909,6 +6103,7 @@
     "name": "누오",
     "nameEn": "Quagsire",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -5936,6 +6131,7 @@
     "name": "에브이",
     "nameEn": "Espeon",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -5963,6 +6159,7 @@
     "name": "블래키",
     "nameEn": "Umbreon",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -5990,6 +6187,7 @@
     "name": "니로우",
     "nameEn": "Murkrow",
     "element": "dark",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -6023,6 +6221,7 @@
     "name": "야도킹",
     "nameEn": "Slowking",
     "element": "water",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -6050,6 +6249,7 @@
     "name": "무우마",
     "nameEn": "Misdreavus",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -6083,6 +6283,7 @@
     "name": "안농",
     "nameEn": "Unown",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -6110,6 +6311,7 @@
     "name": "마자용",
     "nameEn": "Wobbuffet",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 190,
@@ -6137,6 +6339,7 @@
     "name": "키링키",
     "nameEn": "Girafarig",
     "element": "normal",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -6170,6 +6373,7 @@
     "name": "피콘",
     "nameEn": "Pineco",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -6203,6 +6407,7 @@
     "name": "쏘콘",
     "nameEn": "Forretress",
     "element": "bug",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -6230,6 +6435,7 @@
     "name": "노고치",
     "nameEn": "Dunsparce",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -6263,6 +6469,7 @@
     "name": "글라이거",
     "nameEn": "Gligar",
     "element": "ground",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -6296,6 +6503,7 @@
     "name": "강철톤",
     "nameEn": "Steelix",
     "element": "steel",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -6323,6 +6531,7 @@
     "name": "블루",
     "nameEn": "Snubbull",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -6356,6 +6565,7 @@
     "name": "그랑블루",
     "nameEn": "Granbull",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -6383,6 +6593,7 @@
     "name": "침바루",
     "nameEn": "Qwilfish",
     "element": "water",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -6416,6 +6627,7 @@
     "name": "핫삼",
     "nameEn": "Scizor",
     "element": "bug",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -6443,6 +6655,7 @@
     "name": "단단지",
     "nameEn": "Shuckle",
     "element": "bug",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 20,
@@ -6470,6 +6683,7 @@
     "name": "헤라크로스",
     "nameEn": "Heracross",
     "element": "bug",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -6497,6 +6711,7 @@
     "name": "포푸니",
     "nameEn": "Sneasel",
     "element": "dark",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -6530,6 +6745,7 @@
     "name": "깜지곰",
     "nameEn": "Teddiursa",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -6563,6 +6779,7 @@
     "name": "링곰",
     "nameEn": "Ursaring",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -6596,6 +6813,7 @@
     "name": "마그마그",
     "nameEn": "Slugma",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -6629,6 +6847,7 @@
     "name": "마그카르고",
     "nameEn": "Magcargo",
     "element": "fire",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -6656,6 +6875,7 @@
     "name": "꾸꾸리",
     "nameEn": "Swinub",
     "element": "ice",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -6689,6 +6909,7 @@
     "name": "메꾸리",
     "nameEn": "Piloswine",
     "element": "ice",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -6722,6 +6943,7 @@
     "name": "코산호",
     "nameEn": "Corsola",
     "element": "water",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -6755,6 +6977,7 @@
     "name": "총어",
     "nameEn": "Remoraid",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -6788,6 +7011,7 @@
     "name": "대포무노",
     "nameEn": "Octillery",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -6815,6 +7039,7 @@
     "name": "딜리버드",
     "nameEn": "Delibird",
     "element": "ice",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -6842,6 +7067,7 @@
     "name": "만타인",
     "nameEn": "Mantine",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -6869,6 +7095,7 @@
     "name": "무장조",
     "nameEn": "Skarmory",
     "element": "steel",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -6896,6 +7123,7 @@
     "name": "델빌",
     "nameEn": "Houndour",
     "element": "dark",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -6929,6 +7157,7 @@
     "name": "헬가",
     "nameEn": "Houndoom",
     "element": "dark",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -6956,6 +7185,7 @@
     "name": "킹드라",
     "nameEn": "Kingdra",
     "element": "water",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -6983,6 +7213,7 @@
     "name": "코코리",
     "nameEn": "Phanpy",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -7016,6 +7247,7 @@
     "name": "코리갑",
     "nameEn": "Donphan",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -7043,6 +7275,7 @@
     "name": "폴리곤2",
     "nameEn": "Porygon2",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -7076,6 +7309,7 @@
     "name": "노라키",
     "nameEn": "Stantler",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 73,
@@ -7109,6 +7343,7 @@
     "name": "루브도",
     "nameEn": "Smeargle",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -7136,6 +7371,7 @@
     "name": "배루키",
     "nameEn": "Tyrogue",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -7169,6 +7405,7 @@
     "name": "카포에라",
     "nameEn": "Hitmontop",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -7196,6 +7433,7 @@
     "name": "뽀뽀라",
     "nameEn": "Smoochum",
     "element": "ice",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -7229,6 +7467,7 @@
     "name": "에레키드",
     "nameEn": "Elekid",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -7262,6 +7501,7 @@
     "name": "마그비",
     "nameEn": "Magby",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -7295,6 +7535,7 @@
     "name": "밀탱크",
     "nameEn": "Miltank",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -7322,6 +7563,7 @@
     "name": "해피너스",
     "nameEn": "Blissey",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 255,
@@ -7349,6 +7591,7 @@
     "name": "라이코",
     "nameEn": "Raikou",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -7376,6 +7619,7 @@
     "name": "앤테이",
     "nameEn": "Entei",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 115,
@@ -7403,6 +7647,7 @@
     "name": "스이쿤",
     "nameEn": "Suicune",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -7430,6 +7675,7 @@
     "name": "애버라스",
     "nameEn": "Larvitar",
     "element": "rock",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -7463,6 +7709,7 @@
     "name": "데기라스",
     "nameEn": "Pupitar",
     "element": "rock",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -7496,6 +7743,7 @@
     "name": "마기라스",
     "nameEn": "Tyranitar",
     "element": "rock",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -7523,6 +7771,7 @@
     "name": "루기아",
     "nameEn": "Lugia",
     "element": "psychic",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 106,
@@ -7550,6 +7799,7 @@
     "name": "칠색조",
     "nameEn": "Ho-Oh",
     "element": "fire",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 106,
@@ -7577,6 +7827,7 @@
     "name": "세레비",
     "nameEn": "Celebi",
     "element": "psychic",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -7604,6 +7855,7 @@
     "name": "나무지기",
     "nameEn": "Treecko",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -7637,6 +7889,7 @@
     "name": "나무돌이",
     "nameEn": "Grovyle",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -7670,6 +7923,7 @@
     "name": "나무킹",
     "nameEn": "Sceptile",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -7697,6 +7951,7 @@
     "name": "아차모",
     "nameEn": "Torchic",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -7730,6 +7985,7 @@
     "name": "영치코",
     "nameEn": "Combusken",
     "element": "fire",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -7763,6 +8019,7 @@
     "name": "번치코",
     "nameEn": "Blaziken",
     "element": "fire",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -7790,6 +8047,7 @@
     "name": "물짱이",
     "nameEn": "Mudkip",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -7823,6 +8081,7 @@
     "name": "늪짱이",
     "nameEn": "Marshtomp",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -7856,6 +8115,7 @@
     "name": "대짱이",
     "nameEn": "Swampert",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -7883,6 +8143,7 @@
     "name": "포챠나",
     "nameEn": "Poochyena",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -7916,6 +8177,7 @@
     "name": "그라에나",
     "nameEn": "Mightyena",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -7943,6 +8205,7 @@
     "name": "지그제구리",
     "nameEn": "Zigzagoon",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -7976,6 +8239,7 @@
     "name": "직구리",
     "nameEn": "Linoone",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -8009,6 +8273,7 @@
     "name": "개무소",
     "nameEn": "Wurmple",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -8042,6 +8307,7 @@
     "name": "실쿤",
     "nameEn": "Silcoon",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -8075,6 +8341,7 @@
     "name": "뷰티플라이",
     "nameEn": "Beautifly",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8102,6 +8369,7 @@
     "name": "카스쿤",
     "nameEn": "Cascoon",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -8135,6 +8403,7 @@
     "name": "독케일",
     "nameEn": "Dustox",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8162,6 +8431,7 @@
     "name": "연꽃몬",
     "nameEn": "Lotad",
     "element": "water",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -8195,6 +8465,7 @@
     "name": "로토스",
     "nameEn": "Lombre",
     "element": "water",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8228,6 +8499,7 @@
     "name": "로파파",
     "nameEn": "Ludicolo",
     "element": "water",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -8255,6 +8527,7 @@
     "name": "도토링",
     "nameEn": "Seedot",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -8288,6 +8561,7 @@
     "name": "잎새코",
     "nameEn": "Nuzleaf",
     "element": "grass",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -8321,6 +8595,7 @@
     "name": "다탱구",
     "nameEn": "Shiftry",
     "element": "grass",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -8348,6 +8623,7 @@
     "name": "테일로",
     "nameEn": "Taillow",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -8381,6 +8657,7 @@
     "name": "스왈로",
     "nameEn": "Swellow",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8408,6 +8685,7 @@
     "name": "갈모매",
     "nameEn": "Wingull",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -8441,6 +8719,7 @@
     "name": "패리퍼",
     "nameEn": "Pelipper",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8468,6 +8747,7 @@
     "name": "랄토스",
     "nameEn": "Ralts",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 28,
@@ -8501,6 +8781,7 @@
     "name": "킬리아",
     "nameEn": "Kirlia",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -8534,6 +8815,7 @@
     "name": "가디안",
     "nameEn": "Gardevoir",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -8561,6 +8843,7 @@
     "name": "비구술",
     "nameEn": "Surskit",
     "element": "bug",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -8594,6 +8877,7 @@
     "name": "비나방",
     "nameEn": "Masquerain",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -8621,6 +8905,7 @@
     "name": "버섯꼬",
     "nameEn": "Shroomish",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8654,6 +8939,7 @@
     "name": "버섯모",
     "nameEn": "Breloom",
     "element": "grass",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8681,6 +8967,7 @@
     "name": "게을로",
     "nameEn": "Slakoth",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -8714,6 +9001,7 @@
     "name": "발바로",
     "nameEn": "Vigoroth",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -8747,6 +9035,7 @@
     "name": "게을킹",
     "nameEn": "Slaking",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 150,
@@ -8774,6 +9063,7 @@
     "name": "토중몬",
     "nameEn": "Nincada",
     "element": "bug",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 31,
@@ -8807,6 +9097,7 @@
     "name": "아이스크",
     "nameEn": "Ninjask",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -8834,6 +9125,7 @@
     "name": "껍질몬",
     "nameEn": "Shedinja",
     "element": "bug",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 1,
@@ -8861,6 +9153,7 @@
     "name": "소곤룡",
     "nameEn": "Whismur",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 64,
@@ -8894,6 +9187,7 @@
     "name": "노공룡",
     "nameEn": "Loudred",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 84,
@@ -8927,6 +9221,7 @@
     "name": "폭음룡",
     "nameEn": "Exploud",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 104,
@@ -8954,6 +9249,7 @@
     "name": "마크탕",
     "nameEn": "Makuhita",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -8987,6 +9283,7 @@
     "name": "하리뭉",
     "nameEn": "Hariyama",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 144,
@@ -9014,6 +9311,7 @@
     "name": "루리리",
     "nameEn": "Azurill",
     "element": "normal",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9047,6 +9345,7 @@
     "name": "코코파스",
     "nameEn": "Nosepass",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -9080,6 +9379,7 @@
     "name": "에나비",
     "nameEn": "Skitty",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9113,6 +9413,7 @@
     "name": "델케티",
     "nameEn": "Delcatty",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9140,6 +9441,7 @@
     "name": "깜까미",
     "nameEn": "Sableye",
     "element": "dark",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9167,6 +9469,7 @@
     "name": "입치트",
     "nameEn": "Mawile",
     "element": "steel",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9194,6 +9497,7 @@
     "name": "가보리",
     "nameEn": "Aron",
     "element": "steel",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9227,6 +9531,7 @@
     "name": "갱도라",
     "nameEn": "Lairon",
     "element": "steel",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9260,6 +9565,7 @@
     "name": "보스로라",
     "nameEn": "Aggron",
     "element": "steel",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9287,6 +9593,7 @@
     "name": "요가랑",
     "nameEn": "Meditite",
     "element": "fighting",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -9320,6 +9627,7 @@
     "name": "요가램",
     "nameEn": "Medicham",
     "element": "fighting",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9347,6 +9655,7 @@
     "name": "썬더라이",
     "nameEn": "Electrike",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -9380,6 +9689,7 @@
     "name": "썬더볼트",
     "nameEn": "Manectric",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9407,6 +9717,7 @@
     "name": "플러시",
     "nameEn": "Plusle",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9434,6 +9745,7 @@
     "name": "마이농",
     "nameEn": "Minun",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9461,6 +9773,7 @@
     "name": "볼비트",
     "nameEn": "Volbeat",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -9488,6 +9801,7 @@
     "name": "네오비트",
     "nameEn": "Illumise",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -9515,6 +9829,7 @@
     "name": "로젤리아",
     "nameEn": "Roselia",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9548,6 +9863,7 @@
     "name": "꼴깍몬",
     "nameEn": "Gulpin",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9581,6 +9897,7 @@
     "name": "꿀꺽몬",
     "nameEn": "Swalot",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -9608,6 +9925,7 @@
     "name": "샤프니아",
     "nameEn": "Carvanha",
     "element": "water",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -9641,6 +9959,7 @@
     "name": "샤크니아",
     "nameEn": "Sharpedo",
     "element": "water",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9668,6 +9987,7 @@
     "name": "고래왕자",
     "nameEn": "Wailmer",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 130,
@@ -9701,6 +10021,7 @@
     "name": "고래왕",
     "nameEn": "Wailord",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 170,
@@ -9728,6 +10049,7 @@
     "name": "둔타",
     "nameEn": "Numel",
     "element": "fire",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9761,6 +10083,7 @@
     "name": "폭타",
     "nameEn": "Camerupt",
     "element": "fire",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9788,6 +10111,7 @@
     "name": "코터스",
     "nameEn": "Torkoal",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -9815,6 +10139,7 @@
     "name": "피그점프",
     "nameEn": "Spoink",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9848,6 +10173,7 @@
     "name": "피그킹",
     "nameEn": "Grumpig",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -9875,6 +10201,7 @@
     "name": "얼루기",
     "nameEn": "Spinda",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -9902,6 +10229,7 @@
     "name": "톱치",
     "nameEn": "Trapinch",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -9935,6 +10263,7 @@
     "name": "비브라바",
     "nameEn": "Vibrava",
     "element": "ground",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -9968,6 +10297,7 @@
     "name": "플라이곤",
     "nameEn": "Flygon",
     "element": "ground",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -9995,6 +10325,7 @@
     "name": "선인왕",
     "nameEn": "Cacnea",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -10028,6 +10359,7 @@
     "name": "밤선인",
     "nameEn": "Cacturne",
     "element": "grass",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -10055,6 +10387,7 @@
     "name": "파비코",
     "nameEn": "Swablu",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -10088,6 +10421,7 @@
     "name": "파비코리",
     "nameEn": "Altaria",
     "element": "dragon",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -10115,6 +10449,7 @@
     "name": "쟝고",
     "nameEn": "Zangoose",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 73,
@@ -10142,6 +10477,7 @@
     "name": "세비퍼",
     "nameEn": "Seviper",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 73,
@@ -10169,6 +10505,7 @@
     "name": "루나톤",
     "nameEn": "Lunatone",
     "element": "rock",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -10196,6 +10533,7 @@
     "name": "솔록",
     "nameEn": "Solrock",
     "element": "rock",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -10223,6 +10561,7 @@
     "name": "미꾸리",
     "nameEn": "Barboach",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -10256,6 +10595,7 @@
     "name": "메깅",
     "nameEn": "Whiscash",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -10283,6 +10623,7 @@
     "name": "가재군",
     "nameEn": "Corphish",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 43,
@@ -10316,6 +10657,7 @@
     "name": "가재장군",
     "nameEn": "Crawdaunt",
     "element": "water",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 63,
@@ -10343,6 +10685,7 @@
     "name": "오뚝군",
     "nameEn": "Baltoy",
     "element": "ground",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -10376,6 +10719,7 @@
     "name": "점토도리",
     "nameEn": "Claydol",
     "element": "ground",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -10403,6 +10747,7 @@
     "name": "릴링",
     "nameEn": "Lileep",
     "element": "rock",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 66,
@@ -10436,6 +10781,7 @@
     "name": "릴리요",
     "nameEn": "Cradily",
     "element": "rock",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 86,
@@ -10463,6 +10809,7 @@
     "name": "아노딥스",
     "nameEn": "Anorith",
     "element": "rock",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -10496,6 +10843,7 @@
     "name": "아말도",
     "nameEn": "Armaldo",
     "element": "rock",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -10523,6 +10871,7 @@
     "name": "빈티나",
     "nameEn": "Feebas",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 20,
@@ -10556,6 +10905,7 @@
     "name": "밀로틱",
     "nameEn": "Milotic",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -10583,6 +10933,7 @@
     "name": "캐스퐁",
     "nameEn": "Castform",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -10610,6 +10961,7 @@
     "name": "켈리몬",
     "nameEn": "Kecleon",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -10637,6 +10989,7 @@
     "name": "어둠대신",
     "nameEn": "Shuppet",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 44,
@@ -10670,6 +11023,7 @@
     "name": "다크펫",
     "nameEn": "Banette",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 64,
@@ -10697,6 +11051,7 @@
     "name": "해골몽",
     "nameEn": "Duskull",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 20,
@@ -10730,6 +11085,7 @@
     "name": "미라몽",
     "nameEn": "Dusclops",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -10763,6 +11119,7 @@
     "name": "트로피우스",
     "nameEn": "Tropius",
     "element": "grass",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 99,
@@ -10790,6 +11147,7 @@
     "name": "치렁",
     "nameEn": "Chimecho",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -10817,6 +11175,7 @@
     "name": "앱솔",
     "nameEn": "Absol",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -10844,6 +11203,7 @@
     "name": "마자",
     "nameEn": "Wynaut",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -10877,6 +11237,7 @@
     "name": "눈꼬마",
     "nameEn": "Snorunt",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -10910,6 +11271,7 @@
     "name": "얼음귀신",
     "nameEn": "Glalie",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -10937,6 +11299,7 @@
     "name": "대굴레오",
     "nameEn": "Spheal",
     "element": "ice",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -10970,6 +11333,7 @@
     "name": "씨레오",
     "nameEn": "Sealeo",
     "element": "ice",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -11003,6 +11367,7 @@
     "name": "씨카이저",
     "nameEn": "Walrein",
     "element": "ice",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -11030,6 +11395,7 @@
     "name": "진주몽",
     "nameEn": "Clamperl",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -11063,6 +11429,7 @@
     "name": "헌테일",
     "nameEn": "Huntail",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -11090,6 +11457,7 @@
     "name": "분홍장이",
     "nameEn": "Gorebyss",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -11117,6 +11485,7 @@
     "name": "시라칸",
     "nameEn": "Relicanth",
     "element": "water",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -11144,6 +11513,7 @@
     "name": "사랑동이",
     "nameEn": "Luvdisc",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 43,
@@ -11171,6 +11541,7 @@
     "name": "아공이",
     "nameEn": "Bagon",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -11204,6 +11575,7 @@
     "name": "쉘곤",
     "nameEn": "Shelgon",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -11237,6 +11609,7 @@
     "name": "보만다",
     "nameEn": "Salamence",
     "element": "dragon",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -11264,6 +11637,7 @@
     "name": "메탕",
     "nameEn": "Beldum",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -11297,6 +11671,7 @@
     "name": "메탕구",
     "nameEn": "Metang",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -11330,6 +11705,7 @@
     "name": "메타그로스",
     "nameEn": "Metagross",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -11357,6 +11733,7 @@
     "name": "레지락",
     "nameEn": "Regirock",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -11384,6 +11761,7 @@
     "name": "레지아이스",
     "nameEn": "Regice",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -11411,6 +11789,7 @@
     "name": "레지스틸",
     "nameEn": "Registeel",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -11438,6 +11817,7 @@
     "name": "라티아스",
     "nameEn": "Latias",
     "element": "dragon",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -11465,6 +11845,7 @@
     "name": "라티오스",
     "nameEn": "Latios",
     "element": "dragon",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -11492,6 +11873,7 @@
     "name": "가이오가",
     "nameEn": "Kyogre",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -11519,6 +11901,7 @@
     "name": "그란돈",
     "nameEn": "Groudon",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -11546,6 +11929,7 @@
     "name": "레쿠쟈",
     "nameEn": "Rayquaza",
     "element": "dragon",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -11573,6 +11957,7 @@
     "name": "지라치",
     "nameEn": "Jirachi",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -11600,6 +11985,7 @@
     "name": "테오키스",
     "nameEn": "Deoxys",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -11627,6 +12013,7 @@
     "name": "모부기",
     "nameEn": "Turtwig",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -11660,6 +12047,7 @@
     "name": "수풀부기",
     "nameEn": "Grotle",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -11693,6 +12081,7 @@
     "name": "토대부기",
     "nameEn": "Torterra",
     "element": "grass",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -11720,6 +12109,7 @@
     "name": "불꽃숭이",
     "nameEn": "Chimchar",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 44,
@@ -11753,6 +12143,7 @@
     "name": "파이숭이",
     "nameEn": "Monferno",
     "element": "fire",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 64,
@@ -11786,6 +12177,7 @@
     "name": "초염몽",
     "nameEn": "Infernape",
     "element": "fire",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 76,
@@ -11813,6 +12205,7 @@
     "name": "팽도리",
     "nameEn": "Piplup",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 53,
@@ -11846,6 +12239,7 @@
     "name": "팽태자",
     "nameEn": "Prinplup",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 64,
@@ -11879,6 +12273,7 @@
     "name": "엠페르트",
     "nameEn": "Empoleon",
     "element": "water",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 84,
@@ -11906,6 +12301,7 @@
     "name": "찌르꼬",
     "nameEn": "Starly",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -11939,6 +12335,7 @@
     "name": "찌르버드",
     "nameEn": "Staravia",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -11972,6 +12369,7 @@
     "name": "찌르호크",
     "nameEn": "Staraptor",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -11999,6 +12397,7 @@
     "name": "비버니",
     "nameEn": "Bidoof",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -12032,6 +12431,7 @@
     "name": "비버통",
     "nameEn": "Bibarel",
     "element": "normal",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 79,
@@ -12059,6 +12459,7 @@
     "name": "귀뚤뚜기",
     "nameEn": "Kricketot",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 37,
@@ -12092,6 +12493,7 @@
     "name": "귀뚤톡크",
     "nameEn": "Kricketune",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 77,
@@ -12119,6 +12521,7 @@
     "name": "꼬링크",
     "nameEn": "Shinx",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -12152,6 +12555,7 @@
     "name": "럭시오",
     "nameEn": "Luxio",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -12185,6 +12589,7 @@
     "name": "렌트라",
     "nameEn": "Luxray",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -12212,6 +12617,7 @@
     "name": "꼬몽울",
     "nameEn": "Budew",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -12245,6 +12651,7 @@
     "name": "로즈레이드",
     "nameEn": "Roserade",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -12272,6 +12679,7 @@
     "name": "두개도스",
     "nameEn": "Cranidos",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -12305,6 +12713,7 @@
     "name": "램펄드",
     "nameEn": "Rampardos",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 97,
@@ -12332,6 +12741,7 @@
     "name": "방패톱스",
     "nameEn": "Shieldon",
     "element": "rock",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -12365,6 +12775,7 @@
     "name": "바리톱스",
     "nameEn": "Bastiodon",
     "element": "rock",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -12392,6 +12803,7 @@
     "name": "도롱충이",
     "nameEn": "Burmy",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -12425,6 +12837,7 @@
     "name": "도롱마담",
     "nameEn": "Wormadam",
     "element": "bug",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -12452,6 +12865,7 @@
     "name": "나메일",
     "nameEn": "Mothim",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -12479,6 +12893,7 @@
     "name": "세꿀버리",
     "nameEn": "Combee",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -12512,6 +12927,7 @@
     "name": "비퀸",
     "nameEn": "Vespiquen",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -12539,6 +12955,7 @@
     "name": "파치리스",
     "nameEn": "Pachirisu",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -12566,6 +12983,7 @@
     "name": "브이젤",
     "nameEn": "Buizel",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -12599,6 +13017,7 @@
     "name": "플로젤",
     "nameEn": "Floatzel",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -12626,6 +13045,7 @@
     "name": "체리버",
     "nameEn": "Cherubi",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -12659,6 +13079,7 @@
     "name": "체리꼬",
     "nameEn": "Cherrim",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -12686,6 +13107,7 @@
     "name": "깝질무",
     "nameEn": "Shellos",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 76,
@@ -12719,6 +13141,7 @@
     "name": "트리토돈",
     "nameEn": "Gastrodon",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 111,
@@ -12746,6 +13169,7 @@
     "name": "겟핸보숭",
     "nameEn": "Ambipom",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -12773,6 +13197,7 @@
     "name": "흔들풍손",
     "nameEn": "Drifloon",
     "element": "ghost",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -12806,6 +13231,7 @@
     "name": "둥실라이드",
     "nameEn": "Drifblim",
     "element": "ghost",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 150,
@@ -12833,6 +13259,7 @@
     "name": "이어롤",
     "nameEn": "Buneary",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -12866,6 +13293,7 @@
     "name": "이어롭",
     "nameEn": "Lopunny",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -12893,6 +13321,7 @@
     "name": "무우마직",
     "nameEn": "Mismagius",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -12920,6 +13349,7 @@
     "name": "돈크로우",
     "nameEn": "Honchkrow",
     "element": "dark",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -12947,6 +13377,7 @@
     "name": "나옹마",
     "nameEn": "Glameow",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 49,
@@ -12980,6 +13411,7 @@
     "name": "몬냥이",
     "nameEn": "Purugly",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -13007,6 +13439,7 @@
     "name": "랑딸랑",
     "nameEn": "Chingling",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -13040,6 +13473,7 @@
     "name": "스컹뿡",
     "nameEn": "Stunky",
     "element": "poison",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 63,
@@ -13073,6 +13507,7 @@
     "name": "스컹탱크",
     "nameEn": "Skuntank",
     "element": "poison",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 103,
@@ -13100,6 +13535,7 @@
     "name": "동미러",
     "nameEn": "Bronzor",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 57,
@@ -13133,6 +13569,7 @@
     "name": "동탁군",
     "nameEn": "Bronzong",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -13160,6 +13597,7 @@
     "name": "꼬지지",
     "nameEn": "Bonsly",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -13193,6 +13631,7 @@
     "name": "흉내내",
     "nameEn": "Mime Jr.",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 20,
@@ -13226,6 +13665,7 @@
     "name": "핑복",
     "nameEn": "Happiny",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -13259,6 +13699,7 @@
     "name": "페라페",
     "nameEn": "Chatot",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 76,
@@ -13286,6 +13727,7 @@
     "name": "화강돌",
     "nameEn": "Spiritomb",
     "element": "ghost",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -13313,6 +13755,7 @@
     "name": "딥상어동",
     "nameEn": "Gible",
     "element": "dragon",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -13346,6 +13789,7 @@
     "name": "한바이트",
     "nameEn": "Gabite",
     "element": "dragon",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -13379,6 +13823,7 @@
     "name": "한카리아스",
     "nameEn": "Garchomp",
     "element": "dragon",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 108,
@@ -13406,6 +13851,7 @@
     "name": "먹고자",
     "nameEn": "Munchlax",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 135,
@@ -13439,6 +13885,7 @@
     "name": "리오르",
     "nameEn": "Riolu",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -13472,6 +13919,7 @@
     "name": "루카리오",
     "nameEn": "Lucario",
     "element": "fighting",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -13499,6 +13947,7 @@
     "name": "히포포타스",
     "nameEn": "Hippopotas",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -13532,6 +13981,7 @@
     "name": "하마돈",
     "nameEn": "Hippowdon",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 108,
@@ -13559,6 +14009,7 @@
     "name": "스콜피",
     "nameEn": "Skorupi",
     "element": "poison",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -13592,6 +14043,7 @@
     "name": "드래피온",
     "nameEn": "Drapion",
     "element": "poison",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -13619,6 +14071,7 @@
     "name": "삐딱구리",
     "nameEn": "Croagunk",
     "element": "poison",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -13652,6 +14105,7 @@
     "name": "독개굴",
     "nameEn": "Toxicroak",
     "element": "poison",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 83,
@@ -13679,6 +14133,7 @@
     "name": "무스틈니",
     "nameEn": "Carnivine",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -13706,6 +14161,7 @@
     "name": "형광어",
     "nameEn": "Finneon",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 49,
@@ -13739,6 +14195,7 @@
     "name": "네오라이트",
     "nameEn": "Lumineon",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 69,
@@ -13766,6 +14223,7 @@
     "name": "타만타",
     "nameEn": "Mantyke",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -13799,6 +14257,7 @@
     "name": "눈쓰개",
     "nameEn": "Snover",
     "element": "grass",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -13832,6 +14291,7 @@
     "name": "눈설왕",
     "nameEn": "Abomasnow",
     "element": "grass",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -13859,6 +14319,7 @@
     "name": "포푸니라",
     "nameEn": "Weavile",
     "element": "dark",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -13886,6 +14347,7 @@
     "name": "자포코일",
     "nameEn": "Magnezone",
     "element": "electric",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -13913,6 +14375,7 @@
     "name": "내룸벨트",
     "nameEn": "Lickilicky",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -13940,6 +14403,7 @@
     "name": "거대코뿌리",
     "nameEn": "Rhyperior",
     "element": "ground",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 115,
@@ -13967,6 +14431,7 @@
     "name": "덩쿠림보",
     "nameEn": "Tangrowth",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -13994,6 +14459,7 @@
     "name": "에레키블",
     "nameEn": "Electivire",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -14021,6 +14487,7 @@
     "name": "마그마번",
     "nameEn": "Magmortar",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -14048,6 +14515,7 @@
     "name": "토게키스",
     "nameEn": "Togekiss",
     "element": "fairy",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -14075,6 +14543,7 @@
     "name": "메가자리",
     "nameEn": "Yanmega",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 86,
@@ -14102,6 +14571,7 @@
     "name": "리피아",
     "nameEn": "Leafeon",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -14129,6 +14599,7 @@
     "name": "글레이시아",
     "nameEn": "Glaceon",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -14156,6 +14627,7 @@
     "name": "글라이온",
     "nameEn": "Gliscor",
     "element": "ground",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -14183,6 +14655,7 @@
     "name": "맘모꾸리",
     "nameEn": "Mamoswine",
     "element": "ice",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -14210,6 +14683,7 @@
     "name": "폴리곤Z",
     "nameEn": "Porygon-Z",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -14237,6 +14711,7 @@
     "name": "엘레이드",
     "nameEn": "Gallade",
     "element": "psychic",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -14264,6 +14739,7 @@
     "name": "대코파스",
     "nameEn": "Probopass",
     "element": "rock",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -14291,6 +14767,7 @@
     "name": "야느와르몽",
     "nameEn": "Dusknoir",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -14318,6 +14795,7 @@
     "name": "눈여아",
     "nameEn": "Froslass",
     "element": "ice",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -14345,6 +14823,7 @@
     "name": "로토무",
     "nameEn": "Rotom",
     "element": "electric",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -14372,6 +14851,7 @@
     "name": "유크시",
     "nameEn": "Uxie",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -14399,6 +14879,7 @@
     "name": "엠라이트",
     "nameEn": "Mesprit",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -14426,6 +14907,7 @@
     "name": "아그놈",
     "nameEn": "Azelf",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -14453,6 +14935,7 @@
     "name": "디아루가",
     "nameEn": "Dialga",
     "element": "steel",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -14480,6 +14963,7 @@
     "name": "펄기아",
     "nameEn": "Palkia",
     "element": "water",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -14507,6 +14991,7 @@
     "name": "히드런",
     "nameEn": "Heatran",
     "element": "fire",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 91,
@@ -14534,6 +15019,7 @@
     "name": "레지기가스",
     "nameEn": "Regigigas",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -14561,6 +15047,7 @@
     "name": "기라티나",
     "nameEn": "Giratina",
     "element": "ghost",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 150,
@@ -14588,6 +15075,7 @@
     "name": "크레세리아",
     "nameEn": "Cresselia",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -14615,6 +15103,7 @@
     "name": "피오네",
     "nameEn": "Phione",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -14648,6 +15137,7 @@
     "name": "마나피",
     "nameEn": "Manaphy",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -14675,6 +15165,7 @@
     "name": "다크라이",
     "nameEn": "Darkrai",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -14702,6 +15193,7 @@
     "name": "쉐이미",
     "nameEn": "Shaymin",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -14729,6 +15221,7 @@
     "name": "아르세우스",
     "nameEn": "Arceus",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -14756,6 +15249,7 @@
     "name": "비크티니",
     "nameEn": "Victini",
     "element": "psychic",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -14783,6 +15277,7 @@
     "name": "주리비얀",
     "nameEn": "Snivy",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -14816,6 +15311,7 @@
     "name": "샤비",
     "nameEn": "Servine",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -14849,6 +15345,7 @@
     "name": "샤로다",
     "nameEn": "Serperior",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -14876,6 +15373,7 @@
     "name": "뚜꾸리",
     "nameEn": "Tepig",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -14909,6 +15407,7 @@
     "name": "차오꿀",
     "nameEn": "Pignite",
     "element": "fire",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -14942,6 +15441,7 @@
     "name": "염무왕",
     "nameEn": "Emboar",
     "element": "fire",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -14969,6 +15469,7 @@
     "name": "수댕이",
     "nameEn": "Oshawott",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -15002,6 +15503,7 @@
     "name": "쌍검자비",
     "nameEn": "Dewott",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -15035,6 +15537,7 @@
     "name": "대검귀",
     "nameEn": "Samurott",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -15062,6 +15565,7 @@
     "name": "보르쥐",
     "nameEn": "Patrat",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -15095,6 +15599,7 @@
     "name": "보르그",
     "nameEn": "Watchog",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -15122,6 +15627,7 @@
     "name": "요테리",
     "nameEn": "Lillipup",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -15155,6 +15661,7 @@
     "name": "하데리어",
     "nameEn": "Herdier",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -15188,6 +15695,7 @@
     "name": "바랜드",
     "nameEn": "Stoutland",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -15215,6 +15723,7 @@
     "name": "쌔비냥",
     "nameEn": "Purrloin",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 41,
@@ -15248,6 +15757,7 @@
     "name": "레파르다스",
     "nameEn": "Liepard",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 64,
@@ -15275,6 +15785,7 @@
     "name": "야나프",
     "nameEn": "Pansage",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -15308,6 +15819,7 @@
     "name": "야나키",
     "nameEn": "Simisage",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -15335,6 +15847,7 @@
     "name": "바오프",
     "nameEn": "Pansear",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -15368,6 +15881,7 @@
     "name": "바오키",
     "nameEn": "Simisear",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -15395,6 +15909,7 @@
     "name": "앗차프",
     "nameEn": "Panpour",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -15428,6 +15943,7 @@
     "name": "앗차키",
     "nameEn": "Simipour",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -15455,6 +15971,7 @@
     "name": "몽나",
     "nameEn": "Munna",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 76,
@@ -15488,6 +16005,7 @@
     "name": "몽얌나",
     "nameEn": "Musharna",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 116,
@@ -15515,6 +16033,7 @@
     "name": "콩둘기",
     "nameEn": "Pidove",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -15548,6 +16067,7 @@
     "name": "유토브",
     "nameEn": "Tranquill",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -15581,6 +16101,7 @@
     "name": "켄호로우",
     "nameEn": "Unfezant",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -15608,6 +16129,7 @@
     "name": "줄뮤마",
     "nameEn": "Blitzle",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -15641,6 +16163,7 @@
     "name": "제브라이카",
     "nameEn": "Zebstrika",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -15668,6 +16191,7 @@
     "name": "단굴",
     "nameEn": "Roggenrola",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -15701,6 +16225,7 @@
     "name": "암트르",
     "nameEn": "Boldore",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -15734,6 +16259,7 @@
     "name": "기가이어스",
     "nameEn": "Gigalith",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -15761,6 +16287,7 @@
     "name": "또르박쥐",
     "nameEn": "Woobat",
     "element": "psychic",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -15794,6 +16321,7 @@
     "name": "맘박쥐",
     "nameEn": "Swoobat",
     "element": "psychic",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -15821,6 +16349,7 @@
     "name": "두더류",
     "nameEn": "Drilbur",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -15854,6 +16383,7 @@
     "name": "몰드류",
     "nameEn": "Excadrill",
     "element": "ground",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -15881,6 +16411,7 @@
     "name": "다부니",
     "nameEn": "Audino",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 103,
@@ -15908,6 +16439,7 @@
     "name": "으랏차",
     "nameEn": "Timburr",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -15941,6 +16473,7 @@
     "name": "토쇠골",
     "nameEn": "Gurdurr",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -15974,6 +16507,7 @@
     "name": "노보청",
     "nameEn": "Conkeldurr",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -16001,6 +16535,7 @@
     "name": "동챙이",
     "nameEn": "Tympole",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -16034,6 +16569,7 @@
     "name": "두까비",
     "nameEn": "Palpitoad",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -16067,6 +16603,7 @@
     "name": "두빅굴",
     "nameEn": "Seismitoad",
     "element": "water",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -16094,6 +16631,7 @@
     "name": "던지미",
     "nameEn": "Throh",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -16121,6 +16659,7 @@
     "name": "타격귀",
     "nameEn": "Sawk",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -16148,6 +16687,7 @@
     "name": "두르보",
     "nameEn": "Sewaddle",
     "element": "bug",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -16181,6 +16721,7 @@
     "name": "두르쿤",
     "nameEn": "Swadloon",
     "element": "bug",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -16214,6 +16755,7 @@
     "name": "모아머",
     "nameEn": "Leavanny",
     "element": "bug",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -16241,6 +16783,7 @@
     "name": "마디네",
     "nameEn": "Venipede",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -16274,6 +16817,7 @@
     "name": "휠구",
     "nameEn": "Whirlipede",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -16307,6 +16851,7 @@
     "name": "펜드라",
     "nameEn": "Scolipede",
     "element": "bug",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -16334,6 +16879,7 @@
     "name": "소미안",
     "nameEn": "Cottonee",
     "element": "grass",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -16367,6 +16913,7 @@
     "name": "엘풍",
     "nameEn": "Whimsicott",
     "element": "grass",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -16394,6 +16941,7 @@
     "name": "치릴리",
     "nameEn": "Petilil",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -16427,6 +16975,7 @@
     "name": "드레디어",
     "nameEn": "Lilligant",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -16454,6 +17003,7 @@
     "name": "배쓰나이",
     "nameEn": "Basculin",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -16487,6 +17037,7 @@
     "name": "깜눈크",
     "nameEn": "Sandile",
     "element": "ground",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -16520,6 +17071,7 @@
     "name": "악비르",
     "nameEn": "Krokorok",
     "element": "ground",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -16553,6 +17105,7 @@
     "name": "악비아르",
     "nameEn": "Krookodile",
     "element": "ground",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -16580,6 +17133,7 @@
     "name": "달막화",
     "nameEn": "Darumaka",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -16613,6 +17167,7 @@
     "name": "불비달마",
     "nameEn": "Darmanitan",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -16640,6 +17195,7 @@
     "name": "마라카치",
     "nameEn": "Maractus",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -16667,6 +17223,7 @@
     "name": "돌살이",
     "nameEn": "Dwebble",
     "element": "bug",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -16700,6 +17257,7 @@
     "name": "암팰리스",
     "nameEn": "Crustle",
     "element": "bug",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -16727,6 +17285,7 @@
     "name": "곤율랭",
     "nameEn": "Scraggy",
     "element": "dark",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -16760,6 +17319,7 @@
     "name": "곤율거니",
     "nameEn": "Scrafty",
     "element": "dark",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -16787,6 +17347,7 @@
     "name": "심보러",
     "nameEn": "Sigilyph",
     "element": "psychic",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -16814,6 +17375,7 @@
     "name": "데스마스",
     "nameEn": "Yamask",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -16847,6 +17409,7 @@
     "name": "데스니칸",
     "nameEn": "Cofagrigus",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -16874,6 +17437,7 @@
     "name": "프로토가",
     "nameEn": "Tirtouga",
     "element": "water",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 54,
@@ -16907,6 +17471,7 @@
     "name": "늑골라",
     "nameEn": "Carracosta",
     "element": "water",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -16934,6 +17499,7 @@
     "name": "아켄",
     "nameEn": "Archen",
     "element": "rock",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -16967,6 +17533,7 @@
     "name": "아케오스",
     "nameEn": "Archeops",
     "element": "rock",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -16994,6 +17561,7 @@
     "name": "깨봉이",
     "nameEn": "Trubbish",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -17027,6 +17595,7 @@
     "name": "더스트나",
     "nameEn": "Garbodor",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -17054,6 +17623,7 @@
     "name": "조로아",
     "nameEn": "Zorua",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -17087,6 +17657,7 @@
     "name": "조로아크",
     "nameEn": "Zoroark",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -17114,6 +17685,7 @@
     "name": "치라미",
     "nameEn": "Minccino",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -17147,6 +17719,7 @@
     "name": "치라치노",
     "nameEn": "Cinccino",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -17174,6 +17747,7 @@
     "name": "고디탱",
     "nameEn": "Gothita",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -17207,6 +17781,7 @@
     "name": "고디보미",
     "nameEn": "Gothorita",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -17240,6 +17815,7 @@
     "name": "고디모아젤",
     "nameEn": "Gothitelle",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -17267,6 +17843,7 @@
     "name": "유니란",
     "nameEn": "Solosis",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -17300,6 +17877,7 @@
     "name": "듀란",
     "nameEn": "Duosion",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -17333,6 +17911,7 @@
     "name": "란쿨루스",
     "nameEn": "Reuniclus",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -17360,6 +17939,7 @@
     "name": "꼬지보리",
     "nameEn": "Ducklett",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -17393,6 +17973,7 @@
     "name": "스완나",
     "nameEn": "Swanna",
     "element": "water",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -17420,6 +18001,7 @@
     "name": "바닐프티",
     "nameEn": "Vanillite",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 36,
@@ -17453,6 +18035,7 @@
     "name": "바닐리치",
     "nameEn": "Vanillish",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 51,
@@ -17486,6 +18069,7 @@
     "name": "배바닐라",
     "nameEn": "Vanilluxe",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -17513,6 +18097,7 @@
     "name": "사철록",
     "nameEn": "Deerling",
     "element": "normal",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -17546,6 +18131,7 @@
     "name": "바라철록",
     "nameEn": "Sawsbuck",
     "element": "normal",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -17573,6 +18159,7 @@
     "name": "에몽가",
     "nameEn": "Emolga",
     "element": "electric",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -17600,6 +18187,7 @@
     "name": "딱정곤",
     "nameEn": "Karrablast",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -17633,6 +18221,7 @@
     "name": "슈바르고",
     "nameEn": "Escavalier",
     "element": "bug",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -17660,6 +18249,7 @@
     "name": "깜놀버슬",
     "nameEn": "Foongus",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 69,
@@ -17693,6 +18283,7 @@
     "name": "뽀록나",
     "nameEn": "Amoonguss",
     "element": "grass",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 114,
@@ -17720,6 +18311,7 @@
     "name": "탱그릴",
     "nameEn": "Frillish",
     "element": "water",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -17753,6 +18345,7 @@
     "name": "탱탱겔",
     "nameEn": "Jellicent",
     "element": "water",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -17780,6 +18373,7 @@
     "name": "맘복치",
     "nameEn": "Alomomola",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 165,
@@ -17807,6 +18401,7 @@
     "name": "파쪼옥",
     "nameEn": "Joltik",
     "element": "bug",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -17840,6 +18435,7 @@
     "name": "전툴라",
     "nameEn": "Galvantula",
     "element": "bug",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -17867,6 +18463,7 @@
     "name": "철시드",
     "nameEn": "Ferroseed",
     "element": "grass",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 44,
@@ -17900,6 +18497,7 @@
     "name": "너트령",
     "nameEn": "Ferrothorn",
     "element": "grass",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -17927,6 +18525,7 @@
     "name": "기어르",
     "nameEn": "Klink",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -17960,6 +18559,7 @@
     "name": "기기어르",
     "nameEn": "Klang",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -17993,6 +18593,7 @@
     "name": "기기기어르",
     "nameEn": "Klinklang",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -18020,6 +18621,7 @@
     "name": "저리어",
     "nameEn": "Tynamo",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -18053,6 +18655,7 @@
     "name": "저리릴",
     "nameEn": "Eelektrik",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -18086,6 +18689,7 @@
     "name": "저리더프",
     "nameEn": "Eelektross",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -18113,6 +18717,7 @@
     "name": "리그레",
     "nameEn": "Elgyem",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -18146,6 +18751,7 @@
     "name": "벰크",
     "nameEn": "Beheeyem",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -18173,6 +18779,7 @@
     "name": "불켜미",
     "nameEn": "Litwick",
     "element": "ghost",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -18206,6 +18813,7 @@
     "name": "램프라",
     "nameEn": "Lampent",
     "element": "ghost",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -18239,6 +18847,7 @@
     "name": "샹델라",
     "nameEn": "Chandelure",
     "element": "ghost",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -18266,6 +18875,7 @@
     "name": "터검니",
     "nameEn": "Axew",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 46,
@@ -18299,6 +18909,7 @@
     "name": "액슨도",
     "nameEn": "Fraxure",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 66,
@@ -18332,6 +18943,7 @@
     "name": "액스라이즈",
     "nameEn": "Haxorus",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 76,
@@ -18359,6 +18971,7 @@
     "name": "코고미",
     "nameEn": "Cubchoo",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -18392,6 +19005,7 @@
     "name": "툰베어",
     "nameEn": "Beartic",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -18419,6 +19033,7 @@
     "name": "프리지오",
     "nameEn": "Cryogonal",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -18446,6 +19061,7 @@
     "name": "쪼마리",
     "nameEn": "Shelmet",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -18479,6 +19095,7 @@
     "name": "어지리더",
     "nameEn": "Accelgor",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -18506,6 +19123,7 @@
     "name": "메더",
     "nameEn": "Stunfisk",
     "element": "ground",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 109,
@@ -18533,6 +19151,7 @@
     "name": "비조푸",
     "nameEn": "Mienfoo",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -18566,6 +19185,7 @@
     "name": "비조도",
     "nameEn": "Mienshao",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -18593,6 +19213,7 @@
     "name": "크리만",
     "nameEn": "Druddigon",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 77,
@@ -18620,6 +19241,7 @@
     "name": "골비람",
     "nameEn": "Golett",
     "element": "ground",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -18653,6 +19275,7 @@
     "name": "골루그",
     "nameEn": "Golurk",
     "element": "ground",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 89,
@@ -18680,6 +19303,7 @@
     "name": "자망칼",
     "nameEn": "Pawniard",
     "element": "dark",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -18713,6 +19337,7 @@
     "name": "절각참",
     "nameEn": "Bisharp",
     "element": "dark",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -18746,6 +19371,7 @@
     "name": "버프론",
     "nameEn": "Bouffalant",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -18773,6 +19399,7 @@
     "name": "수리둥보",
     "nameEn": "Rufflet",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -18806,6 +19433,7 @@
     "name": "워글",
     "nameEn": "Braviary",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -18833,6 +19461,7 @@
     "name": "벌차이",
     "nameEn": "Vullaby",
     "element": "dark",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -18866,6 +19495,7 @@
     "name": "버랜지나",
     "nameEn": "Mandibuzz",
     "element": "dark",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -18893,6 +19523,7 @@
     "name": "앤티골",
     "nameEn": "Heatmor",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -18920,6 +19551,7 @@
     "name": "아이앤트",
     "nameEn": "Durant",
     "element": "bug",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -18947,6 +19579,7 @@
     "name": "모노두",
     "nameEn": "Deino",
     "element": "dark",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 52,
@@ -18980,6 +19613,7 @@
     "name": "디헤드",
     "nameEn": "Zweilous",
     "element": "dark",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -19013,6 +19647,7 @@
     "name": "삼삼드래",
     "nameEn": "Hydreigon",
     "element": "dark",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 92,
@@ -19040,6 +19675,7 @@
     "name": "활화르바",
     "nameEn": "Larvesta",
     "element": "bug",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -19073,6 +19709,7 @@
     "name": "불카모스",
     "nameEn": "Volcarona",
     "element": "bug",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -19100,6 +19737,7 @@
     "name": "코바르온",
     "nameEn": "Cobalion",
     "element": "steel",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 91,
@@ -19127,6 +19765,7 @@
     "name": "테라키온",
     "nameEn": "Terrakion",
     "element": "rock",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 91,
@@ -19154,6 +19793,7 @@
     "name": "비리디온",
     "nameEn": "Virizion",
     "element": "grass",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 91,
@@ -19181,6 +19821,7 @@
     "name": "토네로스",
     "nameEn": "Tornadus",
     "element": "flying",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 79,
@@ -19208,6 +19849,7 @@
     "name": "볼트로스",
     "nameEn": "Thundurus",
     "element": "electric",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 79,
@@ -19235,6 +19877,7 @@
     "name": "레시라무",
     "nameEn": "Reshiram",
     "element": "dragon",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -19262,6 +19905,7 @@
     "name": "제크로무",
     "nameEn": "Zekrom",
     "element": "dragon",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -19289,6 +19933,7 @@
     "name": "랜드로스",
     "nameEn": "Landorus",
     "element": "ground",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 89,
@@ -19316,6 +19961,7 @@
     "name": "큐레무",
     "nameEn": "Kyurem",
     "element": "dragon",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 125,
@@ -19343,6 +19989,7 @@
     "name": "케르디오",
     "nameEn": "Keldeo",
     "element": "water",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 91,
@@ -19370,6 +20017,7 @@
     "name": "메로엣타",
     "nameEn": "Meloetta",
     "element": "normal",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -19397,6 +20045,7 @@
     "name": "게노세크트",
     "nameEn": "Genesect",
     "element": "bug",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -19424,6 +20073,7 @@
     "name": "도치마론",
     "nameEn": "Chespin",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 56,
@@ -19457,6 +20107,7 @@
     "name": "도치보구",
     "nameEn": "Quilladin",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -19490,6 +20141,7 @@
     "name": "브리가론",
     "nameEn": "Chesnaught",
     "element": "grass",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -19517,6 +20169,7 @@
     "name": "푸호꼬",
     "nameEn": "Fennekin",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -19550,6 +20203,7 @@
     "name": "테르나",
     "nameEn": "Braixen",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -19583,6 +20237,7 @@
     "name": "마폭시",
     "nameEn": "Delphox",
     "element": "fire",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -19610,6 +20265,7 @@
     "name": "개구마르",
     "nameEn": "Froakie",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 41,
@@ -19643,6 +20299,7 @@
     "name": "개굴반장",
     "nameEn": "Frogadier",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 54,
@@ -19676,6 +20333,7 @@
     "name": "개굴닌자",
     "nameEn": "Greninja",
     "element": "water",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -19703,6 +20361,7 @@
     "name": "파르빗",
     "nameEn": "Bunnelby",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -19736,6 +20395,7 @@
     "name": "파르토",
     "nameEn": "Diggersby",
     "element": "normal",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -19763,6 +20423,7 @@
     "name": "화살꼬빈",
     "nameEn": "Fletchling",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -19796,6 +20457,7 @@
     "name": "불화살빈",
     "nameEn": "Fletchinder",
     "element": "fire",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -19829,6 +20491,7 @@
     "name": "파이어로",
     "nameEn": "Talonflame",
     "element": "fire",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -19856,6 +20519,7 @@
     "name": "분이벌레",
     "nameEn": "Scatterbug",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -19889,6 +20553,7 @@
     "name": "분떠도리",
     "nameEn": "Spewpa",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -19922,6 +20587,7 @@
     "name": "비비용",
     "nameEn": "Vivillon",
     "element": "bug",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -19949,6 +20615,7 @@
     "name": "레오꼬",
     "nameEn": "Litleo",
     "element": "fire",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -19982,6 +20649,7 @@
     "name": "화염레오",
     "nameEn": "Pyroar",
     "element": "fire",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 86,
@@ -20009,6 +20677,7 @@
     "name": "플라베베",
     "nameEn": "Flabébé",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 44,
@@ -20042,6 +20711,7 @@
     "name": "플라엣테",
     "nameEn": "Floette",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 54,
@@ -20075,6 +20745,7 @@
     "name": "플라제스",
     "nameEn": "Florges",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -20102,6 +20773,7 @@
     "name": "메이클",
     "nameEn": "Skiddo",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 66,
@@ -20135,6 +20807,7 @@
     "name": "고고트",
     "nameEn": "Gogoat",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 123,
@@ -20162,6 +20835,7 @@
     "name": "판짱",
     "nameEn": "Pancham",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -20195,6 +20869,7 @@
     "name": "부란다",
     "nameEn": "Pangoro",
     "element": "fighting",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -20222,6 +20897,7 @@
     "name": "트리미앙",
     "nameEn": "Furfrou",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -20249,6 +20925,7 @@
     "name": "냐스퍼",
     "nameEn": "Espurr",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -20282,6 +20959,7 @@
     "name": "냐오닉스",
     "nameEn": "Meowstic",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -20309,6 +20987,7 @@
     "name": "단칼빙",
     "nameEn": "Honedge",
     "element": "steel",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -20342,6 +21021,7 @@
     "name": "쌍검킬",
     "nameEn": "Doublade",
     "element": "steel",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -20375,6 +21055,7 @@
     "name": "킬가르도",
     "nameEn": "Aegislash",
     "element": "steel",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -20402,6 +21083,7 @@
     "name": "슈쁘",
     "nameEn": "Spritzee",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -20435,6 +21117,7 @@
     "name": "프레프티르",
     "nameEn": "Aromatisse",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 101,
@@ -20462,6 +21145,7 @@
     "name": "나룸퍼프",
     "nameEn": "Swirlix",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -20495,6 +21179,7 @@
     "name": "나루림",
     "nameEn": "Slurpuff",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 82,
@@ -20522,6 +21207,7 @@
     "name": "오케이징",
     "nameEn": "Inkay",
     "element": "dark",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 53,
@@ -20555,6 +21241,7 @@
     "name": "칼라마네로",
     "nameEn": "Malamar",
     "element": "dark",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 86,
@@ -20582,6 +21269,7 @@
     "name": "거북손손",
     "nameEn": "Binacle",
     "element": "rock",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 42,
@@ -20615,6 +21303,7 @@
     "name": "거북손데스",
     "nameEn": "Barbaracle",
     "element": "rock",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -20642,6 +21331,7 @@
     "name": "수레기",
     "nameEn": "Skrelp",
     "element": "poison",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -20675,6 +21365,7 @@
     "name": "드래캄",
     "nameEn": "Dragalge",
     "element": "poison",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -20702,6 +21393,7 @@
     "name": "완철포",
     "nameEn": "Clauncher",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -20735,6 +21427,7 @@
     "name": "블로스터",
     "nameEn": "Clawitzer",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -20762,6 +21455,7 @@
     "name": "목도리키텔",
     "nameEn": "Helioptile",
     "element": "electric",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 44,
@@ -20795,6 +21489,7 @@
     "name": "일레도리자드",
     "nameEn": "Heliolisk",
     "element": "electric",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -20822,6 +21517,7 @@
     "name": "티고라스",
     "nameEn": "Tyrunt",
     "element": "rock",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -20855,6 +21551,7 @@
     "name": "견고라스",
     "nameEn": "Tyrantrum",
     "element": "rock",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 82,
@@ -20882,6 +21579,7 @@
     "name": "아마루스",
     "nameEn": "Amaura",
     "element": "rock",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 77,
@@ -20915,6 +21613,7 @@
     "name": "아마루르가",
     "nameEn": "Aurorus",
     "element": "rock",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 123,
@@ -20942,6 +21641,7 @@
     "name": "님피아",
     "nameEn": "Sylveon",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -20969,6 +21669,7 @@
     "name": "루차불",
     "nameEn": "Hawlucha",
     "element": "fighting",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -20996,6 +21697,7 @@
     "name": "데덴네",
     "nameEn": "Dedenne",
     "element": "electric",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -21023,6 +21725,7 @@
     "name": "멜리시",
     "nameEn": "Carbink",
     "element": "rock",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -21050,6 +21753,7 @@
     "name": "미끄메라",
     "nameEn": "Goomy",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -21083,6 +21787,7 @@
     "name": "미끄네일",
     "nameEn": "Sliggoo",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -21116,6 +21821,7 @@
     "name": "미끄래곤",
     "nameEn": "Goodra",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -21143,6 +21849,7 @@
     "name": "클레피",
     "nameEn": "Klefki",
     "element": "steel",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 57,
@@ -21170,6 +21877,7 @@
     "name": "나목령",
     "nameEn": "Phantump",
     "element": "ghost",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 43,
@@ -21203,6 +21911,7 @@
     "name": "대로트",
     "nameEn": "Trevenant",
     "element": "ghost",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -21230,6 +21939,7 @@
     "name": "호바귀",
     "nameEn": "Pumpkaboo",
     "element": "ghost",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 49,
@@ -21263,6 +21973,7 @@
     "name": "펌킨인",
     "nameEn": "Gourgeist",
     "element": "ghost",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -21290,6 +22001,7 @@
     "name": "꽁어름",
     "nameEn": "Bergmite",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -21323,6 +22035,7 @@
     "name": "크레베이스",
     "nameEn": "Avalugg",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -21350,6 +22063,7 @@
     "name": "음뱃",
     "nameEn": "Noibat",
     "element": "flying",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -21383,6 +22097,7 @@
     "name": "음번",
     "nameEn": "Noivern",
     "element": "flying",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -21410,6 +22125,7 @@
     "name": "제르네아스",
     "nameEn": "Xerneas",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 126,
@@ -21437,6 +22153,7 @@
     "name": "이벨타르",
     "nameEn": "Yveltal",
     "element": "dark",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 126,
@@ -21464,6 +22181,7 @@
     "name": "지가르데",
     "nameEn": "Zygarde",
     "element": "dragon",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 108,
@@ -21491,6 +22209,7 @@
     "name": "디안시",
     "nameEn": "Diancie",
     "element": "rock",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -21518,6 +22237,7 @@
     "name": "후파",
     "nameEn": "Hoopa",
     "element": "psychic",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -21545,6 +22265,7 @@
     "name": "볼케니온",
     "nameEn": "Volcanion",
     "element": "fire",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -21572,6 +22293,7 @@
     "name": "나몰빼미",
     "nameEn": "Rowlet",
     "element": "grass",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -21605,6 +22327,7 @@
     "name": "빼미스로우",
     "nameEn": "Dartrix",
     "element": "grass",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -21638,6 +22361,7 @@
     "name": "모크나이퍼",
     "nameEn": "Decidueye",
     "element": "grass",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -21665,6 +22389,7 @@
     "name": "냐오불",
     "nameEn": "Litten",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -21698,6 +22423,7 @@
     "name": "냐오히트",
     "nameEn": "Torracat",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -21731,6 +22457,7 @@
     "name": "어흥염",
     "nameEn": "Incineroar",
     "element": "fire",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -21758,6 +22485,7 @@
     "name": "누리공",
     "nameEn": "Popplio",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -21791,6 +22519,7 @@
     "name": "키요공",
     "nameEn": "Brionne",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -21824,6 +22553,7 @@
     "name": "누리레느",
     "nameEn": "Primarina",
     "element": "water",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -21851,6 +22581,7 @@
     "name": "콕코구리",
     "nameEn": "Pikipek",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -21884,6 +22615,7 @@
     "name": "크라파",
     "nameEn": "Trumbeak",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -21917,6 +22649,7 @@
     "name": "왕큰부리",
     "nameEn": "Toucannon",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -21944,6 +22677,7 @@
     "name": "영구스",
     "nameEn": "Yungoos",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -21977,6 +22711,7 @@
     "name": "형사구스",
     "nameEn": "Gumshoos",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -22004,6 +22739,7 @@
     "name": "턱지충이",
     "nameEn": "Grubbin",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 47,
@@ -22037,6 +22773,7 @@
     "name": "전지충이",
     "nameEn": "Charjabug",
     "element": "bug",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 57,
@@ -22070,6 +22807,7 @@
     "name": "투구뿌논",
     "nameEn": "Vikavolt",
     "element": "bug",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 77,
@@ -22097,6 +22835,7 @@
     "name": "오기지게",
     "nameEn": "Crabrawler",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 47,
@@ -22130,6 +22869,7 @@
     "name": "모단단게",
     "nameEn": "Crabominable",
     "element": "fighting",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 97,
@@ -22157,6 +22897,7 @@
     "name": "춤추새",
     "nameEn": "Oricorio",
     "element": "fire",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -22184,6 +22925,7 @@
     "name": "에블리",
     "nameEn": "Cutiefly",
     "element": "bug",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -22217,6 +22959,7 @@
     "name": "에리본",
     "nameEn": "Ribombee",
     "element": "bug",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -22244,6 +22987,7 @@
     "name": "암멍이",
     "nameEn": "Rockruff",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -22277,6 +23021,7 @@
     "name": "루가루암",
     "nameEn": "Lycanroc",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -22304,6 +23049,7 @@
     "name": "약어리",
     "nameEn": "Wishiwashi",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -22331,6 +23077,7 @@
     "name": "시마사리",
     "nameEn": "Mareanie",
     "element": "poison",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -22364,6 +23111,7 @@
     "name": "더시마사리",
     "nameEn": "Toxapex",
     "element": "poison",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -22391,6 +23139,7 @@
     "name": "머드나기",
     "nameEn": "Mudbray",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -22424,6 +23173,7 @@
     "name": "만마드",
     "nameEn": "Mudsdale",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -22451,6 +23201,7 @@
     "name": "물거미",
     "nameEn": "Dewpider",
     "element": "water",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -22484,6 +23235,7 @@
     "name": "깨비물거미",
     "nameEn": "Araquanid",
     "element": "water",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -22511,6 +23263,7 @@
     "name": "짜랑랑",
     "nameEn": "Fomantis",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -22544,6 +23297,7 @@
     "name": "라란티스",
     "nameEn": "Lurantis",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -22571,6 +23325,7 @@
     "name": "자마슈",
     "nameEn": "Morelull",
     "element": "grass",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -22604,6 +23359,7 @@
     "name": "마셰이드",
     "nameEn": "Shiinotic",
     "element": "grass",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -22631,6 +23387,7 @@
     "name": "야도뇽",
     "nameEn": "Salandit",
     "element": "poison",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -22664,6 +23421,7 @@
     "name": "염뉴트",
     "nameEn": "Salazzle",
     "element": "poison",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -22691,6 +23449,7 @@
     "name": "포곰곰",
     "nameEn": "Stufful",
     "element": "normal",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -22724,6 +23483,7 @@
     "name": "이븐곰",
     "nameEn": "Bewear",
     "element": "normal",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -22751,6 +23511,7 @@
     "name": "달콤아",
     "nameEn": "Bounsweet",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 42,
@@ -22784,6 +23545,7 @@
     "name": "달무리나",
     "nameEn": "Steenee",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 52,
@@ -22817,6 +23579,7 @@
     "name": "달코퀸",
     "nameEn": "Tsareena",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -22844,6 +23607,7 @@
     "name": "큐아링",
     "nameEn": "Comfey",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 51,
@@ -22871,6 +23635,7 @@
     "name": "하랑우탄",
     "nameEn": "Oranguru",
     "element": "normal",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -22898,6 +23663,7 @@
     "name": "내던숭이",
     "nameEn": "Passimian",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -22925,6 +23691,7 @@
     "name": "꼬시레",
     "nameEn": "Wimpod",
     "element": "bug",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 25,
@@ -22958,6 +23725,7 @@
     "name": "갑주무사",
     "nameEn": "Golisopod",
     "element": "bug",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -22985,6 +23753,7 @@
     "name": "모래꿍",
     "nameEn": "Sandygast",
     "element": "ghost",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -23018,6 +23787,7 @@
     "name": "모래성이당",
     "nameEn": "Palossand",
     "element": "ghost",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -23045,6 +23815,7 @@
     "name": "해무기",
     "nameEn": "Pyukumuku",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -23072,6 +23843,7 @@
     "name": "타입:널",
     "nameEn": "Type: Null",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -23105,6 +23877,7 @@
     "name": "실버디",
     "nameEn": "Silvally",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -23132,6 +23905,7 @@
     "name": "메테노",
     "nameEn": "Minior",
     "element": "rock",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -23159,6 +23933,7 @@
     "name": "자말라",
     "nameEn": "Komala",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -23186,6 +23961,7 @@
     "name": "폭거북스",
     "nameEn": "Turtonator",
     "element": "fire",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -23213,6 +23989,7 @@
     "name": "토게데마루",
     "nameEn": "Togedemaru",
     "element": "electric",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -23240,6 +24017,7 @@
     "name": "따라큐",
     "nameEn": "Mimikyu",
     "element": "ghost",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -23267,6 +24045,7 @@
     "name": "치갈기",
     "nameEn": "Bruxish",
     "element": "water",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -23294,6 +24073,7 @@
     "name": "할비롱",
     "nameEn": "Drampa",
     "element": "normal",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -23321,6 +24101,7 @@
     "name": "타타륜",
     "nameEn": "Dhelmise",
     "element": "ghost",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -23348,6 +24129,7 @@
     "name": "짜랑꼬",
     "nameEn": "Jangmo-o",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -23381,6 +24163,7 @@
     "name": "짜랑고우",
     "nameEn": "Hakamo-o",
     "element": "dragon",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -23414,6 +24197,7 @@
     "name": "짜랑고우거",
     "nameEn": "Kommo-o",
     "element": "dragon",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -23441,6 +24225,7 @@
     "name": "카푸꼬꼬꼭",
     "nameEn": "Tapu Koko",
     "element": "electric",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -23468,6 +24253,7 @@
     "name": "카푸나비나",
     "nameEn": "Tapu Lele",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -23495,6 +24281,7 @@
     "name": "카푸브루루",
     "nameEn": "Tapu Bulu",
     "element": "grass",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -23522,6 +24309,7 @@
     "name": "카푸느지느",
     "nameEn": "Tapu Fini",
     "element": "water",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -23549,6 +24337,7 @@
     "name": "코스모그",
     "nameEn": "Cosmog",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 43,
@@ -23582,6 +24371,7 @@
     "name": "코스모움",
     "nameEn": "Cosmoem",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 43,
@@ -23615,6 +24405,7 @@
     "name": "솔가레오",
     "nameEn": "Solgaleo",
     "element": "psychic",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 137,
@@ -23642,6 +24433,7 @@
     "name": "루나아라",
     "nameEn": "Lunala",
     "element": "psychic",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 137,
@@ -23669,6 +24461,7 @@
     "name": "텅비드",
     "nameEn": "Nihilego",
     "element": "rock",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 109,
@@ -23696,6 +24489,7 @@
     "name": "매시붕",
     "nameEn": "Buzzwole",
     "element": "bug",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 107,
@@ -23723,6 +24517,7 @@
     "name": "페로코체",
     "nameEn": "Pheromosa",
     "element": "bug",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -23750,6 +24545,7 @@
     "name": "전수목",
     "nameEn": "Xurkitree",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 83,
@@ -23777,6 +24573,7 @@
     "name": "철화구야",
     "nameEn": "Celesteela",
     "element": "steel",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 97,
@@ -23804,6 +24601,7 @@
     "name": "종이신도",
     "nameEn": "Kartana",
     "element": "grass",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -23831,6 +24629,7 @@
     "name": "악식킹",
     "nameEn": "Guzzlord",
     "element": "dark",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 223,
@@ -23858,6 +24657,7 @@
     "name": "네크로즈마",
     "nameEn": "Necrozma",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 97,
@@ -23885,6 +24685,7 @@
     "name": "마기아나",
     "nameEn": "Magearna",
     "element": "steel",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -23912,6 +24713,7 @@
     "name": "마샤도",
     "nameEn": "Marshadow",
     "element": "fighting",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -23939,6 +24741,7 @@
     "name": "베베놈",
     "nameEn": "Poipole",
     "element": "poison",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -23972,6 +24775,7 @@
     "name": "아고용",
     "nameEn": "Naganadel",
     "element": "poison",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 73,
@@ -23999,6 +24803,7 @@
     "name": "차곡차곡",
     "nameEn": "Stakataka",
     "element": "rock",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -24026,6 +24831,7 @@
     "name": "두파팡",
     "nameEn": "Blacephalon",
     "element": "fire",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 53,
@@ -24053,6 +24859,7 @@
     "name": "제라오라",
     "nameEn": "Zeraora",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -24080,6 +24887,7 @@
     "name": "멜탄",
     "nameEn": "Meltan",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 46,
@@ -24107,6 +24915,7 @@
     "name": "멜메탈",
     "nameEn": "Melmetal",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 135,
@@ -24134,6 +24943,7 @@
     "name": "흥나숭",
     "nameEn": "Grookey",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -24167,6 +24977,7 @@
     "name": "채키몽",
     "nameEn": "Thwackey",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -24200,6 +25011,7 @@
     "name": "고릴타",
     "nameEn": "Rillaboom",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -24227,6 +25039,7 @@
     "name": "염버니",
     "nameEn": "Scorbunny",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -24260,6 +25073,7 @@
     "name": "래비풋",
     "nameEn": "Raboot",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -24293,6 +25107,7 @@
     "name": "에이스번",
     "nameEn": "Cinderace",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -24320,6 +25135,7 @@
     "name": "울머기",
     "nameEn": "Sobble",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -24353,6 +25169,7 @@
     "name": "누겔레온",
     "nameEn": "Drizzile",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -24386,6 +25203,7 @@
     "name": "인텔리레온",
     "nameEn": "Inteleon",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -24413,6 +25231,7 @@
     "name": "탐리스",
     "nameEn": "Skwovet",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -24446,6 +25265,7 @@
     "name": "요씽리스",
     "nameEn": "Greedent",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -24473,6 +25293,7 @@
     "name": "파라꼬",
     "nameEn": "Rookidee",
     "element": "flying",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 38,
@@ -24506,6 +25327,7 @@
     "name": "파크로우",
     "nameEn": "Corvisquire",
     "element": "flying",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -24539,6 +25361,7 @@
     "name": "아머까오",
     "nameEn": "Corviknight",
     "element": "flying",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 98,
@@ -24566,6 +25389,7 @@
     "name": "두루지벌레",
     "nameEn": "Blipbug",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 25,
@@ -24599,6 +25423,7 @@
     "name": "레돔벌레",
     "nameEn": "Dottler",
     "element": "bug",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -24632,6 +25457,7 @@
     "name": "이올브",
     "nameEn": "Orbeetle",
     "element": "bug",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -24659,6 +25485,7 @@
     "name": "훔처우",
     "nameEn": "Nickit",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -24692,6 +25519,7 @@
     "name": "폭슬라이",
     "nameEn": "Thievul",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -24719,6 +25547,7 @@
     "name": "꼬모카",
     "nameEn": "Gossifleur",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -24752,6 +25581,7 @@
     "name": "백솜모카",
     "nameEn": "Eldegoss",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -24779,6 +25609,7 @@
     "name": "우르",
     "nameEn": "Wooloo",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 42,
@@ -24812,6 +25643,7 @@
     "name": "배우르",
     "nameEn": "Dubwool",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -24839,6 +25671,7 @@
     "name": "깨물부기",
     "nameEn": "Chewtle",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -24872,6 +25705,7 @@
     "name": "갈가부기",
     "nameEn": "Drednaw",
     "element": "water",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -24899,6 +25733,7 @@
     "name": "멍파치",
     "nameEn": "Yamper",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 59,
@@ -24932,6 +25767,7 @@
     "name": "펄스멍",
     "nameEn": "Boltund",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 69,
@@ -24959,6 +25795,7 @@
     "name": "탄동",
     "nameEn": "Rolycoly",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -24992,6 +25829,7 @@
     "name": "탄차곤",
     "nameEn": "Carkol",
     "element": "rock",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -25025,6 +25863,7 @@
     "name": "석탄산",
     "nameEn": "Coalossal",
     "element": "rock",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -25052,6 +25891,7 @@
     "name": "과사삭벌레",
     "nameEn": "Applin",
     "element": "grass",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -25085,6 +25925,7 @@
     "name": "애프룡",
     "nameEn": "Flapple",
     "element": "grass",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -25112,6 +25953,7 @@
     "name": "단지래플",
     "nameEn": "Appletun",
     "element": "grass",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -25139,6 +25981,7 @@
     "name": "모래뱀",
     "nameEn": "Silicobra",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 52,
@@ -25172,6 +26015,7 @@
     "name": "사다이사",
     "nameEn": "Sandaconda",
     "element": "ground",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -25199,6 +26043,7 @@
     "name": "윽우지",
     "nameEn": "Cramorant",
     "element": "flying",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -25226,6 +26071,7 @@
     "name": "찌로꼬치",
     "nameEn": "Arrokuda",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 41,
@@ -25259,6 +26105,7 @@
     "name": "꼬치조",
     "nameEn": "Barraskewda",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -25286,6 +26133,7 @@
     "name": "일레즌",
     "nameEn": "Toxel",
     "element": "electric",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -25319,6 +26167,7 @@
     "name": "스트린더",
     "nameEn": "Toxtricity",
     "element": "electric",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -25346,6 +26195,7 @@
     "name": "태우지네",
     "nameEn": "Sizzlipede",
     "element": "fire",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -25379,6 +26229,7 @@
     "name": "다태우지네",
     "nameEn": "Centiskorch",
     "element": "fire",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -25406,6 +26257,7 @@
     "name": "때때무노",
     "nameEn": "Clobbopus",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -25439,6 +26291,7 @@
     "name": "케오퍼스",
     "nameEn": "Grapploct",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -25466,6 +26319,7 @@
     "name": "데인차",
     "nameEn": "Sinistea",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -25499,6 +26353,7 @@
     "name": "포트데스",
     "nameEn": "Polteageist",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -25526,6 +26381,7 @@
     "name": "몸지브림",
     "nameEn": "Hatenna",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 42,
@@ -25559,6 +26415,7 @@
     "name": "손지브림",
     "nameEn": "Hattrem",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 57,
@@ -25592,6 +26449,7 @@
     "name": "브리무음",
     "nameEn": "Hatterene",
     "element": "psychic",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 57,
@@ -25619,6 +26477,7 @@
     "name": "메롱꿍",
     "nameEn": "Impidimp",
     "element": "dark",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -25652,6 +26511,7 @@
     "name": "쏘겨모",
     "nameEn": "Morgrem",
     "element": "dark",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -25685,6 +26545,7 @@
     "name": "오롱털",
     "nameEn": "Grimmsnarl",
     "element": "dark",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -25712,6 +26573,7 @@
     "name": "가로막구리",
     "nameEn": "Obstagoon",
     "element": "dark",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 93,
@@ -25739,6 +26601,7 @@
     "name": "나이킹",
     "nameEn": "Perrserker",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -25766,6 +26629,7 @@
     "name": "산호르곤",
     "nameEn": "Cursola",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -25793,6 +26657,7 @@
     "name": "창파나이트",
     "nameEn": "Sirfetch’d",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 62,
@@ -25820,6 +26685,7 @@
     "name": "마임꽁꽁",
     "nameEn": "Mr. Rime",
     "element": "ice",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -25847,6 +26713,7 @@
     "name": "데스판",
     "nameEn": "Runerigus",
     "element": "ground",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -25874,6 +26741,7 @@
     "name": "마빌크",
     "nameEn": "Milcery",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -25907,6 +26775,7 @@
     "name": "마휘핑",
     "nameEn": "Alcremie",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -25934,6 +26803,7 @@
     "name": "대여르",
     "nameEn": "Falinks",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -25961,6 +26831,7 @@
     "name": "찌르성게",
     "nameEn": "Pincurchin",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -25988,6 +26859,7 @@
     "name": "누니머기",
     "nameEn": "Snom",
     "element": "ice",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -26021,6 +26893,7 @@
     "name": "모스노우",
     "nameEn": "Frosmoth",
     "element": "ice",
+    "element2": "bug",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -26048,6 +26921,7 @@
     "name": "돌헨진",
     "nameEn": "Stonjourner",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -26075,6 +26949,7 @@
     "name": "빙큐보",
     "nameEn": "Eiscue",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -26102,6 +26977,7 @@
     "name": "에써르",
     "nameEn": "Indeedee",
     "element": "psychic",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -26129,6 +27005,7 @@
     "name": "모르페코",
     "nameEn": "Morpeko",
     "element": "electric",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 58,
@@ -26156,6 +27033,7 @@
     "name": "끼리동",
     "nameEn": "Cufant",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -26189,6 +27067,7 @@
     "name": "대왕끼리동",
     "nameEn": "Copperajah",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 122,
@@ -26216,6 +27095,7 @@
     "name": "파치래곤",
     "nameEn": "Dracozolt",
     "element": "electric",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -26243,6 +27123,7 @@
     "name": "파치르돈",
     "nameEn": "Arctozolt",
     "element": "electric",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -26270,6 +27151,7 @@
     "name": "어래곤",
     "nameEn": "Dracovish",
     "element": "water",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -26297,6 +27179,7 @@
     "name": "어치르돈",
     "nameEn": "Arctovish",
     "element": "water",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -26324,6 +27207,7 @@
     "name": "두랄루돈",
     "nameEn": "Duraludon",
     "element": "steel",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -26357,6 +27241,7 @@
     "name": "드라꼰",
     "nameEn": "Dreepy",
     "element": "dragon",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 28,
@@ -26390,6 +27275,7 @@
     "name": "드래런치",
     "nameEn": "Drakloak",
     "element": "dragon",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -26423,6 +27309,7 @@
     "name": "드래펄트",
     "nameEn": "Dragapult",
     "element": "dragon",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -26450,6 +27337,7 @@
     "name": "자시안",
     "nameEn": "Zacian",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 92,
@@ -26477,6 +27365,7 @@
     "name": "자마젠타",
     "nameEn": "Zamazenta",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 92,
@@ -26504,6 +27393,7 @@
     "name": "무한다이노",
     "nameEn": "Eternatus",
     "element": "poison",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 140,
@@ -26531,6 +27421,7 @@
     "name": "치고마",
     "nameEn": "Kubfu",
     "element": "fighting",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -26564,6 +27455,7 @@
     "name": "우라오스",
     "nameEn": "Urshifu",
     "element": "fighting",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -26591,6 +27483,7 @@
     "name": "자루도",
     "nameEn": "Zarude",
     "element": "dark",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -26618,6 +27511,7 @@
     "name": "레지에레키",
     "nameEn": "Regieleki",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -26645,6 +27539,7 @@
     "name": "레지드래고",
     "nameEn": "Regidrago",
     "element": "dragon",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 200,
@@ -26672,6 +27567,7 @@
     "name": "블리자포스",
     "nameEn": "Glastrier",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -26699,6 +27595,7 @@
     "name": "레이스포스",
     "nameEn": "Spectrier",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -26726,6 +27623,7 @@
     "name": "버드렉스",
     "nameEn": "Calyrex",
     "element": "psychic",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -26753,6 +27651,7 @@
     "name": "신비록",
     "nameEn": "Wyrdeer",
     "element": "normal",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 103,
@@ -26780,6 +27679,7 @@
     "name": "사마자르",
     "nameEn": "Kleavor",
     "element": "bug",
+    "element2": "rock",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -26807,6 +27707,7 @@
     "name": "다투곰",
     "nameEn": "Ursaluna",
     "element": "ground",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 130,
@@ -26834,6 +27735,7 @@
     "name": "대쓰여너",
     "nameEn": "Basculegion",
     "element": "water",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -26861,6 +27763,7 @@
     "name": "포푸니크",
     "nameEn": "Sneasler",
     "element": "fighting",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -26888,6 +27791,7 @@
     "name": "장침바루",
     "nameEn": "Overqwil",
     "element": "dark",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -26915,6 +27819,7 @@
     "name": "러브로스",
     "nameEn": "Enamorus",
     "element": "fairy",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -26942,6 +27847,7 @@
     "name": "나오하",
     "nameEn": "Sprigatito",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -26975,6 +27881,7 @@
     "name": "나로테",
     "nameEn": "Floragato",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -27008,6 +27915,7 @@
     "name": "마스카나",
     "nameEn": "Meowscarada",
     "element": "grass",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 76,
@@ -27035,6 +27943,7 @@
     "name": "뜨아거",
     "nameEn": "Fuecoco",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 67,
@@ -27068,6 +27977,7 @@
     "name": "악뜨거",
     "nameEn": "Crocalor",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 81,
@@ -27101,6 +28011,7 @@
     "name": "라우드본",
     "nameEn": "Skeledirge",
     "element": "fire",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 104,
@@ -27128,6 +28039,7 @@
     "name": "꾸왁스",
     "nameEn": "Quaxly",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -27161,6 +28073,7 @@
     "name": "아꾸왁",
     "nameEn": "Quaxwell",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -27194,6 +28107,7 @@
     "name": "웨이니발",
     "nameEn": "Quaquaval",
     "element": "water",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -27221,6 +28135,7 @@
     "name": "맛보돈",
     "nameEn": "Lechonk",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 54,
@@ -27254,6 +28169,7 @@
     "name": "퍼퓨돈",
     "nameEn": "Oinkologne",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -27281,6 +28197,7 @@
     "name": "타랜툴라",
     "nameEn": "Tarountula",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -27314,6 +28231,7 @@
     "name": "트래피더",
     "nameEn": "Spidops",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -27341,6 +28259,7 @@
     "name": "콩알뚜기",
     "nameEn": "Nymble",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 33,
@@ -27374,6 +28293,7 @@
     "name": "엑스레그",
     "nameEn": "Lokix",
     "element": "bug",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -27401,6 +28321,7 @@
     "name": "빠모",
     "nameEn": "Pawmi",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -27434,6 +28355,7 @@
     "name": "빠모트",
     "nameEn": "Pawmo",
     "element": "electric",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -27467,6 +28389,7 @@
     "name": "빠르모트",
     "nameEn": "Pawmot",
     "element": "electric",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -27494,6 +28417,7 @@
     "name": "두리쥐",
     "nameEn": "Tandemaus",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -27527,6 +28451,7 @@
     "name": "파밀리쥐",
     "nameEn": "Maushold",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -27554,6 +28479,7 @@
     "name": "쫀도기",
     "nameEn": "Fidough",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 37,
@@ -27587,6 +28513,7 @@
     "name": "바우첼",
     "nameEn": "Dachsbun",
     "element": "fairy",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 57,
@@ -27614,6 +28541,7 @@
     "name": "미니브",
     "nameEn": "Smoliv",
     "element": "grass",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 41,
@@ -27647,6 +28575,7 @@
     "name": "올리뇨",
     "nameEn": "Dolliv",
     "element": "grass",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 52,
@@ -27680,6 +28609,7 @@
     "name": "올리르바",
     "nameEn": "Arboliva",
     "element": "grass",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 78,
@@ -27707,6 +28637,7 @@
     "name": "시비꼬",
     "nameEn": "Squawkabilly",
     "element": "normal",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 82,
@@ -27734,6 +28665,7 @@
     "name": "베베솔트",
     "nameEn": "Nacli",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -27767,6 +28699,7 @@
     "name": "스태솔트",
     "nameEn": "Naclstack",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -27800,6 +28733,7 @@
     "name": "콜로솔트",
     "nameEn": "Garganacl",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -27827,6 +28761,7 @@
     "name": "카르본",
     "nameEn": "Charcadet",
     "element": "fire",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -27860,6 +28795,7 @@
     "name": "카디나르마",
     "nameEn": "Armarouge",
     "element": "fire",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -27887,6 +28823,7 @@
     "name": "파라블레이즈",
     "nameEn": "Ceruledge",
     "element": "fire",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -27914,6 +28851,7 @@
     "name": "빈나두",
     "nameEn": "Tadbulb",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 61,
@@ -27947,6 +28885,7 @@
     "name": "찌리배리",
     "nameEn": "Bellibolt",
     "element": "electric",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 109,
@@ -27974,6 +28913,7 @@
     "name": "찌리비",
     "nameEn": "Wattrel",
     "element": "electric",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -28007,6 +28947,7 @@
     "name": "찌리비크",
     "nameEn": "Kilowattrel",
     "element": "electric",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -28034,6 +28975,7 @@
     "name": "오라티프",
     "nameEn": "Maschiff",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 60,
@@ -28067,6 +29009,7 @@
     "name": "마피티프",
     "nameEn": "Mabosstiff",
     "element": "dark",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -28094,6 +29037,7 @@
     "name": "땃쭈르",
     "nameEn": "Shroodle",
     "element": "poison",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -28127,6 +29071,7 @@
     "name": "태깅구르",
     "nameEn": "Grafaiai",
     "element": "poison",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 63,
@@ -28154,6 +29099,7 @@
     "name": "그푸리",
     "nameEn": "Bramblin",
     "element": "grass",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -28187,6 +29133,7 @@
     "name": "공푸리",
     "nameEn": "Brambleghast",
     "element": "grass",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -28214,6 +29161,7 @@
     "name": "들눈해",
     "nameEn": "Toedscool",
     "element": "ground",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -28247,6 +29195,7 @@
     "name": "육파리",
     "nameEn": "Toedscruel",
     "element": "ground",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -28274,6 +29223,7 @@
     "name": "절벼게",
     "nameEn": "Klawf",
     "element": "rock",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -28301,6 +29251,7 @@
     "name": "캡싸이",
     "nameEn": "Capsakid",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -28334,6 +29285,7 @@
     "name": "스코빌런",
     "nameEn": "Scovillain",
     "element": "grass",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -28361,6 +29313,7 @@
     "name": "구르데",
     "nameEn": "Rellor",
     "element": "bug",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 41,
@@ -28394,6 +29347,7 @@
     "name": "베라카스",
     "nameEn": "Rabsca",
     "element": "bug",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 75,
@@ -28421,6 +29375,7 @@
     "name": "하느라기",
     "nameEn": "Flittle",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 30,
@@ -28454,6 +29409,7 @@
     "name": "클레스퍼트라",
     "nameEn": "Espathra",
     "element": "psychic",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 95,
@@ -28481,6 +29437,7 @@
     "name": "어리짱",
     "nameEn": "Tinkatink",
     "element": "fairy",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -28514,6 +29471,7 @@
     "name": "벼리짱",
     "nameEn": "Tinkatuff",
     "element": "fairy",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -28547,6 +29505,7 @@
     "name": "두드리짱",
     "nameEn": "Tinkaton",
     "element": "fairy",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -28574,6 +29533,7 @@
     "name": "바다그다",
     "nameEn": "Wiglett",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 10,
@@ -28607,6 +29567,7 @@
     "name": "바닥트리오",
     "nameEn": "Wugtrio",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 35,
@@ -28634,6 +29595,7 @@
     "name": "떨구새",
     "nameEn": "Bombirdier",
     "element": "flying",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -28661,6 +29623,7 @@
     "name": "맨돌핀",
     "nameEn": "Finizen",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -28694,6 +29657,7 @@
     "name": "돌핀맨",
     "nameEn": "Palafin",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -28721,6 +29685,7 @@
     "name": "부르롱",
     "nameEn": "Varoom",
     "element": "steel",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -28754,6 +29719,7 @@
     "name": "부르르룸",
     "nameEn": "Revavroom",
     "element": "steel",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -28781,6 +29747,7 @@
     "name": "모토마",
     "nameEn": "Cyclizar",
     "element": "dragon",
+    "element2": "normal",
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -28808,6 +29775,7 @@
     "name": "꿈트렁",
     "nameEn": "Orthworm",
     "element": "steel",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 70,
@@ -28835,6 +29803,7 @@
     "name": "초롱순",
     "nameEn": "Glimmet",
     "element": "rock",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 48,
@@ -28868,6 +29837,7 @@
     "name": "킬라플로르",
     "nameEn": "Glimmora",
     "element": "rock",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 83,
@@ -28895,6 +29865,7 @@
     "name": "망망이",
     "nameEn": "Greavard",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 50,
@@ -28928,6 +29899,7 @@
     "name": "묘두기",
     "nameEn": "Houndstone",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 72,
@@ -28955,6 +29927,7 @@
     "name": "꼬이밍고",
     "nameEn": "Flamigo",
     "element": "flying",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 82,
@@ -28982,6 +29955,7 @@
     "name": "터벅고래",
     "nameEn": "Cetoddle",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 108,
@@ -29015,6 +29989,7 @@
     "name": "우락고래",
     "nameEn": "Cetitan",
     "element": "ice",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 170,
@@ -29042,6 +30017,7 @@
     "name": "가비루사",
     "nameEn": "Veluza",
     "element": "water",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -29069,6 +30045,7 @@
     "name": "어써러셔",
     "nameEn": "Dondozo",
     "element": "water",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 150,
@@ -29096,6 +30073,7 @@
     "name": "싸리용",
     "nameEn": "Tatsugiri",
     "element": "dragon",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 68,
@@ -29123,6 +30101,7 @@
     "name": "저승갓숭",
     "nameEn": "Annihilape",
     "element": "fighting",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 110,
@@ -29150,6 +30129,7 @@
     "name": "토오",
     "nameEn": "Clodsire",
     "element": "poison",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 130,
@@ -29177,6 +30157,7 @@
     "name": "키키링",
     "nameEn": "Farigiraf",
     "element": "normal",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 120,
@@ -29204,6 +30185,7 @@
     "name": "노고고치",
     "nameEn": "Dudunsparce",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 125,
@@ -29231,6 +30213,7 @@
     "name": "대도각참",
     "nameEn": "Kingambit",
     "element": "dark",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -29258,6 +30241,7 @@
     "name": "위대한엄니",
     "nameEn": "Great Tusk",
     "element": "ground",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 115,
@@ -29285,6 +30269,7 @@
     "name": "우렁찬꼬리",
     "nameEn": "Scream Tail",
     "element": "fairy",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 115,
@@ -29312,6 +30297,7 @@
     "name": "사나운버섯",
     "nameEn": "Brute Bonnet",
     "element": "grass",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 111,
@@ -29339,6 +30325,7 @@
     "name": "날개치는머리",
     "nameEn": "Flutter Mane",
     "element": "ghost",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -29366,6 +30353,7 @@
     "name": "땅을기는날개",
     "nameEn": "Slither Wing",
     "element": "bug",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -29393,6 +30381,7 @@
     "name": "모래털가죽",
     "nameEn": "Sandy Shocks",
     "element": "electric",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -29420,6 +30409,7 @@
     "name": "무쇠바퀴",
     "nameEn": "Iron Treads",
     "element": "ground",
+    "element2": "steel",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -29447,6 +30437,7 @@
     "name": "무쇠보따리",
     "nameEn": "Iron Bundle",
     "element": "ice",
+    "element2": "water",
     "rarity": 1,
     "baseStats": {
       "hp": 56,
@@ -29474,6 +30465,7 @@
     "name": "무쇠손",
     "nameEn": "Iron Hands",
     "element": "fighting",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 154,
@@ -29501,6 +30493,7 @@
     "name": "무쇠머리",
     "nameEn": "Iron Jugulis",
     "element": "dark",
+    "element2": "flying",
     "rarity": 1,
     "baseStats": {
       "hp": 94,
@@ -29528,6 +30521,7 @@
     "name": "무쇠독나방",
     "nameEn": "Iron Moth",
     "element": "fire",
+    "element2": "poison",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -29555,6 +30549,7 @@
     "name": "무쇠가시",
     "nameEn": "Iron Thorns",
     "element": "rock",
+    "element2": "electric",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -29582,6 +30577,7 @@
     "name": "드니차",
     "nameEn": "Frigibax",
     "element": "dragon",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 65,
@@ -29615,6 +30611,7 @@
     "name": "드니꽁",
     "nameEn": "Arctibax",
     "element": "dragon",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -29648,6 +30645,7 @@
     "name": "드닐레이브",
     "nameEn": "Baxcalibur",
     "element": "dragon",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 115,
@@ -29675,6 +30673,7 @@
     "name": "모으령",
     "nameEn": "Gimmighoul",
     "element": "ghost",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 45,
@@ -29708,6 +30707,7 @@
     "name": "타부자고",
     "nameEn": "Gholdengo",
     "element": "steel",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 87,
@@ -29735,6 +30735,7 @@
     "name": "총지엔",
     "nameEn": "Wo-Chien",
     "element": "dark",
+    "element2": "grass",
     "rarity": 1,
     "baseStats": {
       "hp": 85,
@@ -29762,6 +30763,7 @@
     "name": "파오젠",
     "nameEn": "Chien-Pao",
     "element": "dark",
+    "element2": "ice",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -29789,6 +30791,7 @@
     "name": "딩루",
     "nameEn": "Ting-Lu",
     "element": "dark",
+    "element2": "ground",
     "rarity": 1,
     "baseStats": {
       "hp": 155,
@@ -29816,6 +30819,7 @@
     "name": "위유이",
     "nameEn": "Chi-Yu",
     "element": "dark",
+    "element2": "fire",
     "rarity": 1,
     "baseStats": {
       "hp": 55,
@@ -29843,6 +30847,7 @@
     "name": "고동치는달",
     "nameEn": "Roaring Moon",
     "element": "dragon",
+    "element2": "dark",
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -29870,6 +30875,7 @@
     "name": "무쇠무인",
     "nameEn": "Iron Valiant",
     "element": "fairy",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 74,
@@ -29897,6 +30903,7 @@
     "name": "코라이돈",
     "nameEn": "Koraidon",
     "element": "fighting",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -29924,6 +30931,7 @@
     "name": "미라이돈",
     "nameEn": "Miraidon",
     "element": "electric",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 100,
@@ -29951,6 +30959,7 @@
     "name": "굽이치는물결",
     "nameEn": "Walking Wake",
     "element": "water",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 99,
@@ -29978,6 +30987,7 @@
     "name": "무쇠잎새",
     "nameEn": "Iron Leaves",
     "element": "grass",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -30005,6 +31015,7 @@
     "name": "과미르",
     "nameEn": "Dipplin",
     "element": "grass",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -30038,6 +31049,7 @@
     "name": "차데스",
     "nameEn": "Poltchageist",
     "element": "grass",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 40,
@@ -30071,6 +31083,7 @@
     "name": "그우린차",
     "nameEn": "Sinistcha",
     "element": "grass",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 71,
@@ -30098,6 +31111,7 @@
     "name": "조타구",
     "nameEn": "Okidogi",
     "element": "poison",
+    "element2": "fighting",
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -30125,6 +31139,7 @@
     "name": "이야후",
     "nameEn": "Munkidori",
     "element": "poison",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -30152,6 +31167,7 @@
     "name": "기로치",
     "nameEn": "Fezandipiti",
     "element": "poison",
+    "element2": "fairy",
     "rarity": 1,
     "baseStats": {
       "hp": 88,
@@ -30179,6 +31195,7 @@
     "name": "오거폰",
     "nameEn": "Ogerpon",
     "element": "grass",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 80,
@@ -30206,6 +31223,7 @@
     "name": "브리두라스",
     "nameEn": "Archaludon",
     "element": "steel",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -30233,6 +31251,7 @@
     "name": "과미드라",
     "nameEn": "Hydrapple",
     "element": "grass",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 106,
@@ -30260,6 +31279,7 @@
     "name": "꿰뚫는화염",
     "nameEn": "Gouging Fire",
     "element": "fire",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 105,
@@ -30287,6 +31307,7 @@
     "name": "날뛰는우레",
     "nameEn": "Raging Bolt",
     "element": "electric",
+    "element2": "dragon",
     "rarity": 1,
     "baseStats": {
       "hp": 125,
@@ -30314,6 +31335,7 @@
     "name": "무쇠암석",
     "nameEn": "Iron Boulder",
     "element": "rock",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -30341,6 +31363,7 @@
     "name": "무쇠감투",
     "nameEn": "Iron Crown",
     "element": "steel",
+    "element2": "psychic",
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -30368,6 +31391,7 @@
     "name": "테라파고스",
     "nameEn": "Terapagos",
     "element": "normal",
+    "element2": null,
     "rarity": 1,
     "baseStats": {
       "hp": 90,
@@ -30395,6 +31419,7 @@
     "name": "복숭악동",
     "nameEn": "Pecharunt",
     "element": "poison",
+    "element2": "ghost",
     "rarity": 1,
     "baseStats": {
       "hp": 88,
