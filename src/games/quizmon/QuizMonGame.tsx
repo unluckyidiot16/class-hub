@@ -22,7 +22,7 @@ import { QuizMonBattleView } from "./QuizMonBattleView";
 import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
 import { useQuizmonContext } from "./QuizmonProvider";
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
-
+import { DUNGEON_CONFIGS } from "./dungeonEnemySets";
 
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
@@ -46,69 +46,6 @@ function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
 // - "result": 배틀 결산 오버레이
 // viewState 는 던전 단위 상태(DungeonState) 역할
 type ViewState = "title" | "lobby" | "battle" | "result" | "gacha" | "dungeon";
-
-// 🔹 던전 타입 / 설정
-type DungeonDifficulty = "easy" | "normal" | "hard";
-
-export type DungeonConfig = {
-    id: string;
-    name: string;
-    description: string;
-    difficulty: DungeonDifficulty;
-    /** UI용 난이도 라벨 (한글) */
-    difficultyLabel: string;
-    /** 나중에 적 세트 테이블/JSON과 연결할 키 */
-    enemySetId: string;
-    /** 보상 계수 (코인/Exp/아이템 드랍 등) */
-    rewardMultiplier: number;
-    /** 권장 레벨 범위 */
-    recommendedMinLevel: number;
-    recommendedMaxLevel: number;
-    arenaKey : string;
-};
-
-/** 🏰 6-A: 던전 리스트 (데이터 분리) */
-export const DUNGEON_CONFIGS: DungeonConfig[] = [
-    {
-        id: "forest-easy-1",
-        name: "숲 입구 튜토리얼",
-        description: "HP가 낮은 적이 등장하는 튜토리얼용 레이드입니다.",
-        difficulty: "easy",
-        difficultyLabel: "쉬움",
-        enemySetId: "forest-set-1",
-        rewardMultiplier: 1.0,
-        recommendedMinLevel: 1,
-        recommendedMaxLevel: 5,
-        arenaKey: "forest_bg",
-    },
-    {
-        id: "forest-normal-1",
-        name: "숲 깊은 곳",
-        description:
-            "조금 더 강한 적이 등장하는 실전 수업용 던전입니다.",
-        difficulty: "normal",
-        difficultyLabel: "보통",
-        enemySetId: "forest-set-2",
-        rewardMultiplier: 1.5,
-        recommendedMinLevel: 3,
-        recommendedMaxLevel: 8,
-        arenaKey: "forest_bg",
-    },
-    {
-        id: "tower-hard-1",
-        name: "연습 타워 (하드)",
-        description:
-            "정답률이 높을수록 보상이 크게 늘어나는 도전용 던전입니다.",
-        difficulty: "hard",
-        difficultyLabel: "어려움",
-        enemySetId: "tower-set-1",
-        rewardMultiplier: 2.0,
-        recommendedMinLevel: 5,
-        recommendedMaxLevel: 12,
-        arenaKey: "forest_bg",
-    },
-];
-
 
 // 배열 셔플 유틸 (Fisher–Yates)
 function shuffleArray<T>(arr: T[]): T[] {
