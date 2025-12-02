@@ -64,10 +64,6 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 const PLAYER_SPECIES_ID = "poke-0001" as const;
 
-const [activeRaidSession, setActiveRaidSession] =
-    useState<QuizmonRaidSessionRow | null>(null);
-const [raidSessionLoading, setRaidSessionLoading] = useState(false);
-
 
 // =========================
 // 🎮 Game 컴포넌트
@@ -114,6 +110,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
     } = props;
 
     const isClassRaid = !!roomId && !!gameSessionId && !!studentId;
+    
+    const [activeRaidSession, setActiveRaidSession] =
+        useState<QuizmonRaidSessionRow | null>(null);
+    const [raidSessionLoading, setRaidSessionLoading] = useState(false);
+
 
     // 🔹 가챠/재화용 프로필 로컬 상태 (부모 profile과 동기화)
     const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(
