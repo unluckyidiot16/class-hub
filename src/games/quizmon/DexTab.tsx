@@ -325,6 +325,7 @@ export function DexTab(props: DexTabProps) {
                 gap: "1rem",
                 height: "100%",
                 minHeight: 0,
+                overflow: "hidden",
             }}
         >
             {/* 왼쪽: 필터 + 도감 리스트 */}
@@ -336,6 +337,7 @@ export function DexTab(props: DexTabProps) {
                     flexDirection: "column",
                     gap: "0.5rem",
                     minWidth: 0,
+                    overflow: "hidden",      // 🔹 부모 컨테이너에서 overflow 제어
                 }}
             >
                 {/* 필터/정렬 바 */}
@@ -430,6 +432,8 @@ export function DexTab(props: DexTabProps) {
                             "radial-gradient(circle at top, rgba(30,64,175,0.35), rgba(15,23,42,0.95))",
                         padding: "0.5rem",
                         overflowY: "auto",
+                        overflowX: "hidden",
+                        position: "relative",
                     }}
                 >
                     {loading && (
@@ -600,7 +604,7 @@ export function DexTab(props: DexTabProps) {
                 }}
             >
                 {selectedSpecies ? (
-                        <DexEntryDetailPanel
+                    <DexEntryDetailPanel
                         name={selectedSpecies.name ?? "알 수 없음"}
                         code={selectedSpecies.id}
                         elementLabel={selectedElementMeta.label}
