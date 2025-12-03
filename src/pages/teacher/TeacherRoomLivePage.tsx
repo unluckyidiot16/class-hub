@@ -173,6 +173,7 @@ type RaidRankingEntry = {
 
 type RaidResultSnapshot = {
     capturedAt: string; // 스냅샷 시각
+    raidSessionId: string | null;
     raidStats: Record<string, RaidStat>;
     ranking: RaidRankingEntry[];
     rewards: RaidRewardRow[];
@@ -185,34 +186,39 @@ type RaidResultSnapshot = {
 
 
 type BuildRaidRewardOptions = {
-    baseGem?: number;
-    damageUnit?: number;
-    maxBonusGem?: number;
-    topBonusGemByRank?: number[];
+    baseGem?: number;               // 계산의 기준이 되는 기본 값 (필수는 아님)
+    minParticipationGem?: number;   // ✅ 참가만 한 친구에게 보장할 최소 젬
+    damageUnit?: number;            // N 데미지당 +1젬
+    maxBonusGem?: number;           // 딜 보너스 상한
+    topBonusGemByRank?: number[];   // 순위별 추가 보너스 (0-based index)
+
+    bossDefeated?: boolean;         // ✅ 보스 격파 여부
+    bossClearBonusAll?: number;     // ✅ 보스 격파 시 전체 추가 젬
 };
+
 
 // 🔹 누적 데미지 / 순위 기반 간단 보상안 생성
 function buildRaidRewards(
-    ranking: {
-        studentKey: string;
-        nickname: string | null;
-        totalAnswers: number;
-        correctAnswers: number;
-        accuracy: number;
-        totalRaidDamage: number;
-    }[],
+    ranking: RaidRankingEntry[],
     options: BuildRaidRewardOptions = {},
 ): RaidRewardRow[] {
     const {
-        baseGem = 10,                  // 참여만 해도 10젬
-        damageUnit = 50,              // 50데미지당 1젬 추가
-        maxBonusGem = 3,              // 데미지 보너스 최대 3젬
-        topBonusGemByRank = [1, 1, 1] // 상위 3명 각 1젬 보너스
+        baseGem = 0,                   // 기본 계산용 값
+        minParticipationGem = 5,       // ✅ 참가만 해도 최소 5젬
+        damageUnit = 80,               // ✅ 80 데미지당 +1젬
+        maxBonusGem = 3,               // ✅ 딜 보너스 최대 +3젬
+        topBonusGemByRank = [3, 2, 1], // ✅ 1등 +3, 2등 +2, 3등 +1
+
+        bossDefeated = false,          // ✅ 보스 격파 여부
+        bossClearBonusAll = 2,         // ✅ 격파 시 전체 +2젬
     } = options;
 
     if (!ranking.length) return [];
 
     return ranking.map((r, index) => {
+        const attempted = r.totalAnswers > 0; // 한 번이라도 풀었는지
+
+        // 1) 딜량 보너스
         const bonusByDamage =
             damageUnit > 0
                 ? Math.min(
@@ -221,14 +227,29 @@ function buildRaidRewards(
                 )
                 : 0;
 
+        // 2) 순위 보너스
         const rankBonus = topBonusGemByRank[index] ?? 0;
+
+        // 3) 기본 계산
+        let gems = baseGem + bonusByDamage + rankBonus;
+
+        // 4) 참가 최소 보장
+        if (attempted && gems < minParticipationGem) {
+            gems = minParticipationGem;
+        }
+
+        // 5) 보스 격파 전체 보너스
+        if (bossDefeated && attempted && bossClearBonusAll > 0) {
+            gems += bossClearBonusAll;
+        }
 
         return {
             ...r,
-            gems: baseGem + bonusByDamage + rankBonus,
+            gems,
         };
     });
 }
+
 
 
 /** QDD game_events 한 줄을 누적 집계에 반영 */
@@ -658,12 +679,7 @@ export function TeacherRoomLivePage() {
             });
     }, [room, raidStats, students]);
 
-
-    const raidRewards: RaidRewardRow[] = useMemo(
-        () => buildRaidRewards(raidRanking),
-        [raidRanking],
-    );
-
+    // 🔹 v2: 클래스 레이드용 공유 보스 HP 계산
     // 🔹 v2: 클래스 레이드용 공유 보스 HP 계산
     const {
         bossMaxHp,
@@ -690,9 +706,7 @@ export function TeacherRoomLivePage() {
 
         const raidParticipantCount = entries.length;
         const bossMaxHp = 1000 + raidParticipantCount * 200;
-
         const bossHpRemaining = Math.max(0, bossMaxHp - totalRaidDamage);
-
         const bossDefeated = bossHpRemaining <= 0 && bossMaxHp > 0;
 
         return {
@@ -703,6 +717,21 @@ export function TeacherRoomLivePage() {
             raidParticipantCount,
         };
     }, [room, raidStats]);
+
+// ✅ 튜닝된 규칙으로 보상 계산
+    const raidRewards: RaidRewardRow[] = useMemo(
+        () =>
+            buildRaidRewards(raidRanking, {
+                baseGem: 0,
+                minParticipationGem: 5,
+                damageUnit: 80,
+                maxBonusGem: 3,
+                topBonusGemByRank: [3, 2, 1],
+                bossDefeated,
+                bossClearBonusAll: 2,
+            }),
+        [raidRanking, bossDefeated],
+    );
 
 
 
@@ -1272,6 +1301,7 @@ export function TeacherRoomLivePage() {
         if (hadParticipants) {
             setRaidResultSnapshot({
                 capturedAt: new Date().toISOString(),
+                raidSessionId: activeRaidSession.id,
                 raidStats,
                 ranking: raidRanking,
                 rewards: raidRewards,
@@ -1746,18 +1776,21 @@ export function TeacherRoomLivePage() {
             return;
         }
 
+        if (!activeRaidSession) {
+            setErrorMsg("현재 진행 중인 레이드 세션이 없습니다.");
+            return;
+        }
+
         if (!effectiveRaidRewards.length) {
             setErrorMsg("지급할 레이드 보상 데이터가 없습니다.");
             return;
         }
 
-        // 젬 1개 이상 받는 학생만 추림
         const rewardsPayload = effectiveRaidRewards
             .filter((r) => r.gems > 0)
             .map((r) => ({
                 student_key: r.studentKey,
                 gems: r.gems,
-                // 로그에서 참고할 수 있도록 부가 정보도 같이 넣어줌
                 nickname: r.nickname,
                 total_answers: r.totalAnswers,
                 correct_answers: r.correctAnswers,
@@ -1772,7 +1805,7 @@ export function TeacherRoomLivePage() {
 
         const ok = window.confirm(
             "추천 보상안을 기준으로 QuizMon/플레이 지갑에 젬을 자동 지급할까요?\n\n" +
-            "※ 같은 반(class)에 속한 학생 중에서, 보상 대상에게만 젬이 지급됩니다."
+            "※ 같은 반(class)에 속한 학생 중에서, 보상 대상에게만 젬이 지급됩니다.",
         );
         if (!ok) return;
 
@@ -1784,7 +1817,8 @@ export function TeacherRoomLivePage() {
                 "grant_play_student_wallet_for_raid",
                 {
                     _class_id: room.class_id,
-                    _rewards: rewardsPayload, // ← jsonb 배열로 전달
+                    _raid_session_id: activeRaidSession.id,   // ✅ 여기 추가
+                    _rewards: rewardsPayload,                 // jsonb 배열
                 },
             );
 
@@ -1797,7 +1831,6 @@ export function TeacherRoomLivePage() {
                 return;
             }
 
-            // play_students 현재 상태 새로고침 (왼쪽 지갑 카드에 반영)
             await reloadPlayStudents(room.class_id);
 
             setRewardCopyMsg("추천 보상 젬을 자동으로 지급했습니다.");
@@ -1812,6 +1845,8 @@ export function TeacherRoomLivePage() {
             setAutoRewardSaving(false);
         }
     };
+
+
 
 
 
@@ -3175,8 +3210,7 @@ export function TeacherRoomLivePage() {
                                                 >
                                                     <p className="hint" style={{ margin: 0 }}>
                                                         * 상단 숫자는 임시 규칙
-                                                        (기본 1젬 + 데미지에 따른 보너스 + 상위 3명
-                                                        추가 1젬)으로 계산된 값입니다.
+                                                        (참가 기본 5젬 + 딜량 보너스 최대 3젬 + 상위 3명 추가 보너스 + 보스 격파 시 전원 +2젬)으로 계산된 값입니다.
                                                     </p>
                                                     <div
                                                         style={{
