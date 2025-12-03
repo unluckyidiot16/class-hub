@@ -151,8 +151,64 @@ type RaidStat = {
     totalRaidDamage: number; // 누적 데미지 점수
 };
 
+// 🔹 클래스 레이드 보상 미리보기용 타입
+type RaidRewardRow = {
+    studentKey: string;
+    nickname: string | null;
+    totalAnswers: number;
+    correctAnswers: number;
+    accuracy: number;
+    totalRaidDamage: number;
+    gems: number;
+};
 
-/** QDD game_events 한 줄을 누적 집계에 반영 */
+type BuildRaidRewardOptions = {
+    baseGem?: number;
+    damageUnit?: number;
+    maxBonusGem?: number;
+    topBonusGemByRank?: number[];
+};
+
+// 🔹 누적 데미지 / 순위 기반 간단 보상안 생성
+function buildRaidRewards(
+    ranking: {
+        studentKey: string;
+        nickname: string | null;
+        totalAnswers: number;
+        correctAnswers: number;
+        accuracy: number;
+        totalRaidDamage: number;
+    }[],
+    options: BuildRaidRewardOptions = {},
+): RaidRewardRow[] {
+    const {
+        baseGem = 10,                  // 참여만 해도 10젬
+        damageUnit = 50,              // 50데미지당 1젬 추가
+        maxBonusGem = 3,              // 데미지 보너스 최대 3젬
+        topBonusGemByRank = [1, 1, 1] // 상위 3명 각 1젬 보너스
+    } = options;
+
+    if (!ranking.length) return [];
+
+    return ranking.map((r, index) => {
+        const bonusByDamage =
+            damageUnit > 0
+                ? Math.min(
+                    maxBonusGem,
+                    Math.floor((r.totalRaidDamage ?? 0) / damageUnit),
+                )
+                : 0;
+
+        const rankBonus = topBonusGemByRank[index] ?? 0;
+
+        return {
+            ...r,
+            gems: baseGem + bonusByDamage + rankBonus,
+        };
+    });
+}
+
+
 /** QDD game_events 한 줄을 누적 집계에 반영 */
 function applyQddEvent(
     base: Record<string, QddQuestionStats>,
@@ -517,6 +573,11 @@ export function TeacherRoomLivePage() {
     const [raidStats, setRaidStats] =
         useState<Record<string, RaidStat>>({});
 
+    // 🔹 레이드 보상 미리보기 모달 상태
+    const [showRaidRewardModal, setShowRaidRewardModal] = useState(false);
+    const [rewardCopyMsg, setRewardCopyMsg] = useState<string | null>(null);
+
+
     // QDD에서 사용하는 questionId 예시: "Eng5_9-033"
     // → prefix("Eng5_9") + 번호(033) 구조라서 prefix만 한 번 뽑아서 재사용
     const qddQuestionPrefix = useMemo(() => {
@@ -566,6 +627,11 @@ export function TeacherRoomLivePage() {
                 return b.correctAnswers - a.correctAnswers;
             });
     }, [room, students, raidStats]);
+
+    const raidRewards: RaidRewardRow[] = useMemo(
+        () => buildRaidRewards(raidRanking),
+        [raidRanking],
+    );
 
     // 🔹 v2: 클래스 레이드용 공유 보스 HP 계산
     const {
@@ -1520,6 +1586,28 @@ export function TeacherRoomLivePage() {
             setErrorMsg(
                 "링크를 복사하는 중 문제가 발생했습니다. 직접 선택해서 복사해주세요.",
             );
+        }
+    };
+
+    // 🔹 레이드 보상안 텍스트로 복사
+    const handleCopyRaidRewards = async () => {
+        if (!raidRewards.length) return;
+
+        const header = "클래스 레이드 보상안\n";
+        const bodyLines = raidRewards.map((r, idx) => {
+            const name = r.nickname ?? r.studentKey ?? "무명 트레이너";
+            return `${idx + 1}위 ${name} — 정답 ${r.correctAnswers}/${r.totalAnswers}, 데미지 ${r.totalRaidDamage}, 보상 젬 ${r.gems}개`;
+        });
+
+        const text = `${header}\n${bodyLines.join("\n")}`;
+
+        try {
+            await navigator.clipboard.writeText(text);
+            setRewardCopyMsg("보상안이 클립보드에 복사되었습니다.");
+            setTimeout(() => setRewardCopyMsg(null), 2000);
+        } catch (err) {
+            console.error("[TeacherRoomLive] copy raid rewards error", err);
+            setErrorMsg("보상안을 복사하는 중 문제가 발생했습니다. 직접 선택해서 복사해주세요.");
         }
     };
 
@@ -2718,74 +2806,202 @@ export function TeacherRoomLivePage() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                window.alert(
-                                                    "보상 분배 메뉴는 v2에서 실제 보상 로직과 함께 연결할 예정입니다.",
-                                                );
-                                            }}
+                                            onClick={() => setShowRaidRewardModal(true)}
+                                            disabled={!bossDefeated || raidRanking.length === 0}
                                             style={{
                                                 padding: "0.3rem 0.7rem",
                                                 borderRadius: 999,
                                                 border: "1px solid #b91c1c",
                                                 background:
-                                                    "linear-gradient(90deg,#b91c1c,#f97316)",
+                                                    bossDefeated && raidRanking.length > 0
+                                                        ? "linear-gradient(90deg,#b91c1c,#f97316)"
+                                                        : "linear-gradient(90deg,#4b5563,#6b7280)",
                                                 color: "#fef2f2",
-                                                cursor: "pointer",
+                                                cursor:
+                                                    bossDefeated && raidRanking.length > 0
+                                                        ? "pointer"
+                                                        : "not-allowed",
                                                 fontWeight: 600,
+                                                opacity: bossDefeated && raidRanking.length > 0 ? 1 : 0.6,
                                             }}
                                         >
-                                            보상 메뉴 (베타)
+                                            보상 메뉴 열기
                                         </button>
+
                                     </div>
                                 </div>
                             </div>
 
-                            {/* 누적 데미지 랭킹은 데이터가 있을 때만 */}
-                            {raidRanking.length > 0 && (
-                                <div className="card" style={{ marginTop: "0.75rem" }}>
-                                    <h2>클래스 레이드 — 누적 데미지 랭킹</h2>
-                                    <p className="hint">
-                                        현재 세션 동안 퀴즈몬 정답으로 누적된 데미지 기준 랭킹입니다.
-                                        (정답 1개 ≒ 10 데미지)
-                                    </p>
-
+                            {/* 🔹 QuizMon 클래스 레이드 — 보상 미리보기 모달 */}
+                            {showRaidRewardModal && (
+                                <div
+                                    style={{
+                                        position: "fixed",
+                                        inset: 0,
+                                        background: "rgba(15, 23, 42, 0.8)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        zIndex: 1002,
+                                        padding: "1rem",
+                                    }}
+                                >
                                     <div
+                                        className="card"
                                         style={{
-                                            overflowX: "auto",
-                                            marginTop: "0.5rem",
+                                            width: "100%",
+                                            maxWidth: "780px",
+                                            maxHeight: "80vh",
+                                            overflow: "auto",
+                                            background: "rgba(15, 23, 42, 0.98)",
                                         }}
                                     >
-                                        <table className="simple-table">
-                                            <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>학생</th>
-                                                <th>정답 수</th>
-                                                <th>정답률</th>
-                                                <th>누적 데미지</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {raidRanking.map((r, idx) => (
-                                                <tr key={r.studentKey ?? idx}>
-                                                    <td>{idx + 1}</td>
-                                                    <td>
-                                                        {r.nickname ??
-                                                            r.studentKey ??
-                                                            "무명 트레이너"}
-                                                    </td>
-                                                    <td>
-                                                        {r.correctAnswers} / {r.totalAnswers}
-                                                    </td>
-                                                    <td>{r.accuracy}%</td>
-                                                    <td>{r.totalRaidDamage}</td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </table>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                gap: "0.5rem",
+                                                marginBottom: "0.4rem",
+                                            }}
+                                        >
+                                            <h2 style={{ marginBottom: 0 }}>
+                                                클래스 레이드 보상 미리보기
+                                            </h2>
+                                            <button
+                                                type="button"
+                                                className="secondary-btn"
+                                                onClick={() => setShowRaidRewardModal(false)}
+                                            >
+                                                닫기
+                                            </button>
+                                        </div>
+
+                                        <p className="hint" style={{ marginBottom: "0.6rem" }}>
+                                            이 화면은 이번 레이드 결과를 바탕으로 한{" "}
+                                            <strong>추천 보상안</strong>입니다. 실제 지급은 아래
+                                            숫자를 참고해 선생님이 결정하거나, 왼쪽{" "}
+                                            <strong>반 학생 지갑 / 보상 지급</strong> 카드에서
+                                            선택한 학생에게 젬을 지급해 주세요.
+                                        </p>
+
+                                        <div
+                                            style={{
+                                                fontSize: "0.85rem",
+                                                marginBottom: "0.5rem",
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                gap: "0.75rem",
+                                            }}
+                                        >
+                <span>
+                    보스 HP:{" "}
+                    <strong>
+                        {bossHpRemaining} / {bossMaxHp}
+                    </strong>
+                </span>
+                                            <span>
+                    누적 데미지: <strong>{totalRaidDamage}</strong>
+                </span>
+                                            <span>
+                    참여 학생: <strong>{raidParticipantCount}명</strong>
+                </span>
+                                            <span>
+                    보스 상태:{" "}
+                                                {bossDefeated ? (
+                                                    <strong style={{ color: "#a3e635" }}>격파</strong>
+                                                ) : (
+                                                    <strong style={{ color: "#f97316" }}>생존</strong>
+                                                )}
+                </span>
+                                        </div>
+
+                                        {raidRewards.length === 0 ? (
+                                            <p className="hint">
+                                                아직 집계된 레이드 데이터가 없습니다.
+                                            </p>
+                                        ) : (
+                                            <>
+                                                <div
+                                                    style={{
+                                                        overflowX: "auto",
+                                                        marginBottom: "0.75rem",
+                                                    }}
+                                                >
+                                                    <table className="simple-table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>학생</th>
+                                                            <th>정답 수</th>
+                                                            <th>정답률</th>
+                                                            <th>누적 데미지</th>
+                                                            <th>추천 젬</th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                        {raidRewards.map((r, idx) => (
+                                                            <tr key={r.studentKey ?? idx}>
+                                                                <td>{idx + 1}</td>
+                                                                <td>{r.nickname ?? r.studentKey}</td>
+                                                                <td>
+                                                                    {r.correctAnswers} /{" "}
+                                                                    {r.totalAnswers}
+                                                                </td>
+                                                                <td>{r.accuracy}%</td>
+                                                                <td>{r.totalRaidDamage}</td>
+                                                                <td>{r.gems}</td>
+                                                            </tr>
+                                                        ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        alignItems: "center",
+                                                        gap: "0.5rem",
+                                                    }}
+                                                >
+                                                    <p className="hint" style={{ margin: 0 }}>
+                                                        * 상단 숫자는 임시 규칙
+                                                        (기본 1젬 + 데미지에 따른 보너스 + 상위 3명
+                                                        추가 1젬)으로 계산된 값입니다.
+                                                    </p>
+                                                    <div
+                                                        style={{
+                                                            display: "flex",
+                                                            gap: "0.5rem",
+                                                            alignItems: "center",
+                                                        }}
+                                                    >
+                                                        {rewardCopyMsg && (
+                                                            <span
+                                                                style={{
+                                                                    fontSize: "0.8rem",
+                                                                    color: "var(--accent)",
+                                                                }}
+                                                            >
+                                    {rewardCopyMsg}
+                                </span>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            className="secondary-btn"
+                                                            onClick={handleCopyRaidRewards}
+                                                        >
+                                                            보상안 복사하기
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             )}
+
                         </>
                     )}
                 </div>
