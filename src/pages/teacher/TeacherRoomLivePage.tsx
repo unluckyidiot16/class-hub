@@ -162,6 +162,28 @@ type RaidRewardRow = {
     gems: number;
 };
 
+type RaidRankingEntry = {
+    studentKey: string;
+    nickname: string | null;
+    totalAnswers: number;
+    correctAnswers: number;
+    accuracy: number;
+    totalRaidDamage: number;
+};
+
+type RaidResultSnapshot = {
+    capturedAt: string; // 스냅샷 시각
+    raidStats: Record<string, RaidStat>;
+    ranking: RaidRankingEntry[];
+    rewards: RaidRewardRow[];
+    bossMaxHp: number;
+    totalRaidDamage: number;
+    bossHpRemaining: number;
+    bossDefeated: boolean;
+    raidParticipantCount: number;
+};
+
+
 type BuildRaidRewardOptions = {
     baseGem?: number;
     damageUnit?: number;
@@ -426,6 +448,18 @@ export function TeacherRoomLivePage() {
 
     const pemIframeRef = useRef<HTMLIFrameElement | null>(null);
 
+    // 🔹 QuizMon 클래스 레이드용 학생별 누적 데미지
+    const [raidStats, setRaidStats] =
+        useState<Record<string, RaidStat>>({});
+
+    // 🔹 레이드 보상 미리보기 모달 상태
+    const [showRaidRewardModal, setShowRaidRewardModal] = useState(false);
+    const [rewardCopyMsg, setRewardCopyMsg] = useState<string | null>(null);
+
+    // 🔹 레이드 결과 스냅샷 (종료 시점)
+    const [raidResultSnapshot, setRaidResultSnapshot] =
+        useState<RaidResultSnapshot | null>(null);
+
 
     // 🔹 play_students 재조회 함수
     const reloadPlayStudents = async (classId: string) => {
@@ -569,14 +603,6 @@ export function TeacherRoomLivePage() {
     const [qddStats, setQddStats] =
         useState<Record<string, QddQuestionStats>>({});
 
-    // 🔹 QuizMon 클래스 레이드용 학생별 누적 데미지
-    const [raidStats, setRaidStats] =
-        useState<Record<string, RaidStat>>({});
-
-    // 🔹 레이드 보상 미리보기 모달 상태
-    const [showRaidRewardModal, setShowRaidRewardModal] = useState(false);
-    const [rewardCopyMsg, setRewardCopyMsg] = useState<string | null>(null);
-
 
     // QDD에서 사용하는 questionId 예시: "Eng5_9-033"
     // → prefix("Eng5_9") + 번호(033) 구조라서 prefix만 한 번 뽑아서 재사용
@@ -641,7 +667,6 @@ export function TeacherRoomLivePage() {
         bossMaxHp,
         totalRaidDamage,
         bossHpRemaining,
-        bossProgress,
         bossDefeated,
         raidParticipantCount,
     } = useMemo(() => {
@@ -650,7 +675,6 @@ export function TeacherRoomLivePage() {
                 bossMaxHp: 0,
                 totalRaidDamage: 0,
                 bossHpRemaining: 0,
-                bossProgress: 0,
                 bossDefeated: false,
                 raidParticipantCount: 0,
             };
@@ -662,15 +686,10 @@ export function TeacherRoomLivePage() {
             0,
         );
 
-        // 🔹 임시 HP: 학생 수 * 200 + 기본 1000
         const raidParticipantCount = entries.length;
         const bossMaxHp = 1000 + raidParticipantCount * 200;
 
         const bossHpRemaining = Math.max(0, bossMaxHp - totalRaidDamage);
-        const bossProgress =
-            bossMaxHp > 0
-                ? Math.min(1, totalRaidDamage / bossMaxHp)
-                : 0;
 
         const bossDefeated = bossHpRemaining <= 0 && bossMaxHp > 0;
 
@@ -678,11 +697,11 @@ export function TeacherRoomLivePage() {
             bossMaxHp,
             totalRaidDamage,
             bossHpRemaining,
-            bossProgress,
             bossDefeated,
             raidParticipantCount,
         };
     }, [room, raidStats]);
+
 
 
     // DB quiz_questions.row -> QDD questionId 문자열로 변환
@@ -693,6 +712,30 @@ export function TeacherRoomLivePage() {
         return `${qddQuestionPrefix}-${suffix}`;     // "Eng5_9-001"
     }
 
+
+    // 🔹 스냅샷이 있다면 스냅샷 기준, 없으면 라이브 기준 값 사용
+    const effectiveBossMaxHp =
+        raidResultSnapshot?.bossMaxHp ?? bossMaxHp;
+    const effectiveTotalRaidDamage =
+        raidResultSnapshot?.totalRaidDamage ?? totalRaidDamage;
+    const effectiveBossHpRemaining =
+        raidResultSnapshot?.bossHpRemaining ?? bossHpRemaining;
+    const effectiveRaidParticipantCount =
+        raidResultSnapshot?.raidParticipantCount ?? raidParticipantCount;
+    const effectiveBossDefeated =
+        raidResultSnapshot?.bossDefeated ?? bossDefeated;
+
+    // 랭킹 / 보상도 스냅샷 우선
+    const effectiveRaidRanking =
+        raidResultSnapshot?.ranking ?? raidRanking;
+    const effectiveRaidRewards =
+        raidResultSnapshot?.rewards ?? raidRewards;
+
+    const effectiveBossProgress =
+        effectiveBossMaxHp > 0
+            ? Math.min(1, effectiveTotalRaidDamage / effectiveBossMaxHp)
+            : 0;
+    
     const qddStatsByQuestionId: Record<string, QddQuestionStats> = useMemo(
         () => {
             if (!room) return {};
@@ -1178,6 +1221,9 @@ export function TeacherRoomLivePage() {
             setRaidSaving(true);
             setErrorMsg(null);
 
+            // ✅ 이전 레이드 결과 스냅샷 초기화
+            setRaidResultSnapshot(null);
+
             const speciesId = (raidBossSpeciesId || "").trim() || "0001";
             const rawLevel = Number(raidBossLevel);
             const safeLevel = Number.isFinite(rawLevel)
@@ -1218,26 +1264,44 @@ export function TeacherRoomLivePage() {
         );
         if (!ok) return;
 
+        // 🔹 이 시점의 raidRanking / 보스 상태가 스냅샷 기준
+        const hadParticipants = raidRanking.length > 0;
+
+        if (hadParticipants) {
+            setRaidResultSnapshot({
+                capturedAt: new Date().toISOString(),
+                raidStats,
+                ranking: raidRanking,
+                rewards: raidRewards,
+                bossMaxHp,
+                totalRaidDamage,
+                bossHpRemaining,
+                bossDefeated,
+                raidParticipantCount,
+            });
+        } else {
+            setRaidResultSnapshot(null);
+        }
+
         try {
             setRaidSaving(true);
             setErrorMsg(null);
-
-            // 🔹 이 시점의 raidStats / bossHP / raidRanking 이 스냅샷 역할
-            const hadParticipants = raidRanking.length > 0;
 
             await closeActiveRaidSession({
                 roomId: room.id,
                 gameSessionId: activeGameSessionId,
             });
 
+            // ✅ 이제 이 방에는 activeRaidSession 없음
             setActiveRaidSession(null);
 
             if (hadParticipants) {
-                // ✅ 중간 종료든, 보스 격파든 상관 없이
-                //    "지금까지의 데미지" 기준으로 보상 미리보기 열기
+                // ✅ 종료 직전 스냅샷 기준으로 모달 오픈
                 setShowRaidRewardModal(true);
             } else {
-                window.alert("이번 레이드에 참여한 학생이 아직 없어 보상 미리보기는 열지 않습니다.");
+                window.alert(
+                    "이번 레이드에 참여한 학생이 아직 없어 보상 미리보기는 열지 않습니다.",
+                );
             }
         } catch (err) {
             console.error("[TeacherRoomLive] handleEndRaid error", err);
@@ -1246,6 +1310,7 @@ export function TeacherRoomLivePage() {
             setRaidSaving(false);
         }
     };
+
 
 
     // 🔹 PEM 토너먼트 자동 편성 (단순 셔플 + 순서대로 매칭)
@@ -1652,10 +1717,10 @@ export function TeacherRoomLivePage() {
 
     // 🔹 레이드 보상안 텍스트로 복사
     const handleCopyRaidRewards = async () => {
-        if (!raidRewards.length) return;
+        if (!effectiveRaidRewards.length) return;
 
         const header = "클래스 레이드 보상안\n";
-        const bodyLines = raidRewards.map((r, idx) => {
+        const bodyLines = effectiveRaidRewards.map((r, idx) => {
             const name = r.nickname ?? r.studentKey ?? "무명 트레이너";
             return `${idx + 1}위 ${name} — 정답 ${r.correctAnswers}/${r.totalAnswers}, 데미지 ${r.totalRaidDamage}, 보상 젬 ${r.gems}개`;
         });
@@ -2773,7 +2838,7 @@ export function TeacherRoomLivePage() {
                                     >
                                         <span style={{ fontWeight: 600 }}>Boss HP</span>
                                         <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                        {bossHpRemaining} / {bossMaxHp}
+                        {effectiveBossHpRemaining} / {effectiveBossMaxHp}
                     </span>
                                     </div>
 
@@ -2789,7 +2854,7 @@ export function TeacherRoomLivePage() {
                                     >
                                         <div
                                             style={{
-                                                width: `${bossProgress * 100}%`,
+                                                width: `${effectiveBossProgress * 100}%`,
                                                 height: "100%",
                                                 background: bossDefeated
                                                     ? "linear-gradient(90deg,#22c55e,#a3e635)"
@@ -2809,13 +2874,14 @@ export function TeacherRoomLivePage() {
                                             color: "#9ca3af",
                                         }}
                                     >
-                    <span>
-                        누적 데미지: <strong>{totalRaidDamage}</strong>{" "}
-                        / 필요 데미지: <strong>{bossMaxHp}</strong>
-                    </span>
+                                   <span>
+                                    누적 데미지: <strong>{effectiveTotalRaidDamage}</strong>{" "}
+                                        / 필요 데미지: <strong>{effectiveBossMaxHp}</strong>
+                                    </span>
                                         <span>
-                        참여 학생: <strong>{raidParticipantCount}명</strong>
-                    </span>
+                                      참여 학생: <strong>{effectiveRaidParticipantCount}명</strong>
+                                    </span>
+
                                     </div>
 
                                     {/* 레이드 상태 메시지 */}
@@ -2832,9 +2898,9 @@ export function TeacherRoomLivePage() {
                                             fontWeight: 500,
                                         }}
                                     >
-                                        {raidParticipantCount === 0 ? (
+                                        {effectiveRaidParticipantCount === 0 ? (
                                             <>아직 레이드에 참여한 학생이 없습니다. 퀴즈 정답이 쌓이면 보스 HP가 줄어듭니다.</>
-                                        ) : bossDefeated ? (
+                                        ) : effectiveBossDefeated ? (
                                             <>✅ 보스가 쓰러졌습니다! (보상 분배 UI는 추후 연동 예정)</>
                                         ) : (
                                             <>학생들이 정답을 맞출수록 보스 HP가 줄어듭니다.</>
@@ -2853,7 +2919,10 @@ export function TeacherRoomLivePage() {
                                     >
                                         <button
                                             type="button"
-                                            onClick={() => setRaidStats({})}
+                                            onClick={() => {
+                                                setRaidStats({});
+                                                setRaidResultSnapshot(null);
+                                            }}
                                             style={{
                                                 padding: "0.3rem 0.7rem",
                                                 borderRadius: 999,
@@ -2868,22 +2937,22 @@ export function TeacherRoomLivePage() {
                                         <button
                                             type="button"
                                             onClick={() => setShowRaidRewardModal(true)}
-                                            disabled={raidRanking.length === 0}   // ← 여기만 수정
+                                            disabled={effectiveRaidRanking.length === 0}
                                             style={{
                                                 padding: "0.3rem 0.7rem",
                                                 borderRadius: 999,
                                                 border: "1px solid #b91c1c",
                                                 background:
-                                                    bossDefeated && raidRanking.length > 0
-                                                        ? "linear-gradient(90deg,#b91c1c,#f97316)"
-                                                        : "linear-gradient(90deg,#4b5563,#6b7280)",
+                                                    effectiveRaidRanking.length === 0
+                                                        ? "linear-gradient(90deg,#4b5563,#6b7280)"
+                                                        : effectiveBossDefeated
+                                                            ? "linear-gradient(90deg,#b91c1c,#f97316)"
+                                                            : "linear-gradient(90deg,#4b5563,#6b7280)",
                                                 color: "#fef2f2",
                                                 cursor:
-                                                    bossDefeated && raidRanking.length > 0
-                                                        ? "pointer"
-                                                        : "not-allowed",
+                                                    effectiveRaidRanking.length === 0 ? "not-allowed" : "pointer",
                                                 fontWeight: 600,
-                                                opacity: bossDefeated && raidRanking.length > 0 ? 1 : 0.6,
+                                                opacity: effectiveRaidRanking.length === 0 ? 0.6 : 1,
                                             }}
                                         >
                                             보상 메뉴 열기
@@ -2955,29 +3024,30 @@ export function TeacherRoomLivePage() {
                                                 gap: "0.75rem",
                                             }}
                                         >
-                <span>
-                    보스 HP:{" "}
-                    <strong>
-                        {bossHpRemaining} / {bossMaxHp}
-                    </strong>
-                </span>
+                                      <span>
+                                         보스 HP:{" "}
+                                     <strong>
+                                          {effectiveBossHpRemaining} / {effectiveBossMaxHp}
+                                         </strong>
+                                    </span>
                                             <span>
-                    누적 데미지: <strong>{totalRaidDamage}</strong>
-                </span>
+                                        누적 데미지: <strong>{effectiveTotalRaidDamage}</strong>
+                                    </span>
                                             <span>
-                    참여 학생: <strong>{raidParticipantCount}명</strong>
-                </span>
+                                         참여 학생: <strong>{effectiveRaidParticipantCount}명</strong>
+                                    </span>
                                             <span>
-                    보스 상태:{" "}
-                                                {bossDefeated ? (
+                                        보스 상태:{" "}
+                                                {effectiveBossDefeated ? (
                                                     <strong style={{ color: "#a3e635" }}>격파</strong>
                                                 ) : (
                                                     <strong style={{ color: "#f97316" }}>생존</strong>
                                                 )}
-                </span>
+                                    </span>
+
                                         </div>
 
-                                        {raidRewards.length === 0 ? (
+                                        {effectiveRaidRewards.length === 0 ? (
                                             <p className="hint">
                                                 아직 집계된 레이드 데이터가 없습니다.
                                             </p>
@@ -3001,7 +3071,7 @@ export function TeacherRoomLivePage() {
                                                         </tr>
                                                         </thead>
                                                         <tbody>
-                                                        {raidRewards.map((r, idx) => (
+                                                        {effectiveRaidRewards.map((r, idx) => (
                                                             <tr key={r.studentKey ?? idx}>
                                                                 <td>{idx + 1}</td>
                                                                 <td>{r.nickname ?? r.studentKey}</td>
