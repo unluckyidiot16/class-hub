@@ -459,8 +459,10 @@ export function TeacherRoomLivePage() {
     // 🔹 레이드 결과 스냅샷 (종료 시점)
     const [raidResultSnapshot, setRaidResultSnapshot] =
         useState<RaidResultSnapshot | null>(null);
-
-
+    
+    // 🔹 레이드 자동 보상 지급 진행 상태
+    const [autoRewardSaving, setAutoRewardSaving] = useState(false);
+    
     // 🔹 play_students 재조회 함수
     const reloadPlayStudents = async (classId: string) => {
         setPlayStudentsLoading(true);
@@ -1715,7 +1717,7 @@ export function TeacherRoomLivePage() {
         }
     };
 
-    // 🔹 레이드 보상안 텍스트로 복사
+// 🔹 레이드 보상안 텍스트로 복사 (기존 그대로)
     const handleCopyRaidRewards = async () => {
         if (!effectiveRaidRewards.length) return;
 
@@ -1736,6 +1738,81 @@ export function TeacherRoomLivePage() {
             setErrorMsg("보상안을 복사하는 중 문제가 발생했습니다. 직접 선택해서 복사해주세요.");
         }
     };
+
+// 🔹 추천 젬 보상을 QuizMon/플레이 지갑에 한 번에 지급
+    const handleAutoGrantRaidRewards = async () => {
+        if (!room?.class_id) {
+            setErrorMsg("이 방은 반(class)에 연결되어 있지 않아 자동 보상을 지급할 수 없습니다.");
+            return;
+        }
+
+        if (!effectiveRaidRewards.length) {
+            setErrorMsg("지급할 레이드 보상 데이터가 없습니다.");
+            return;
+        }
+
+        // 젬 1개 이상 받는 학생만 추림
+        const rewardsPayload = effectiveRaidRewards
+            .filter((r) => r.gems > 0)
+            .map((r) => ({
+                student_key: r.studentKey,
+                gems: r.gems,
+                // 로그에서 참고할 수 있도록 부가 정보도 같이 넣어줌
+                nickname: r.nickname,
+                total_answers: r.totalAnswers,
+                correct_answers: r.correctAnswers,
+                accuracy: r.accuracy,
+                total_raid_damage: r.totalRaidDamage,
+            }));
+
+        if (!rewardsPayload.length) {
+            setErrorMsg("추천 보상 중 젬이 1개 이상인 학생이 없습니다.");
+            return;
+        }
+
+        const ok = window.confirm(
+            "추천 보상안을 기준으로 QuizMon/플레이 지갑에 젬을 자동 지급할까요?\n\n" +
+            "※ 같은 반(class)에 속한 학생 중에서, 보상 대상에게만 젬이 지급됩니다."
+        );
+        if (!ok) return;
+
+        setAutoRewardSaving(true);
+        setErrorMsg(null);
+
+        try {
+            const { error } = await supabase.rpc(
+                "grant_play_student_wallet_for_raid",
+                {
+                    _class_id: room.class_id,
+                    _rewards: rewardsPayload, // ← jsonb 배열로 전달
+                },
+            );
+
+            if (error) {
+                console.error(
+                    "[TeacherRoomLive] grant_play_student_wallet_for_raid error",
+                    error,
+                );
+                setErrorMsg("자동 보상 지급 중 오류가 발생했습니다.");
+                return;
+            }
+
+            // play_students 현재 상태 새로고침 (왼쪽 지갑 카드에 반영)
+            await reloadPlayStudents(room.class_id);
+
+            setRewardCopyMsg("추천 보상 젬을 자동으로 지급했습니다.");
+            setTimeout(() => setRewardCopyMsg(null), 2000);
+        } catch (err) {
+            console.error(
+                "[TeacherRoomLive] handleAutoGrantRaidRewards error",
+                err,
+            );
+            setErrorMsg("자동 보상 지급 중 예기치 못한 오류가 발생했습니다.");
+        } finally {
+            setAutoRewardSaving(false);
+        }
+    };
+
 
 
 
@@ -3115,8 +3192,8 @@ export function TeacherRoomLivePage() {
                                                                     color: "var(--accent)",
                                                                 }}
                                                             >
-                                    {rewardCopyMsg}
-                                </span>
+                {rewardCopyMsg}
+            </span>
                                                         )}
                                                         <button
                                                             type="button"
@@ -3125,8 +3202,21 @@ export function TeacherRoomLivePage() {
                                                         >
                                                             보상안 복사하기
                                                         </button>
+                                                        <button
+                                                            type="button"
+                                                            className="primary-btn"
+                                                            onClick={handleAutoGrantRaidRewards}
+                                                            disabled={
+                                                                autoRewardSaving ||
+                                                                !room?.class_id ||
+                                                                effectiveRaidRewards.length === 0
+                                                            }
+                                                        >
+                                                            {autoRewardSaving ? "자동 지급 중..." : "추천 보상 자동 지급"}
+                                                        </button>
                                                     </div>
                                                 </div>
+
                                             </>
                                         )}
                                     </div>
