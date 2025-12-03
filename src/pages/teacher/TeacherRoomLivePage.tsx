@@ -761,14 +761,10 @@ export function TeacherRoomLivePage() {
         }
     }, []);
 
-    // room / session 이 이미 있는 상태에서 들어온 교사도 game_sessions.id를 얻도록
+    // 🔹 room / session 이 이미 있는 상태에서 들어온 교사도 game_sessions.id를 얻도록
     useEffect(() => {
-        // 기본 가드: 아직 로드 안 됐거나, 진행 중인 세션이 아니면 game_session도 비움
+        // ✅ 기본 가드: 아직 로드 안 됐으면 game_session도 비움
         if (!room || !pack || !session) {
-            setActiveGameSessionId(null);
-            return;
-        }
-        if (session.status !== "running") {
             setActiveGameSessionId(null);
             return;
         }
@@ -800,7 +796,13 @@ export function TeacherRoomLivePage() {
         return () => {
             cancelled = true;
         };
-    }, [room?.id, room?.game_key, pack?.id, session?.id, session?.status]);
+    }, [
+        room?.id,
+        room?.game_key,
+        pack?.id,
+        session?.id,        // ✅ status 대신 id만 의존
+    ]);
+
 
 
     // 🔹 QuizMon 레이드 세션 동기화
@@ -1165,19 +1167,36 @@ export function TeacherRoomLivePage() {
 
 
     // 🔹 레이드 종료
+    // 🔹 레이드 종료
     const handleEndRaid = async () => {
         if (!room || !activeGameSessionId) return;
         if (!activeRaidSession) return;
         if (raidSaving) return;
 
+        const ok = window.confirm(
+            "이 레이드를 종료하고, 현재까지의 누적 데미지 기준으로 보상을 계산할까요? (종료 후에는 이 레이드를 다시 열 수 없습니다.)",
+        );
+        if (!ok) return;
+
         try {
             setRaidSaving(true);
             setErrorMsg(null);
+
+            // ✅ 이 시점의 raidStats / bossHP / 랭킹이 "레이드 종료 시점" 스냅샷 역할
+            //    game_events는 DB에 그대로 남아 있어서, 새로고침해도 동일하게 재계산 가능
+
             await closeActiveRaidSession({
                 roomId: room.id,
                 gameSessionId: activeGameSessionId,
             });
+
+            // 진행 중인 레이드 없음
             setActiveRaidSession(null);
+
+            // 🔹 종료 시점 데이터 기준으로 바로 보상 메뉴 열기
+            if (Object.keys(raidStats).length > 0) {
+                setShowRaidRewardModal(true);
+            }
         } catch (err) {
             console.error("[TeacherRoomLive] handleEndRaid error", err);
             setErrorMsg("레이드를 종료하는 중 오류가 발생했습니다.");
