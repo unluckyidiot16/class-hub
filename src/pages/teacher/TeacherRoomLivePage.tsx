@@ -1776,8 +1776,15 @@ export function TeacherRoomLivePage() {
             return;
         }
 
-        if (!activeRaidSession) {
-            setErrorMsg("현재 진행 중인 레이드 세션이 없습니다.");
+        // ✅ 레이드 종료 후에도 동작하도록: 스냅샷 → activeRaidSession 순으로 사용
+        const raidSessionId =
+            raidResultSnapshot?.raidSessionId ?? activeRaidSession?.id ?? null;
+
+        if (!raidSessionId) {
+            setErrorMsg(
+                "이번 레이드 정보(raid_session_id)를 찾을 수 없습니다. " +
+                "레이드를 한 번 이상 시작한 뒤 다시 시도해주세요.",
+            );
             return;
         }
 
@@ -1817,8 +1824,8 @@ export function TeacherRoomLivePage() {
                 "grant_play_student_wallet_for_raid",
                 {
                     _class_id: room.class_id,
-                    _raid_session_id: activeRaidSession.id,   // ✅ 여기 추가
-                    _rewards: rewardsPayload,                 // jsonb 배열
+                    _raid_session_id: raidSessionId,     // ✅ 여기만 변경
+                    _rewards: rewardsPayload,
                 },
             );
 
