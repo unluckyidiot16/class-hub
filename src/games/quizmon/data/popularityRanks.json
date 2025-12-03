@@ -1,0 +1,37 @@
+[
+  { "pokedexNo": 25,  "nameEn": "Pikachu",    "rank": 1 },
+  { "pokedexNo": 6,   "nameEn": "Charizard",  "rank": 2 },
+  { "pokedexNo": 150, "nameEn": "Mewtwo",     "rank": 3 },
+  { "pokedexNo": 133, "nameEn": "Eevee",      "rank": 4 },
+  { "pokedexNo": 94,  "nameEn": "Gengar",     "rank": 5 },
+
+  { "pokedexNo": 1,   "nameEn": "Bulbasaur",  "rank": 6 },
+  { "pokedexNo": 4,   "nameEn": "Charmander","rank": 7 },
+  { "pokedexNo": 7,   "nameEn": "Squirtle",   "rank": 8 },
+  { "pokedexNo": 149, "nameEn": "Dragonite",  "rank": 9 },
+  { "pokedexNo": 131, "nameEn": "Lapras",     "rank": 10 },
+
+  { "pokedexNo": 143, "nameEn": "Snorlax",    "rank": 11 },
+  { "pokedexNo": 65,  "nameEn": "Alakazam",   "rank": 12 },
+  { "pokedexNo": 130, "nameEn": "Gyarados",   "rank": 13 },
+  { "pokedexNo": 59,  "nameEn": "Arcanine",   "rank": 14 },
+  { "pokedexNo": 3,   "nameEn": "Venusaur",   "rank": 15 },
+
+  { "pokedexNo": 9,   "nameEn": "Blastoise",  "rank": 16 },
+  { "pokedexNo": 18,  "nameEn": "Pidgeot",    "rank": 17 },
+  { "pokedexNo": 38,  "nameEn": "Ninetales",  "rank": 18 },
+  { "pokedexNo": 68,  "nameEn": "Machamp",    "rank": 19 },
+  { "pokedexNo": 123, "nameEn": "Scyther",    "rank": 20 },
+
+  { "pokedexNo": 135, "nameEn": "Jolteon",    "rank": 21 },
+  { "pokedexNo": 134, "nameEn": "Vaporeon",   "rank": 22 },
+  { "pokedexNo": 136, "nameEn": "Flareon",    "rank": 23 },
+  { "pokedexNo": 141, "nameEn": "Kabutops",   "rank": 24 },
+  { "pokedexNo": 142, "nameEn": "Aerodactyl", "rank": 25 },
+
+  { "pokedexNo": 145, "nameEn": "Zapdos",     "rank": 26 },
+  { "pokedexNo": 146, "nameEn": "Moltres",    "rank": 27 },
+  { "pokedexNo": 144, "nameEn": "Articuno",   "rank": 28 },
+  { "pokedexNo": 151, "nameEn": "Mew",        "rank": 29 },
+  { "pokedexNo": 39,  "nameEn": "Jigglypuff", "rank": 30 }
+]

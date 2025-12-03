@@ -107,6 +107,49 @@ async function seedMoves() {
     console.log("[seedQuizmon] quizmon_moves seeding 완료");
 }
 
+const POPULARITY_JSON_PATH = path.resolve(
+    __dirname,
+    "../src/games/quizmon/data/popularityRanks.json"
+);
+
+function loadPopularityRankMap() {
+    try {
+        const raw = fs.readFileSync(POPULARITY_JSON_PATH, "utf8");
+        const list = JSON.parse(raw);
+
+        const byDex = new Map();
+        const byNameEn = new Map();
+
+        for (const row of list) {
+            const rank =
+                typeof row.rank === "number" && row.rank > 0
+                    ? row.rank
+                    : null;
+            if (!rank) continue;
+
+            if (typeof row.pokedexNo === "number") {
+                byDex.set(row.pokedexNo, rank);
+            }
+            if (typeof row.nameEn === "string") {
+                byNameEn.set(row.nameEn.toLowerCase(), rank);
+            }
+        }
+
+        console.log(
+            `[seedQuizmon] popularityRanks.json 로드: dex=${byDex.size}, nameEn=${byNameEn.size}`
+        );
+
+        return { byDex, byNameEn };
+    } catch (e) {
+        console.warn(
+            "[seedQuizmon] popularityRanks.json 로드 실패 (스킵):",
+            e.message
+        );
+        return { byDex: new Map(), byNameEn: new Map() };
+    }
+}
+
+
 async function seedAbilitiesFromJson() {
     const abilitiesPath = path.resolve(
         __dirname,
@@ -217,6 +260,72 @@ async function seedSpeciesAbilitiesFromJson() {
     console.log("[seedQuizmon] quizmon_species_abilities seeding 완료");
 }
 
+function computeRarityAndWeightFromPopularity(sp, popularityMap) {
+    const { byDex, byNameEn } = popularityMap;
+
+    // 🔹 1) 외부 popularityRanks에서 랭크 찾기
+    let rank = null;
+
+    if (typeof sp.pokedexNo === "number") {
+        rank = byDex.get(sp.pokedexNo) ?? null;
+    }
+
+    if (!rank && typeof sp.nameEn === "string") {
+        rank =
+            byNameEn.get(sp.nameEn.toLowerCase()) ??
+            byNameEn.get(sp.name?.toLowerCase() ?? "") ??
+            null;
+    }
+
+    const isLegendary = !!sp.isLegendary;
+    const isMythical = !!sp.isMythical;
+
+    // 🔹 2) 기본 값 (JSON에 수동 값이 있으면 우선)
+    let rarity =
+        typeof sp.rarity === "number" && sp.rarity >= 1 && sp.rarity <= 5
+            ? sp.rarity
+            : 1;
+
+    let gachaWeight =
+        typeof sp.gachaWeight === "number" && sp.gachaWeight > 0
+            ? sp.gachaWeight
+            : 100;
+
+    // 🔹 3) 전설/환포는 무조건 최상 레어도
+    if (isLegendary || isMythical) {
+        rarity = 5;
+        gachaWeight = 3;
+        return { rarity, gachaWeight, rank };
+    }
+
+    // 🔹 4) popularityRank 기반 레어도/가중치
+    if (typeof rank === "number" && rank > 0) {
+        if (rank <= 50) {
+            rarity = 5;
+            gachaWeight = 5;
+        } else if (rank <= 150) {
+            rarity = 4;
+            gachaWeight = 15;
+        } else if (rank <= 400) {
+            rarity = 3;
+            gachaWeight = 40;
+        } else if (rank <= 800) {
+            rarity = 2;
+            gachaWeight = 80;
+        } else {
+            rarity = 1;
+            gachaWeight = 120;
+        }
+    } else {
+        // 🔹 5) 랭크가 전혀 없으면: 커먼에 더 가깝게
+        rarity = 1;
+        gachaWeight = 120;
+    }
+
+    return { rarity, gachaWeight, rank };
+}
+
+
 async function seedSpeciesFromJson() {
     let list;
     try {
@@ -234,8 +343,10 @@ async function seedSpeciesFromJson() {
 
     console.log(`[seedQuizmon] species.json 로드: ${list.length}개`);
 
+    // 🔹 popularityRanks 로드
+    const popularityMap = loadPopularityRankMap();
 
-    // 🔹 종 ID 집합 (evolves_to_id FK 안전용, 필요시 활용)
+    // 종 ID 집합
     const speciesIdSet = new Set(list.map((sp) => sp.id));
 
 
@@ -426,16 +537,22 @@ async function seedSpeciesFromJson() {
         const stats = sp.baseStats || {};
         const evo = sp.evolution || null;
 
-        // cross-gen 진화 중, 대상 종이 species.json에 없으면 진화 정보는 버림
         const hasValidEvoTarget =
             !!evo && !!evo.toId && speciesIdSet.has(evo.toId);
+
+        // ⭐ popularity 기반 rarity / gachaWeight 계산 (외부 맵 사용)
+        const { rarity, gachaWeight, rank } =
+            computeRarityAndWeightFromPopularity(sp, popularityMap);
 
         return {
             id: sp.id,
             name: sp.name,
             element: sp.element,
             element2: sp.element2 ?? null,
-            rarity: sp.rarity ?? 1,
+
+            rarity,
+            gacha_weight: gachaWeight,
+            popularity_rank: rank ?? null,
 
             base_hp: stats.hp ?? 10,
             base_atk: stats.atk ?? 10,
@@ -451,19 +568,15 @@ async function seedSpeciesFromJson() {
             height_dm: sp.heightDm ?? null,
             weight_hg: sp.weightHg ?? null,
 
-            popularity_rank: sp.popularityRank ?? null,
             is_legendary: sp.isLegendary ?? false,
             is_mythical: sp.isMythical ?? false,
-            gacha_weight: sp.gachaWeight ?? 100,
 
-            // 🔹 새 필드: generation / is_playable
             generation: sp.generation ?? null,
             is_playable:
                 typeof sp.isPlayable === "boolean"
                     ? sp.isPlayable
-                    : sp.generation === 1, // species.json에 isPlayable 없으면 1세대만 true
+                    : sp.generation === 1,
 
-            // 🔹 진화 정보 (타겟 유효할 때만)
             evolves_to_id: hasValidEvoTarget ? evo.toId : null,
             evolution_trigger: hasValidEvoTarget ? evo.trigger ?? null : null,
             evolution_level: hasValidEvoTarget ? evo.minLevel ?? null : null,
@@ -473,6 +586,8 @@ async function seedSpeciesFromJson() {
                 : null,
         };
     });
+
+
 
     const { error } = await supabase
         .from("quizmon_species")
