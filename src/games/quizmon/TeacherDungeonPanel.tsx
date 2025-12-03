@@ -89,11 +89,16 @@ export function TeacherDungeonPanel(props: TeacherDungeonPanelProps) {
     const effectiveMaxLevel =
         selectedOverride.maxLevel ?? selectedDungeon?.maxEnemyLevel ?? 1;
 
+    const MAX_ENEMY_COUNT = 6;
+
     const handleEnemyCountChange = (value: number) => {
         if (!selectedDungeon) return;
-        const safe = Math.max(1, Math.min(value, selectedDungeon.enemyCount));
+
+        // 1 ~ MAX_ENEMY_COUNT 사이로만 클램프
+        const safe = Math.max(1, Math.min(value, MAX_ENEMY_COUNT));
+
         onChangeOverride(selectedDungeon.id, {
-            ...selectedOverride,
+            ...(selectedOverride ?? {}),
             enemyCount: safe,
         });
     };
@@ -341,12 +346,10 @@ export function TeacherDungeonPanel(props: TeacherDungeonPanelProps) {
                                             <input
                                                 type="number"
                                                 min={1}
-                                                max={selectedDungeon.enemyCount}
+                                                max={MAX_ENEMY_COUNT}
                                                 value={effectiveEnemyCount}
                                                 onChange={(e) =>
-                                                    handleEnemyCountChange(
-                                                        Number(e.target.value) || 1,
-                                                    )
+                                                    handleEnemyCountChange(Number(e.target.value) || 1)
                                                 }
                                             />
                                             <span className="hint">
