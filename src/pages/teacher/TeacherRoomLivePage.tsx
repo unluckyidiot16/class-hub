@@ -1062,10 +1062,7 @@ export function TeacherRoomLivePage() {
         const loadEvents = async () => {
             const { data, error } = await supabase
                 .from("game_events")
-                .select(
-                    "id, game_session_id, room_id, student_id, event_type, payload, created_at",
-                )
-                .eq("room_id", room.id)
+                .select("*")
                 .eq("game_session_id", activeGameSessionId) // ✅ game_sessions.id 기준
                 .order("created_at", { ascending: true });
 
@@ -1081,9 +1078,37 @@ export function TeacherRoomLivePage() {
                 data,
             );
 
-            setQddStats(buildQddStats(data as GameEventRow[]));
-            setRaidStats(buildRaidStats(data));
+            const rows = data as GameEventRow[];
+
+            // ✅ QDD 통계는 그대로 전체 히스토리 기준
+            setQddStats(buildQddStats(rows));
+
+            // ✅ 레이드 통계는 "이번 레이드 시작 이후"만 집계
+            //    activeRaidSession.created_at 이후의 이벤트만 사용
+            if (activeRaidSession) {
+                const raidCreatedAt =
+                    (activeRaidSession as any).created_at as string | undefined;
+
+                let raidRows = rows;
+
+                if (raidCreatedAt) {
+                    raidRows = rows.filter((row) => {
+                        // created_at 문자열 비교 (ISO 타임스탬프라면 문자열 비교로도 안전)
+                        return row.created_at >= raidCreatedAt;
+                    });
+                }
+
+                console.log(
+                    "[Raid] filtered events for current raid:",
+                    raidRows.length,
+                );
+                setRaidStats(buildRaidStats(raidRows));
+            } else {
+                // 🔹 열린 레이드가 없으면 초기화 (원하면 유지로 바꿀 수 있음)
+                setRaidStats({});
+            }
         };
+
 
         void loadEvents();
 
@@ -1102,7 +1127,23 @@ export function TeacherRoomLivePage() {
                     console.log("[TeacherRoomLive] realtime game_event:", row);
                     setQddStats((prev) => applyQddEvent(prev, row));
                     // 🔹 레이드 통계도 같이 반영
-                    setRaidStats((prev) => applyRaidEvent(prev, row));
+                    setRaidStats((prev) => {
+                        if (!activeRaidSession) return prev;
+
+                        const raidCreatedAt =
+                            (activeRaidSession as any).created_at as string | undefined;
+
+                        // created_at 없으면 그냥 반영
+                        if (!raidCreatedAt) {
+                            return applyRaidEvent(prev, row);
+                        }
+
+                        const createdAt = (row.created_at ?? "") as string;
+                        // 현재 레이드 시작 이전에 찍힌 이벤트면 무시
+                        if (createdAt < raidCreatedAt) return prev;
+
+                        return applyRaidEvent(prev, row);
+                    });
                 },
             )
             .subscribe((status) => {
@@ -1118,6 +1159,7 @@ export function TeacherRoomLivePage() {
         room?.game_key,
         session?.id,          // ⬅ 추가
         activeGameSessionId,
+        activeRaidSession,
     ]);
 
     // 🔹 레이드 시작
