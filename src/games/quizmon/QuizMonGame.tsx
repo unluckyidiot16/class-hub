@@ -453,6 +453,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
             // ✅ 이번 전투에서 실제로 사용할 "랜덤 선택된 적 슬롯"
             let chosenEnemySlots: EnemySlot[] = [];
 
+
+            // 🔹 레이드 모드일 경우, 보스 종 ID도 species 로딩 대상에 포함
+            let raidBossSpeciesId: string | null = null;
+            if (
+                battleMode === "raid" &&
+                activeRaidSession &&
+                activeRaidSession.boss_species_id
+            ) {
+                raidBossSpeciesId = activeRaidSession.boss_species_id;
+            }
+            
             let enemySetSpeciesIds: string[] = [];
 
             if (battleMode === "dungeon") {
@@ -491,11 +502,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
             const speciesIds = Array.from(
                 new Set(
                     [
-                        ...ownedRows.map((o) => o.species_id),
-                        ...enemySetSpeciesIds,
+                        ...ownedRows.map((o) => o.species_id),   // 내 파티 종
+                        ...enemySetSpeciesIds,                   // 던전 적 종
+                        ...(raidBossSpeciesId ? [raidBossSpeciesId] : []), // ✅ 레이드 보스 종
                     ].filter((id): id is string => !!id),
                 ),
             );
+
 
             if (!speciesIds.length) {
                 console.warn(
@@ -661,7 +674,57 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     .filter((m): m is Monster => m !== null);
             }
 
+// 🔹 레이드 모드: 현재 열린 레이드 보스를 단일 적 몬스터로 생성
+            if (
+                battleMode === "raid" &&
+                activeRaidSession &&
+                activeRaidSession.boss_species_id
+            ) {
+                const bossSpecies = speciesMap.get(activeRaidSession.boss_species_id);
+                if (!bossSpecies) {
+                    console.warn(
+                        "[QuizMonGame] raid boss species not found",
+                        activeRaidSession.boss_species_id,
+                    );
+                } else {
+                    const level = activeRaidSession.boss_level ?? 50;
 
+                    const tempOwned: QuizmonOwnedMonsterRow = {
+                        id: `raid-boss-${activeRaidSession.id ?? bossSpecies.id}`,
+                        profile_id: "raid-boss",
+                        species_id: bossSpecies.id,
+                        level,
+                        exp: 0,
+                        party_slot: null,
+                        current_hp: null,
+                        is_fainted: false,
+                        learned_moves: [],
+                        equipped_moves: [],
+                        ability_id: null,
+                        created_at: new Date().toISOString() as any,
+                        updated_at: new Date().toISOString() as any,
+                    };
+
+                    const base = buildBattleMonsterFromSpecies(bossSpecies, tempOwned);
+                    if (base) {
+                        // 레벨 기반 기술 / 기본 특성 주입
+                        let moveList = getMovesForSpeciesAndLevel(bossSpecies.id, level);
+                        const abilityId = getDefaultAbilityForSpecies(bossSpecies);
+
+                        enemyMonsters = [
+                            {
+                                ...base,
+                                id: tempOwned.id,
+                                moves: moveList,
+                                abilityId,
+                            },
+                        ];
+                    }
+                }
+            }
+
+            
+            
 
             // 🔁 ENEMY_SETS에 유효한 적이 하나도 없으면 기존 거울 복사 방식으로 fallback
             if (!enemyMonsters.length) {
