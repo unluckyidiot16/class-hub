@@ -481,6 +481,9 @@ export function TeacherRoomLivePage() {
     
     // 🔹 레이드 자동 보상 지급 진행 상태
     const [autoRewardSaving, setAutoRewardSaving] = useState(false);
+
+    // 🔹 이 레이드에 대해 자동 지급 완료된 raid_session_id 저장
+    const [autoRewardDoneRaidId, setAutoRewardDoneRaidId] = useState<string | null>(null);
     
     // 🔹 play_students 재조회 함수
     const reloadPlayStudents = async (classId: string) => {
@@ -667,7 +670,6 @@ export function TeacherRoomLivePage() {
     }, [room, raidStats, students]);
 
     // 🔹 v2: 클래스 레이드용 공유 보스 HP 계산
-    // 🔹 v2: 클래스 레이드용 공유 보스 HP 계산
     const {
         bossMaxHp,
         totalRaidDamage,
@@ -684,6 +686,7 @@ export function TeacherRoomLivePage() {
                 raidParticipantCount: 0,
             };
         }
+
 
         const entries = Object.values(raidStats);
         const totalRaidDamage = entries.reduce(
@@ -719,8 +722,6 @@ export function TeacherRoomLivePage() {
             }),
         [raidRanking, bossDefeated],
     );
-
-
 
     // DB quiz_questions.row -> QDD questionId 문자열로 변환
     function getQddKeyForQuestion(q: QuizQuestionRow): string | null {
@@ -810,6 +811,14 @@ export function TeacherRoomLivePage() {
         // 레이드가 없을 때는 이전에 입력해둔 값 그대로 둠
     }, [activeRaidSession]);
 
+    // 🔹 이번 레이드의 raid_session_id (스냅샷 우선, 없으면 activeRaidSession)
+    const effectiveRaidSessionId =
+        raidResultSnapshot?.raidSessionId ?? activeRaidSession?.id ?? null;
+
+    // 🔹 이 레이드가 이미 자동 지급된 상태인지 여부
+    const autoRewardAlreadyDone =
+        !!effectiveRaidSessionId &&
+        autoRewardDoneRaidId === effectiveRaidSessionId;
 
     // origin 한 번만 세팅
     useEffect(() => {
@@ -1775,6 +1784,12 @@ export function TeacherRoomLivePage() {
             return;
         }
 
+        // ✅ 이미 이 레이드에 대해 자동지급했던 경우 바로 막기
+        if (autoRewardAlreadyDone) {
+            setErrorMsg("이 레이드에 대한 추천 보상 자동 지급은 이미 한 번 완료되었습니다.");
+            return;
+        }
+
         if (!effectiveRaidRewards.length) {
             setErrorMsg("지급할 레이드 보상 데이터가 없습니다.");
             return;
@@ -1811,7 +1826,7 @@ export function TeacherRoomLivePage() {
                 "grant_play_student_wallet_for_raid",
                 {
                     _class_id: room.class_id,
-                    _raid_session_id: raidSessionId,     // ✅ 여기만 변경
+                    _raid_session_id: raidSessionId,
                     _rewards: rewardsPayload,
                 },
             );
@@ -1824,6 +1839,9 @@ export function TeacherRoomLivePage() {
                 setErrorMsg("자동 보상 지급 중 오류가 발생했습니다.");
                 return;
             }
+
+            // ✅ 이 레이드에 대해서는 자동지급 완료 처리
+            setAutoRewardDoneRaidId(raidSessionId);
 
             await reloadPlayStudents(room.class_id);
 
@@ -1839,10 +1857,7 @@ export function TeacherRoomLivePage() {
             setAutoRewardSaving(false);
         }
     };
-
-
-
-
+    
 
 
     // ✅ QR 모달 열기
@@ -3199,11 +3214,16 @@ export function TeacherRoomLivePage() {
                                                             onClick={handleAutoGrantRaidRewards}
                                                             disabled={
                                                                 autoRewardSaving ||
+                                                                autoRewardAlreadyDone ||     // ⬅ 추가
                                                                 !room?.class_id ||
                                                                 effectiveRaidRewards.length === 0
                                                             }
                                                         >
-                                                            {autoRewardSaving ? "자동 지급 중..." : "추천 보상 자동 지급"}
+                                                            {autoRewardSaving
+                                                                ? "자동 지급 중..."
+                                                                : autoRewardAlreadyDone
+                                                                    ? "이미 자동 지급 완료"      // ⬅ UX용 텍스트
+                                                                    : "추천 보상 자동 지급"}
                                                         </button>
                                                     </div>
                                                 </div>
