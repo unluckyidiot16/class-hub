@@ -2468,6 +2468,29 @@ export function TeacherRoomLivePage() {
                                                     fontSize: "0.8rem",
                                                 }}
                                             >
+                                                <span>코인 +</span>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={walletCoinsDelta}
+                                                    onChange={(e) =>
+                                                        setWalletCoinsDelta(
+                                                            Math.max(
+                                                                0,
+                                                                Number(e.target.value) || 0,
+                                                            ),
+                                                        )
+                                                    }
+                                                />
+                                            </label>
+                                            <label
+                                                className="form-field"
+                                                style={{
+                                                    flex: "1 1 80px",
+                                                    minWidth: "80px",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
                                             </label>
                                         </div>
 
