@@ -17,6 +17,17 @@ import {
     createRaidSession,
     closeActiveRaidSession,
 } from "../../games/quizmon/quizmonRaidSessions";
+// ✅ 타입들은 별도로 type-only import
+import type {
+    DungeonEnemySummary,
+} from "../../games/quizmon/dungeonEnemySets";
+import { getAllDungeonEnemySummaries } from "../../games/quizmon/dungeonEnemySets";
+import { TeacherDungeonPanel } from "../../games/quizmon/TeacherDungeonPanel";
+import type {
+    DungeonOverride,
+} from "../../games/quizmon/TeacherDungeonPanel";
+
+
 
 
 // 🔹 PEM 한 판 클리어 기록 (pem_runs 테이블)
@@ -507,6 +518,14 @@ export function TeacherRoomLivePage() {
             setPlayStudentsLoading(false);
         }
     };
+
+    const [dungeonOverrides, setDungeonOverrides] = useState<
+        Record<string, DungeonOverride>
+    >({});
+    const [selectedDungeonId, setSelectedDungeonId] = useState<string | null>(null);
+
+    const dungeonSummaries: DungeonEnemySummary[] =
+        useMemo(() => getAllDungeonEnemySummaries(), []);
 
     // 🔹 room.class_id 기준으로 play_students 로딩
     useEffect(() => {
@@ -3269,6 +3288,22 @@ export function TeacherRoomLivePage() {
                     </div>
                 </div>
             )}
+            <TeacherDungeonPanel
+                dungeons={dungeonSummaries}
+                selectedDungeonId={selectedDungeonId}
+                overridesByDungeonId={dungeonOverrides}
+                onSelectDungeon={setSelectedDungeonId}
+                onChangeOverride={(id: string, patch: DungeonOverride) => {
+                    setDungeonOverrides((prev) => ({
+                        ...prev,
+                        [id]: {
+                            ...(prev[id] ?? {}),
+                            ...patch,
+                        },
+                    }));
+                }}
+            />
+
 
             {/* 🔹 PEM 토너먼트 관전 섹션 */}
             {room && (

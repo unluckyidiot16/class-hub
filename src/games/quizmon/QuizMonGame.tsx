@@ -622,12 +622,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         : ENEMY_SETS[currentDungeon.enemySetId] ?? [];
 
                 // 2) 이 던전에서 동시에 상대할 몬스터 수
+                // 2) 이 던전에서 동시에 상대할 몬스터 수
                 const maxEnemyCountFromConfig =
                     typeof currentDungeon.enemyCount === "number"
                         ? currentDungeon.enemyCount
                         : baseSlots.length;
 
-                // 3) 실제 사용할 몬스터 슬롯 (앞에서부터 N개 사용)
+// ✅ 수업용 난이도 튜닝 값 (없으면 기본값 사용)
+                const levelOffset = currentDungeon.levelOffset ?? 0;
+                const hpScale = currentDungeon.hpScale ?? 1;
+
+// 3) 실제 사용할 몬스터 슬롯 (앞에서부터 N개 사용)
                 const useCount = Math.max(
                     1,
                     Math.min(maxEnemyCountFromConfig, baseSlots.length),
@@ -645,11 +650,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             return null;
                         }
 
+                        // ✅ 레벨 튜닝: slot.level 에 offset 적용 (최소 1레벨 보장)
+                        const level = Math.max(1, slot.level + levelOffset);
+
                         const tempOwned: QuizmonOwnedMonsterRow = {
                             id: `enemy-${currentDungeon.id}-${index}`,
                             profile_id: "dungeon-enemy",
                             species_id: species.id,
-                            level: slot.level,
+                            level,
                             exp: 0,
                             party_slot: null,
                             current_hp: null,
@@ -665,10 +673,20 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             species,
                             tempOwned,
                         );
+                        if (!base) return null;
+
+                        // ✅ HP 튜닝: hpScale 적용 (1이면 그대로)
+                        const scaledMaxHp =
+                            hpScale !== 1
+                                ? Math.max(1, Math.floor(base.maxHp * hpScale))
+                                : base.maxHp;
 
                         return {
                             ...base,
                             id: tempOwned.id,
+                            level,
+                            hp: scaledMaxHp,
+                            maxHp: scaledMaxHp,
                         };
                     })
                     .filter((m): m is Monster => m !== null);

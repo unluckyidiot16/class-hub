@@ -9,46 +9,47 @@ export type DungeonSubject = "korean" | "math" | "science" | "general";
 /** 학년 메타 (필터/통계용) */
 export type DungeonGrade = 1 | 2 | 3 | 4 | 5 | 6;
 
+export type EnemySetKey = string;
+
+/** 던전 메타 정보 */
 /** 던전 메타 정보 */
 export type DungeonConfig = {
-    /** 던전 ID (내부 키) */
     id: string;
-
-    /** UI에 표시되는 이름 */
     name: string;
-
-    /** UI 설명 텍스트 */
     description: string;
-
-    /** 난이도 (로직용) */
-    difficulty: DungeonDifficulty;
-
-    /** 난이도 라벨 (UI 표시용 한글) */
+    difficulty: "easy" | "normal" | "hard";
     difficultyLabel: string;
-
-    /** 적 세트 키 (ENEMY_SETS의 key) */
-    enemySetId: string;
-
-    /**
-     * 보상 배수
-     * - result 화면에서 "보상 × 1.0" 같이 표기
-     * - 실제 보상 계산 시 기본값에 곱해 쓰면 됨
-     */
-    rewardMultiplier: number;
-
-    /** 추천 레벨 구간 (UI 표시용) */
     recommendedMinLevel: number;
     recommendedMaxLevel: number;
-
     arenaKey: string;
+    rewardMultiplier: number;
     
-    /** 과목/학년 메타 (필요 시 필터에 사용) */
-    subject?: DungeonSubject;
-    grade?: DungeonGrade;
 
-    /** 👉 동시에 상대할 몬스터 수 (생략 시 세트 전체 길이 사용) */
+    /** 이 던전에 기본으로 쓸 ENEMY_SETS 키 */
+    enemySetId: EnemySetKey;
+
+    /** 동시에 상대할 몬스터 수 (생략 시 세트 전체) */
     enemyCount?: number;
+
+    /** ✅ 수업 중 빠른 난이도 튜닝용: 전체 레벨 오프셋 (예: -2, +3) */
+    levelOffset?: number;
+
+    /** ✅ 수업 중 빠른 난이도 튜닝용: 전체 HP 배수 (예: 0.7, 1.2) */
+    hpScale?: number;
+
+    /** 퀴즈 필터링용 메타데이터 */
+    quizTags: string[];
+    grade?: number | null;
+    subject?:
+        | "korean"
+        | "math"
+        | "science"
+        | "social"
+        | "english"
+        | "general" // ← tower 같은 종합형용
+        | null;
 };
+
 
 /** 적 슬롯: 한 마리 정보 */
 export type EnemySlot = {
@@ -76,8 +77,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "korean",
         grade: 2,
         arenaKey: "forest_bg",
-        enemyCount: 1,   // ✅ 쉬움: 1마리만 상대
-
+        enemyCount: 1, // 쉬움: 1마리
+        quizTags: ["korean", "grade-2", "forest", "easy"],
     },
     {
         id: "forest-easy-2",
@@ -92,8 +93,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "korean",
         grade: 2,
         arenaKey: "forest_bg",
-        enemyCount: 2,   // ✅ 조금 더 어렵게: 2마리
-
+        enemyCount: 2,
+        quizTags: ["korean", "grade-2", "forest", "easy"],
     },
     {
         id: "forest-normal-1",
@@ -108,8 +109,8 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         subject: "korean",
         grade: 3,
         arenaKey: "forest_bg",
-        enemyCount: 3,   // ✅ 보통: 3마리
-
+        enemyCount: 3,
+        quizTags: ["korean", "grade-3", "forest", "normal"],
     },
     {
         id: "tower-normal-1",
@@ -121,11 +122,11 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 2.0,
         recommendedMinLevel: 10,
         recommendedMaxLevel: 15,
-        subject: "general",
+        subject: "general", // ← 종합
         grade: 3,
         arenaKey: "forest_bg",
-        enemyCount: 3,   // 타워는 계속 3마리 유지
-
+        enemyCount: 3,
+        quizTags: ["general", "tower", "normal"],
     },
 ];
 
@@ -180,3 +181,80 @@ export const ENEMY_SETS: Record<string, EnemySlot[]> = {
     // "cave-set-1": [ ... ],
     // "sea-set-1": [ ... ],
 };
+
+// ---- Helper functions for Dungeon meta & UI ----
+
+/** id → 던전 설정 찾기 */
+export function findDungeonConfigById(id: string): DungeonConfig | undefined {
+    return DUNGEON_CONFIGS.find((d) => d.id === id);
+}
+function getLocationLabel(cfg: DungeonConfig): string {
+    if (cfg.id.startsWith("forest-")) return "숲";
+    if (cfg.id.startsWith("tower-")) return "타워";
+    return "기타";
+}
+
+function getSubjectLabel(subject: DungeonConfig["subject"]): string {
+    switch (subject) {
+        case "korean":
+            return "국어";
+        case "math":
+            return "수학";
+        case "science":
+            return "과학";
+        case "social":
+            return "사회";
+        case "english":
+            return "영어";
+        case "general":
+            return "통합";
+        default:
+            return "기타";
+    }
+}
+
+/** 한 던전에 대한 적 정보 요약 */
+export type DungeonEnemySummary = {
+    id: string;
+    label: string;
+    difficultyLabel: string;
+    locationLabel: string;
+    subjectLabel: string;
+    enemyCount: number;
+    enemySpeciesIds: string[];
+    minEnemyLevel: number;
+    maxEnemyLevel: number;
+};
+
+export function getDungeonEnemySummary(cfg: DungeonConfig): DungeonEnemySummary {
+    const slots = ENEMY_SETS[cfg.enemySetId] ?? [];
+    const enemyCount = cfg.enemyCount ?? slots.length;
+    const trimmed = slots.slice(0, enemyCount);
+
+    const levelOffset = cfg.levelOffset ?? 0;
+    const levels = trimmed.map((s) => s.level + levelOffset);
+
+    const minEnemyLevel =
+        levels.length > 0 ? Math.min(...levels) : cfg.recommendedMinLevel;
+    const maxEnemyLevel =
+        levels.length > 0 ? Math.max(...levels) : cfg.recommendedMaxLevel;
+
+    const enemySpeciesIds = trimmed.map((s) => s.speciesId);
+
+    return {
+        id: cfg.id,
+        label: cfg.name,
+        difficultyLabel: cfg.difficultyLabel,
+        locationLabel: getLocationLabel(cfg),
+        subjectLabel: getSubjectLabel(cfg.subject ?? null),
+        enemyCount,
+        enemySpeciesIds,
+        minEnemyLevel,
+        maxEnemyLevel,
+    };
+}
+
+/** 교사용 던전 패널에서 전체 리스트를 뿌릴 때 사용 */
+export function getAllDungeonEnemySummaries(): DungeonEnemySummary[] {
+    return DUNGEON_CONFIGS.map((cfg) => getDungeonEnemySummary(cfg));
+}
