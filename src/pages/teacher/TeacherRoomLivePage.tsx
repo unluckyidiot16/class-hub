@@ -595,13 +595,16 @@ export function TeacherRoomLivePage() {
     const raidRanking = useMemo(() => {
         if (!room || room.game_key !== "quizmon") return [];
 
-        // students: StudentSummary[] (student_key, nickname, ...)
-        return students
-            .map((s) => {
-                const rs = raidStats[s.student_key];
-                if (!rs) {
-                    return null;
-                }
+        // 🔹 raidStats 를 기준으로 랭킹을 만든 뒤,
+        //     students 에서 닉네임만 찾아와 붙이는 방식
+        const entries = Object.values(raidStats);
+
+        return entries
+            .map((rs) => {
+                const s = students.find(
+                    (stu) => stu.student_key === rs.studentId,
+                );
+
                 const accuracy =
                     rs.totalAnswers > 0
                         ? Math.round(
@@ -610,15 +613,14 @@ export function TeacherRoomLivePage() {
                         : 0;
 
                 return {
-                    studentKey: s.student_key,
-                    nickname: s.nickname,
+                    studentKey: rs.studentId,
+                    nickname: s?.nickname ?? null,
                     totalAnswers: rs.totalAnswers,
                     correctAnswers: rs.correctAnswers,
                     accuracy,
                     totalRaidDamage: rs.totalRaidDamage,
                 };
             })
-            .filter((x): x is NonNullable<typeof x> => !!x)
             .sort((a, b) => {
                 // 🔹 데미지 내림차순, 동점이면 정답 수 기준
                 if (b.totalRaidDamage !== a.totalRaidDamage) {
@@ -626,7 +628,8 @@ export function TeacherRoomLivePage() {
                 }
                 return b.correctAnswers - a.correctAnswers;
             });
-    }, [room, students, raidStats]);
+    }, [room, raidStats, students]);
+
 
     const raidRewards: RaidRewardRow[] = useMemo(
         () => buildRaidRewards(raidRanking),
@@ -2826,7 +2829,7 @@ export function TeacherRoomLivePage() {
                                         <button
                                             type="button"
                                             onClick={() => setShowRaidRewardModal(true)}
-                                            disabled={!bossDefeated || raidRanking.length === 0}
+                                            disabled={raidRanking.length === 0}   // ← 여기만 수정
                                             style={{
                                                 padding: "0.3rem 0.7rem",
                                                 borderRadius: 999,
