@@ -457,8 +457,6 @@ export function TeacherRoomLivePage() {
     const [playStudentsLoading, setPlayStudentsLoading] = useState(false);
     const [selectedPlayStudentIds, setSelectedPlayStudentIds] = useState<string[]>([]);
     const [walletCoinsDelta, setWalletCoinsDelta] = useState(0);
-    const [walletGemsDelta, setWalletGemsDelta] = useState(0);
-    const [walletStarShardsDelta, setWalletStarShardsDelta] = useState(0);
     const [walletSaving, setWalletSaving] = useState(false);
 
     // 🔹 PEM runs & 토너먼트 상태
@@ -579,11 +577,9 @@ export function TeacherRoomLivePage() {
         }
 
         const coins = Math.max(0, walletCoinsDelta | 0);
-        const gems = Math.max(0, walletGemsDelta | 0);
-        const starShards = Math.max(0, walletStarShardsDelta | 0);
 
-        if (coins === 0 && gems === 0 && starShards === 0) {
-            setErrorMsg("지급할 코인/젬/조각 중 하나 이상을 1 이상으로 입력해주세요.");
+        if (coins === 0) {
+            setErrorMsg("지급할 코인을 1 이상으로 입력해주세요.");
             return;
         }
 
@@ -595,30 +591,21 @@ export function TeacherRoomLivePage() {
                 _class_id: room.class_id,
                 _targets: selectedPlayStudentIds,
                 _coins: coins,
-                _gems: gems,
-                _star_shards: starShards,
             });
 
             if (error) {
-                console.error(
-                    "[TeacherRoomLive] grant_play_student_wallet error",
-                    error,
-                );
+                console.error("[TeacherRoomLive] grant_play_student_wallet error", error);
                 setErrorMsg("보상을 지급하는 중 오류가 발생했습니다.");
                 return;
             }
 
-            // 지급 후 최신 지갑 상태 다시 로딩
             await reloadPlayStudents(room.class_id);
-
-            // 입력값은 초기화
             setWalletCoinsDelta(0);
-            setWalletGemsDelta(0);
-            setWalletStarShardsDelta(0);
         } finally {
             setWalletSaving(false);
         }
     };
+
 
 
 
@@ -2481,66 +2468,6 @@ export function TeacherRoomLivePage() {
                                                     fontSize: "0.8rem",
                                                 }}
                                             >
-                                                <span>코인 +</span>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={walletCoinsDelta}
-                                                    onChange={(e) =>
-                                                        setWalletCoinsDelta(
-                                                            Math.max(
-                                                                0,
-                                                                Number(e.target.value) || 0,
-                                                            ),
-                                                        )
-                                                    }
-                                                />
-                                            </label>
-                                            <label
-                                                className="form-field"
-                                                style={{
-                                                    flex: "1 1 80px",
-                                                    minWidth: "80px",
-                                                    fontSize: "0.8rem",
-                                                }}
-                                            >
-                                                <span>젬 +</span>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={walletGemsDelta}
-                                                    onChange={(e) =>
-                                                        setWalletGemsDelta(
-                                                            Math.max(
-                                                                0,
-                                                                Number(e.target.value) || 0,
-                                                            ),
-                                                        )
-                                                    }
-                                                />
-                                            </label>
-                                            <label
-                                                className="form-field"
-                                                style={{
-                                                    flex: "1 1 80px",
-                                                    minWidth: "80px",
-                                                    fontSize: "0.8rem",
-                                                }}
-                                            >
-                                                <span>조각 +</span>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={walletStarShardsDelta}
-                                                    onChange={(e) =>
-                                                        setWalletStarShardsDelta(
-                                                            Math.max(
-                                                                0,
-                                                                Number(e.target.value) || 0,
-                                                            ),
-                                                        )
-                                                    }
-                                                />
                                             </label>
                                         </div>
 
@@ -2558,7 +2485,7 @@ export function TeacherRoomLivePage() {
                                         </button>
                                         <p className="hint" style={{ marginTop: "0.2rem" }}>
                                             * 이 버튼은 `grant_play_student_wallet` RPC를 호출해
-                                            DB의 <code>play_students</code> 지갑을 바로 업데이트합니다.
+                                            DB의 <code>play_students</code> 코인 지갑을 업데이트합니다.
                                         </p>
                                     </form>
                                 </>
