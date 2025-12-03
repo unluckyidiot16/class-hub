@@ -189,7 +189,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     }, []);
 
     const {
-        drawing: gachaDrawing,
+        loading: gachaDrawing,  // ✅ useGachaDraw가 반환하는 loading을 gachaDrawing 이라는 이름으로 사용
         error: gachaError,
         pullGacha,
         lastResult: gachaLastResult,   // ✅ 최근 결과
@@ -197,6 +197,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         profile: localProfile,
         onProfileUpdated: setLocalProfile,
     });
+
 
     // 1) 전투 상태 + 퀴즈 로직은 useQuizmonBattle 훅으로 분리
     const {
@@ -1438,7 +1439,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 <button
                                     type="button"
                                     onClick={async () => {
-                                        await pullGacha("gems");
+                                        await pullGacha();
                                     }}
                                     disabled={!canPaidGacha}
                                     style={{
@@ -1498,7 +1499,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                 }}
                                             >
                                                 {(() => {
-                                                    const iconUrl = getMonsterIcon(gachaLastResult.speciesId);
+                                                    const iconUrl = getMonsterIcon(gachaLastResult.species.id);
 
                                                     return iconUrl ? (
                                                         <img

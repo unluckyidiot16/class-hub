@@ -6,16 +6,110 @@ import type {
     QuizmonSpeciesRow,
 } from "./types";
 
-// TODO: 나중에 rarity 기반으로 확장
-const GACHA_POOL: string[] = ["poke-0001", "poke-0004", "poke-0007"];
+/**
+ * 가챠에서 사용할 종 정보 최소셋
+ */
+type GachaSpecies = Pick<
+    QuizmonSpeciesRow,
+    | "id"
+    | "rarity"
+    | "gacha_weight"
+    | "popularity_rank"
+    | "generation"
+    | "is_playable"
+>;
 
-function rollSpeciesId(): string {
-    const idx = Math.floor(Math.random() * GACHA_POOL.length);
-    return GACHA_POOL[idx];
+
+/**
+ * rarity + popularity 기반으로 실제 가챠 풀을 구성한다.
+ * - generation = 1
+ * - is_playable = true
+ * - gacha_weight > 0
+ */
+async function loadGachaPool(): Promise<GachaSpecies[]> {
+    const { data, error } = await supabase
+        .from("quizmon_species")
+        .select(
+            "id, rarity, gacha_weight, popularity_rank, generation, is_playable",
+        )
+        .eq("generation", 1)
+        .eq("is_playable", true)
+        .gt("gacha_weight", 0);
+
+    if (error) {
+        console.error("[gacha] loadGachaPool error", error);
+        throw new Error("가챠 풀을 불러오는 중 오류가 발생했습니다.");
+    }
+
+    const list = (data ?? []) as GachaSpecies[];
+
+    if (!list.length) {
+        console.warn("[gacha] 가챠 풀이 비어 있습니다. (quizmon_species 확인)");
+    }
+
+    return list;
 }
 
-export type GachaCostType = "gems"; // ← 타입은 유지하되
-// 실제 게임에서는 "gems"만 사용(테스트용으로 free 남겨둔 상태)
+/**
+ * 가중치 기반 랜덤 추출
+ */
+function weightedRandom(ids: { id: string; weight: number }[]): string {
+    const total = ids.reduce((sum, x) => sum + x.weight, 0);
+    if (total <= 0) {
+        // fallback: 균등 랜덤
+        const fallbackIdx = Math.floor(Math.random() * ids.length);
+        return ids[Math.max(0, fallbackIdx)].id;
+    }
+
+    let r = Math.random() * total;
+    for (const entry of ids) {
+        r -= entry.weight;
+        if (r <= 0) return entry.id;
+    }
+    return ids[ids.length - 1].id;
+}
+
+/**
+ * 실제로 뽑을 종 id 하나 선택
+ */
+async function rollSpeciesIdFromDb(): Promise<string> {
+    const pool = await loadGachaPool();
+
+    if (!pool.length) {
+        // 혹시 비어 있으면 안전하게 스타팅 3마리라도 쓰자
+        const fallbackPool: string[] = ["poke-0001", "poke-0004", "poke-0007"];
+        const idx = Math.floor(Math.random() * fallbackPool.length);
+        return fallbackPool[idx];
+    }
+
+    const weightedPool = pool.map((sp) => ({
+        id: sp.id,
+        weight: sp.gacha_weight ?? 1,
+    }));
+
+    return weightedRandom(weightedPool);
+}
+
+/**
+ * rarity → 중복 시 지급할 스타샤드 양
+ */
+function getStarShardsForRarity(rarity: number | null | undefined): number {
+    const r = rarity ?? 1;
+    switch (r) {
+        case 5:
+            return 20;
+        case 4:
+            return 10;
+        case 3:
+            return 5;
+        case 2:
+            return 3;
+        default:
+            return 1;
+    }
+}
+
+export type GachaCostType = "gems";
 
 export type GachaDrawResult = {
     kind: "new" | "duplicate";
@@ -25,6 +119,12 @@ export type GachaDrawResult = {
     gachaGemsConsumed: number;
 };
 
+/**
+ * 단일 가챠 실행
+ * - gems 1개 소비 (costType = "gems")
+ * - 신규면 owned_monsters에 생성
+ * - 중복이면 star_shards 지급
+ */
 export async function performSingleGachaDraw(params: {
     profile: QuizmonProfileRow;
     costType?: GachaCostType;
@@ -32,17 +132,18 @@ export async function performSingleGachaDraw(params: {
     const { profile, costType = "gems" } = params;
     const profileId = profile.id;
 
+    // 🔹 1) 재화 체크
     const currentGems = profile.gems ?? 0;
     const gemCost = costType === "gems" ? 1 : 0;
 
     if (gemCost > 0 && currentGems < gemCost) {
-        throw new Error("가챠 재화가 부족합니다.");
+        throw new Error("가챠 재화(젬)가 부족합니다.");
     }
 
-    // 1) 종 선택
-    const speciesId = rollSpeciesId();
+    // 🔹 2) 종 선택 (DB 기반 가중치 추첨)
+    const speciesId = await rollSpeciesIdFromDb();
 
-    // 2) 해당 프로필의 owned_monsters 불러오기
+    // 🔹 3) 해당 프로필의 owned_monsters 조회
     const { data: ownedRows, error: ownedError } = await supabase
         .from("quizmon_owned_monsters")
         .select("*")
@@ -56,7 +157,7 @@ export async function performSingleGachaDraw(params: {
     const ownedList = (ownedRows ?? []) as QuizmonOwnedMonsterRow[];
     const existing = ownedList.find((m) => m.species_id === speciesId) ?? null;
 
-    // 3) 종 마스터 데이터
+    // 🔹 4) 종 마스터 로드
     const { data: speciesRow, error: speciesError } = await supabase
         .from("quizmon_species")
         .select("*")
@@ -76,10 +177,10 @@ export async function performSingleGachaDraw(params: {
     let starShardsGained = 0;
     let ownedMonster: QuizmonOwnedMonsterRow | null = existing ?? null;
 
+    // 🔹 5) 신규 / 중복 분기
     if (existing) {
-        // ✅ 중복 → StarShard 지급
-        const rarity = species.rarity ?? 1;
-        starShardsGained = Math.max(1, rarity);
+        // ✅ 중복 → Star Shard 지급
+        starShardsGained = getStarShardsForRarity(species.rarity ?? 1);
     } else {
         // ✅ 신규 → owned_monsters에 생성
         const usedSlots = new Set(
@@ -107,8 +208,8 @@ export async function performSingleGachaDraw(params: {
                 current_hp: null,
                 is_fainted: false,
                 learned_moves: [],
-                // ability_id, equipped_moves, held_item_id 는
-                // DB default/추후 패치로 처리
+                // 🔴 ability_id / equipped_moves 등은 DB 기본값(null / 빈 배열)에 맡긴다
+                // → FK 에러(poke-0326-basic 등) 방지
             })
             .select("*")
             .single();
@@ -124,11 +225,12 @@ export async function performSingleGachaDraw(params: {
         ownedMonster = insertedRow as QuizmonOwnedMonsterRow;
     }
 
-    // 4) 프로필 재화 업데이트 (gems / star_shards)
+    // 🔹 6) 프로필 재화 업데이트 (gems / star_shards)
     const { data: updatedProfileRow, error: profileError } = await supabase
         .from("quizmon_profiles")
         .update({
-            gacha_gems: currentGems - gemCost,
+            // ⚠️ 예전 gacha_gems 필드 대신 gems 사용
+            gems: currentGems - gemCost,
             star_shards: (profile.star_shards ?? 0) + starShardsGained,
         })
         .eq("id", profileId)
