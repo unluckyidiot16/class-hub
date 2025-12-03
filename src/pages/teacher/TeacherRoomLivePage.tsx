@@ -1080,33 +1080,28 @@ export function TeacherRoomLivePage() {
 
             const rows = data as GameEventRow[];
 
-            // ✅ QDD 통계는 그대로 전체 히스토리 기준
             setQddStats(buildQddStats(rows));
 
-            // ✅ 레이드 통계는 "이번 레이드 시작 이후"만 집계
-            //    activeRaidSession.created_at 이후의 이벤트만 사용
-            if (activeRaidSession) {
-                const raidCreatedAt =
-                    (activeRaidSession as any).created_at as string | undefined;
-
-                let raidRows = rows;
-
-                if (raidCreatedAt) {
-                    raidRows = rows.filter((row) => {
-                        // created_at 문자열 비교 (ISO 타임스탬프라면 문자열 비교로도 안전)
-                        return row.created_at >= raidCreatedAt;
-                    });
-                }
-
-                console.log(
-                    "[Raid] filtered events for current raid:",
-                    raidRows.length,
-                );
-                setRaidStats(buildRaidStats(raidRows));
-            } else {
-                // 🔹 열린 레이드가 없으면 초기화 (원하면 유지로 바꿀 수 있음)
-                setRaidStats({});
+            // ✅ 레이드가 열려 있지 않으면 기존 raidStats 스냅샷을 그대로 유지
+            if (!activeRaidSession) {
+                return;
             }
+
+            const raidCreatedAt =
+                (activeRaidSession as any).created_at as string | undefined;
+
+            let raidRows = rows;
+
+            if (raidCreatedAt) {
+                raidRows = rows.filter((row) => {
+                    // created_at 문자열 비교 (ISO 기준)
+                    return row.created_at >= raidCreatedAt;
+                });
+            }
+
+            console.log("[Raid] filtered events for current raid:", raidRows.length);
+            setRaidStats(buildRaidStats(raidRows));
+
         };
 
 
@@ -1227,20 +1222,22 @@ export function TeacherRoomLivePage() {
             setRaidSaving(true);
             setErrorMsg(null);
 
-            // ✅ 이 시점의 raidStats / bossHP / 랭킹이 "레이드 종료 시점" 스냅샷 역할
-            //    game_events는 DB에 그대로 남아 있어서, 새로고침해도 동일하게 재계산 가능
+            // 🔹 이 시점의 raidStats / bossHP / raidRanking 이 스냅샷 역할
+            const hadParticipants = raidRanking.length > 0;
 
             await closeActiveRaidSession({
                 roomId: room.id,
                 gameSessionId: activeGameSessionId,
             });
 
-            // 진행 중인 레이드 없음
             setActiveRaidSession(null);
 
-            // 🔹 종료 시점 데이터 기준으로 바로 보상 메뉴 열기
-            if (Object.keys(raidStats).length > 0) {
+            if (hadParticipants) {
+                // ✅ 중간 종료든, 보스 격파든 상관 없이
+                //    "지금까지의 데미지" 기준으로 보상 미리보기 열기
                 setShowRaidRewardModal(true);
+            } else {
+                window.alert("이번 레이드에 참여한 학생이 아직 없어 보상 미리보기는 열지 않습니다.");
             }
         } catch (err) {
             console.error("[TeacherRoomLive] handleEndRaid error", err);
