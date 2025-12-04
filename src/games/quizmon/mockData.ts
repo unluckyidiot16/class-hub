@@ -43,6 +43,7 @@ const growl: Move = {
 
 // ✅ 플레이어용 샘플 몬스터 (피카츄 느낌)
 const samplePlayerMon: Monster = {
+    spAtk: 15, spDef: 15,
     id: "p_001",                  // 개체 ID
     speciesId: "poke-0025",       // 종 ID (예: 피카츄)
     name: "스파크몽",
@@ -67,11 +68,12 @@ const samplePlayerMon: Monster = {
     weightKg: 6.0,
 
     // 테스트용 스킬 3개 (최대 4개까지 권장)
-    moves: [tackle, thunder, growl],
+    moves: [tackle, thunder, growl]
 };
 
 // ✅ 적용 샘플 몬스터 (꼬부기 느낌)
 const sampleEnemyMon: Monster = {
+    spAtk: 30, spDef: 30,
     id: "e_001",
     speciesId: "poke-0007",       // 예: 꼬부기
     name: "연습 슬라임",
@@ -94,7 +96,7 @@ const sampleEnemyMon: Monster = {
     heightM: 0.5,
     weightKg: 9.0,
 
-    moves: [tackle],
+    moves: [tackle]
 };
 
 export const sampleQuestions: QuizQuestionLite[] = [

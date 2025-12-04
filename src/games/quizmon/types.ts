@@ -167,6 +167,8 @@ export type Monster = {
     currentHp?: number;  // ✅ optional 처리
     hp: number;
     atk: number;
+    spAtk: number; // ✅ 추가
+    spDef: number; // ✅ 추가
     def: number;
     spd: number;
 

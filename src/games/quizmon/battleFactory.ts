@@ -156,6 +156,8 @@ export function buildBattleMonsterFromSpecies(
 
         // 스탯
         atk: derived.atk,
+        spAtk: derived.spAtk,
+        spDef: derived.spDef,
         def: derived.def,
         spd: derived.spd,
 

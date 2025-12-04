@@ -195,8 +195,14 @@ export type MonsterLike = {
 export function calcDamage(attacker: Monster, defender: Monster, move: Move): number {
     const basePower = move.power ?? 40;
 
-    const attackStat = attacker.atk;
-    const defenseStat = defender.def;
+    const isSpecial = move.category === "special";
+    
+    const attackStat = isSpecial
+        ? attacker.spAtk ?? attacker.atk
+        : attacker.atk;
+    const defenseStat = isSpecial
+        ? defender.spDef ?? defender.def
+        : defender.def;
 
     // 포켓몬식 기본 공식에 가까운 형태 (단순화 버전)
     const levelFactor = (2 * attacker.level) / 5 + 2;

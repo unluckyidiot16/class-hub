@@ -24,6 +24,69 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false },
 });
 
+
+// ---------- A. battle_stat_total / battle_stat_rank 계산 유틸 ----------
+
+/**
+ * species.json 의 한 row 에서 종족값 합계를 계산
+ * - baseStats 가 있으면 우선 사용
+ * - 없으면 base_hp/base_atk/... 필드 사용
+ */
+function calcBaseStatTotalFromJson(sp) {
+    const stats = sp.baseStats || {};
+
+    const baseHp =
+        typeof sp.base_hp === "number" ? sp.base_hp : stats.hp ?? 0;
+    const baseAtk =
+        typeof sp.base_atk === "number" ? sp.base_atk : stats.atk ?? 0;
+    const baseDef =
+        typeof sp.base_def === "number" ? sp.base_def : stats.def ?? 0;
+    const baseSpd =
+        typeof sp.base_spd === "number" ? sp.base_spd : stats.spd ?? 0;
+
+    const baseSpAtk =
+        typeof sp.base_spatk === "number"
+            ? sp.base_spatk
+            : stats.spAtk ?? baseAtk;
+    const baseSpDef =
+        typeof sp.base_spdef === "number"
+            ? sp.base_spdef
+            : stats.spDef ?? baseDef;
+
+    const parts = [baseHp, baseAtk, baseDef, baseSpAtk, baseSpDef, baseSpd];
+
+    return parts.reduce((sum, v) => sum + (Number.isFinite(v) ? v : 0), 0);
+}
+
+/**
+ * 종족값 합계를 랭크로 변환
+ * (숫자 구간은 나중에 마음대로 튜닝하면 됨)
+ */
+function getBaseStatRankFromTotal(total) {
+    if (total < 400) return "C";
+    if (total < 500) return "B";
+    if (total < 600) return "A";
+    return "S";
+}
+
+/**
+ * species.json 리스트 전체에 battle_stat_total / battle_stat_rank 채우기
+ */
+function applyBattleStatsToSpeciesList(list) {
+    for (const sp of list) {
+        const total = calcBaseStatTotalFromJson(sp);
+        const rank = getBaseStatRankFromTotal(total);
+
+        sp.battle_stat_total = total;
+        sp.battle_stat_rank = rank;
+    }
+
+    console.log(
+        `[seedQuizmon] battle_stat_total / battle_stat_rank 계산 완료: ${list.length}종`
+    );
+}
+
+
 /** ---------- 1. JSON 로드 ---------- */
 
 // ⚠️ 실제 경로에 맞게 수정!!
@@ -343,9 +406,11 @@ async function seedSpeciesFromJson() {
 
     console.log(`[seedQuizmon] species.json 로드: ${list.length}개`);
 
+    // ✅ 여기서 전체 종족값 합계 & 랭크 계산
+    applyBattleStatsToSpeciesList(list);
+
     // 🔹 popularityRanks 로드
     const popularityMap = loadPopularityRankMap();
-
     // 종 ID 집합
     const speciesIdSet = new Set(list.map((sp) => sp.id));
 
@@ -552,7 +617,13 @@ async function seedSpeciesFromJson() {
 
             rarity,
             gacha_weight: gachaWeight,
+
+            // 🔹 인기 랭크 (외부 popularityRanks 기준)
             popularity_rank: rank ?? null,
+
+            // 🔹 ✅ 종족값 합계 / 전투 랭크 (우리 계산 기준)
+            battle_stat_total: sp.battle_stat_total ?? null,
+            battle_stat_rank: sp.battle_stat_rank ?? null,
 
             base_hp: stats.hp ?? 10,
             base_atk: stats.atk ?? 10,
