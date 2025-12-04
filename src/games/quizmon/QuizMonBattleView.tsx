@@ -12,6 +12,69 @@ import { HpBar } from "./HpBar";
 import { getElementLabelAndColor } from "./elementUtils";
 
 
+// QuizMonBattleView.tsx 상단 쪽에 추가
+
+type BattleEffect = {
+    id: string;
+    side: "player" | "enemy";
+    moveId: string;
+};
+
+type BattleEffectLayerProps = {
+    effect: BattleEffect | null;
+    onEffectEnd: () => void;
+};
+
+/**
+ * 전투 이펙트 전용 레이어
+ * - 필드 전체를 덮는 absolute 레이어
+ * - moveId + side 에 따라 CSS / 스프라이트로 연출
+ */
+function BattleEffectLayer({ effect, onEffectEnd }: BattleEffectLayerProps) {
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (!effect) return;
+
+        setVisible(true);
+
+        // TODO: 나중에 CSS animationend 이벤트로 바꿔도 좋음
+        const t = window.setTimeout(() => {
+            setVisible(false);
+            onEffectEnd();
+        }, 650); // 공격 연출 길이에 맞게 조정
+
+        return () => {
+            window.clearTimeout(t);
+        };
+    }, [effect, onEffectEnd]);
+
+    if (!effect || !visible) return null;
+
+    const isPlayerSide = effect.side === "player";
+
+    return (
+        <div
+            style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+                zIndex: 20, // 스프라이트 위, UI 아래 정도
+            }}
+        >
+            <div
+                className={[
+                    "qzmon-movefx",                // 공통 스타일
+                    `qzmon-movefx-${effect.moveId}`, // 기술별 스타일
+                    isPlayerSide
+                        ? "qzmon-movefx-player"
+                        : "qzmon-movefx-enemy",     // 어느 쪽에서 터지는지
+                ].join(" ")}
+            />
+        </div>
+    );
+}
+
 function getStatusInfo(mon: Monster): { label: string; color: string } | null {
     const anyMon = mon as any;
 
@@ -347,7 +410,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         damagePopups,
     } = props;
 
-
+    const [activeEffect, setActiveEffect] = useState<BattleEffect | null>(null);
     const [showSwitchModal, setShowSwitchModal] = useState(false);
 
     // 🔹 공격/피격/코멘트 애니메이션 단계
@@ -372,6 +435,24 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
     
     // 🔹 애니메이션 중에는 스킬 선택도 막는다
     const effectiveCanSelectMove = canSelectMove && attackPhase === "idle";
+
+    // 예: state.lastPlayerMoveId / state.lastEnemyMoveId 같은 필드를 쓰거나,
+    // onPerformAttack(...) 안에서 콜백을 날려도 좋음.
+    useEffect(() => {
+        if (attackPhase === "playerAttack" && state.lastPlayerMoveId) {
+            setActiveEffect({
+                id: `player-${state.turn}-${Date.now()}`,
+                side: "enemy",              // 플레이어 공격 → 적 쪽에서 이펙트
+                moveId: state.lastPlayerMoveId,
+            });
+        } else if (attackPhase === "enemyAttack" && state.lastEnemyMoveId) {
+            setActiveEffect({
+                id: `enemy-${state.turn}-${Date.now()}`,
+                side: "player",
+                moveId: state.lastEnemyMoveId,
+            });
+        }
+    }, [attackPhase, state.lastPlayerMoveId, state.lastEnemyMoveId, state.turn]);
 
 
     const hasQuestions = questions.length > 0;
@@ -461,6 +542,11 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
 
     return (
         <>
+            {/* 이펙트 전용 레이어 */}
+            <BattleEffectLayer
+                effect={activeEffect}
+                onEffectEnd={() => setActiveEffect(null)}
+            />
             {/* ========================================================= */}
             {/* 1. 적(Enemy) 정보창: 화면 좌측 상단 (left: 5%, top: 5%) */}
             {/* ========================================================= */}
@@ -688,7 +774,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             <div
                 style={{
                     position: "absolute",
-                    left: "40%",          // 조금 안쪽으로
+                    left: "35%",          // 조금 안쪽으로
                     bottom: "30%",       // 하단 커맨드 패널 위로 올리기 (대략 20~25% 구간)
                     minWidth: 180,
                     padding: "0.35rem 0.5rem",

@@ -224,6 +224,12 @@ export type BattleLogEntry = {
     text: string;
 };
 
+export type BattleEffect = {
+    id: string;                    // 고유 키 (turn + timestamp 등)
+    side: "player" | "enemy";      // 이펙트가 터지는 쪽
+    moveId: string;                // 어떤 기술인지 (JSON/설정 lookup 용)
+};
+
 export type BattleState = {
     player: BattleSide;
     enemy: BattleSide;
@@ -237,6 +243,9 @@ export type BattleState = {
     questionStartedAt: number | null;
     lastQuizResult: QuizAnswerResult | null;
     logs: BattleLogEntry[];
+
+    lastPlayerMoveId?: string | null;
+    lastEnemyMoveId?: string | null;
 };
 
 // ------- DB row 타입들 -------
