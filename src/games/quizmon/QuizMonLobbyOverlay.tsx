@@ -9,10 +9,16 @@ import {InventoryTab} from "./InventoryTab.tsx";
 import { useEffect, useState } from "react";
 import { loadPowerItemCounts } from "./quizmonService";
 import { DexTab } from "./DexTab";
+import { StarShopTab } from "./StarShopTab";
 
 
-
-type MainTabKey = "menu" | "monsters" | "dex" | "inventory" | "profile";
+export type MainTabKey =
+    | "menu"
+    | "monsters"
+    | "dex"
+    | "inventory"
+    | "profile"
+    | "shop";
 
 export type QuizMonLobbyOverlayProps = {
     menuTab: MainTabKey;
@@ -20,6 +26,7 @@ export type QuizMonLobbyOverlayProps = {
 
     localProfile: QuizmonProfileRow | null;
     profile: QuizmonProfileRow | null;
+    onProfileUpdated?: (profile: QuizmonProfileRow) => void; // ✅ 추가
 
     monsters?: QuizmonOwnedMonsterRow[];
     collectionLoading?: boolean;
@@ -195,6 +202,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 { key: "dex", label: "도감" },
                                 { key: "inventory", label: "인벤토리" },
                                 { key: "profile", label: "프로필" },
+                                { key: "shop", label: "상점" },
                             ].map((tab) => (
                                 <button
                                     key={tab.key}
@@ -350,7 +358,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 >
                                     ✖ 클래스 레이드 시작
                                 </button>
-`
 
                                 {/* 공통: 가챠 (보상 뽑기) */}
                                 <button
@@ -447,6 +454,18 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         </div>
                     )}
 
+                    {/* 상점 탭 */}
+                    {menuTab === "shop" && (
+                        <StarShopTab
+                            profile={effectiveProfile}
+                            // ⚠️ 상위에서 localProfile을 관리한다면,
+                            // QuizMonLobbyOverlayProps에 onProfileUpdated 같은 콜백을 하나 더 뚫고
+                            // 그걸 여기로 내려주는 식으로 연결하면 됩니다.
+                            // 예:
+                            // onProfileUpdated={onProfileUpdated}
+                        />
+                    )}
+                    
                     {/* 도감 탭 */}
                     {menuTab === "dex" && (
                         <div

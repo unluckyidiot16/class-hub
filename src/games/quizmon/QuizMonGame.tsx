@@ -31,6 +31,7 @@ import {
 } from "./dungeonEnemySets";
 import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
+import type { MainTabKey } from "./QuizMonLobbyOverlay";
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
     // HP 1/3 이하일 때 풀 기술 1.5배
@@ -278,7 +279,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         onBattleEnd,
     });
 
-    type LobbyMenuTab = "menu" | "monsters" | "dex" | "inventory" | "profile";
+
+    type LobbyMenuTab = MainTabKey; // ✅ 그냥 alias로 재사용
 
     const [menuTab, setMenuTab] = useState<LobbyMenuTab>("menu");
 
@@ -314,6 +316,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
     const [hpSynced, setHpSynced] = useState(false);
 
+    const [, setLastDungeonScaledLevel] = useState<number | null>(null);
+
+    
     // ✅ 현재 출전 중인 우리 편 / 적 포켓몬
     const activePlayerMon = state.player.monsters[state.player.activeIndex];
     const activeEnemyMon = state.enemy.monsters[state.enemy.activeIndex];
@@ -408,6 +413,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         modeOverride?: "raid" | "dungeon",
     ) => {
         try {
+            // 이전 던전 스케일 정보는 초기화
+            setLastDungeonScaledLevel(null);
             const effectiveMode = modeOverride ?? battleMode;  // ⭐ 이번 리셋에서 사용할 모드
             // 1) 파티 슬롯 1~3인 owned 몬스터 로딩
             const { data: ownedData, error: ownedError } = await supabase
@@ -671,24 +678,40 @@ export function QuizMonGame(props: QuizMonGameProps) {
             let enemyMonsters: Monster[] = [];
 
             if (effectiveMode === "dungeon" && currentDungeon?.enemySetId) {
-                // 1) 이번 전투에서 사용할 기본 슬롯: 위에서 뽑아둔 랜덤 세트 우선
                 const baseSlots =
                     chosenEnemySlots.length > 0
                         ? chosenEnemySlots
                         : ENEMY_SETS[currentDungeon.enemySetId] ?? [];
 
-                // 2) 이 던전에서 동시에 상대할 몬스터 수
-                // 2) 이 던전에서 동시에 상대할 몬스터 수
                 const maxEnemyCountFromConfig =
                     typeof currentDungeon.enemyCount === "number"
                         ? currentDungeon.enemyCount
                         : baseSlots.length;
-
-// ✅ 수업용 난이도 튜닝 값 (없으면 기본값 사용)
+                
                 const levelOffset = currentDungeon.levelOffset ?? 0;
                 const hpScale = currentDungeon.hpScale ?? 1;
+                
+                // 🔹 플레이어 파티 평균 레벨 (기절하지 않은 몬스터 기준)
+                const partyAvgLevel =
+                    aliveOwnedRows.length > 0
+                        ? aliveOwnedRows.reduce(
+                            (sum, o) => sum + (o.level ?? 1),
+                            0,
+                        ) / aliveOwnedRows.length
+                        : 1;
+                
+                // 🔹 이 던전의 권장 최소 레벨
+                //    - 값이 있으면 "기본 적 레벨의 기준점"
+                //    - 값이 없으면 null 로 두고, 순수히 파티 평균 기준으로만 스케일
+                const recommendedMinLevel =
+                    typeof currentDungeon.recommendedMinLevel === "number"
+                        ? currentDungeon.recommendedMinLevel
+                        : null;
+                
+                // 🔹 이번 던전에서 실제 사용된 적 레벨 평균 계산용
+                let scaledLevelSum = 0;
+                let scaledLevelCount = 0;
 
-// 3) 실제 사용할 몬스터 슬롯 (앞에서부터 N개 사용)
                 const useCount = Math.max(
                     1,
                     Math.min(maxEnemyCountFromConfig, baseSlots.length),
@@ -706,8 +729,29 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             return null;
                         }
 
-                        // ✅ 레벨 튜닝: slot.level 에 offset 적용 (최소 1레벨 보장)
-                        const level = Math.max(1, slot.level + levelOffset);
+                        // ✅ (중요) 레벨 튜닝:
+                        //  - recommendedMinLevel 이 있으면 slot.level 과의 차이만큼 반영
+                        //  - 없으면 normalizedFromMin = 0 으로 보고,
+                        //    순수히 파티 평균 + levelOffset 만 사용
+                        const normalizedFromMin =
+                            recommendedMinLevel != null
+                                ? slot.level - recommendedMinLevel
+                                : 0;
+                        
+                        let scaledLevel =
+                            partyAvgLevel + normalizedFromMin + levelOffset;
+                        
+                        // ✅ 하드 던전은 항상 "파티 평균 + 1 레벨 이상" 유지
+                        if (currentDungeon.difficulty === "hard") {
+                            const minHard = partyAvgLevel + 1;
+                            if (scaledLevel < minHard) {
+                                scaledLevel = minHard;
+                            }
+                        }
+                        const level = Math.max(1, Math.round(scaledLevel));
+                        // 이번 던전 적 레벨 평균 계산용 누적
+                        scaledLevelSum += level;
+                        scaledLevelCount += 1;
 
                         const tempOwned: QuizmonOwnedMonsterRow = {
                             id: `enemy-${currentDungeon.id}-${index}`,
@@ -731,7 +775,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         );
                         if (!base) return null;
 
-                        // ✅ HP 튜닝: hpScale 적용 (1이면 그대로)
                         const scaledMaxHp =
                             hpScale !== 1
                                 ? Math.max(1, Math.floor(base.maxHp * hpScale))
@@ -746,6 +789,15 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         };
                     })
                     .filter((m): m is Monster => m !== null);
+
+                // 🔹 최종적으로 이번 던전에서 사용된 적들의 평균 레벨을 기록
+                if (scaledLevelCount > 0) {
+                    setLastDungeonScaledLevel(
+                        scaledLevelSum / scaledLevelCount,
+                    );
+                } else {
+                    setLastDungeonScaledLevel(null);
+                }
             }
 
 // 🔹 레이드 모드: 현재 열린 레이드 보스를 단일 적 몬스터로 생성
@@ -1079,7 +1131,16 @@ export function QuizMonGame(props: QuizMonGameProps) {
         DUNGEON_CONFIGS[0];
 
     const battleBgUrl = getArenaSprite(selectedDungeon.arenaKey ?? "forest_bg");
-
+    
+    // 🔹 선택된 던전에 대해서도 focusStat 기반 동적 난이도/보상 계산
+    const summaryFocusValue = getPartyFocusStatValueForDungeon(
+        selectedDungeon.id,
+    );
+    const summaryDyn = evaluateDungeonForFocusStat(
+        selectedDungeon,
+        summaryFocusValue,
+    );
+    
     let resultMessage = "접전 끝에 무승부!";
     if (playerMon.hp > 0 && enemyMon.hp <= 0) {
         resultMessage = `신난다! ${enemyMon.name}를 잡았다!`;
@@ -1464,13 +1525,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     }}
                                 >
                                     선택된 던전:{" "}
-                                    <span style={{ color: "#e5e7eb", fontWeight: 600 }}>
-                    {selectedDungeon.name}
-                </span>{" "}
-                                    (난이도 {selectedDungeon.difficultyLabel} · 보상 ×
-                                    {selectedDungeon.rewardMultiplier.toFixed(1)})
+                                    <span
+                                        style={{
+                                            color: "#e5e7eb",
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {selectedDungeon.name}
+                                    </span>{" "}
+                                    (난이도 {summaryDyn.difficultyLabel} · 보상 ×
+                                    {summaryDyn.rewardMultiplier.toFixed(1)})
                                 </div>
-
                                 <div
                                     style={{
                                         display: "flex",
