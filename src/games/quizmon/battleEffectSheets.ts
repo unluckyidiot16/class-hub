@@ -1,16 +1,18 @@
-// battleEffectSheets.ts
+// src/games/quizmon/battleEffectSheets.ts
 export type EffectSheetConfig = {
-    imageUrl: string;   // 실제 PNG 경로
+    imageUrl: string;
     frameWidth: number;
     frameHeight: number;
 };
 
+const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
+const EFFECT_BASE = `${BASE_URL}games/quizmon/effects/`;
+
 export const EFFECT_SHEETS: Record<string, EffectSheetConfig> = {
-    // TODO: 실제 경로/크기 맞게 조정
     "PRAS- Absorption": {
-        imageUrl: "/games/quizmon/effects/absorption.png",
+        imageUrl: `${EFFECT_BASE}absorption.png`,
         frameWidth: 64,
         frameHeight: 64,
     },
-    // "PRFX- TackleHit": { ... } 등 계속 추가
+    // 필요 시 추가...
 };

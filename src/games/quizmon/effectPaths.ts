@@ -7,8 +7,11 @@ type EffectGraphicEntry = {
     jsonFile: string;
 };
 
-const EFFECT_BASE_JSON = "/games/quizmon/effects";
-const EFFECT_GRAPHIC_BASE = "/games/quizmon/effects";
+// ✅ assets.ts와 동일한 방식
+const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
+
+// docs/games/quizmon/effects 아래를 기준으로
+const EFFECT_BASE = `${BASE_URL}games/quizmon/effects`;
 
 export function getEffectPathsForMove(
     moveId: string,
@@ -18,10 +21,8 @@ export function getEffectPathsForMove(
         ];
     if (!entry) return null;
 
-    const jsonUrl = `${EFFECT_BASE_JSON}/${entry.jsonFile}`;
-    const imageUrl = `${EFFECT_GRAPHIC_BASE}/${encodeURIComponent(
-        entry.graphic,
-    )}.png`;
+    const jsonUrl = `${EFFECT_BASE}/${entry.jsonFile}`;
+    const imageUrl = `${EFFECT_BASE}/${encodeURIComponent(entry.graphic)}.png`;
 
     return { jsonUrl, imageUrl };
 }
