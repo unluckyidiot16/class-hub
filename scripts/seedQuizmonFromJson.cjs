@@ -86,6 +86,80 @@ function applyBattleStatsToSpeciesList(list) {
     );
 }
 
+/**
+ * 내부 편의용: 한 종의 battle_stat_total 가져오기
+ * (없으면 calcBaseStatTotalFromJson 기준으로 계산)
+ */
+function getBattleTotal(sp) {
+    if (typeof sp.battle_stat_total === "number") {
+        return sp.battle_stat_total;
+    }
+    return calcBaseStatTotalFromJson(sp);
+}
+
+/**
+ * species 리스트 → Map<id, species>
+ */
+function buildSpeciesMap(list) {
+    const map = new Map();
+    for (const sp of list) {
+        map.set(sp.id, sp);
+    }
+    return map;
+}
+
+/**
+ * 각 종에 대해 "이 종이 속한 진화 라인의 최대 종족값 합계"를 계산
+ * 반환: Map<speciesId, lineMaxBattleTotal>
+ */
+function computeLineMaxBattleTotalMap(list) {
+    const map = buildSpeciesMap(list);
+    const cache = new Map(); // speciesId -> lineMaxTotal
+
+    function dfs(id, visited = new Set()) {
+        if (cache.has(id)) return cache.get(id);
+
+        const sp = map.get(id);
+        if (!sp) return null;
+
+        if (visited.has(id)) {
+            // 진화 루프 방지 (혹시 있을 경우)
+            const selfTotal = getBattleTotal(sp);
+            cache.set(id, selfTotal);
+            return selfTotal;
+        }
+
+        visited.add(id);
+
+        let maxTotal = getBattleTotal(sp);
+
+        const evo = sp.evolution;
+        if (evo && evo.toId && map.has(evo.toId)) {
+            const childMax = dfs(evo.toId, visited);
+            if (typeof childMax === "number") {
+                if (childMax > maxTotal) {
+                    maxTotal = childMax;
+                }
+            }
+        }
+
+        cache.set(id, maxTotal);
+        return maxTotal;
+    }
+
+    for (const sp of list) {
+        dfs(sp.id);
+    }
+
+    console.log(
+        "[seedQuizmon] lineMaxBattleTotal 계산 완료:",
+        cache.size,
+        "종"
+    );
+
+    return cache;
+}
+
 
 /** ---------- 1. JSON 로드 ---------- */
 
@@ -323,18 +397,23 @@ async function seedSpeciesAbilitiesFromJson() {
     console.log("[seedQuizmon] quizmon_species_abilities seeding 완료");
 }
 
-function computeRarityAndWeightFromPopularity(sp, popularityMap) {
+/**
+ * 라인 최대 종족값 + 인기 순위 기반으로
+ * rarity(1~5)와 가챠 weight를 결정
+ */
+function computeRarityAndWeightFromLineMax(sp, opts) {
+    const { lineMaxMap, popularityMap } = opts;
     const { byDex, byNameEn } = popularityMap;
 
-    // 🔹 1) 외부 popularityRanks에서 랭크 찾기
-    let rank = null;
+    // 🔹 popularityRank 찾기 (가중치 미세 조정용)
+    let popRank = null;
 
     if (typeof sp.pokedexNo === "number") {
-        rank = byDex.get(sp.pokedexNo) ?? null;
+        popRank = byDex.get(sp.pokedexNo) ?? null;
     }
 
-    if (!rank && typeof sp.nameEn === "string") {
-        rank =
+    if (!popRank && typeof sp.nameEn === "string") {
+        popRank =
             byNameEn.get(sp.nameEn.toLowerCase()) ??
             byNameEn.get(sp.name?.toLowerCase() ?? "") ??
             null;
@@ -343,49 +422,69 @@ function computeRarityAndWeightFromPopularity(sp, popularityMap) {
     const isLegendary = !!sp.isLegendary;
     const isMythical = !!sp.isMythical;
 
-    // 🔹 2) 기본 값 (JSON에 수동 값이 있으면 우선)
-    let rarity =
-        typeof sp.rarity === "number" && sp.rarity >= 1 && sp.rarity <= 5
-            ? sp.rarity
-            : 1;
+    const selfTotal = getBattleTotal(sp);
+    const lineMaxTotal =
+        lineMaxMap.get(sp.id) != null
+            ? lineMaxMap.get(sp.id)
+            : selfTotal;
 
-    let gachaWeight =
-        typeof sp.gachaWeight === "number" && sp.gachaWeight > 0
-            ? sp.gachaWeight
-            : 100;
-
-    // 🔹 3) 전설/환포는 무조건 최상 레어도
+    // 🔹 1) 라인 최대 종족값 기준으로 rarity 결정
+    let rarity;
     if (isLegendary || isMythical) {
+        // 전설/환상은 무조건 최상 레어도
         rarity = 5;
-        gachaWeight = 3;
-        return { rarity, gachaWeight, rank };
-    }
-
-    // 🔹 4) popularityRank 기반 레어도/가중치
-    if (typeof rank === "number" && rank > 0) {
-        if (rank <= 50) {
-            rarity = 5;
-            gachaWeight = 5;
-        } else if (rank <= 150) {
-            rarity = 4;
-            gachaWeight = 15;
-        } else if (rank <= 400) {
-            rarity = 3;
-            gachaWeight = 40;
-        } else if (rank <= 800) {
-            rarity = 2;
-            gachaWeight = 80;
-        } else {
-            rarity = 1;
-            gachaWeight = 120;
-        }
+    } else if (lineMaxTotal >= 600) {
+        // 600족 라인
+        rarity = 5;
+    } else if (lineMaxTotal >= 540) {
+        rarity = 4;
+    } else if (lineMaxTotal >= 480) {
+        rarity = 3;
+    } else if (lineMaxTotal >= 420) {
+        rarity = 2;
     } else {
-        // 🔹 5) 랭크가 전혀 없으면: 커먼에 더 가깝게
         rarity = 1;
-        gachaWeight = 120;
     }
 
-    return { rarity, gachaWeight, rank };
+    // 🔹 2) rarity별 기본 가챠 weight
+    let gachaWeight;
+    switch (rarity) {
+        case 5:
+            gachaWeight = 5;
+            break;
+        case 4:
+            gachaWeight = 15;
+            break;
+        case 3:
+            gachaWeight = 40;
+            break;
+        case 2:
+            gachaWeight = 80;
+            break;
+        case 1:
+        default:
+            gachaWeight = 120;
+            break;
+    }
+
+    // 🔹 3) popularityRank로 weight 미세 조정 (선택적 보정)
+    if (typeof popRank === "number" && popRank > 0) {
+        if (popRank <= 50) {
+            // 인기 Top 50 → 더 희귀하게
+            gachaWeight = Math.max(2, Math.floor(gachaWeight * 0.7));
+        } else if (popRank <= 200) {
+            gachaWeight = Math.floor(gachaWeight * 0.85);
+        } else if (popRank >= 900) {
+            // 거의 안 쓰이는 애들 → 조금 더 잘 나오게
+            gachaWeight = Math.floor(gachaWeight * 1.1);
+        }
+    }
+
+    return {
+        rarity,
+        gachaWeight,
+        popularityRank: popRank,
+    };
 }
 
 
@@ -411,8 +510,13 @@ async function seedSpeciesFromJson() {
 
     // 🔹 popularityRanks 로드
     const popularityMap = loadPopularityRankMap();
+
+    // 🔹 진화 라인별 최대 종족값 합계 계산 (lineMaxBattleTotal)
+    const lineMaxMap = computeLineMaxBattleTotalMap(list);
+
     // 종 ID 집합
     const speciesIdSet = new Set(list.map((sp) => sp.id));
+
 
 
     // 1) species.json 안에서 모든 evolution.itemId 수집 → quizmon_items에 진화아이템 자동 생성
@@ -605,9 +709,12 @@ async function seedSpeciesFromJson() {
         const hasValidEvoTarget =
             !!evo && !!evo.toId && speciesIdSet.has(evo.toId);
 
-        // ⭐ popularity 기반 rarity / gachaWeight 계산 (외부 맵 사용)
-        const { rarity, gachaWeight, rank } =
-            computeRarityAndWeightFromPopularity(sp, popularityMap);
+        // ⭐ 진화 라인 최대 종족값 + popularity 기반 rarity / gachaWeight 계산
+        const { rarity, gachaWeight, popularityRank } =
+            computeRarityAndWeightFromLineMax(sp, {
+                lineMaxMap,
+                popularityMap,
+            });
 
         return {
             id: sp.id,
@@ -619,7 +726,8 @@ async function seedSpeciesFromJson() {
             gacha_weight: gachaWeight,
 
             // 🔹 인기 랭크 (외부 popularityRanks 기준)
-            popularity_rank: rank ?? null,
+            popularity_rank: popularityRank ?? null,
+
 
             // 🔹 ✅ 종족값 합계 / 전투 랭크 (우리 계산 기준)
             battle_stat_total: sp.battle_stat_total ?? null,

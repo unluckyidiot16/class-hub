@@ -30,6 +30,7 @@ export type DungeonConfig = {
     description: string;
     difficulty: "easy" | "normal" | "hard";
     difficultyLabel: string;
+    powerRatio?: number;
     recommendedMinLevel: number;
     recommendedMaxLevel: number;
     arenaKey: string;
@@ -88,6 +89,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.0,
         recommendedMinLevel: 3,
         recommendedMaxLevel: 6,
+        powerRatio: 0.85,
         subject: "korean",
         grade: 2,
         arenaKey: "forest_bg",
@@ -105,6 +107,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.2,
         recommendedMinLevel: 5,
         recommendedMaxLevel: 8,
+        powerRatio: 1.0,
         subject: "korean",
         grade: 2,
         arenaKey: "forest_bg",
@@ -122,6 +125,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         rewardMultiplier: 1.5,
         recommendedMinLevel: 8,
         recommendedMaxLevel: 12,
+        powerRatio: 1.3,
         subject: "korean",
         grade: 3,
         arenaKey: "forest_bg",

@@ -48,6 +48,18 @@ function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
     return null;
 }
 
+// 🔢 종 스탯 + 레벨로 대략적인 "파워" 점수 계산
+// (절대값은 의미 없고, 서로 비교할 때만 사용)
+    function calcSpeciesPower(species: QuizmonSpeciesRow, level: number): number {
+          const baseHp = species.base_hp ?? 1;
+          const baseAtk = species.base_atk ?? 1;
+          const baseDef = species.base_def ?? 1;
+          const baseSpd = species.base_spd ?? 1;
+          const statTotal = baseHp + baseAtk + baseDef + baseSpd;
+          return statTotal * Math.max(1, level);
+}
+
+
 // viewState 는 던전 단위 상태(DungeonState) 역할
 // - "lobby": 메인 메뉴 오버레이
 // - "battle": 실제 전투 진행 화면
@@ -682,7 +694,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     chosenEnemySlots.length > 0
                         ? chosenEnemySlots
                         : ENEMY_SETS[currentDungeon.enemySetId] ?? [];
-
+                
                 const maxEnemyCountFromConfig =
                     typeof currentDungeon.enemyCount === "number"
                         ? currentDungeon.enemyCount
@@ -696,9 +708,33 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     aliveOwnedRows.length > 0
                         ? aliveOwnedRows.reduce(
                             (sum, o) => sum + (o.level ?? 1),
-                            0,
-                        ) / aliveOwnedRows.length
+                        0,
+                    ) / aliveOwnedRows.length
                         : 1;
+                
+                // 🔹 플레이어 파티 평균 파워 (종 스탯 + 레벨 기준)
+                let partyPowerSum = 0;
+                let partyPowerCount = 0;
+                for (const owned of aliveOwnedRows) {
+                    const sp = speciesMap.get(owned.species_id);
+                    if (!sp) continue;
+                    const lv = owned.level ?? 1;
+                    partyPowerSum += calcSpeciesPower(sp, lv);
+                    partyPowerCount += 1;
+                }
+                const partyPowerAvg =
+                    partyPowerCount > 0 
+                        ? partyPowerSum / partyPowerCount
+                        // 혹시 몰라서 fallback 하나
+                        : calcSpeciesPower(
+                            speciesRows[0], 
+                            partyAvgLevel,
+                        );
+                
+                // 🔹 이 던전이 목표로 하는 "파티 대비 파워 비율"
+                //    (DUNGEON_CONFIGS 에 powerRatio?: number 추가 필요)
+                const powerRatio = currentDungeon.powerRatio ?? 1.0;
+                const targetEnemyPowerPerMon = partyPowerAvg * powerRatio;
                 
                 // 🔹 이 던전의 권장 최소 레벨
                 //    - 값이 있으면 "기본 적 레벨의 기준점"
@@ -711,13 +747,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 // 🔹 이번 던전에서 실제 사용된 적 레벨 평균 계산용
                 let scaledLevelSum = 0;
                 let scaledLevelCount = 0;
-
+                
                 const useCount = Math.max(
                     1,
                     Math.min(maxEnemyCountFromConfig, baseSlots.length),
                 );
                 const slots = baseSlots.slice(0, useCount);
-
+                
                 enemyMonsters = slots
                     .map((slot, index): Monster | null => {
                         const species = speciesMap.get(slot.speciesId);
@@ -726,9 +762,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 "[QuizMonGame] enemy species not found for slot",
                                 slot,
                             );
-                            return null;
+                                                    return null;
                         }
-
+                    
                         // ✅ (중요) 레벨 튜닝:
                         //  - recommendedMinLevel 이 있으면 slot.level 과의 차이만큼 반영
                         //  - 없으면 normalizedFromMin = 0 으로 보고,
@@ -737,10 +773,27 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             recommendedMinLevel != null
                                 ? slot.level - recommendedMinLevel
                                 : 0;
-                        
+                    
+                        // ✅ 파워 기준으로 "이 종이 어느 정도 레벨이면 적절한가?"
+                        const statTotal =
+                            (species.base_hp ?? 1) +
+                            (species.base_atk ?? 1) +
+                            (species.base_def ?? 1) +
+                            (species.base_spd ?? 1);
+                    
+                        const levelFromPower =
+                            statTotal > 0
+                                ? targetEnemyPowerPerMon / statTotal
+                                : partyAvgLevel;
+                    
+                        // 🔹 기존 레벨 스케일 + 파워 스케일을 50:50 로 섞기
                         let scaledLevel =
-                            partyAvgLevel + normalizedFromMin + levelOffset;
-                        
+                            0.5 *
+                            (partyAvgLevel +
+                                normalizedFromMin +
+                                levelOffset) +
+                            0.5 * levelFromPower;
+                    
                         // ✅ 하드 던전은 항상 "파티 평균 + 1 레벨 이상" 유지
                         if (currentDungeon.difficulty === "hard") {
                             const minHard = partyAvgLevel + 1;
@@ -748,11 +801,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 scaledLevel = minHard;
                             }
                         }
+                    
                         const level = Math.max(1, Math.round(scaledLevel));
+                    
                         // 이번 던전 적 레벨 평균 계산용 누적
                         scaledLevelSum += level;
                         scaledLevelCount += 1;
-
+                    
                         const tempOwned: QuizmonOwnedMonsterRow = {
                             id: `enemy-${currentDungeon.id}-${index}`,
                             profile_id: "dungeon-enemy",
@@ -768,18 +823,17 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             created_at: new Date().toISOString() as any,
                             updated_at: new Date().toISOString() as any,
                         };
-
+                    
                         const base = buildBattleMonsterFromSpecies(
                             species,
                             tempOwned,
                         );
                         if (!base) return null;
-
+                    
                         const scaledMaxHp =
                             hpScale !== 1
                                 ? Math.max(1, Math.floor(base.maxHp * hpScale))
                                 : base.maxHp;
-
                         return {
                             ...base,
                             id: tempOwned.id,
@@ -789,7 +843,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         };
                     })
                     .filter((m): m is Monster => m !== null);
-
+                
                 // 🔹 최종적으로 이번 던전에서 사용된 적들의 평균 레벨을 기록
                 if (scaledLevelCount > 0) {
                     setLastDungeonScaledLevel(
