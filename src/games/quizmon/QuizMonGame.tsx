@@ -26,6 +26,8 @@ import {
     DUNGEON_CONFIGS,
     ENEMY_SETS,
     type EnemySlot,
+    evaluateDungeonForFocusStat,
+    FOCUS_STAT_LABEL,
 } from "./dungeonEnemySets";
 import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
@@ -161,7 +163,46 @@ export function QuizMonGame(props: QuizMonGameProps) {
             console.error("[QuizMonGame] requestFullscreen failed", err);
         });
     };
-    
+
+    // 플레이어 파티 기준으로, 던전의 focusStat 값(평균)을 계산
+    const getPartyFocusStatValueForDungeon = (dungeonId: string): number | null => {
+        const dungeon = DUNGEON_CONFIGS.find((d) => d.id === dungeonId);
+        if (!dungeon) return null;
+
+        const focusStat = dungeon.focusStat;
+
+        // 1) 레벨 기반 던전이면, 아직 배틀 전이라도 props.monsters 에서 바로 계산
+        if (focusStat === "level") {
+            const mons = props.monsters ?? [];
+            if (!mons.length) return null;
+
+            const sum = mons.reduce((acc, m) => acc + (m.level ?? 1), 0);
+            return sum / mons.length;
+        }
+
+        // 2) 그 외 능력치는 실제 BattleState의 Monster 에서 계산
+        const battleMons = state.player.monsters;
+        if (!battleMons.length) return null;
+
+        const sum = battleMons.reduce((acc, m) => {
+            switch (focusStat) {
+                case "maxHp":
+                    return acc + (m.maxHp ?? 0);
+                case "atk":
+                    return acc + (m.atk ?? 0);
+                case "def":
+                    return acc + (m.def ?? 0);
+                case "spd":
+                    return acc + (m.spd ?? 0);
+                default:
+                    return acc + (m.level ?? 1);
+            }
+        }, 0);
+
+        return sum / battleMons.length;
+    };
+
+
     const exitFullscreen = () => {
         if (typeof document === "undefined") return;
         if (!document.fullscreenElement) return;
@@ -1317,20 +1358,26 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 >
                                     {DUNGEON_CONFIGS.map((dungeon) => {
                                         const isSelected = dungeon.id === selectedDungeonId;
+
+                                        // 1) 파티 기준 focusStat 값 계산
+                                        const focusValue = getPartyFocusStatValueForDungeon(dungeon.id);
+
+                                        // 2) focusStat 비율을 반영해 난이도/보상 계산
+                                        const dyn = evaluateDungeonForFocusStat(dungeon, focusValue);
+
+                                        // 3) 라벨 (레벨 / HP / 공격 / 방어 / 스피드)
+                                        const focusLabel = FOCUS_STAT_LABEL[dungeon.focusStat];
+
                                         return (
                                             <button
                                                 key={dungeon.id}
                                                 type="button"
-                                                onClick={() =>
-                                                    setSelectedDungeonId(dungeon.id)
-                                                }
+                                                onClick={() => setSelectedDungeonId(dungeon.id)}
                                                 style={{
                                                     width: "100%",
                                                     textAlign: "left",
                                                     borderRadius: 8,
-                                                    border: `1px solid ${
-                                                        isSelected ? "#f97316" : "#1f2937"
-                                                    }`,
+                                                    border: `1px solid ${isSelected ? "#f97316" : "#1f2937"}`,
                                                     background: isSelected
                                                         ? "linear-gradient(135deg, rgba(30,64,175,0.9), rgba(234,88,12,0.9))"
                                                         : "#020617",
@@ -1347,9 +1394,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                         marginBottom: 2,
                                                     }}
                                                 >
-                                <span style={{ fontWeight: 600 }}>
-                                    {dungeon.name}
-                                </span>
+                                                    <span style={{ fontWeight: 600 }}>{dungeon.name}</span>
                                                     <span
                                                         style={{
                                                             fontSize: 11,
@@ -1359,9 +1404,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                             color: "#e5e7eb",
                                                         }}
                                                     >
-                                    {dungeon.difficultyLabel}
-                                </span>
+                    {/* ✅ focusStat 비율을 반영한 난이도 */}
+                                                        {dyn.difficultyLabel}
+                </span>
                                                 </div>
+
                                                 <div
                                                     style={{
                                                         fontSize: 12,
@@ -1370,6 +1417,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                 >
                                                     {dungeon.description}
                                                 </div>
+
                                                 <div
                                                     style={{
                                                         marginTop: 4,
@@ -1377,9 +1425,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                                         color: "#9ca3af",
                                                     }}
                                                 >
-                                                    추천 레벨 {dungeon.recommendedMinLevel}~
-                                                    {dungeon.recommendedMaxLevel} · 보상 ×
-                                                    {dungeon.rewardMultiplier.toFixed(1)}
+                                                    {/* ✅ focusStat 기준 추천 범위 & 보상 배수 */}
+                                                    추천 {focusLabel} {dyn.recommendedMin}~{dyn.recommendedMax} · 보상 ×
+                                                    {dyn.rewardMultiplier.toFixed(1)}
                                                 </div>
                                             </button>
                                         );

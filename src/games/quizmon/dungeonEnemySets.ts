@@ -11,7 +11,18 @@ export type DungeonGrade = 1 | 2 | 3 | 4 | 5 | 6;
 
 export type EnemySetKey = string;
 
-/** 던전 메타 정보 */
+// 기준으로 삼을 능력치 키
+export type FocusStatKey = "level" | "maxHp" | "atk" | "def" | "spd";
+
+// UI 표시용 라벨
+export const FOCUS_STAT_LABEL: Record<FocusStatKey, string> = {
+    level: "레벨",
+    maxHp: "HP",
+    atk: "공격",
+    def: "방어",
+    spd: "스피드",
+};
+
 /** 던전 메타 정보 */
 export type DungeonConfig = {
     id: string;
@@ -23,7 +34,9 @@ export type DungeonConfig = {
     recommendedMaxLevel: number;
     arenaKey: string;
     rewardMultiplier: number;
-    
+
+    /** 이 던전이 기준으로 삼는 능력치 (난이도/보상 계산에 사용) */
+    focusStat: FocusStatKey;
 
     /** 이 던전에 기본으로 쓸 ENEMY_SETS 키 */
     enemySetId: EnemySetKey;
@@ -70,6 +83,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         description: "2학년 국어 쉬운 문제와 약한 몬스터가 등장하는 입문 던전입니다.",
         difficulty: "easy",
         difficultyLabel: "쉬움",
+        focusStat: "level",
         enemySetId: "forest-easy-1",
         rewardMultiplier: 1.0,
         recommendedMinLevel: 3,
@@ -86,6 +100,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         description: "조금 더 강해진 몬스터가 등장합니다. 여전히 입문용에 가깝습니다.",
         difficulty: "easy",
         difficultyLabel: "쉬움",
+        focusStat: "level",
         enemySetId: "forest-easy-2",
         rewardMultiplier: 1.2,
         recommendedMinLevel: 5,
@@ -102,6 +117,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         description: "파티가 어느 정도 성장했을 때 도전하는 실전형 던전입니다.",
         difficulty: "normal",
         difficultyLabel: "보통",
+        focusStat: "level",
         enemySetId: "forest-normal-1",
         rewardMultiplier: 1.5,
         recommendedMinLevel: 8,
@@ -118,6 +134,7 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
         description: "스타터 최종 진화와 싸워 보는 연습용 타워입니다.",
         difficulty: "normal",
         difficultyLabel: "보통",
+        focusStat: "level",
         enemySetId: "tower-set-1",
         rewardMultiplier: 2.0,
         recommendedMinLevel: 10,
@@ -257,4 +274,76 @@ export function getDungeonEnemySummary(cfg: DungeonConfig): DungeonEnemySummary 
 /** 교사용 던전 패널에서 전체 리스트를 뿌릴 때 사용 */
 export function getAllDungeonEnemySummaries(): DungeonEnemySummary[] {
     return DUNGEON_CONFIGS.map((cfg) => getDungeonEnemySummary(cfg));
+}
+
+export type FocusStatDifficultyResult = {
+    focusStat: FocusStatKey;
+    difficultyLabel: string;   // 플레이어 기준 난이도 라벨
+    rewardMultiplier: number;  // 플레이어 기준 보상 배수
+    recommendedMin: number;    // 이 던전의 권장 focusStat 최소
+    recommendedMax: number;    // 이 던전의 권장 focusStat 최대
+};
+
+/**
+ * 플레이어의 focusStat 값(focusValue)을 기준으로,
+ * 이 던전의 실제 난이도/보상 배수를 계산한다.
+ *
+ * - focusValue < 권장 범위 → 더 어려운 던전 → 보상 증가
+ * - focusValue > 권장 범위 → 더 쉬운 던전 → 보상 감소
+ */
+export function evaluateDungeonForFocusStat(
+    dungeon: DungeonConfig,
+    focusValue: number | null | undefined,
+): FocusStatDifficultyResult {
+    const focusStat = dungeon.focusStat;
+    const min = dungeon.recommendedMinLevel;
+    const max = dungeon.recommendedMaxLevel;
+    const baseReward = dungeon.rewardMultiplier;
+
+    // 값이 없으면 기존 고정 난이도/보상 그대로 사용
+    if (!focusValue || !Number.isFinite(focusValue)) {
+        return {
+            focusStat,
+            difficultyLabel: dungeon.difficultyLabel,
+            rewardMultiplier: baseReward,
+            recommendedMin: min,
+            recommendedMax: max,
+        };
+    }
+
+    const center = (min + max) / 2 || 1;
+    const ratio = focusValue / center;
+
+    let difficultyLabel = dungeon.difficultyLabel;
+    let rewardMultiplier = baseReward;
+
+    // ratio < 1  → 우리 능력치가 권장보다 낮다 = 실제 난이도 ↑ = 보상 ↑
+    // ratio > 1  → 우리 능력치가 권장보다 높다 = 실제 난이도 ↓ = 보상 ↓
+    if (ratio <= 0.5) {
+        difficultyLabel = "매우 어려움";
+        rewardMultiplier = baseReward * 1.7;
+    } else if (ratio <= 0.85) {
+        difficultyLabel = "어려움";
+        rewardMultiplier = baseReward * 1.3;
+    } else if (ratio <= 1.15) {
+        difficultyLabel = "보통";
+        rewardMultiplier = baseReward;
+    } else if (ratio <= 1.5) {
+        difficultyLabel = "쉬움";
+        rewardMultiplier = baseReward * 0.8;
+    } else {
+        difficultyLabel = "매우 쉬움";
+        rewardMultiplier = baseReward * 0.6;
+    }
+
+    // 소수점 1자리로 정리
+    rewardMultiplier = Math.round(rewardMultiplier * 10) / 10;
+
+    return {
+        focusStat,
+        difficultyLabel,
+        rewardMultiplier,
+        recommendedMin: min,
+        recommendedMax: max,
+    };
 }
