@@ -156,6 +156,19 @@ export function BattleScriptAnimation({
                 ...style,
             }}
         >
+            {/* 디버그용: 앵커 위치 확인 */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    width: 10,
+                    height: 10,
+                    transform: "translate(-50%, -50%)",
+                    backgroundColor: "rgba(255, 0, 0, 0.4)",
+                    borderRadius: "50%",
+                }}
+            />
             {sprites.map((s, idx) => {
                 if (!s.visible) return null;
 
@@ -186,5 +199,6 @@ export function BattleScriptAnimation({
                 );
             })}
         </div>
+        
     );
 }
