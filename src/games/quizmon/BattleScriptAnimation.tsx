@@ -131,7 +131,7 @@ export function BattleScriptAnimation({
             imageUrl:
                 imageUrlOverride ??
                 `${EFFECT_BASE}${encodeURIComponent(layer.graphic)}.png`,
-            frameWidth: 64,
+            frameWidth: 80,
             frameHeight: 64,
         };
 

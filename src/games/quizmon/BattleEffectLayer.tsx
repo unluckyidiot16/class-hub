@@ -29,6 +29,8 @@ export function BattleEffectLayer({ effect, onEffectEnd }: Props) {
     const anchor: MoveEffectAnchor =
         cfg.anchor ?? getDefaultAnchor(effect.side);
 
+    const isScript = cfg.mode === "script";
+
     // 🔹 sheet 모드는 durationMs 기준으로 자동 종료
     useEffect(() => {
         if (!effect || !cfg || !onEffectEnd) return;
@@ -56,7 +58,7 @@ export function BattleEffectLayer({ effect, onEffectEnd }: Props) {
         alignItems = "flex-end";
     }
 
-    const scale = cfg.scale ?? 1;
+    const scale = cfg.scale ?? (isScript ? 3 : 1);
 
     return (
         <div
