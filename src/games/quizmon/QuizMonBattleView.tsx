@@ -1,6 +1,6 @@
 // src/games/quizmon/QuizMonBattleView.tsx
 import { useState, useEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
 import type {
     BattleState,
     Move,
@@ -413,7 +413,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             .slice(-1)[0]?.text ?? null;
 
 
-    const getPopupStyle = (popup: DamagePopup): React.CSSProperties => {
+    const getPopupStyle = (popup: DamagePopup): CSSProperties => {
         let color = "#f9fafb"; // 기본 흰색
         if (popup.effectiveness > 1.01) {
             color = "#f97373"; // 🔴 효과 굉장

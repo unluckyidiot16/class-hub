@@ -1,0 +1,4612 @@
+{
+  "absorb": {
+    "moveId": "absorb",
+    "graphic": "PRAS- Absorption",
+    "jsonFile": "absorb.json"
+  },
+  "accelerock": {
+    "moveId": "accelerock",
+    "graphic": "PRAS- Rock Smash",
+    "jsonFile": "accelerock.json"
+  },
+  "acid-armor": {
+    "moveId": "acid-armor",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "acid-armor.json"
+  },
+  "acid-spray": {
+    "moveId": "acid-spray",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "acid-spray.json"
+  },
+  "acid": {
+    "moveId": "acid",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "acid.json"
+  },
+  "acrobatics": {
+    "moveId": "acrobatics",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "acrobatics.json"
+  },
+  "acupressure": {
+    "moveId": "acupressure",
+    "graphic": "PRAS- Hands",
+    "jsonFile": "acupressure.json"
+  },
+  "aerial-ace": {
+    "moveId": "aerial-ace",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "aerial-ace.json"
+  },
+  "aeroblast": {
+    "moveId": "aeroblast",
+    "graphic": "PRAS- Aeroblast",
+    "jsonFile": "aeroblast.json"
+  },
+  "after-you": {
+    "moveId": "after-you",
+    "graphic": "",
+    "jsonFile": "after-you.json"
+  },
+  "agility": {
+    "moveId": "agility",
+    "graphic": "mixed",
+    "jsonFile": "agility.json"
+  },
+  "air-cutter": {
+    "moveId": "air-cutter",
+    "graphic": "PRAS- Air Cutter",
+    "jsonFile": "air-cutter.json"
+  },
+  "air-slash": {
+    "moveId": "air-slash",
+    "graphic": "PRAS- Air Slash",
+    "jsonFile": "air-slash.json"
+  },
+  "alluring-voice": {
+    "moveId": "alluring-voice",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "alluring-voice.json"
+  },
+  "ally-switch": {
+    "moveId": "ally-switch",
+    "graphic": "Ancient-PowerFilesheet",
+    "jsonFile": "ally-switch.json"
+  },
+  "amnesia": {
+    "moveId": "amnesia",
+    "graphic": "PRAS- Amnesia",
+    "jsonFile": "amnesia.json"
+  },
+  "anchor-shot": {
+    "moveId": "anchor-shot",
+    "graphic": "PRAS- Anchor Shot",
+    "jsonFile": "anchor-shot.json"
+  },
+  "ancient-power": {
+    "moveId": "ancient-power",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "ancient-power.json"
+  },
+  "apple-acid": {
+    "moveId": "apple-acid",
+    "graphic": "GEN8- Apple Acid",
+    "jsonFile": "apple-acid.json"
+  },
+  "aqua-cutter": {
+    "moveId": "aqua-cutter",
+    "graphic": "PRAS- Water",
+    "jsonFile": "aqua-cutter.json"
+  },
+  "aqua-jet": {
+    "moveId": "aqua-jet",
+    "graphic": "PRAS- Aqua Jet",
+    "jsonFile": "aqua-jet.json"
+  },
+  "aqua-ring": {
+    "moveId": "aqua-ring",
+    "graphic": "PRAS- Water",
+    "jsonFile": "aqua-ring.json"
+  },
+  "aqua-step": {
+    "moveId": "aqua-step",
+    "graphic": "Gen9- Aqua Step",
+    "jsonFile": "aqua-step.json"
+  },
+  "aqua-tail": {
+    "moveId": "aqua-tail",
+    "graphic": "PRAS- Water",
+    "jsonFile": "aqua-tail.json"
+  },
+  "arm-thrust": {
+    "moveId": "arm-thrust",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "arm-thrust.json"
+  },
+  "armor-cannon": {
+    "moveId": "armor-cannon",
+    "graphic": "firepoison",
+    "jsonFile": "armor-cannon.json"
+  },
+  "aromatherapy": {
+    "moveId": "aromatherapy",
+    "graphic": "PRAS- Aromatherapy",
+    "jsonFile": "aromatherapy.json"
+  },
+  "aromatic-mist": {
+    "moveId": "aromatic-mist",
+    "graphic": "",
+    "jsonFile": "aromatic-mist.json"
+  },
+  "assist": {
+    "moveId": "assist",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "assist.json"
+  },
+  "assurance": {
+    "moveId": "assurance",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "assurance.json"
+  },
+  "astonish": {
+    "moveId": "astonish",
+    "graphic": "PRAS- Shadow Sneak",
+    "jsonFile": "astonish.json"
+  },
+  "astral-barrage": {
+    "moveId": "astral-barrage",
+    "graphic": "GEN8- AstralBarrage",
+    "jsonFile": "astral-barrage.json"
+  },
+  "attack-order": {
+    "moveId": "attack-order",
+    "graphic": "PRAS- Struggle Bug",
+    "jsonFile": "attack-order.json"
+  },
+  "attract": {
+    "moveId": "attract",
+    "graphic": "PRAS- Love",
+    "jsonFile": "attract.json"
+  },
+  "aura-sphere": {
+    "moveId": "aura-sphere",
+    "graphic": "PRAS- Aura Sphere",
+    "jsonFile": "aura-sphere.json"
+  },
+  "aura-wheel": {
+    "moveId": "aura-wheel",
+    "graphic": "GEN8- Aura Wheel Ally",
+    "jsonFile": "aura-wheel.json"
+  },
+  "aurora-beam": {
+    "moveId": "aurora-beam",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "aurora-beam.json"
+  },
+  "aurora-veil": {
+    "moveId": "aurora-veil",
+    "graphic": "PRAS- Weather",
+    "jsonFile": "aurora-veil.json"
+  },
+  "autotomize": {
+    "moveId": "autotomize",
+    "graphic": "PRAS- Autotomize",
+    "jsonFile": "autotomize.json"
+  },
+  "avalanche": {
+    "moveId": "avalanche",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "avalanche.json"
+  },
+  "axe-kick": {
+    "moveId": "axe-kick",
+    "graphic": "PRAS- Elemental Punch",
+    "jsonFile": "axe-kick.json"
+  },
+  "baby-doll-eyes": {
+    "moveId": "baby-doll-eyes",
+    "graphic": "PRAS- Baby Doll Eyes",
+    "jsonFile": "baby-doll-eyes.json"
+  },
+  "baddy-bad": {
+    "moveId": "baddy-bad",
+    "graphic": "GEN8- Fiery",
+    "jsonFile": "baddy-bad.json"
+  },
+  "baneful-bunker": {
+    "moveId": "baneful-bunker",
+    "graphic": "PRAS- Gyro Ball",
+    "jsonFile": "baneful-bunker.json"
+  },
+  "barb-barrage": {
+    "moveId": "barb-barrage",
+    "graphic": "PRAS- Poison Sting",
+    "jsonFile": "barb-barrage.json"
+  },
+  "barrage": {
+    "moveId": "barrage",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "barrage.json"
+  },
+  "barrier": {
+    "moveId": "barrier",
+    "graphic": "PRAS- Barrier",
+    "jsonFile": "barrier.json"
+  },
+  "baton-pass": {
+    "moveId": "baton-pass",
+    "graphic": "PRAS- Baton Pass",
+    "jsonFile": "baton-pass.json"
+  },
+  "beak-blast-charging": {
+    "moveId": "beak-blast-charging",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "beak-blast-charging.json"
+  },
+  "beak-blast": {
+    "moveId": "beak-blast",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "beak-blast.json"
+  },
+  "beat-up": {
+    "moveId": "beat-up",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "beat-up.json"
+  },
+  "behemoth-bash": {
+    "moveId": "behemoth-bash",
+    "graphic": "GEN8- Behemoth Bash Sword",
+    "jsonFile": "behemoth-bash.json"
+  },
+  "behemoth-blade": {
+    "moveId": "behemoth-blade",
+    "graphic": "GEN8- Behemoth Bash Sword",
+    "jsonFile": "behemoth-blade.json"
+  },
+  "belch": {
+    "moveId": "belch",
+    "graphic": "PRAS- Gastro Acid",
+    "jsonFile": "belch.json"
+  },
+  "belly-drum": {
+    "moveId": "belly-drum",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "belly-drum.json"
+  },
+  "bestow": {
+    "moveId": "bestow",
+    "graphic": "PRAS- Trick",
+    "jsonFile": "bestow.json"
+  },
+  "bide": {
+    "moveId": "bide",
+    "graphic": "PRAS- Bide",
+    "jsonFile": "bide.json"
+  },
+  "bind": {
+    "moveId": "bind",
+    "graphic": "block",
+    "jsonFile": "bind.json"
+  },
+  "bite": {
+    "moveId": "bite",
+    "graphic": "PRAS- Bite",
+    "jsonFile": "bite.json"
+  },
+  "bitter-blade": {
+    "moveId": "bitter-blade",
+    "graphic": "Gen9- Bitter Blade",
+    "jsonFile": "bitter-blade.json"
+  },
+  "bitter-malice": {
+    "moveId": "bitter-malice",
+    "graphic": "PRAS- Smog",
+    "jsonFile": "bitter-malice.json"
+  },
+  "blast-burn": {
+    "moveId": "blast-burn",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "blast-burn.json"
+  },
+  "blaze-kick": {
+    "moveId": "blaze-kick",
+    "graphic": "PRAS- Blaze Kick",
+    "jsonFile": "blaze-kick.json"
+  },
+  "blazing-torque": {
+    "moveId": "blazing-torque",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "blazing-torque.json"
+  },
+  "bleakwind-storm": {
+    "moveId": "bleakwind-storm",
+    "graphic": "PRAS- Twister",
+    "jsonFile": "bleakwind-storm.json"
+  },
+  "blizzard": {
+    "moveId": "blizzard",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "blizzard.json"
+  },
+  "block": {
+    "moveId": "block",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "block.json"
+  },
+  "blue-flare": {
+    "moveId": "blue-flare",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "blue-flare.json"
+  },
+  "body-press": {
+    "moveId": "body-press",
+    "graphic": "",
+    "jsonFile": "body-press.json"
+  },
+  "body-slam": {
+    "moveId": "body-slam",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "body-slam.json"
+  },
+  "bolt-beak": {
+    "moveId": "bolt-beak",
+    "graphic": "GEN8- Elemental Punch",
+    "jsonFile": "bolt-beak.json"
+  },
+  "bolt-strike": {
+    "moveId": "bolt-strike",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "bolt-strike.json"
+  },
+  "bone-club": {
+    "moveId": "bone-club",
+    "graphic": "PRAS- BoneMerang",
+    "jsonFile": "bone-club.json"
+  },
+  "bone-rush": {
+    "moveId": "bone-rush",
+    "graphic": "PRAS- BoneMerang",
+    "jsonFile": "bone-rush.json"
+  },
+  "bonemerang": {
+    "moveId": "bonemerang",
+    "graphic": "PRAS- BoneMerang",
+    "jsonFile": "bonemerang.json"
+  },
+  "boomburst": {
+    "moveId": "boomburst",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "boomburst.json"
+  },
+  "bounce-charging": {
+    "moveId": "bounce-charging",
+    "graphic": "",
+    "jsonFile": "bounce-charging.json"
+  },
+  "bounce": {
+    "moveId": "bounce",
+    "graphic": "",
+    "jsonFile": "bounce.json"
+  },
+  "bouncy-bubble": {
+    "moveId": "bouncy-bubble",
+    "graphic": "PRAS- Water",
+    "jsonFile": "bouncy-bubble.json"
+  },
+  "branch-poke": {
+    "moveId": "branch-poke",
+    "graphic": "PRAS- Wood Hammer",
+    "jsonFile": "branch-poke.json"
+  },
+  "brave-bird": {
+    "moveId": "brave-bird",
+    "graphic": "PRAS- Brave Bird",
+    "jsonFile": "brave-bird.json"
+  },
+  "breaking-swipe": {
+    "moveId": "breaking-swipe",
+    "graphic": "PRAS- Dragon Tail",
+    "jsonFile": "breaking-swipe.json"
+  },
+  "brick-break": {
+    "moveId": "brick-break",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "brick-break.json"
+  },
+  "brine": {
+    "moveId": "brine",
+    "graphic": "PRAS- Brine",
+    "jsonFile": "brine.json"
+  },
+  "brutal-swing": {
+    "moveId": "brutal-swing",
+    "graphic": "PRAS- Brutal Swing",
+    "jsonFile": "brutal-swing.json"
+  },
+  "bubble-beam": {
+    "moveId": "bubble-beam",
+    "graphic": "PRAS- Water",
+    "jsonFile": "bubble-beam.json"
+  },
+  "bubble": {
+    "moveId": "bubble",
+    "graphic": "PRAS- Water",
+    "jsonFile": "bubble.json"
+  },
+  "bug-bite": {
+    "moveId": "bug-bite",
+    "graphic": "PRAS- Bug Bite",
+    "jsonFile": "bug-bite.json"
+  },
+  "bug-buzz": {
+    "moveId": "bug-buzz",
+    "graphic": "PRAS- Bug Buzz",
+    "jsonFile": "bug-buzz.json"
+  },
+  "bulk-up": {
+    "moveId": "bulk-up",
+    "graphic": "PRAS- Bulk Up",
+    "jsonFile": "bulk-up.json"
+  },
+  "bulldoze": {
+    "moveId": "bulldoze",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "bulldoze.json"
+  },
+  "bullet-punch": {
+    "moveId": "bullet-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "bullet-punch.json"
+  },
+  "bullet-seed": {
+    "moveId": "bullet-seed",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "bullet-seed.json"
+  },
+  "burn-up": {
+    "moveId": "burn-up",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "burn-up.json"
+  },
+  "burning-bulwark": {
+    "moveId": "burning-bulwark",
+    "graphic": "PRAS- Protect",
+    "jsonFile": "burning-bulwark.json"
+  },
+  "burning-jealousy": {
+    "moveId": "burning-jealousy",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "burning-jealousy.json"
+  },
+  "buzzy-buzz": {
+    "moveId": "buzzy-buzz",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "buzzy-buzz.json"
+  },
+  "calm-mind": {
+    "moveId": "calm-mind",
+    "graphic": "PRAS- Screech",
+    "jsonFile": "calm-mind.json"
+  },
+  "camouflage": {
+    "moveId": "camouflage",
+    "graphic": "",
+    "jsonFile": "camouflage.json"
+  },
+  "captivate": {
+    "moveId": "captivate",
+    "graphic": "PRAS- Love",
+    "jsonFile": "captivate.json"
+  },
+  "catastropika": {
+    "moveId": "catastropika",
+    "graphic": "PRAS- Catastropika",
+    "jsonFile": "catastropika.json"
+  },
+  "ceaseless-edge": {
+    "moveId": "ceaseless-edge",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "ceaseless-edge.json"
+  },
+  "celebrate": {
+    "moveId": "celebrate",
+    "graphic": "",
+    "jsonFile": "celebrate.json"
+  },
+  "charge-beam": {
+    "moveId": "charge-beam",
+    "graphic": "PRAS- Charge Beam",
+    "jsonFile": "charge-beam.json"
+  },
+  "charge": {
+    "moveId": "charge",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "charge.json"
+  },
+  "charm": {
+    "moveId": "charm",
+    "graphic": "PRAS- Love",
+    "jsonFile": "charm.json"
+  },
+  "chatter": {
+    "moveId": "chatter",
+    "graphic": "PRAS- Chatter",
+    "jsonFile": "chatter.json"
+  },
+  "chilling-water": {
+    "moveId": "chilling-water",
+    "graphic": "PRAS- Water",
+    "jsonFile": "chilling-water.json"
+  },
+  "chilly-reception": {
+    "moveId": "chilly-reception",
+    "graphic": "Majesty - Chilly Reception",
+    "jsonFile": "chilly-reception.json"
+  },
+  "chip-away": {
+    "moveId": "chip-away",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "chip-away.json"
+  },
+  "chloroblast": {
+    "moveId": "chloroblast",
+    "graphic": "Majesty - Chloroblast",
+    "jsonFile": "chloroblast.json"
+  },
+  "circle-throw": {
+    "moveId": "circle-throw",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "circle-throw.json"
+  },
+  "clamp": {
+    "moveId": "clamp",
+    "graphic": "PRAS- Shell Smash",
+    "jsonFile": "clamp.json"
+  },
+  "clanging-scales": {
+    "moveId": "clanging-scales",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "clanging-scales.json"
+  },
+  "clangorous-soul": {
+    "moveId": "clangorous-soul",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "clangorous-soul.json"
+  },
+  "clear-smog": {
+    "moveId": "clear-smog",
+    "graphic": "PRAS- Clear Smog",
+    "jsonFile": "clear-smog.json"
+  },
+  "close-combat": {
+    "moveId": "close-combat",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "close-combat.json"
+  },
+  "coaching": {
+    "moveId": "coaching",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "coaching.json"
+  },
+  "coil": {
+    "moveId": "coil",
+    "graphic": "PRAS- Coil",
+    "jsonFile": "coil.json"
+  },
+  "collision-course": {
+    "moveId": "collision-course",
+    "graphic": "Gen9- Collision Course",
+    "jsonFile": "collision-course.json"
+  },
+  "combat-torque": {
+    "moveId": "combat-torque",
+    "graphic": "PRAS- Me First",
+    "jsonFile": "combat-torque.json"
+  },
+  "comet-punch": {
+    "moveId": "comet-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "comet-punch.json"
+  },
+  "comeuppance": {
+    "moveId": "comeuppance",
+    "graphic": "022-Darkness01",
+    "jsonFile": "comeuppance.json"
+  },
+  "common-attract": {
+    "moveId": "common-attract",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-attract.json"
+  },
+  "common-bide": {
+    "moveId": "common-bide",
+    "graphic": "PRAS- Bide",
+    "jsonFile": "common-bide.json"
+  },
+  "common-bind": {
+    "moveId": "common-bind",
+    "graphic": "PRAS- Wrapping",
+    "jsonFile": "common-bind.json"
+  },
+  "common-burn": {
+    "moveId": "common-burn",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-burn.json"
+  },
+  "common-clamp": {
+    "moveId": "common-clamp",
+    "graphic": "PRAS- Shell Smash",
+    "jsonFile": "common-clamp.json"
+  },
+  "common-confusion": {
+    "moveId": "common-confusion",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-confusion.json"
+  },
+  "common-covet": {
+    "moveId": "common-covet",
+    "graphic": "PRAS- Covet",
+    "jsonFile": "common-covet.json"
+  },
+  "common-curse-no-ghost": {
+    "moveId": "common-curse-no-ghost",
+    "graphic": "PRAS- CURSE2",
+    "jsonFile": "common-curse-no-ghost.json"
+  },
+  "common-curse": {
+    "moveId": "common-curse",
+    "graphic": "PRAS- Curse",
+    "jsonFile": "common-curse.json"
+  },
+  "common-electric-terrain": {
+    "moveId": "common-electric-terrain",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "common-electric-terrain.json"
+  },
+  "common-fire-spin": {
+    "moveId": "common-fire-spin",
+    "graphic": "PRAS- Fire Spin",
+    "jsonFile": "common-fire-spin.json"
+  },
+  "common-frozen": {
+    "moveId": "common-frozen",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-frozen.json"
+  },
+  "common-grassy-terrain": {
+    "moveId": "common-grassy-terrain",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "common-grassy-terrain.json"
+  },
+  "common-hail": {
+    "moveId": "common-hail",
+    "graphic": "PRAS- Weather",
+    "jsonFile": "common-hail.json"
+  },
+  "common-harsh-sun": {
+    "moveId": "common-harsh-sun",
+    "graphic": "weather",
+    "jsonFile": "common-harsh-sun.json"
+  },
+  "common-health-up": {
+    "moveId": "common-health-up",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "common-health-up.json"
+  },
+  "common-heavy-rain": {
+    "moveId": "common-heavy-rain",
+    "graphic": "PRAS- Weather",
+    "jsonFile": "common-heavy-rain.json"
+  },
+  "common-infestation": {
+    "moveId": "common-infestation",
+    "graphic": "PRAS- Struggle Bug",
+    "jsonFile": "common-infestation.json"
+  },
+  "common-leech-seed": {
+    "moveId": "common-leech-seed",
+    "graphic": "PRAS- Absorption2",
+    "jsonFile": "common-leech-seed.json"
+  },
+  "common-lock-on": {
+    "moveId": "common-lock-on",
+    "graphic": "PRAS- Lock On",
+    "jsonFile": "common-lock-on.json"
+  },
+  "common-magma-storm": {
+    "moveId": "common-magma-storm",
+    "graphic": "PRAS- Magma Storm",
+    "jsonFile": "common-magma-storm.json"
+  },
+  "common-misty-terrain": {
+    "moveId": "common-misty-terrain",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "common-misty-terrain.json"
+  },
+  "common-order-up-curly": {
+    "moveId": "common-order-up-curly",
+    "graphic": "Majesty - Order Up",
+    "jsonFile": "common-order-up-curly.json"
+  },
+  "common-order-up-droopy": {
+    "moveId": "common-order-up-droopy",
+    "graphic": "Majesty - Order Up",
+    "jsonFile": "common-order-up-droopy.json"
+  },
+  "common-order-up-stretchy": {
+    "moveId": "common-order-up-stretchy",
+    "graphic": "Majesty - Order Up",
+    "jsonFile": "common-order-up-stretchy.json"
+  },
+  "common-paralysis": {
+    "moveId": "common-paralysis",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-paralysis.json"
+  },
+  "common-poison": {
+    "moveId": "common-poison",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-poison.json"
+  },
+  "common-powder": {
+    "moveId": "common-powder",
+    "graphic": "PRAS- Powder",
+    "jsonFile": "common-powder.json"
+  },
+  "common-protect": {
+    "moveId": "common-protect",
+    "graphic": "PRAS- Protect",
+    "jsonFile": "common-protect.json"
+  },
+  "common-psychic-terrain": {
+    "moveId": "common-psychic-terrain",
+    "graphic": "PRAS- Mirror Coat",
+    "jsonFile": "common-psychic-terrain.json"
+  },
+  "common-quick-guard": {
+    "moveId": "common-quick-guard",
+    "graphic": "PRAS- Lucky Chant",
+    "jsonFile": "common-quick-guard.json"
+  },
+  "common-raging-bull-fire": {
+    "moveId": "common-raging-bull-fire",
+    "graphic": "Gen9- Raging Bull Fire",
+    "jsonFile": "common-raging-bull-fire.json"
+  },
+  "common-raging-bull-water": {
+    "moveId": "common-raging-bull-water",
+    "graphic": "GEN9- Raging Bull Water",
+    "jsonFile": "common-raging-bull-water.json"
+  },
+  "common-rain": {
+    "moveId": "common-rain",
+    "graphic": "PRAS- Weather",
+    "jsonFile": "common-rain.json"
+  },
+  "common-salt-cure": {
+    "moveId": "common-salt-cure",
+    "graphic": "Majesty - Salt Cure",
+    "jsonFile": "common-salt-cure.json"
+  },
+  "common-sand-tomb": {
+    "moveId": "common-sand-tomb",
+    "graphic": "PRAS- Sand Tomb",
+    "jsonFile": "common-sand-tomb.json"
+  },
+  "common-sandstorm": {
+    "moveId": "common-sandstorm",
+    "graphic": "weather",
+    "jsonFile": "common-sandstorm.json"
+  },
+  "common-sleep": {
+    "moveId": "common-sleep",
+    "graphic": "PRAS- Status",
+    "jsonFile": "common-sleep.json"
+  },
+  "common-snap-trap": {
+    "moveId": "common-snap-trap",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "common-snap-trap.json"
+  },
+  "common-snow": {
+    "moveId": "common-snow",
+    "graphic": "PRAS- Weather",
+    "jsonFile": "common-snow.json"
+  },
+  "common-strong-winds": {
+    "moveId": "common-strong-winds",
+    "graphic": "PRAS- Gust",
+    "jsonFile": "common-strong-winds.json"
+  },
+  "common-sunny": {
+    "moveId": "common-sunny",
+    "graphic": "weather",
+    "jsonFile": "common-sunny.json"
+  },
+  "common-terastallize": {
+    "moveId": "common-terastallize",
+    "graphic": "terastallize",
+    "jsonFile": "common-terastallize.json"
+  },
+  "common-thunder-cage": {
+    "moveId": "common-thunder-cage",
+    "graphic": "GEN8- Thundercage",
+    "jsonFile": "common-thunder-cage.json"
+  },
+  "common-toxic": {
+    "moveId": "common-toxic",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "common-toxic.json"
+  },
+  "common-use-item": {
+    "moveId": "common-use-item",
+    "graphic": "",
+    "jsonFile": "common-use-item.json"
+  },
+  "common-whirlpool": {
+    "moveId": "common-whirlpool",
+    "graphic": "PRAS- Whirlpool",
+    "jsonFile": "common-whirlpool.json"
+  },
+  "common-wide-guard": {
+    "moveId": "common-wide-guard",
+    "graphic": "PRAS- Lucky Chant",
+    "jsonFile": "common-wide-guard.json"
+  },
+  "common-wind": {
+    "moveId": "common-wind",
+    "graphic": "weather",
+    "jsonFile": "common-wind.json"
+  },
+  "common-wrap": {
+    "moveId": "common-wrap",
+    "graphic": "PRAS- Wrapping",
+    "jsonFile": "common-wrap.json"
+  },
+  "confide": {
+    "moveId": "confide",
+    "graphic": "",
+    "jsonFile": "confide.json"
+  },
+  "confuse-ray": {
+    "moveId": "confuse-ray",
+    "graphic": "PRAS- Confuse Ray",
+    "jsonFile": "confuse-ray.json"
+  },
+  "confusion": {
+    "moveId": "confusion",
+    "graphic": "",
+    "jsonFile": "confusion.json"
+  },
+  "constrict": {
+    "moveId": "constrict",
+    "graphic": "PRAS- Constrict",
+    "jsonFile": "constrict.json"
+  },
+  "conversion-2": {
+    "moveId": "conversion-2",
+    "graphic": "PRAS- Conversion",
+    "jsonFile": "conversion-2.json"
+  },
+  "conversion": {
+    "moveId": "conversion",
+    "graphic": "PRAS- Conversion",
+    "jsonFile": "conversion.json"
+  },
+  "copycat": {
+    "moveId": "copycat",
+    "graphic": "!",
+    "jsonFile": "copycat.json"
+  },
+  "core-enforcer": {
+    "moveId": "core-enforcer",
+    "graphic": "GEN8- Core Enforcer",
+    "jsonFile": "core-enforcer.json"
+  },
+  "corrosive-gas": {
+    "moveId": "corrosive-gas",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "corrosive-gas.json"
+  },
+  "cosmic-power": {
+    "moveId": "cosmic-power",
+    "graphic": "PRAS- Stats",
+    "jsonFile": "cosmic-power.json"
+  },
+  "cotton-guard": {
+    "moveId": "cotton-guard",
+    "graphic": "PRAS- Cotton Guard",
+    "jsonFile": "cotton-guard.json"
+  },
+  "cotton-spore": {
+    "moveId": "cotton-spore",
+    "graphic": "PRAS- Cotton Spore",
+    "jsonFile": "cotton-spore.json"
+  },
+  "counter": {
+    "moveId": "counter",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "counter.json"
+  },
+  "court-change": {
+    "moveId": "court-change",
+    "graphic": "",
+    "jsonFile": "court-change.json"
+  },
+  "covet": {
+    "moveId": "covet",
+    "graphic": "PRAS- Covet",
+    "jsonFile": "covet.json"
+  },
+  "crabhammer": {
+    "moveId": "crabhammer",
+    "graphic": "PRAS- Crabhammer",
+    "jsonFile": "crabhammer.json"
+  },
+  "crafty-shield": {
+    "moveId": "crafty-shield",
+    "graphic": "PRAS- Crafty Shield",
+    "jsonFile": "crafty-shield.json"
+  },
+  "cross-chop": {
+    "moveId": "cross-chop",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "cross-chop.json"
+  },
+  "cross-poison": {
+    "moveId": "cross-poison",
+    "graphic": "PRAS- Cross Poison",
+    "jsonFile": "cross-poison.json"
+  },
+  "crunch": {
+    "moveId": "crunch",
+    "graphic": "PRAS- Bite",
+    "jsonFile": "crunch.json"
+  },
+  "crush-claw": {
+    "moveId": "crush-claw",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "crush-claw.json"
+  },
+  "crush-grip": {
+    "moveId": "crush-grip",
+    "graphic": "PRAS- Crush Grip",
+    "jsonFile": "crush-grip.json"
+  },
+  "curse": {
+    "moveId": "curse",
+    "graphic": "PRAS- Curse",
+    "jsonFile": "curse.json"
+  },
+  "cut": {
+    "moveId": "cut",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "cut.json"
+  },
+  "dark-pulse": {
+    "moveId": "dark-pulse",
+    "graphic": "PRAS- Dark Pulse",
+    "jsonFile": "dark-pulse.json"
+  },
+  "dark-void": {
+    "moveId": "dark-void",
+    "graphic": "PRAS- Dark void",
+    "jsonFile": "dark-void.json"
+  },
+  "darkest-lariat": {
+    "moveId": "darkest-lariat",
+    "graphic": "PRAS- Coil",
+    "jsonFile": "darkest-lariat.json"
+  },
+  "dazzling-gleam": {
+    "moveId": "dazzling-gleam",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "dazzling-gleam.json"
+  },
+  "decorate": {
+    "moveId": "decorate",
+    "graphic": "GEN8- Decorate",
+    "jsonFile": "decorate.json"
+  },
+  "defend-order": {
+    "moveId": "defend-order",
+    "graphic": "PRAS- Struggle Bug",
+    "jsonFile": "defend-order.json"
+  },
+  "defense-curl": {
+    "moveId": "defense-curl",
+    "graphic": "PRAS- Gyro Ball",
+    "jsonFile": "defense-curl.json"
+  },
+  "defog": {
+    "moveId": "defog",
+    "graphic": "PRAS- Defog",
+    "jsonFile": "defog.json"
+  },
+  "destiny-bond": {
+    "moveId": "destiny-bond",
+    "graphic": "PRAS- Shadow Sneak",
+    "jsonFile": "destiny-bond.json"
+  },
+  "detect": {
+    "moveId": "detect",
+    "graphic": "PRAS- Detect",
+    "jsonFile": "detect.json"
+  },
+  "diamond-storm": {
+    "moveId": "diamond-storm",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "diamond-storm.json"
+  },
+  "dig-charging": {
+    "moveId": "dig-charging",
+    "graphic": "PRAS- Dig",
+    "jsonFile": "dig-charging.json"
+  },
+  "dig": {
+    "moveId": "dig",
+    "graphic": "PRAS- Dig",
+    "jsonFile": "dig.json"
+  },
+  "dire-claw": {
+    "moveId": "dire-claw",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "dire-claw.json"
+  },
+  "disable": {
+    "moveId": "disable",
+    "graphic": "PRAS- Disable",
+    "jsonFile": "disable.json"
+  },
+  "disarming-voice": {
+    "moveId": "disarming-voice",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "disarming-voice.json"
+  },
+  "discharge": {
+    "moveId": "discharge",
+    "graphic": "PRAS- Discharge",
+    "jsonFile": "discharge.json"
+  },
+  "dive-charging": {
+    "moveId": "dive-charging",
+    "graphic": "PRAS- Dive",
+    "jsonFile": "dive-charging.json"
+  },
+  "dive": {
+    "moveId": "dive",
+    "graphic": "PRAS- Dive",
+    "jsonFile": "dive.json"
+  },
+  "dizzy-punch": {
+    "moveId": "dizzy-punch",
+    "graphic": "PRAS- Elemental Punch",
+    "jsonFile": "dizzy-punch.json"
+  },
+  "doodle": {
+    "moveId": "doodle",
+    "graphic": "PRAS- Sketch + Lick",
+    "jsonFile": "doodle.json"
+  },
+  "doom-desire-charging": {
+    "moveId": "doom-desire-charging",
+    "graphic": "PRAS- Wish",
+    "jsonFile": "doom-desire-charging.json"
+  },
+  "doom-desire": {
+    "moveId": "doom-desire",
+    "graphic": "GEN8- Doom Desire",
+    "jsonFile": "doom-desire.json"
+  },
+  "double-edge": {
+    "moveId": "double-edge",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "double-edge.json"
+  },
+  "double-hit": {
+    "moveId": "double-hit",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "double-hit.json"
+  },
+  "double-iron-bash": {
+    "moveId": "double-iron-bash",
+    "graphic": "GEN8- Double Iron Bash",
+    "jsonFile": "double-iron-bash.json"
+  },
+  "double-kick": {
+    "moveId": "double-kick",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "double-kick.json"
+  },
+  "double-shock": {
+    "moveId": "double-shock",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "double-shock.json"
+  },
+  "double-slap": {
+    "moveId": "double-slap",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "double-slap.json"
+  },
+  "double-team": {
+    "moveId": "double-team",
+    "graphic": "PRAS- Stats",
+    "jsonFile": "double-team.json"
+  },
+  "draco-meteor": {
+    "moveId": "draco-meteor",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "draco-meteor.json"
+  },
+  "dragon-ascent": {
+    "moveId": "dragon-ascent",
+    "graphic": "PRAS- Dragon Ascent",
+    "jsonFile": "dragon-ascent.json"
+  },
+  "dragon-breath": {
+    "moveId": "dragon-breath",
+    "graphic": "PRAS- Dragonbreath",
+    "jsonFile": "dragon-breath.json"
+  },
+  "dragon-cheer": {
+    "moveId": "dragon-cheer",
+    "graphic": "",
+    "jsonFile": "dragon-cheer.json"
+  },
+  "dragon-claw": {
+    "moveId": "dragon-claw",
+    "graphic": "PRAS- Dragon Claw",
+    "jsonFile": "dragon-claw.json"
+  },
+  "dragon-dance": {
+    "moveId": "dragon-dance",
+    "graphic": "PRAS- Dragon Dance",
+    "jsonFile": "dragon-dance.json"
+  },
+  "dragon-darts": {
+    "moveId": "dragon-darts",
+    "graphic": "GEN8- Dragon Darts",
+    "jsonFile": "dragon-darts.json"
+  },
+  "dragon-energy": {
+    "moveId": "dragon-energy",
+    "graphic": "GEN8- DragonEnergy",
+    "jsonFile": "dragon-energy.json"
+  },
+  "dragon-hammer": {
+    "moveId": "dragon-hammer",
+    "graphic": "PRAS- Dragon Tail",
+    "jsonFile": "dragon-hammer.json"
+  },
+  "dragon-pulse": {
+    "moveId": "dragon-pulse",
+    "graphic": "PRAS- Dragon Pulse",
+    "jsonFile": "dragon-pulse.json"
+  },
+  "dragon-rage": {
+    "moveId": "dragon-rage",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "dragon-rage.json"
+  },
+  "dragon-rush": {
+    "moveId": "dragon-rush",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "dragon-rush.json"
+  },
+  "dragon-tail": {
+    "moveId": "dragon-tail",
+    "graphic": "PRAS- Dragon Tail",
+    "jsonFile": "dragon-tail.json"
+  },
+  "drain-punch": {
+    "moveId": "drain-punch",
+    "graphic": "PRAS- Drain Punch",
+    "jsonFile": "drain-punch.json"
+  },
+  "draining-kiss": {
+    "moveId": "draining-kiss",
+    "graphic": "PRAS- Draining Kiss",
+    "jsonFile": "draining-kiss.json"
+  },
+  "dream-eater": {
+    "moveId": "dream-eater",
+    "graphic": "PRAS- Dream Eater",
+    "jsonFile": "dream-eater.json"
+  },
+  "drill-peck": {
+    "moveId": "drill-peck",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "drill-peck.json"
+  },
+  "drill-run": {
+    "moveId": "drill-run",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "drill-run.json"
+  },
+  "drum-beating": {
+    "moveId": "drum-beating",
+    "graphic": "GEN8- Drum beating",
+    "jsonFile": "drum-beating.json"
+  },
+  "dual-chop": {
+    "moveId": "dual-chop",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "dual-chop.json"
+  },
+  "dual-wingbeat": {
+    "moveId": "dual-wingbeat",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "dual-wingbeat.json"
+  },
+  "dynamax-cannon": {
+    "moveId": "dynamax-cannon",
+    "graphic": "PRAS- Hyper Beam",
+    "jsonFile": "dynamax-cannon.json"
+  },
+  "dynamic-punch": {
+    "moveId": "dynamic-punch",
+    "graphic": "PRAS- Explosions",
+    "jsonFile": "dynamic-punch.json"
+  },
+  "earth-power": {
+    "moveId": "earth-power",
+    "graphic": "PRAS- Earth Power",
+    "jsonFile": "earth-power.json"
+  },
+  "earthquake": {
+    "moveId": "earthquake",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "earthquake.json"
+  },
+  "echoed-voice": {
+    "moveId": "echoed-voice",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "echoed-voice.json"
+  },
+  "eerie-impulse": {
+    "moveId": "eerie-impulse",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "eerie-impulse.json"
+  },
+  "eerie-spell": {
+    "moveId": "eerie-spell",
+    "graphic": "GEN8- EerieSpell",
+    "jsonFile": "eerie-spell.json"
+  },
+  "egg-bomb": {
+    "moveId": "egg-bomb",
+    "graphic": "PRAS- Egg Bomb",
+    "jsonFile": "egg-bomb.json"
+  },
+  "electric-terrain": {
+    "moveId": "electric-terrain",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "electric-terrain.json"
+  },
+  "electrify": {
+    "moveId": "electrify",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "electrify.json"
+  },
+  "electro-ball": {
+    "moveId": "electro-ball",
+    "graphic": "PRAS- Electro Ball",
+    "jsonFile": "electro-ball.json"
+  },
+  "electro-drift": {
+    "moveId": "electro-drift",
+    "graphic": "Gen9- Electro Drift",
+    "jsonFile": "electro-drift.json"
+  },
+  "electro-shot-charging": {
+    "moveId": "electro-shot-charging",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "electro-shot-charging.json"
+  },
+  "electro-shot": {
+    "moveId": "electro-shot",
+    "graphic": "PRAS- Charge Beam",
+    "jsonFile": "electro-shot.json"
+  },
+  "electroweb": {
+    "moveId": "electroweb",
+    "graphic": "PRAS- Electroweb",
+    "jsonFile": "electroweb.json"
+  },
+  "embargo": {
+    "moveId": "embargo",
+    "graphic": "PRAS- Trick",
+    "jsonFile": "embargo.json"
+  },
+  "ember": {
+    "moveId": "ember",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "ember.json"
+  },
+  "encore": {
+    "moveId": "encore",
+    "graphic": "PRAS- Encore",
+    "jsonFile": "encore.json"
+  },
+  "encounter-dance": {
+    "moveId": "encounter-dance",
+    "graphic": "PRAS- Dragon Dance",
+    "jsonFile": "encounter-dance.json"
+  },
+  "encounter-magma-spout": {
+    "moveId": "encounter-magma-spout",
+    "graphic": "PRAS- Magma Storm",
+    "jsonFile": "encounter-magma-spout.json"
+  },
+  "encounter-smokescreen": {
+    "moveId": "encounter-smokescreen",
+    "graphic": "PRAS- Smokescreen",
+    "jsonFile": "encounter-smokescreen.json"
+  },
+  "endeavor": {
+    "moveId": "endeavor",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "endeavor.json"
+  },
+  "endure": {
+    "moveId": "endure",
+    "graphic": "",
+    "jsonFile": "endure.json"
+  },
+  "energy-ball": {
+    "moveId": "energy-ball",
+    "graphic": "PRAS- Energy Ball",
+    "jsonFile": "energy-ball.json"
+  },
+  "entrainment": {
+    "moveId": "entrainment",
+    "graphic": "",
+    "jsonFile": "entrainment.json"
+  },
+  "eruption": {
+    "moveId": "eruption",
+    "graphic": "PRAS- Eruption",
+    "jsonFile": "eruption.json"
+  },
+  "esper-wing": {
+    "moveId": "esper-wing",
+    "graphic": "PRAS- Psycho Cut",
+    "jsonFile": "esper-wing.json"
+  },
+  "eternabeam": {
+    "moveId": "eternabeam",
+    "graphic": "PRAS- Hyper Beam",
+    "jsonFile": "eternabeam.json"
+  },
+  "expanding-force": {
+    "moveId": "expanding-force",
+    "graphic": "GEN8- EerieSpell",
+    "jsonFile": "expanding-force.json"
+  },
+  "explosion": {
+    "moveId": "explosion",
+    "graphic": "PRAS- Explosions",
+    "jsonFile": "explosion.json"
+  },
+  "extrasensory": {
+    "moveId": "extrasensory",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "extrasensory.json"
+  },
+  "extreme-evoboost": {
+    "moveId": "extreme-evoboost",
+    "graphic": "PRAS- Extreme Evoboost",
+    "jsonFile": "extreme-evoboost.json"
+  },
+  "extreme-speed": {
+    "moveId": "extreme-speed",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "extreme-speed.json"
+  },
+  "facade": {
+    "moveId": "facade",
+    "graphic": "PRAS- FAKE TEARS",
+    "jsonFile": "facade.json"
+  },
+  "fairy-lock": {
+    "moveId": "fairy-lock",
+    "graphic": "PRAS- Fairy Lock",
+    "jsonFile": "fairy-lock.json"
+  },
+  "fairy-wind": {
+    "moveId": "fairy-wind",
+    "graphic": "PRAS- Fairy Wind",
+    "jsonFile": "fairy-wind.json"
+  },
+  "fake-out": {
+    "moveId": "fake-out",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "fake-out.json"
+  },
+  "fake-tears": {
+    "moveId": "fake-tears",
+    "graphic": "PRAS- FAKE TEARS",
+    "jsonFile": "fake-tears.json"
+  },
+  "false-surrender": {
+    "moveId": "false-surrender",
+    "graphic": "GEN8- False Surrender",
+    "jsonFile": "false-surrender.json"
+  },
+  "false-swipe": {
+    "moveId": "false-swipe",
+    "graphic": "PRAS- False Swipe",
+    "jsonFile": "false-swipe.json"
+  },
+  "feather-dance": {
+    "moveId": "feather-dance",
+    "graphic": "PRAS- Roost",
+    "jsonFile": "feather-dance.json"
+  },
+  "feint-attack": {
+    "moveId": "feint-attack",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "feint-attack.json"
+  },
+  "feint": {
+    "moveId": "feint",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "feint.json"
+  },
+  "fell-stinger": {
+    "moveId": "fell-stinger",
+    "graphic": "PRAS- Fell Stinger",
+    "jsonFile": "fell-stinger.json"
+  },
+  "fickle-beam": {
+    "moveId": "fickle-beam",
+    "graphic": "PRAS- Flash Cannon",
+    "jsonFile": "fickle-beam.json"
+  },
+  "fiery-dance": {
+    "moveId": "fiery-dance",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "fiery-dance.json"
+  },
+  "fiery-wrath": {
+    "moveId": "fiery-wrath",
+    "graphic": "GEN8- Fiery",
+    "jsonFile": "fiery-wrath.json"
+  },
+  "fillet-away": {
+    "moveId": "fillet-away",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "fillet-away.json"
+  },
+  "final-gambit": {
+    "moveId": "final-gambit",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "final-gambit.json"
+  },
+  "fire-blast": {
+    "moveId": "fire-blast",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "fire-blast.json"
+  },
+  "fire-fang": {
+    "moveId": "fire-fang",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "fire-fang.json"
+  },
+  "fire-lash": {
+    "moveId": "fire-lash",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "fire-lash.json"
+  },
+  "fire-pledge": {
+    "moveId": "fire-pledge",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "fire-pledge.json"
+  },
+  "fire-punch": {
+    "moveId": "fire-punch",
+    "graphic": "PRAS- Elemental Punch",
+    "jsonFile": "fire-punch.json"
+  },
+  "fire-spin": {
+    "moveId": "fire-spin",
+    "graphic": "PRAS- Fire Spin",
+    "jsonFile": "fire-spin.json"
+  },
+  "first-impression": {
+    "moveId": "first-impression",
+    "graphic": "GEN8- First Impression",
+    "jsonFile": "first-impression.json"
+  },
+  "fishious-rend": {
+    "moveId": "fishious-rend",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "fishious-rend.json"
+  },
+  "fissure": {
+    "moveId": "fissure",
+    "graphic": "PRAS- Fissure",
+    "jsonFile": "fissure.json"
+  },
+  "flail": {
+    "moveId": "flail",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "flail.json"
+  },
+  "flame-burst": {
+    "moveId": "flame-burst",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "flame-burst.json"
+  },
+  "flame-charge": {
+    "moveId": "flame-charge",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "flame-charge.json"
+  },
+  "flame-wheel": {
+    "moveId": "flame-wheel",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "flame-wheel.json"
+  },
+  "flamethrower": {
+    "moveId": "flamethrower",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "flamethrower.json"
+  },
+  "flare-blitz": {
+    "moveId": "flare-blitz",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "flare-blitz.json"
+  },
+  "flash-cannon": {
+    "moveId": "flash-cannon",
+    "graphic": "PRAS- Flash Cannon",
+    "jsonFile": "flash-cannon.json"
+  },
+  "flash": {
+    "moveId": "flash",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "flash.json"
+  },
+  "flatter": {
+    "moveId": "flatter",
+    "graphic": "PRAS- Flatter",
+    "jsonFile": "flatter.json"
+  },
+  "fleur-cannon": {
+    "moveId": "fleur-cannon",
+    "graphic": "GEN8- Fleur Cannon",
+    "jsonFile": "fleur-cannon.json"
+  },
+  "fling": {
+    "moveId": "fling",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "fling.json"
+  },
+  "flip-turn": {
+    "moveId": "flip-turn",
+    "graphic": "PRAS- Water",
+    "jsonFile": "flip-turn.json"
+  },
+  "floaty-fall": {
+    "moveId": "floaty-fall",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "floaty-fall.json"
+  },
+  "floral-healing": {
+    "moveId": "floral-healing",
+    "graphic": "PRAS- Floral Healing",
+    "jsonFile": "floral-healing.json"
+  },
+  "flower-shield": {
+    "moveId": "flower-shield",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "flower-shield.json"
+  },
+  "flower-trick": {
+    "moveId": "flower-trick",
+    "graphic": "GEN9- Flower Trick",
+    "jsonFile": "flower-trick.json"
+  },
+  "fly-charging": {
+    "moveId": "fly-charging",
+    "graphic": "PRAS- Fly",
+    "jsonFile": "fly-charging.json"
+  },
+  "fly": {
+    "moveId": "fly",
+    "graphic": "PRAS- Fly",
+    "jsonFile": "fly.json"
+  },
+  "flying-press": {
+    "moveId": "flying-press",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "flying-press.json"
+  },
+  "focus-blast": {
+    "moveId": "focus-blast",
+    "graphic": "PRAS- Tri Attack",
+    "jsonFile": "focus-blast.json"
+  },
+  "focus-energy": {
+    "moveId": "focus-energy",
+    "graphic": "PRAS- Focus Energy",
+    "jsonFile": "focus-energy.json"
+  },
+  "focus-punch": {
+    "moveId": "focus-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "focus-punch.json"
+  },
+  "follow-me": {
+    "moveId": "follow-me",
+    "graphic": "PRAS- Follow Me",
+    "jsonFile": "follow-me.json"
+  },
+  "force-palm": {
+    "moveId": "force-palm",
+    "graphic": "PRAS- Force Palm",
+    "jsonFile": "force-palm.json"
+  },
+  "foresight": {
+    "moveId": "foresight",
+    "graphic": "PRAS- Foresight",
+    "jsonFile": "foresight.json"
+  },
+  "forests-curse": {
+    "moveId": "forests-curse",
+    "graphic": "PRAS- Frenzy Plant",
+    "jsonFile": "forests-curse.json"
+  },
+  "foul-play": {
+    "moveId": "foul-play",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "foul-play.json"
+  },
+  "freeze-dry": {
+    "moveId": "freeze-dry",
+    "graphic": "PRAS- Freeze Dry",
+    "jsonFile": "freeze-dry.json"
+  },
+  "freeze-shock-charging": {
+    "moveId": "freeze-shock-charging",
+    "graphic": "PRAS- Freeze Shock",
+    "jsonFile": "freeze-shock-charging.json"
+  },
+  "freeze-shock": {
+    "moveId": "freeze-shock",
+    "graphic": "PRAS- Freeze Shock",
+    "jsonFile": "freeze-shock.json"
+  },
+  "freezing-glare": {
+    "moveId": "freezing-glare",
+    "graphic": "GEN8- FreezingGlare",
+    "jsonFile": "freezing-glare.json"
+  },
+  "freezy-frost": {
+    "moveId": "freezy-frost",
+    "graphic": "PRAS- Sheer Cold",
+    "jsonFile": "freezy-frost.json"
+  },
+  "frenzy-plant": {
+    "moveId": "frenzy-plant",
+    "graphic": "PRAS- Frenzy Plant",
+    "jsonFile": "frenzy-plant.json"
+  },
+  "frost-breath": {
+    "moveId": "frost-breath",
+    "graphic": "PRAS- Frost Breath",
+    "jsonFile": "frost-breath.json"
+  },
+  "frustration": {
+    "moveId": "frustration",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "frustration.json"
+  },
+  "fury-attack": {
+    "moveId": "fury-attack",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "fury-attack.json"
+  },
+  "fury-cutter": {
+    "moveId": "fury-cutter",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "fury-cutter.json"
+  },
+  "fury-swipes": {
+    "moveId": "fury-swipes",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "fury-swipes.json"
+  },
+  "fusion-bolt": {
+    "moveId": "fusion-bolt",
+    "graphic": "GEN8- Fusion Bolt",
+    "jsonFile": "fusion-bolt.json"
+  },
+  "fusion-flare": {
+    "moveId": "fusion-flare",
+    "graphic": "PRAS- Fusion Flare",
+    "jsonFile": "fusion-flare.json"
+  },
+  "future-sight-charging": {
+    "moveId": "future-sight-charging",
+    "graphic": "PRAS- Kenesis",
+    "jsonFile": "future-sight-charging.json"
+  },
+  "future-sight": {
+    "moveId": "future-sight",
+    "graphic": "PRAS- Swords Dance + Signal Beam",
+    "jsonFile": "future-sight.json"
+  },
+  "gastro-acid": {
+    "moveId": "gastro-acid",
+    "graphic": "PRAS- Gastro Acid",
+    "jsonFile": "gastro-acid.json"
+  },
+  "gear-grind": {
+    "moveId": "gear-grind",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "gear-grind.json"
+  },
+  "gear-up": {
+    "moveId": "gear-up",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "gear-up.json"
+  },
+  "geomancy-charging": {
+    "moveId": "geomancy-charging",
+    "graphic": "PRAS- Geomancy",
+    "jsonFile": "geomancy-charging.json"
+  },
+  "geomancy": {
+    "moveId": "geomancy",
+    "graphic": "PRAS- Geomancy",
+    "jsonFile": "geomancy.json"
+  },
+  "giga-drain": {
+    "moveId": "giga-drain",
+    "graphic": "PRAS- Giga Drain",
+    "jsonFile": "giga-drain.json"
+  },
+  "giga-impact": {
+    "moveId": "giga-impact",
+    "graphic": "PRAS- Me First",
+    "jsonFile": "giga-impact.json"
+  },
+  "gigaton-hammer": {
+    "moveId": "gigaton-hammer",
+    "graphic": "PRAS- Metal Burst",
+    "jsonFile": "gigaton-hammer.json"
+  },
+  "glacial-lance": {
+    "moveId": "glacial-lance",
+    "graphic": "GEN8- Glacial Lance",
+    "jsonFile": "glacial-lance.json"
+  },
+  "glaciate": {
+    "moveId": "glaciate",
+    "graphic": "PRAS- Glaciate",
+    "jsonFile": "glaciate.json"
+  },
+  "glaive-rush": {
+    "moveId": "glaive-rush",
+    "graphic": "PRAS- Devastating Drake",
+    "jsonFile": "glaive-rush.json"
+  },
+  "glare": {
+    "moveId": "glare",
+    "graphic": "PRAS- Glare",
+    "jsonFile": "glare.json"
+  },
+  "glitzy-glow": {
+    "moveId": "glitzy-glow",
+    "graphic": "PRAS- Psycho Boost",
+    "jsonFile": "glitzy-glow.json"
+  },
+  "grass-knot": {
+    "moveId": "grass-knot",
+    "graphic": "PRAS- Grass Knot",
+    "jsonFile": "grass-knot.json"
+  },
+  "grass-pledge": {
+    "moveId": "grass-pledge",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "grass-pledge.json"
+  },
+  "grass-whistle": {
+    "moveId": "grass-whistle",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "grass-whistle.json"
+  },
+  "grassy-glide": {
+    "moveId": "grassy-glide",
+    "graphic": "",
+    "jsonFile": "grassy-glide.json"
+  },
+  "grassy-terrain": {
+    "moveId": "grassy-terrain",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "grassy-terrain.json"
+  },
+  "grav-apple": {
+    "moveId": "grav-apple",
+    "graphic": "GEN8- Grav Apple",
+    "jsonFile": "grav-apple.json"
+  },
+  "gravity": {
+    "moveId": "gravity",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "gravity.json"
+  },
+  "growl": {
+    "moveId": "growl",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "growl.json"
+  },
+  "growth": {
+    "moveId": "growth",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "growth.json"
+  },
+  "grudge": {
+    "moveId": "grudge",
+    "graphic": "PRAS- Grudge",
+    "jsonFile": "grudge.json"
+  },
+  "guard-split": {
+    "moveId": "guard-split",
+    "graphic": "PRAS- Protect",
+    "jsonFile": "guard-split.json"
+  },
+  "guard-swap": {
+    "moveId": "guard-swap",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "guard-swap.json"
+  },
+  "guillotine": {
+    "moveId": "guillotine",
+    "graphic": "PRAS- Guillotine",
+    "jsonFile": "guillotine.json"
+  },
+  "gunk-shot": {
+    "moveId": "gunk-shot",
+    "graphic": "PRAS- Gunk Shot",
+    "jsonFile": "gunk-shot.json"
+  },
+  "gust": {
+    "moveId": "gust",
+    "graphic": "PRAS- Gust",
+    "jsonFile": "gust.json"
+  },
+  "gyro-ball": {
+    "moveId": "gyro-ball",
+    "graphic": "PRAS- Gyro Ball",
+    "jsonFile": "gyro-ball.json"
+  },
+  "hail": {
+    "moveId": "hail",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "hail.json"
+  },
+  "hammer-arm": {
+    "moveId": "hammer-arm",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "hammer-arm.json"
+  },
+  "hard-press": {
+    "moveId": "hard-press",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "hard-press.json"
+  },
+  "harden": {
+    "moveId": "harden",
+    "graphic": "PRAS- Clear Smog",
+    "jsonFile": "harden.json"
+  },
+  "haze": {
+    "moveId": "haze",
+    "graphic": "PRAS- Smokescreen",
+    "jsonFile": "haze.json"
+  },
+  "head-charge": {
+    "moveId": "head-charge",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "head-charge.json"
+  },
+  "head-smash": {
+    "moveId": "head-smash",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "head-smash.json"
+  },
+  "headbutt": {
+    "moveId": "headbutt",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "headbutt.json"
+  },
+  "headlong-rush": {
+    "moveId": "headlong-rush",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "headlong-rush.json"
+  },
+  "heal-bell": {
+    "moveId": "heal-bell",
+    "graphic": "PRAS- Heal Bell",
+    "jsonFile": "heal-bell.json"
+  },
+  "heal-block": {
+    "moveId": "heal-block",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "heal-block.json"
+  },
+  "heal-order": {
+    "moveId": "heal-order",
+    "graphic": "PRAS- Struggle Bug",
+    "jsonFile": "heal-order.json"
+  },
+  "heal-pulse": {
+    "moveId": "heal-pulse",
+    "graphic": "PRAS- Healing Wish",
+    "jsonFile": "heal-pulse.json"
+  },
+  "healing-wish": {
+    "moveId": "healing-wish",
+    "graphic": "PRAS- Healing Wish",
+    "jsonFile": "healing-wish.json"
+  },
+  "heart-stamp": {
+    "moveId": "heart-stamp",
+    "graphic": "PRAS- Love",
+    "jsonFile": "heart-stamp.json"
+  },
+  "heart-swap": {
+    "moveId": "heart-swap",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "heart-swap.json"
+  },
+  "heat-crash": {
+    "moveId": "heat-crash",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "heat-crash.json"
+  },
+  "heat-wave": {
+    "moveId": "heat-wave",
+    "graphic": "fly copy",
+    "jsonFile": "heat-wave.json"
+  },
+  "heavy-slam": {
+    "moveId": "heavy-slam",
+    "graphic": "PRAS- Iron Head",
+    "jsonFile": "heavy-slam.json"
+  },
+  "helping-hand": {
+    "moveId": "helping-hand",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "helping-hand.json"
+  },
+  "hex": {
+    "moveId": "hex",
+    "graphic": "PRAS- Grudge",
+    "jsonFile": "hex.json"
+  },
+  "hidden-power": {
+    "moveId": "hidden-power",
+    "graphic": "PRAS- Hidden Power",
+    "jsonFile": "hidden-power.json"
+  },
+  "high-horsepower": {
+    "moveId": "high-horsepower",
+    "graphic": "PRAS- High Horse Power",
+    "jsonFile": "high-horsepower.json"
+  },
+  "high-jump-kick": {
+    "moveId": "high-jump-kick",
+    "graphic": "PRAS- Blaze Kick",
+    "jsonFile": "high-jump-kick.json"
+  },
+  "hold-back": {
+    "moveId": "hold-back",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "hold-back.json"
+  },
+  "hold-hands": {
+    "moveId": "hold-hands",
+    "graphic": "GEN8- Hold Hands",
+    "jsonFile": "hold-hands.json"
+  },
+  "hone-claws": {
+    "moveId": "hone-claws",
+    "graphic": "PRAS- Hone Claws",
+    "jsonFile": "hone-claws.json"
+  },
+  "horn-attack": {
+    "moveId": "horn-attack",
+    "graphic": "PRAS- Megahorn",
+    "jsonFile": "horn-attack.json"
+  },
+  "horn-drill": {
+    "moveId": "horn-drill",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "horn-drill.json"
+  },
+  "horn-leech": {
+    "moveId": "horn-leech",
+    "graphic": "PRAS- Horn Leech",
+    "jsonFile": "horn-leech.json"
+  },
+  "howl": {
+    "moveId": "howl",
+    "graphic": "PRAS- Howl",
+    "jsonFile": "howl.json"
+  },
+  "hurricane": {
+    "moveId": "hurricane",
+    "graphic": "PRAS- Gust",
+    "jsonFile": "hurricane.json"
+  },
+  "hydro-cannon": {
+    "moveId": "hydro-cannon",
+    "graphic": "PRAS- Hydro cannon",
+    "jsonFile": "hydro-cannon.json"
+  },
+  "hydro-pump": {
+    "moveId": "hydro-pump",
+    "graphic": "PRAS- Hydro Pump",
+    "jsonFile": "hydro-pump.json"
+  },
+  "hydro-steam": {
+    "moveId": "hydro-steam",
+    "graphic": "PRAS- Scald",
+    "jsonFile": "hydro-steam.json"
+  },
+  "hyper-beam": {
+    "moveId": "hyper-beam",
+    "graphic": "PRAS- Hyper Beam",
+    "jsonFile": "hyper-beam.json"
+  },
+  "hyper-drill": {
+    "moveId": "hyper-drill",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "hyper-drill.json"
+  },
+  "hyper-fang": {
+    "moveId": "hyper-fang",
+    "graphic": "PRAS- Hyper Fang",
+    "jsonFile": "hyper-fang.json"
+  },
+  "hyper-voice": {
+    "moveId": "hyper-voice",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "hyper-voice.json"
+  },
+  "hyperspace-fury": {
+    "moveId": "hyperspace-fury",
+    "graphic": "PRAS- Hyper Space Fury",
+    "jsonFile": "hyperspace-fury.json"
+  },
+  "hyperspace-hole": {
+    "moveId": "hyperspace-hole",
+    "graphic": "PRAS- Hyperspace Hole",
+    "jsonFile": "hyperspace-hole.json"
+  },
+  "hypnosis": {
+    "moveId": "hypnosis",
+    "graphic": "PRAS- Confuse Ray",
+    "jsonFile": "hypnosis.json"
+  },
+  "ice-ball": {
+    "moveId": "ice-ball",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "ice-ball.json"
+  },
+  "ice-beam": {
+    "moveId": "ice-beam",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "ice-beam.json"
+  },
+  "ice-burn-charging": {
+    "moveId": "ice-burn-charging",
+    "graphic": "PRAS- Ice Burn",
+    "jsonFile": "ice-burn-charging.json"
+  },
+  "ice-burn": {
+    "moveId": "ice-burn",
+    "graphic": "PRAS- Ice Burn",
+    "jsonFile": "ice-burn.json"
+  },
+  "ice-fang": {
+    "moveId": "ice-fang",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "ice-fang.json"
+  },
+  "ice-hammer": {
+    "moveId": "ice-hammer",
+    "graphic": "PRAS- Ice Hammer",
+    "jsonFile": "ice-hammer.json"
+  },
+  "ice-punch": {
+    "moveId": "ice-punch",
+    "graphic": "PRAS- Elemental Punch",
+    "jsonFile": "ice-punch.json"
+  },
+  "ice-shard": {
+    "moveId": "ice-shard",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "ice-shard.json"
+  },
+  "ice-spinner": {
+    "moveId": "ice-spinner",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "ice-spinner.json"
+  },
+  "icicle-crash": {
+    "moveId": "icicle-crash",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "icicle-crash.json"
+  },
+  "icicle-spear": {
+    "moveId": "icicle-spear",
+    "graphic": "PRAS- Icicle Spear",
+    "jsonFile": "icicle-spear.json"
+  },
+  "icy-wind": {
+    "moveId": "icy-wind",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "icy-wind.json"
+  },
+  "imprison": {
+    "moveId": "imprison",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "imprison.json"
+  },
+  "incinerate": {
+    "moveId": "incinerate",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "incinerate.json"
+  },
+  "infernal-parade": {
+    "moveId": "infernal-parade",
+    "graphic": "PRAS- Grudge",
+    "jsonFile": "infernal-parade.json"
+  },
+  "inferno": {
+    "moveId": "inferno",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "inferno.json"
+  },
+  "infestation": {
+    "moveId": "infestation",
+    "graphic": "PRAS- Struggle Bug",
+    "jsonFile": "infestation.json"
+  },
+  "ingrain": {
+    "moveId": "ingrain",
+    "graphic": "PRAS- Ingrain",
+    "jsonFile": "ingrain.json"
+  },
+  "instruct": {
+    "moveId": "instruct",
+    "graphic": "PRAS- Follow Me",
+    "jsonFile": "instruct.json"
+  },
+  "ion-deluge": {
+    "moveId": "ion-deluge",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "ion-deluge.json"
+  },
+  "iron-defense": {
+    "moveId": "iron-defense",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "iron-defense.json"
+  },
+  "iron-head": {
+    "moveId": "iron-head",
+    "graphic": "PRAS- Iron Head",
+    "jsonFile": "iron-head.json"
+  },
+  "iron-tail": {
+    "moveId": "iron-tail",
+    "graphic": "PRAS- Iron Tail",
+    "jsonFile": "iron-tail.json"
+  },
+  "ivy-cudgel": {
+    "moveId": "ivy-cudgel",
+    "graphic": "PRAS- Wood Hammer",
+    "jsonFile": "ivy-cudgel.json"
+  },
+  "jaw-lock": {
+    "moveId": "jaw-lock",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "jaw-lock.json"
+  },
+  "jet-punch": {
+    "moveId": "jet-punch",
+    "graphic": "PRAS- Water",
+    "jsonFile": "jet-punch.json"
+  },
+  "judgment": {
+    "moveId": "judgment",
+    "graphic": "PRAS- Judgement",
+    "jsonFile": "judgment.json"
+  },
+  "jump-kick": {
+    "moveId": "jump-kick",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "jump-kick.json"
+  },
+  "jungle-healing": {
+    "moveId": "jungle-healing",
+    "graphic": "PRAS- Healing Wish",
+    "jsonFile": "jungle-healing.json"
+  },
+  "karate-chop": {
+    "moveId": "karate-chop",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "karate-chop.json"
+  },
+  "kinesis": {
+    "moveId": "kinesis",
+    "graphic": "PRAS- Kenesis",
+    "jsonFile": "kinesis.json"
+  },
+  "kings-shield": {
+    "moveId": "kings-shield",
+    "graphic": "PRAS- King's Shield",
+    "jsonFile": "kings-shield.json"
+  },
+  "knock-off": {
+    "moveId": "knock-off",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "knock-off.json"
+  },
+  "kowtow-cleave": {
+    "moveId": "kowtow-cleave",
+    "graphic": "009-Weapon04",
+    "jsonFile": "kowtow-cleave.json"
+  },
+  "lands-wrath": {
+    "moveId": "lands-wrath",
+    "graphic": "GEN8- Land's Wrath",
+    "jsonFile": "lands-wrath.json"
+  },
+  "laser-focus": {
+    "moveId": "laser-focus",
+    "graphic": "PRAS- Leer",
+    "jsonFile": "laser-focus.json"
+  },
+  "lash-out": {
+    "moveId": "lash-out",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "lash-out.json"
+  },
+  "last-resort": {
+    "moveId": "last-resort",
+    "graphic": "PRAS- Last Resort",
+    "jsonFile": "last-resort.json"
+  },
+  "last-respects": {
+    "moveId": "last-respects",
+    "graphic": "PRAS- Shadow Bone",
+    "jsonFile": "last-respects.json"
+  },
+  "lava-plume": {
+    "moveId": "lava-plume",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "lava-plume.json"
+  },
+  "leaf-blade": {
+    "moveId": "leaf-blade",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "leaf-blade.json"
+  },
+  "leaf-storm": {
+    "moveId": "leaf-storm",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "leaf-storm.json"
+  },
+  "leaf-tornado": {
+    "moveId": "leaf-tornado",
+    "graphic": "PRAS- Leaf Tornado",
+    "jsonFile": "leaf-tornado.json"
+  },
+  "leafage": {
+    "moveId": "leafage",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "leafage.json"
+  },
+  "leech-life": {
+    "moveId": "leech-life",
+    "graphic": "PRAS- Leech Life",
+    "jsonFile": "leech-life.json"
+  },
+  "leech-seed": {
+    "moveId": "leech-seed",
+    "graphic": "PRAS- Leech Seed",
+    "jsonFile": "leech-seed.json"
+  },
+  "leer": {
+    "moveId": "leer",
+    "graphic": "PRAS- Leer",
+    "jsonFile": "leer.json"
+  },
+  "lick": {
+    "moveId": "lick",
+    "graphic": "PRAS- Sketch + Lick",
+    "jsonFile": "lick.json"
+  },
+  "life-dew": {
+    "moveId": "life-dew",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "life-dew.json"
+  },
+  "light-of-ruin": {
+    "moveId": "light-of-ruin",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "light-of-ruin.json"
+  },
+  "light-screen": {
+    "moveId": "light-screen",
+    "graphic": "PRAS- Light Screen",
+    "jsonFile": "light-screen.json"
+  },
+  "light-that-burns-the-sky": {
+    "moveId": "light-that-burns-the-sky",
+    "graphic": "PRAS- Light that Burns the Sky",
+    "jsonFile": "light-that-burns-the-sky.json"
+  },
+  "liquidation": {
+    "moveId": "liquidation",
+    "graphic": "PRAS- Water",
+    "jsonFile": "liquidation.json"
+  },
+  "lock-on": {
+    "moveId": "lock-on",
+    "graphic": "PRAS- Lock On",
+    "jsonFile": "lock-on.json"
+  },
+  "lovely-kiss": {
+    "moveId": "lovely-kiss",
+    "graphic": "PRAS- Love",
+    "jsonFile": "lovely-kiss.json"
+  },
+  "low-kick": {
+    "moveId": "low-kick",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "low-kick.json"
+  },
+  "low-sweep": {
+    "moveId": "low-sweep",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "low-sweep.json"
+  },
+  "lucky-chant": {
+    "moveId": "lucky-chant",
+    "graphic": "PRAS- Lucky Chant",
+    "jsonFile": "lucky-chant.json"
+  },
+  "lumina-crash": {
+    "moveId": "lumina-crash",
+    "graphic": "GEN8- AstralBarrage",
+    "jsonFile": "lumina-crash.json"
+  },
+  "lunar-blessing": {
+    "moveId": "lunar-blessing",
+    "graphic": "PRAS- Moonlight",
+    "jsonFile": "lunar-blessing.json"
+  },
+  "lunar-dance": {
+    "moveId": "lunar-dance",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "lunar-dance.json"
+  },
+  "lunge": {
+    "moveId": "lunge",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "lunge.json"
+  },
+  "luster-purge": {
+    "moveId": "luster-purge",
+    "graphic": "PRAS- Luster Purge",
+    "jsonFile": "luster-purge.json"
+  },
+  "mach-punch": {
+    "moveId": "mach-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "mach-punch.json"
+  },
+  "magic-coat": {
+    "moveId": "magic-coat",
+    "graphic": "PRAS- Magic Coat",
+    "jsonFile": "magic-coat.json"
+  },
+  "magic-powder": {
+    "moveId": "magic-powder",
+    "graphic": "PRAS- Powder Snow",
+    "jsonFile": "magic-powder.json"
+  },
+  "magic-room": {
+    "moveId": "magic-room",
+    "graphic": "",
+    "jsonFile": "magic-room.json"
+  },
+  "magical-leaf": {
+    "moveId": "magical-leaf",
+    "graphic": "PRAS- Magical Leaf",
+    "jsonFile": "magical-leaf.json"
+  },
+  "magical-torque": {
+    "moveId": "magical-torque",
+    "graphic": "PRAS- Psystrike",
+    "jsonFile": "magical-torque.json"
+  },
+  "magma-storm": {
+    "moveId": "magma-storm",
+    "graphic": "PRAS- Magma Storm",
+    "jsonFile": "magma-storm.json"
+  },
+  "magnet-bomb": {
+    "moveId": "magnet-bomb",
+    "graphic": "PRAS- Magnet bomb",
+    "jsonFile": "magnet-bomb.json"
+  },
+  "magnet-rise": {
+    "moveId": "magnet-rise",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "magnet-rise.json"
+  },
+  "magnetic-flux": {
+    "moveId": "magnetic-flux",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "magnetic-flux.json"
+  },
+  "magnitude": {
+    "moveId": "magnitude",
+    "graphic": "",
+    "jsonFile": "magnitude.json"
+  },
+  "make-it-rain": {
+    "moveId": "make-it-rain",
+    "graphic": "PRAS- Pay Day",
+    "jsonFile": "make-it-rain.json"
+  },
+  "malignant-chain": {
+    "moveId": "malignant-chain",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "malignant-chain.json"
+  },
+  "mat-block": {
+    "moveId": "mat-block",
+    "graphic": "PRAS- Mat Block",
+    "jsonFile": "mat-block.json"
+  },
+  "matcha-gotcha": {
+    "moveId": "matcha-gotcha",
+    "graphic": "Custom_MatchaGotcha",
+    "jsonFile": "matcha-gotcha.json"
+  },
+  "me-first": {
+    "moveId": "me-first",
+    "graphic": "PRAS- Me First",
+    "jsonFile": "me-first.json"
+  },
+  "mean-look": {
+    "moveId": "mean-look",
+    "graphic": "PRAS- Mean Look",
+    "jsonFile": "mean-look.json"
+  },
+  "meditate": {
+    "moveId": "meditate",
+    "graphic": "",
+    "jsonFile": "meditate.json"
+  },
+  "mega-drain": {
+    "moveId": "mega-drain",
+    "graphic": "PRAS- Absorption",
+    "jsonFile": "mega-drain.json"
+  },
+  "mega-kick": {
+    "moveId": "mega-kick",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "mega-kick.json"
+  },
+  "mega-punch": {
+    "moveId": "mega-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "mega-punch.json"
+  },
+  "megahorn": {
+    "moveId": "megahorn",
+    "graphic": "PRAS- Megahorn",
+    "jsonFile": "megahorn.json"
+  },
+  "memento": {
+    "moveId": "memento",
+    "graphic": "",
+    "jsonFile": "memento.json"
+  },
+  "metal-burst": {
+    "moveId": "metal-burst",
+    "graphic": "PRAS- Metal Burst",
+    "jsonFile": "metal-burst.json"
+  },
+  "metal-claw": {
+    "moveId": "metal-claw",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "metal-claw.json"
+  },
+  "metal-sound": {
+    "moveId": "metal-sound",
+    "graphic": "PRAS- Metal Sound",
+    "jsonFile": "metal-sound.json"
+  },
+  "meteor-assault": {
+    "moveId": "meteor-assault",
+    "graphic": "PRAS- Me First",
+    "jsonFile": "meteor-assault.json"
+  },
+  "meteor-beam-charging": {
+    "moveId": "meteor-beam-charging",
+    "graphic": "PRAS- Stats",
+    "jsonFile": "meteor-beam-charging.json"
+  },
+  "meteor-beam": {
+    "moveId": "meteor-beam",
+    "graphic": "GEN8- Meteor Beam",
+    "jsonFile": "meteor-beam.json"
+  },
+  "meteor-mash": {
+    "moveId": "meteor-mash",
+    "graphic": "PRAS- Meteor Mash",
+    "jsonFile": "meteor-mash.json"
+  },
+  "metronome": {
+    "moveId": "metronome",
+    "graphic": "PRAS- Hands",
+    "jsonFile": "metronome.json"
+  },
+  "mighty-cleave": {
+    "moveId": "mighty-cleave",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "mighty-cleave.json"
+  },
+  "milk-drink": {
+    "moveId": "milk-drink",
+    "graphic": "PRAS- Milk Drink",
+    "jsonFile": "milk-drink.json"
+  },
+  "mimic": {
+    "moveId": "mimic",
+    "graphic": "",
+    "jsonFile": "mimic.json"
+  },
+  "mind-blown": {
+    "moveId": "mind-blown",
+    "graphic": "PRAS- Mind Blown",
+    "jsonFile": "mind-blown.json"
+  },
+  "mind-reader": {
+    "moveId": "mind-reader",
+    "graphic": "PRAS- Miracle Eye",
+    "jsonFile": "mind-reader.json"
+  },
+  "minimize": {
+    "moveId": "minimize",
+    "graphic": "",
+    "jsonFile": "minimize.json"
+  },
+  "miracle-eye": {
+    "moveId": "miracle-eye",
+    "graphic": "PRAS- Miracle Eye",
+    "jsonFile": "miracle-eye.json"
+  },
+  "mirror-coat": {
+    "moveId": "mirror-coat",
+    "graphic": "PRAS- Mirror Coat",
+    "jsonFile": "mirror-coat.json"
+  },
+  "mirror-move": {
+    "moveId": "mirror-move",
+    "graphic": "PRAS- Mirror Shot",
+    "jsonFile": "mirror-move.json"
+  },
+  "mirror-shot": {
+    "moveId": "mirror-shot",
+    "graphic": "PRAS- Mirror Shot",
+    "jsonFile": "mirror-shot.json"
+  },
+  "mist-ball": {
+    "moveId": "mist-ball",
+    "graphic": "PRAS- Water",
+    "jsonFile": "mist-ball.json"
+  },
+  "mist": {
+    "moveId": "mist",
+    "graphic": "PRAS- Mist",
+    "jsonFile": "mist.json"
+  },
+  "misty-explosion": {
+    "moveId": "misty-explosion",
+    "graphic": "GEN8- Misty Explosion",
+    "jsonFile": "misty-explosion.json"
+  },
+  "misty-terrain": {
+    "moveId": "misty-terrain",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "misty-terrain.json"
+  },
+  "moonblast": {
+    "moveId": "moonblast",
+    "graphic": "PRAS- Moonblast",
+    "jsonFile": "moonblast.json"
+  },
+  "moongeist-beam": {
+    "moveId": "moongeist-beam",
+    "graphic": "GEN8- Moongeist Beam",
+    "jsonFile": "moongeist-beam.json"
+  },
+  "moonlight": {
+    "moveId": "moonlight",
+    "graphic": "PRAS- Moonlight",
+    "jsonFile": "moonlight.json"
+  },
+  "morning-sun": {
+    "moveId": "morning-sun",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "morning-sun.json"
+  },
+  "mortal-spin": {
+    "moveId": "mortal-spin",
+    "graphic": "PRAS- Poison Tail",
+    "jsonFile": "mortal-spin.json"
+  },
+  "mountain-gale": {
+    "moveId": "mountain-gale",
+    "graphic": "PRAS- Ice",
+    "jsonFile": "mountain-gale.json"
+  },
+  "mud-bomb": {
+    "moveId": "mud-bomb",
+    "graphic": "PRAS- Mud Bomb",
+    "jsonFile": "mud-bomb.json"
+  },
+  "mud-shot": {
+    "moveId": "mud-shot",
+    "graphic": "PRAS- Mud Shot",
+    "jsonFile": "mud-shot.json"
+  },
+  "mud-slap": {
+    "moveId": "mud-slap",
+    "graphic": "PRAS- Mud Slap",
+    "jsonFile": "mud-slap.json"
+  },
+  "mud-sport": {
+    "moveId": "mud-sport",
+    "graphic": "PRAS- Mud Sport",
+    "jsonFile": "mud-sport.json"
+  },
+  "muddy-water": {
+    "moveId": "muddy-water",
+    "graphic": "",
+    "jsonFile": "muddy-water.json"
+  },
+  "multi-attack": {
+    "moveId": "multi-attack",
+    "graphic": "PRAS- Multi Attack",
+    "jsonFile": "multi-attack.json"
+  },
+  "mystical-fire": {
+    "moveId": "mystical-fire",
+    "graphic": "PRAS- Mystical Fire",
+    "jsonFile": "mystical-fire.json"
+  },
+  "mystical-power": {
+    "moveId": "mystical-power",
+    "graphic": "PRAS- Screech",
+    "jsonFile": "mystical-power.json"
+  },
+  "nasty-plot": {
+    "moveId": "nasty-plot",
+    "graphic": "PRAS- Nasty Plot",
+    "jsonFile": "nasty-plot.json"
+  },
+  "natural-gift": {
+    "moveId": "natural-gift",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "natural-gift.json"
+  },
+  "nature-power": {
+    "moveId": "nature-power",
+    "graphic": "",
+    "jsonFile": "nature-power.json"
+  },
+  "natures-madness": {
+    "moveId": "natures-madness",
+    "graphic": "",
+    "jsonFile": "natures-madness.json"
+  },
+  "needle-arm": {
+    "moveId": "needle-arm",
+    "graphic": "PRAS- Needle Arm",
+    "jsonFile": "needle-arm.json"
+  },
+  "night-daze": {
+    "moveId": "night-daze",
+    "graphic": "PRAS- Night Daze",
+    "jsonFile": "night-daze.json"
+  },
+  "night-shade": {
+    "moveId": "night-shade",
+    "graphic": "PRAS- Psychic BG",
+    "jsonFile": "night-shade.json"
+  },
+  "night-slash": {
+    "moveId": "night-slash",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "night-slash.json"
+  },
+  "nightmare": {
+    "moveId": "nightmare",
+    "graphic": "PRAS- Love",
+    "jsonFile": "nightmare.json"
+  },
+  "nihil-light": {
+    "moveId": "nihil-light",
+    "graphic": "PRAS- Nihil Light",
+    "jsonFile": "nihil-light.json"
+  },
+  "no-retreat": {
+    "moveId": "no-retreat",
+    "graphic": "GEN8- No Retreat",
+    "jsonFile": "no-retreat.json"
+  },
+  "noble-roar": {
+    "moveId": "noble-roar",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "noble-roar.json"
+  },
+  "noxious-torque": {
+    "moveId": "noxious-torque",
+    "graphic": "PRAS- Poison Sting",
+    "jsonFile": "noxious-torque.json"
+  },
+  "nuzzle": {
+    "moveId": "nuzzle",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "nuzzle.json"
+  },
+  "oblivion-wing": {
+    "moveId": "oblivion-wing",
+    "graphic": "GEN8- Moongeist Beam",
+    "jsonFile": "oblivion-wing.json"
+  },
+  "obstruct": {
+    "moveId": "obstruct",
+    "graphic": "GEN8- Obstruct",
+    "jsonFile": "obstruct.json"
+  },
+  "oceanic-operetta": {
+    "moveId": "oceanic-operetta",
+    "graphic": "PRAS- Oceanic Operetta",
+    "jsonFile": "oceanic-operetta.json"
+  },
+  "octazooka": {
+    "moveId": "octazooka",
+    "graphic": "PRAS- Octozooka",
+    "jsonFile": "octazooka.json"
+  },
+  "octolock": {
+    "moveId": "octolock",
+    "graphic": "PRAS- Constrict",
+    "jsonFile": "octolock.json"
+  },
+  "odor-sleuth": {
+    "moveId": "odor-sleuth",
+    "graphic": "PRAS- Odor Sleuth",
+    "jsonFile": "odor-sleuth.json"
+  },
+  "ominous-wind": {
+    "moveId": "ominous-wind",
+    "graphic": "",
+    "jsonFile": "ominous-wind.json"
+  },
+  "order-up": {
+    "moveId": "order-up",
+    "graphic": "Majesty - Order Up",
+    "jsonFile": "order-up.json"
+  },
+  "origin-pulse": {
+    "moveId": "origin-pulse",
+    "graphic": "PRAS- Origin Pulse",
+    "jsonFile": "origin-pulse.json"
+  },
+  "outrage": {
+    "moveId": "outrage",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "outrage.json"
+  },
+  "overdrive": {
+    "moveId": "overdrive",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "overdrive.json"
+  },
+  "overheat": {
+    "moveId": "overheat",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "overheat.json"
+  },
+  "pain-split": {
+    "moveId": "pain-split",
+    "graphic": "PRAS- Bide",
+    "jsonFile": "pain-split.json"
+  },
+  "parabolic-charge": {
+    "moveId": "parabolic-charge",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "parabolic-charge.json"
+  },
+  "parting-shot": {
+    "moveId": "parting-shot",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "parting-shot.json"
+  },
+  "pay-day": {
+    "moveId": "pay-day",
+    "graphic": "PRAS- Pay Day",
+    "jsonFile": "pay-day.json"
+  },
+  "payback": {
+    "moveId": "payback",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "payback.json"
+  },
+  "peck": {
+    "moveId": "peck",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "peck.json"
+  },
+  "perish-song": {
+    "moveId": "perish-song",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "perish-song.json"
+  },
+  "petal-blizzard": {
+    "moveId": "petal-blizzard",
+    "graphic": "PRAS- Petal Blizzard",
+    "jsonFile": "petal-blizzard.json"
+  },
+  "petal-dance": {
+    "moveId": "petal-dance",
+    "graphic": "PRAS- Petal Dance",
+    "jsonFile": "petal-dance.json"
+  },
+  "phantom-force-charging": {
+    "moveId": "phantom-force-charging",
+    "graphic": "",
+    "jsonFile": "phantom-force-charging.json"
+  },
+  "phantom-force": {
+    "moveId": "phantom-force",
+    "graphic": "PRAS- Shadow Sneak",
+    "jsonFile": "phantom-force.json"
+  },
+  "photon-geyser": {
+    "moveId": "photon-geyser",
+    "graphic": "PRAS- Photon Guyser",
+    "jsonFile": "photon-geyser.json"
+  },
+  "pika-papow": {
+    "moveId": "pika-papow",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "pika-papow.json"
+  },
+  "pin-missile": {
+    "moveId": "pin-missile",
+    "graphic": "PRAS- Leech Life",
+    "jsonFile": "pin-missile.json"
+  },
+  "plasma-fists": {
+    "moveId": "plasma-fists",
+    "graphic": "PRAS- Plasma Fist",
+    "jsonFile": "plasma-fists.json"
+  },
+  "play-nice": {
+    "moveId": "play-nice",
+    "graphic": "PRAS- Love",
+    "jsonFile": "play-nice.json"
+  },
+  "play-rough": {
+    "moveId": "play-rough",
+    "graphic": "PRAS- Love",
+    "jsonFile": "play-rough.json"
+  },
+  "pluck": {
+    "moveId": "pluck",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "pluck.json"
+  },
+  "poison-fang": {
+    "moveId": "poison-fang",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "poison-fang.json"
+  },
+  "poison-gas": {
+    "moveId": "poison-gas",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "poison-gas.json"
+  },
+  "poison-jab": {
+    "moveId": "poison-jab",
+    "graphic": "PRAS- Poison Jab",
+    "jsonFile": "poison-jab.json"
+  },
+  "poison-powder": {
+    "moveId": "poison-powder",
+    "graphic": "PRAS- Powders",
+    "jsonFile": "poison-powder.json"
+  },
+  "poison-sting": {
+    "moveId": "poison-sting",
+    "graphic": "PRAS- Poison Sting",
+    "jsonFile": "poison-sting.json"
+  },
+  "poison-tail": {
+    "moveId": "poison-tail",
+    "graphic": "PRAS- Poison Tail",
+    "jsonFile": "poison-tail.json"
+  },
+  "pollen-puff": {
+    "moveId": "pollen-puff",
+    "graphic": "PRAS- Powders",
+    "jsonFile": "pollen-puff.json"
+  },
+  "poltergeist": {
+    "moveId": "poltergeist",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "poltergeist.json"
+  },
+  "population-bomb": {
+    "moveId": "population-bomb",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "population-bomb.json"
+  },
+  "pounce": {
+    "moveId": "pounce",
+    "graphic": "",
+    "jsonFile": "pounce.json"
+  },
+  "pound": {
+    "moveId": "pound",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "pound.json"
+  },
+  "powder-snow": {
+    "moveId": "powder-snow",
+    "graphic": "PRAS- Powder Snow",
+    "jsonFile": "powder-snow.json"
+  },
+  "powder": {
+    "moveId": "powder",
+    "graphic": "PRAS- Powder",
+    "jsonFile": "powder.json"
+  },
+  "power-gem": {
+    "moveId": "power-gem",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "power-gem.json"
+  },
+  "power-shift": {
+    "moveId": "power-shift",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "power-shift.json"
+  },
+  "power-split": {
+    "moveId": "power-split",
+    "graphic": "",
+    "jsonFile": "power-split.json"
+  },
+  "power-swap": {
+    "moveId": "power-swap",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "power-swap.json"
+  },
+  "power-trick": {
+    "moveId": "power-trick",
+    "graphic": "",
+    "jsonFile": "power-trick.json"
+  },
+  "power-trip": {
+    "moveId": "power-trip",
+    "graphic": "PRAS- Swagger",
+    "jsonFile": "power-trip.json"
+  },
+  "power-up-punch": {
+    "moveId": "power-up-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "power-up-punch.json"
+  },
+  "power-whip": {
+    "moveId": "power-whip",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "power-whip.json"
+  },
+  "precipice-blades": {
+    "moveId": "precipice-blades",
+    "graphic": "GEN8- Precipice Blades",
+    "jsonFile": "precipice-blades.json"
+  },
+  "present": {
+    "moveId": "present",
+    "graphic": "PRAS- Present",
+    "jsonFile": "present.json"
+  },
+  "prismatic-laser": {
+    "moveId": "prismatic-laser",
+    "graphic": "PRAS- Prismatic Laser",
+    "jsonFile": "prismatic-laser.json"
+  },
+  "protect": {
+    "moveId": "protect",
+    "graphic": "PRAS- Protect",
+    "jsonFile": "protect.json"
+  },
+  "psybeam": {
+    "moveId": "psybeam",
+    "graphic": "PRAS- Psybeam",
+    "jsonFile": "psybeam.json"
+  },
+  "psyblade": {
+    "moveId": "psyblade",
+    "graphic": "PRAS- Psycho Cut",
+    "jsonFile": "psyblade.json"
+  },
+  "psych-up": {
+    "moveId": "psych-up",
+    "graphic": "PRAS- Quiver Dance",
+    "jsonFile": "psych-up.json"
+  },
+  "psychic-fangs": {
+    "moveId": "psychic-fangs",
+    "graphic": "PRAS- Bite",
+    "jsonFile": "psychic-fangs.json"
+  },
+  "psychic-noise": {
+    "moveId": "psychic-noise",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "psychic-noise.json"
+  },
+  "psychic-terrain": {
+    "moveId": "psychic-terrain",
+    "graphic": "PRAS- Mirror Coat",
+    "jsonFile": "psychic-terrain.json"
+  },
+  "psychic": {
+    "moveId": "psychic",
+    "graphic": "PRAS- Psychic BG",
+    "jsonFile": "psychic.json"
+  },
+  "psycho-boost": {
+    "moveId": "psycho-boost",
+    "graphic": "PRAS- Psycho Boost",
+    "jsonFile": "psycho-boost.json"
+  },
+  "psycho-cut": {
+    "moveId": "psycho-cut",
+    "graphic": "PRAS- Psycho Cut",
+    "jsonFile": "psycho-cut.json"
+  },
+  "psycho-shift": {
+    "moveId": "psycho-shift",
+    "graphic": "PRAS- Psycho Shift",
+    "jsonFile": "psycho-shift.json"
+  },
+  "psyshield-bash": {
+    "moveId": "psyshield-bash",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "psyshield-bash.json"
+  },
+  "psyshock": {
+    "moveId": "psyshock",
+    "graphic": "PRAS- Swords Dance + Signal Beam",
+    "jsonFile": "psyshock.json"
+  },
+  "psystrike": {
+    "moveId": "psystrike",
+    "graphic": "PRAS- Psystrike",
+    "jsonFile": "psystrike.json"
+  },
+  "psywave": {
+    "moveId": "psywave",
+    "graphic": "PRAS- Psybeam",
+    "jsonFile": "psywave.json"
+  },
+  "pulverizing-pancake": {
+    "moveId": "pulverizing-pancake",
+    "graphic": "PRAS- Pulverizing Pancake",
+    "jsonFile": "pulverizing-pancake.json"
+  },
+  "punishment": {
+    "moveId": "punishment",
+    "graphic": "PRAS- Psycho Cut",
+    "jsonFile": "punishment.json"
+  },
+  "purify": {
+    "moveId": "purify",
+    "graphic": "PRAS- Clear Smog",
+    "jsonFile": "purify.json"
+  },
+  "pursuit": {
+    "moveId": "pursuit",
+    "graphic": "PRAS- Shadow Sneak",
+    "jsonFile": "pursuit.json"
+  },
+  "pyro-ball": {
+    "moveId": "pyro-ball",
+    "graphic": "GEN8- PyroBall",
+    "jsonFile": "pyro-ball.json"
+  },
+  "quash": {
+    "moveId": "quash",
+    "graphic": "",
+    "jsonFile": "quash.json"
+  },
+  "quick-attack": {
+    "moveId": "quick-attack",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "quick-attack.json"
+  },
+  "quick-guard": {
+    "moveId": "quick-guard",
+    "graphic": "PRAS- Lucky Chant",
+    "jsonFile": "quick-guard.json"
+  },
+  "quiver-dance": {
+    "moveId": "quiver-dance",
+    "graphic": "PRAS- Quiver Dance",
+    "jsonFile": "quiver-dance.json"
+  },
+  "rage-fist": {
+    "moveId": "rage-fist",
+    "graphic": "Gen9- Rage Fist",
+    "jsonFile": "rage-fist.json"
+  },
+  "rage-powder": {
+    "moveId": "rage-powder",
+    "graphic": "PRAS- Rage Powder",
+    "jsonFile": "rage-powder.json"
+  },
+  "rage": {
+    "moveId": "rage",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "rage.json"
+  },
+  "raging-bull": {
+    "moveId": "raging-bull",
+    "graphic": "PRAS- Stomping Tantrum",
+    "jsonFile": "raging-bull.json"
+  },
+  "raging-fury": {
+    "moveId": "raging-fury",
+    "graphic": "fire5",
+    "jsonFile": "raging-fury.json"
+  },
+  "rain-dance": {
+    "moveId": "rain-dance",
+    "graphic": "PRAS- Water",
+    "jsonFile": "rain-dance.json"
+  },
+  "rapid-spin": {
+    "moveId": "rapid-spin",
+    "graphic": "PRAS- Dragon Dance",
+    "jsonFile": "rapid-spin.json"
+  },
+  "razor-leaf": {
+    "moveId": "razor-leaf",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "razor-leaf.json"
+  },
+  "razor-shell": {
+    "moveId": "razor-shell",
+    "graphic": "PRAS- Razor Shell",
+    "jsonFile": "razor-shell.json"
+  },
+  "razor-wind-charging": {
+    "moveId": "razor-wind-charging",
+    "graphic": "PRAS- Gust",
+    "jsonFile": "razor-wind-charging.json"
+  },
+  "razor-wind": {
+    "moveId": "razor-wind",
+    "graphic": "PRAS- Air Cutter",
+    "jsonFile": "razor-wind.json"
+  },
+  "recover": {
+    "moveId": "recover",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "recover.json"
+  },
+  "recycle": {
+    "moveId": "recycle",
+    "graphic": "PRAS- Recycle",
+    "jsonFile": "recycle.json"
+  },
+  "reflect-type": {
+    "moveId": "reflect-type",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "reflect-type.json"
+  },
+  "reflect": {
+    "moveId": "reflect",
+    "graphic": "PRAS- Reflect",
+    "jsonFile": "reflect.json"
+  },
+  "refresh": {
+    "moveId": "refresh",
+    "graphic": "PRAS- Recovery",
+    "jsonFile": "refresh.json"
+  },
+  "relic-song": {
+    "moveId": "relic-song",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "relic-song.json"
+  },
+  "rest": {
+    "moveId": "rest",
+    "graphic": "PRAS- Status",
+    "jsonFile": "rest.json"
+  },
+  "retaliate": {
+    "moveId": "retaliate",
+    "graphic": "PRAS- Retaliate",
+    "jsonFile": "retaliate.json"
+  },
+  "return": {
+    "moveId": "return",
+    "graphic": "PRAS- Love",
+    "jsonFile": "return.json"
+  },
+  "revelation-dance": {
+    "moveId": "revelation-dance",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "revelation-dance.json"
+  },
+  "revenge": {
+    "moveId": "revenge",
+    "graphic": "PRAS- Revenge",
+    "jsonFile": "revenge.json"
+  },
+  "reversal": {
+    "moveId": "reversal",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "reversal.json"
+  },
+  "revival-blessing": {
+    "moveId": "revival-blessing",
+    "graphic": "PRAS- Healing Wish",
+    "jsonFile": "revival-blessing.json"
+  },
+  "rising-voltage": {
+    "moveId": "rising-voltage",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "rising-voltage.json"
+  },
+  "roar-of-time": {
+    "moveId": "roar-of-time",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "roar-of-time.json"
+  },
+  "roar": {
+    "moveId": "roar",
+    "graphic": "PRAS- Roar",
+    "jsonFile": "roar.json"
+  },
+  "rock-blast": {
+    "moveId": "rock-blast",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "rock-blast.json"
+  },
+  "rock-climb": {
+    "moveId": "rock-climb",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "rock-climb.json"
+  },
+  "rock-polish": {
+    "moveId": "rock-polish",
+    "graphic": "PRAS- Rock Polish",
+    "jsonFile": "rock-polish.json"
+  },
+  "rock-slide": {
+    "moveId": "rock-slide",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "rock-slide.json"
+  },
+  "rock-smash": {
+    "moveId": "rock-smash",
+    "graphic": "PRAS- Rock Smash",
+    "jsonFile": "rock-smash.json"
+  },
+  "rock-throw": {
+    "moveId": "rock-throw",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "rock-throw.json"
+  },
+  "rock-tomb": {
+    "moveId": "rock-tomb",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "rock-tomb.json"
+  },
+  "rock-wrecker": {
+    "moveId": "rock-wrecker",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "rock-wrecker.json"
+  },
+  "role-play": {
+    "moveId": "role-play",
+    "graphic": "PRAS- Curse",
+    "jsonFile": "role-play.json"
+  },
+  "rolling-kick": {
+    "moveId": "rolling-kick",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "rolling-kick.json"
+  },
+  "rollout": {
+    "moveId": "rollout",
+    "graphic": "PRAS- Rollout",
+    "jsonFile": "rollout.json"
+  },
+  "roost": {
+    "moveId": "roost",
+    "graphic": "PRAS- Roost",
+    "jsonFile": "roost.json"
+  },
+  "rototiller": {
+    "moveId": "rototiller",
+    "graphic": "PRAS- Rototiller ",
+    "jsonFile": "rototiller.json"
+  },
+  "round": {
+    "moveId": "round",
+    "graphic": "PRAS- Heal Bell",
+    "jsonFile": "round.json"
+  },
+  "ruination": {
+    "moveId": "ruination",
+    "graphic": "grass2",
+    "jsonFile": "ruination.json"
+  },
+  "sacred-fire": {
+    "moveId": "sacred-fire",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "sacred-fire.json"
+  },
+  "sacred-sword": {
+    "moveId": "sacred-sword",
+    "graphic": "PRAS- Sacred Sword",
+    "jsonFile": "sacred-sword.json"
+  },
+  "safeguard": {
+    "moveId": "safeguard",
+    "graphic": "PRAS- Safeguard",
+    "jsonFile": "safeguard.json"
+  },
+  "salt-cure": {
+    "moveId": "salt-cure",
+    "graphic": "Majesty - Salt Cure",
+    "jsonFile": "salt-cure.json"
+  },
+  "sand-attack": {
+    "moveId": "sand-attack",
+    "graphic": "PRAS- Sand Attack",
+    "jsonFile": "sand-attack.json"
+  },
+  "sand-tomb": {
+    "moveId": "sand-tomb",
+    "graphic": "PRAS- Sand Tomb",
+    "jsonFile": "sand-tomb.json"
+  },
+  "sandsear-storm": {
+    "moveId": "sandsear-storm",
+    "graphic": "Majesty - Sandsear Storm",
+    "jsonFile": "sandsear-storm.json"
+  },
+  "sandstorm": {
+    "moveId": "sandstorm",
+    "graphic": "PRAS- sandstorm2",
+    "jsonFile": "sandstorm.json"
+  },
+  "sappy-seed": {
+    "moveId": "sappy-seed",
+    "graphic": "PRAS- Leech Seed",
+    "jsonFile": "sappy-seed.json"
+  },
+  "scald": {
+    "moveId": "scald",
+    "graphic": "PRAS- Scald",
+    "jsonFile": "scald.json"
+  },
+  "scale-shot": {
+    "moveId": "scale-shot",
+    "graphic": "GEN8- Scale Shot",
+    "jsonFile": "scale-shot.json"
+  },
+  "scary-face": {
+    "moveId": "scary-face",
+    "graphic": "PRAS- Scary Face",
+    "jsonFile": "scary-face.json"
+  },
+  "scorching-sands": {
+    "moveId": "scorching-sands",
+    "graphic": "PRAS- Sand Attack",
+    "jsonFile": "scorching-sands.json"
+  },
+  "scratch": {
+    "moveId": "scratch",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "scratch.json"
+  },
+  "screech": {
+    "moveId": "screech",
+    "graphic": "PRAS- Screech",
+    "jsonFile": "screech.json"
+  },
+  "searing-shot": {
+    "moveId": "searing-shot",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "searing-shot.json"
+  },
+  "secret-power": {
+    "moveId": "secret-power",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "secret-power.json"
+  },
+  "secret-sword": {
+    "moveId": "secret-sword",
+    "graphic": "PRAS- Sacred Sword",
+    "jsonFile": "secret-sword.json"
+  },
+  "seed-bomb": {
+    "moveId": "seed-bomb",
+    "graphic": "PRAS- Seed Bomb",
+    "jsonFile": "seed-bomb.json"
+  },
+  "seed-flare": {
+    "moveId": "seed-flare",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "seed-flare.json"
+  },
+  "seismic-toss": {
+    "moveId": "seismic-toss",
+    "graphic": "PRAS- Seismic Toss",
+    "jsonFile": "seismic-toss.json"
+  },
+  "self-destruct": {
+    "moveId": "self-destruct",
+    "graphic": "PRAS- Explosions",
+    "jsonFile": "self-destruct.json"
+  },
+  "shadow-ball": {
+    "moveId": "shadow-ball",
+    "graphic": "PRAS- Shadow Ball",
+    "jsonFile": "shadow-ball.json"
+  },
+  "shadow-bone": {
+    "moveId": "shadow-bone",
+    "graphic": "PRAS- Shadow Bone",
+    "jsonFile": "shadow-bone.json"
+  },
+  "shadow-claw": {
+    "moveId": "shadow-claw",
+    "graphic": "PRAS- Shadow Claw",
+    "jsonFile": "shadow-claw.json"
+  },
+  "shadow-force-charging": {
+    "moveId": "shadow-force-charging",
+    "graphic": "",
+    "jsonFile": "shadow-force-charging.json"
+  },
+  "shadow-force": {
+    "moveId": "shadow-force",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "shadow-force.json"
+  },
+  "shadow-punch": {
+    "moveId": "shadow-punch",
+    "graphic": "PRAS- Shadow Punch",
+    "jsonFile": "shadow-punch.json"
+  },
+  "shadow-sneak": {
+    "moveId": "shadow-sneak",
+    "graphic": "PRAS- Shadow Sneak",
+    "jsonFile": "shadow-sneak.json"
+  },
+  "sharpen": {
+    "moveId": "sharpen",
+    "graphic": "PRAS- Sharpen",
+    "jsonFile": "sharpen.json"
+  },
+  "shed-tail": {
+    "moveId": "shed-tail",
+    "graphic": "Majesty - Shed Tail",
+    "jsonFile": "shed-tail.json"
+  },
+  "sheer-cold": {
+    "moveId": "sheer-cold",
+    "graphic": "PRAS- Sheer Cold",
+    "jsonFile": "sheer-cold.json"
+  },
+  "shell-side-arm": {
+    "moveId": "shell-side-arm",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "shell-side-arm.json"
+  },
+  "shell-smash": {
+    "moveId": "shell-smash",
+    "graphic": "PRAS- Shell Smash",
+    "jsonFile": "shell-smash.json"
+  },
+  "shell-trap": {
+    "moveId": "shell-trap",
+    "graphic": "PRAS- Shell Trap",
+    "jsonFile": "shell-trap.json"
+  },
+  "shelter": {
+    "moveId": "shelter",
+    "graphic": "PRAS- Shell Smash",
+    "jsonFile": "shelter.json"
+  },
+  "shift-gear": {
+    "moveId": "shift-gear",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "shift-gear.json"
+  },
+  "shock-wave": {
+    "moveId": "shock-wave",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "shock-wave.json"
+  },
+  "shore-up": {
+    "moveId": "shore-up",
+    "graphic": "PRAS- Shore Up",
+    "jsonFile": "shore-up.json"
+  },
+  "signal-beam": {
+    "moveId": "signal-beam",
+    "graphic": "PRAS- Swords Dance + Signal Beam",
+    "jsonFile": "signal-beam.json"
+  },
+  "silk-trap": {
+    "moveId": "silk-trap",
+    "graphic": "PRAS- Sticky Web",
+    "jsonFile": "silk-trap.json"
+  },
+  "silver-wind": {
+    "moveId": "silver-wind",
+    "graphic": "PRAS- Silver Wind",
+    "jsonFile": "silver-wind.json"
+  },
+  "simple-beam": {
+    "moveId": "simple-beam",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "simple-beam.json"
+  },
+  "sing": {
+    "moveId": "sing",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "sing.json"
+  },
+  "sinister-arrow-raid": {
+    "moveId": "sinister-arrow-raid",
+    "graphic": "PRAS- Sinister Arrow Raid",
+    "jsonFile": "sinister-arrow-raid.json"
+  },
+  "sizzly-slide": {
+    "moveId": "sizzly-slide",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "sizzly-slide.json"
+  },
+  "sketch": {
+    "moveId": "sketch",
+    "graphic": "PRAS- Sketch + Lick",
+    "jsonFile": "sketch.json"
+  },
+  "skill-swap": {
+    "moveId": "skill-swap",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "skill-swap.json"
+  },
+  "skitter-smack": {
+    "moveId": "skitter-smack",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "skitter-smack.json"
+  },
+  "skull-bash-charging": {
+    "moveId": "skull-bash-charging",
+    "graphic": "",
+    "jsonFile": "skull-bash-charging.json"
+  },
+  "skull-bash": {
+    "moveId": "skull-bash",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "skull-bash.json"
+  },
+  "sky-attack-charging": {
+    "moveId": "sky-attack-charging",
+    "graphic": "",
+    "jsonFile": "sky-attack-charging.json"
+  },
+  "sky-attack": {
+    "moveId": "sky-attack",
+    "graphic": "PRAS- Brave Bird",
+    "jsonFile": "sky-attack.json"
+  },
+  "sky-drop-charging": {
+    "moveId": "sky-drop-charging",
+    "graphic": "",
+    "jsonFile": "sky-drop-charging.json"
+  },
+  "sky-drop": {
+    "moveId": "sky-drop",
+    "graphic": "",
+    "jsonFile": "sky-drop.json"
+  },
+  "sky-uppercut": {
+    "moveId": "sky-uppercut",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "sky-uppercut.json"
+  },
+  "slack-off": {
+    "moveId": "slack-off",
+    "graphic": "PRAS- Slack Off",
+    "jsonFile": "slack-off.json"
+  },
+  "slam": {
+    "moveId": "slam",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "slam.json"
+  },
+  "slash": {
+    "moveId": "slash",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "slash.json"
+  },
+  "sleep-powder": {
+    "moveId": "sleep-powder",
+    "graphic": "PRAS- Powders",
+    "jsonFile": "sleep-powder.json"
+  },
+  "sleep-talk": {
+    "moveId": "sleep-talk",
+    "graphic": "PRAS- Sleep Talk",
+    "jsonFile": "sleep-talk.json"
+  },
+  "sludge-bomb": {
+    "moveId": "sludge-bomb",
+    "graphic": "PRAS- Sludge Bomb",
+    "jsonFile": "sludge-bomb.json"
+  },
+  "sludge-wave": {
+    "moveId": "sludge-wave",
+    "graphic": "",
+    "jsonFile": "sludge-wave.json"
+  },
+  "sludge": {
+    "moveId": "sludge",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "sludge.json"
+  },
+  "smack-down": {
+    "moveId": "smack-down",
+    "graphic": "PRAS- Rock",
+    "jsonFile": "smack-down.json"
+  },
+  "smart-strike": {
+    "moveId": "smart-strike",
+    "graphic": "PRAS- Lock On",
+    "jsonFile": "smart-strike.json"
+  },
+  "smelling-salts": {
+    "moveId": "smelling-salts",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "smelling-salts.json"
+  },
+  "smog": {
+    "moveId": "smog",
+    "graphic": "PRAS- Smog",
+    "jsonFile": "smog.json"
+  },
+  "smokescreen": {
+    "moveId": "smokescreen",
+    "graphic": "PRAS- Smokescreen",
+    "jsonFile": "smokescreen.json"
+  },
+  "snap-trap": {
+    "moveId": "snap-trap",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "snap-trap.json"
+  },
+  "snarl": {
+    "moveId": "snarl",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "snarl.json"
+  },
+  "snatch": {
+    "moveId": "snatch",
+    "graphic": "",
+    "jsonFile": "snatch.json"
+  },
+  "snipe-shot": {
+    "moveId": "snipe-shot",
+    "graphic": "PRAS- Hydro Pump",
+    "jsonFile": "snipe-shot.json"
+  },
+  "snore": {
+    "moveId": "snore",
+    "graphic": "PRAS- Sleep Talk",
+    "jsonFile": "snore.json"
+  },
+  "soak": {
+    "moveId": "soak",
+    "graphic": "PRAS- Water",
+    "jsonFile": "soak.json"
+  },
+  "soft-boiled": {
+    "moveId": "soft-boiled",
+    "graphic": "PRAS- Soft Boil",
+    "jsonFile": "soft-boiled.json"
+  },
+  "solar-beam-charging": {
+    "moveId": "solar-beam-charging",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "solar-beam-charging.json"
+  },
+  "solar-beam": {
+    "moveId": "solar-beam",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "solar-beam.json"
+  },
+  "solar-blade-charging": {
+    "moveId": "solar-blade-charging",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "solar-blade-charging.json"
+  },
+  "solar-blade": {
+    "moveId": "solar-blade",
+    "graphic": "GEN8- Solar Blade",
+    "jsonFile": "solar-blade.json"
+  },
+  "sonic-boom": {
+    "moveId": "sonic-boom",
+    "graphic": "PRAS- Air Cutter",
+    "jsonFile": "sonic-boom.json"
+  },
+  "spacial-rend": {
+    "moveId": "spacial-rend",
+    "graphic": "PRAS- Spacial Rend",
+    "jsonFile": "spacial-rend.json"
+  },
+  "spark": {
+    "moveId": "spark",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "spark.json"
+  },
+  "sparkling-aria": {
+    "moveId": "sparkling-aria",
+    "graphic": "PRAS- Sparkling Aria",
+    "jsonFile": "sparkling-aria.json"
+  },
+  "sparkly-swirl": {
+    "moveId": "sparkly-swirl",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "sparkly-swirl.json"
+  },
+  "spectral-thief": {
+    "moveId": "spectral-thief",
+    "graphic": "PRAS- Spectral Thief",
+    "jsonFile": "spectral-thief.json"
+  },
+  "speed-swap": {
+    "moveId": "speed-swap",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "speed-swap.json"
+  },
+  "spicy-extract": {
+    "moveId": "spicy-extract",
+    "graphic": "Custom_SpicyExtract",
+    "jsonFile": "spicy-extract.json"
+  },
+  "spider-web": {
+    "moveId": "spider-web",
+    "graphic": "PRAS- Spider Web",
+    "jsonFile": "spider-web.json"
+  },
+  "spike-cannon": {
+    "moveId": "spike-cannon",
+    "graphic": "PRAS- Spike Cannon",
+    "jsonFile": "spike-cannon.json"
+  },
+  "spikes": {
+    "moveId": "spikes",
+    "graphic": "PRAS- Spikes",
+    "jsonFile": "spikes.json"
+  },
+  "spiky-shield": {
+    "moveId": "spiky-shield",
+    "graphic": "PRAS- Spiky Shield",
+    "jsonFile": "spiky-shield.json"
+  },
+  "spin-out": {
+    "moveId": "spin-out",
+    "graphic": "GEN8- Steel Roller",
+    "jsonFile": "spin-out.json"
+  },
+  "spirit-break": {
+    "moveId": "spirit-break",
+    "graphic": "PRAS- Psystrike",
+    "jsonFile": "spirit-break.json"
+  },
+  "spirit-shackle": {
+    "moveId": "spirit-shackle",
+    "graphic": "PRAS- Spirit Shackle",
+    "jsonFile": "spirit-shackle.json"
+  },
+  "spit-up": {
+    "moveId": "spit-up",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "spit-up.json"
+  },
+  "spite": {
+    "moveId": "spite",
+    "graphic": "PRAS- Spite",
+    "jsonFile": "spite.json"
+  },
+  "splash": {
+    "moveId": "splash",
+    "graphic": "PRAS- Water",
+    "jsonFile": "splash.json"
+  },
+  "splishy-splash": {
+    "moveId": "splishy-splash",
+    "graphic": "",
+    "jsonFile": "splishy-splash.json"
+  },
+  "spore": {
+    "moveId": "spore",
+    "graphic": "PRAS- Spore",
+    "jsonFile": "spore.json"
+  },
+  "spotlight": {
+    "moveId": "spotlight",
+    "graphic": "PRAS- Follow Me",
+    "jsonFile": "spotlight.json"
+  },
+  "springtide-storm": {
+    "moveId": "springtide-storm",
+    "graphic": "Majesty - Springtide Storm",
+    "jsonFile": "springtide-storm.json"
+  },
+  "stealth-rock": {
+    "moveId": "stealth-rock",
+    "graphic": "PRAS- Stealth Rock",
+    "jsonFile": "stealth-rock.json"
+  },
+  "steam-eruption": {
+    "moveId": "steam-eruption",
+    "graphic": "PRAS- Steam Eruption",
+    "jsonFile": "steam-eruption.json"
+  },
+  "steamroller": {
+    "moveId": "steamroller",
+    "graphic": "PRAS- Steamroller",
+    "jsonFile": "steamroller.json"
+  },
+  "steel-beam": {
+    "moveId": "steel-beam",
+    "graphic": "PRAS- Iron Head",
+    "jsonFile": "steel-beam.json"
+  },
+  "steel-roller": {
+    "moveId": "steel-roller",
+    "graphic": "GEN8- Steel Roller",
+    "jsonFile": "steel-roller.json"
+  },
+  "steel-wing": {
+    "moveId": "steel-wing",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "steel-wing.json"
+  },
+  "sticky-web": {
+    "moveId": "sticky-web",
+    "graphic": "PRAS- Sticky Web",
+    "jsonFile": "sticky-web.json"
+  },
+  "stockpile": {
+    "moveId": "stockpile",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "stockpile.json"
+  },
+  "stomp": {
+    "moveId": "stomp",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "stomp.json"
+  },
+  "stomping-tantrum": {
+    "moveId": "stomping-tantrum",
+    "graphic": "PRAS- Stomping Tantrum",
+    "jsonFile": "stomping-tantrum.json"
+  },
+  "stone-axe": {
+    "moveId": "stone-axe",
+    "graphic": "GEN8- Stone Axe",
+    "jsonFile": "stone-axe.json"
+  },
+  "stone-edge": {
+    "moveId": "stone-edge",
+    "graphic": "PRAS- Stealth Rock",
+    "jsonFile": "stone-edge.json"
+  },
+  "stored-power": {
+    "moveId": "stored-power",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "stored-power.json"
+  },
+  "storm-throw": {
+    "moveId": "storm-throw",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "storm-throw.json"
+  },
+  "strange-steam": {
+    "moveId": "strange-steam",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "strange-steam.json"
+  },
+  "strength-sap": {
+    "moveId": "strength-sap",
+    "graphic": "PRAS- Absorption2",
+    "jsonFile": "strength-sap.json"
+  },
+  "strength": {
+    "moveId": "strength",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "strength.json"
+  },
+  "string-shot": {
+    "moveId": "string-shot",
+    "graphic": "PRAS- String Shot",
+    "jsonFile": "string-shot.json"
+  },
+  "struggle-bug": {
+    "moveId": "struggle-bug",
+    "graphic": "PRAS- Struggle Bug",
+    "jsonFile": "struggle-bug.json"
+  },
+  "struggle": {
+    "moveId": "struggle",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "struggle.json"
+  },
+  "stuff-cheeks": {
+    "moveId": "stuff-cheeks",
+    "graphic": "GEN8- Eat Berry",
+    "jsonFile": "stuff-cheeks.json"
+  },
+  "stun-spore": {
+    "moveId": "stun-spore",
+    "graphic": "PRAS- Stun Powder",
+    "jsonFile": "stun-spore.json"
+  },
+  "submission": {
+    "moveId": "submission",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "submission.json"
+  },
+  "substitute": {
+    "moveId": "substitute",
+    "graphic": "PRAS- Substitute",
+    "jsonFile": "substitute.json"
+  },
+  "sucker-punch": {
+    "moveId": "sucker-punch",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "sucker-punch.json"
+  },
+  "sunny-day": {
+    "moveId": "sunny-day",
+    "graphic": "PRAS- SunnyDay",
+    "jsonFile": "sunny-day.json"
+  },
+  "sunsteel-strike": {
+    "moveId": "sunsteel-strike",
+    "graphic": "GEN8- Sunsteel Strike",
+    "jsonFile": "sunsteel-strike.json"
+  },
+  "super-fang": {
+    "moveId": "super-fang",
+    "graphic": "PRAS- Bite",
+    "jsonFile": "super-fang.json"
+  },
+  "supercell-slam": {
+    "moveId": "supercell-slam",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "supercell-slam.json"
+  },
+  "superpower": {
+    "moveId": "superpower",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "superpower.json"
+  },
+  "supersonic": {
+    "moveId": "supersonic",
+    "graphic": "PRAS- Supersonic",
+    "jsonFile": "supersonic.json"
+  },
+  "surf": {
+    "moveId": "surf",
+    "graphic": "",
+    "jsonFile": "surf.json"
+  },
+  "surging-strikes": {
+    "moveId": "surging-strikes",
+    "graphic": "GEN8- Surging Strikes",
+    "jsonFile": "surging-strikes.json"
+  },
+  "swagger": {
+    "moveId": "swagger",
+    "graphic": "PRAS- Swagger",
+    "jsonFile": "swagger.json"
+  },
+  "swallow": {
+    "moveId": "swallow",
+    "graphic": "PRAS- Swap",
+    "jsonFile": "swallow.json"
+  },
+  "sweet-kiss": {
+    "moveId": "sweet-kiss",
+    "graphic": "PRAS- Love",
+    "jsonFile": "sweet-kiss.json"
+  },
+  "sweet-scent": {
+    "moveId": "sweet-scent",
+    "graphic": "PRAS- Sweet Scent",
+    "jsonFile": "sweet-scent.json"
+  },
+  "swift": {
+    "moveId": "swift",
+    "graphic": "PRAS- Swift",
+    "jsonFile": "swift.json"
+  },
+  "switcheroo": {
+    "moveId": "switcheroo",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "switcheroo.json"
+  },
+  "swords-dance": {
+    "moveId": "swords-dance",
+    "graphic": "PRAS- Swords Dance + Signal Beam",
+    "jsonFile": "swords-dance.json"
+  },
+  "synchronoise": {
+    "moveId": "synchronoise",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "synchronoise.json"
+  },
+  "synthesis": {
+    "moveId": "synthesis",
+    "graphic": "PRAS- Orbs",
+    "jsonFile": "synthesis.json"
+  },
+  "syrup-bomb": {
+    "moveId": "syrup-bomb",
+    "graphic": "GEN8- Apple Acid",
+    "jsonFile": "syrup-bomb.json"
+  },
+  "tachyon-cutter": {
+    "moveId": "tachyon-cutter",
+    "graphic": "PRAS- Psycho Cut",
+    "jsonFile": "tachyon-cutter.json"
+  },
+  "tackle": {
+    "moveId": "tackle",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "tackle.json"
+  },
+  "tail-glow": {
+    "moveId": "tail-glow",
+    "graphic": "PRAS- Tail Glow",
+    "jsonFile": "tail-glow.json"
+  },
+  "tail-slap": {
+    "moveId": "tail-slap",
+    "graphic": "PRAS- Tail slap",
+    "jsonFile": "tail-slap.json"
+  },
+  "tail-whip": {
+    "moveId": "tail-whip",
+    "graphic": "PRAS- Tail Glow",
+    "jsonFile": "tail-whip.json"
+  },
+  "tailwind": {
+    "moveId": "tailwind",
+    "graphic": "PRAS- Tailwind",
+    "jsonFile": "tailwind.json"
+  },
+  "take-down": {
+    "moveId": "take-down",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "take-down.json"
+  },
+  "take-heart": {
+    "moveId": "take-heart",
+    "graphic": "PRAS- Love",
+    "jsonFile": "take-heart.json"
+  },
+  "tar-shot": {
+    "moveId": "tar-shot",
+    "graphic": "GEN8- Tar Shot",
+    "jsonFile": "tar-shot.json"
+  },
+  "taunt": {
+    "moveId": "taunt",
+    "graphic": "PRAS- Taunt",
+    "jsonFile": "taunt.json"
+  },
+  "tearful-look": {
+    "moveId": "tearful-look",
+    "graphic": "PRAS- Baby Doll Eyes",
+    "jsonFile": "tearful-look.json"
+  },
+  "teatime": {
+    "moveId": "teatime",
+    "graphic": "GEN8- Tea Time",
+    "jsonFile": "teatime.json"
+  },
+  "techno-blast": {
+    "moveId": "techno-blast",
+    "graphic": "PRAS- Techno Blast",
+    "jsonFile": "techno-blast.json"
+  },
+  "teeter-dance": {
+    "moveId": "teeter-dance",
+    "graphic": "",
+    "jsonFile": "teeter-dance.json"
+  },
+  "telekinesis": {
+    "moveId": "telekinesis",
+    "graphic": "",
+    "jsonFile": "telekinesis.json"
+  },
+  "teleport": {
+    "moveId": "teleport",
+    "graphic": "PRAS- Teleport",
+    "jsonFile": "teleport.json"
+  },
+  "temper-flare": {
+    "moveId": "temper-flare",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "temper-flare.json"
+  },
+  "terrain-pulse": {
+    "moveId": "terrain-pulse",
+    "graphic": "PRAS- Soft Boil",
+    "jsonFile": "terrain-pulse.json"
+  },
+  "thief": {
+    "moveId": "thief",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "thief.json"
+  },
+  "thousand-arrows": {
+    "moveId": "thousand-arrows",
+    "graphic": "PRAS- ThousandWA",
+    "jsonFile": "thousand-arrows.json"
+  },
+  "thousand-waves": {
+    "moveId": "thousand-waves",
+    "graphic": "PRAS- ThousandWA",
+    "jsonFile": "thousand-waves.json"
+  },
+  "thrash": {
+    "moveId": "thrash",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "thrash.json"
+  },
+  "throat-chop": {
+    "moveId": "throat-chop",
+    "graphic": "PRAS- Sound",
+    "jsonFile": "throat-chop.json"
+  },
+  "thunder-cage": {
+    "moveId": "thunder-cage",
+    "graphic": "GEN8- Thundercage",
+    "jsonFile": "thunder-cage.json"
+  },
+  "thunder-fang": {
+    "moveId": "thunder-fang",
+    "graphic": "PRAS- Elemental Fangs",
+    "jsonFile": "thunder-fang.json"
+  },
+  "thunder-punch": {
+    "moveId": "thunder-punch",
+    "graphic": "PRAS- Elemental Punch",
+    "jsonFile": "thunder-punch.json"
+  },
+  "thunder-shock": {
+    "moveId": "thunder-shock",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "thunder-shock.json"
+  },
+  "thunder-wave": {
+    "moveId": "thunder-wave",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "thunder-wave.json"
+  },
+  "thunder": {
+    "moveId": "thunder",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "thunder.json"
+  },
+  "thunderbolt": {
+    "moveId": "thunderbolt",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "thunderbolt.json"
+  },
+  "thunderclap": {
+    "moveId": "thunderclap",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "thunderclap.json"
+  },
+  "thunderous-kick": {
+    "moveId": "thunderous-kick",
+    "graphic": "Thunderous kick",
+    "jsonFile": "thunderous-kick.json"
+  },
+  "tickle": {
+    "moveId": "tickle",
+    "graphic": "",
+    "jsonFile": "tickle.json"
+  },
+  "tidy-up": {
+    "moveId": "tidy-up",
+    "graphic": "PRAS- Rock Polish",
+    "jsonFile": "tidy-up.json"
+  },
+  "topsy-turvy": {
+    "moveId": "topsy-turvy",
+    "graphic": "",
+    "jsonFile": "topsy-turvy.json"
+  },
+  "torch-song": {
+    "moveId": "torch-song",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "torch-song.json"
+  },
+  "torment": {
+    "moveId": "torment",
+    "graphic": "PRAS- Torment",
+    "jsonFile": "torment.json"
+  },
+  "toxic-spikes": {
+    "moveId": "toxic-spikes",
+    "graphic": "PRAS- Spikes",
+    "jsonFile": "toxic-spikes.json"
+  },
+  "toxic-thread": {
+    "moveId": "toxic-thread",
+    "graphic": "PRAS- String Shot",
+    "jsonFile": "toxic-thread.json"
+  },
+  "toxic": {
+    "moveId": "toxic",
+    "graphic": "PRAS- Poison",
+    "jsonFile": "toxic.json"
+  },
+  "trailblaze": {
+    "moveId": "trailblaze",
+    "graphic": "PRAS- Leaf Tornado",
+    "jsonFile": "trailblaze.json"
+  },
+  "transform": {
+    "moveId": "transform",
+    "graphic": "",
+    "jsonFile": "transform.json"
+  },
+  "tri-attack": {
+    "moveId": "tri-attack",
+    "graphic": "PRAS- Tri Attack",
+    "jsonFile": "tri-attack.json"
+  },
+  "trick-or-treat": {
+    "moveId": "trick-or-treat",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "trick-or-treat.json"
+  },
+  "trick-room": {
+    "moveId": "trick-room",
+    "graphic": "",
+    "jsonFile": "trick-room.json"
+  },
+  "trick": {
+    "moveId": "trick",
+    "graphic": "PRAS- Trick",
+    "jsonFile": "trick.json"
+  },
+  "triple-arrows": {
+    "moveId": "triple-arrows",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "triple-arrows.json"
+  },
+  "triple-axel": {
+    "moveId": "triple-axel",
+    "graphic": "GEN8- Elemental Punch",
+    "jsonFile": "triple-axel.json"
+  },
+  "triple-dive": {
+    "moveId": "triple-dive",
+    "graphic": "PRAS- Water",
+    "jsonFile": "triple-dive.json"
+  },
+  "triple-kick": {
+    "moveId": "triple-kick",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "triple-kick.json"
+  },
+  "trop-kick": {
+    "moveId": "trop-kick",
+    "graphic": "PRAS- Trop Kick",
+    "jsonFile": "trop-kick.json"
+  },
+  "trump-card": {
+    "moveId": "trump-card",
+    "graphic": "PRAS- Trump card",
+    "jsonFile": "trump-card.json"
+  },
+  "twin-beam": {
+    "moveId": "twin-beam",
+    "graphic": "Gen9- TwinBeam",
+    "jsonFile": "twin-beam.json"
+  },
+  "twineedle": {
+    "moveId": "twineedle",
+    "graphic": "PRAS- Megahorn",
+    "jsonFile": "twineedle.json"
+  },
+  "twister": {
+    "moveId": "twister",
+    "graphic": "PRAS- Twister",
+    "jsonFile": "twister.json"
+  },
+  "u-turn": {
+    "moveId": "u-turn",
+    "graphic": "PRAS- U-Turn",
+    "jsonFile": "u-turn.json"
+  },
+  "upper-hand": {
+    "moveId": "upper-hand",
+    "graphic": "PRAS- Force Palm",
+    "jsonFile": "upper-hand.json"
+  },
+  "uproar": {
+    "moveId": "uproar",
+    "graphic": "PRAS- Uproar",
+    "jsonFile": "uproar.json"
+  },
+  "v-create": {
+    "moveId": "v-create",
+    "graphic": "PRAS- Fire",
+    "jsonFile": "v-create.json"
+  },
+  "vacuum-wave": {
+    "moveId": "vacuum-wave",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "vacuum-wave.json"
+  },
+  "veevee-volley": {
+    "moveId": "veevee-volley",
+    "graphic": "PRAS- Love",
+    "jsonFile": "veevee-volley.json"
+  },
+  "venom-drench": {
+    "moveId": "venom-drench",
+    "graphic": "PRAS- Venom Drench",
+    "jsonFile": "venom-drench.json"
+  },
+  "venoshock": {
+    "moveId": "venoshock",
+    "graphic": "PRAS- Venoshock",
+    "jsonFile": "venoshock.json"
+  },
+  "victory-dance": {
+    "moveId": "victory-dance",
+    "graphic": "003-Attack01",
+    "jsonFile": "victory-dance.json"
+  },
+  "vine-whip": {
+    "moveId": "vine-whip",
+    "graphic": "PRAS- Grass",
+    "jsonFile": "vine-whip.json"
+  },
+  "vise-grip": {
+    "moveId": "vise-grip",
+    "graphic": "PRAS- Vice Grip",
+    "jsonFile": "vise-grip.json"
+  },
+  "vital-throw": {
+    "moveId": "vital-throw",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "vital-throw.json"
+  },
+  "volt-switch": {
+    "moveId": "volt-switch",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "volt-switch.json"
+  },
+  "volt-tackle": {
+    "moveId": "volt-tackle",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "volt-tackle.json"
+  },
+  "wake-up-slap": {
+    "moveId": "wake-up-slap",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "wake-up-slap.json"
+  },
+  "water-gun": {
+    "moveId": "water-gun",
+    "graphic": "PRAS- Water",
+    "jsonFile": "water-gun.json"
+  },
+  "water-pledge": {
+    "moveId": "water-pledge",
+    "graphic": "PRAS- Water",
+    "jsonFile": "water-pledge.json"
+  },
+  "water-pulse": {
+    "moveId": "water-pulse",
+    "graphic": "PRAS- Water Pulse",
+    "jsonFile": "water-pulse.json"
+  },
+  "water-shuriken": {
+    "moveId": "water-shuriken",
+    "graphic": "PRAS- Water Shuriken",
+    "jsonFile": "water-shuriken.json"
+  },
+  "water-sport": {
+    "moveId": "water-sport",
+    "graphic": "PRAS- Water",
+    "jsonFile": "water-sport.json"
+  },
+  "water-spout": {
+    "moveId": "water-spout",
+    "graphic": "PRAS- Water",
+    "jsonFile": "water-spout.json"
+  },
+  "waterfall": {
+    "moveId": "waterfall",
+    "graphic": "PRAS- Water",
+    "jsonFile": "waterfall.json"
+  },
+  "wave-crash": {
+    "moveId": "wave-crash",
+    "graphic": "PRAS- Origin Pulse",
+    "jsonFile": "wave-crash.json"
+  },
+  "weather-ball": {
+    "moveId": "weather-ball",
+    "graphic": "PRAS- Weatherball",
+    "jsonFile": "weather-ball.json"
+  },
+  "whirlpool": {
+    "moveId": "whirlpool",
+    "graphic": "PRAS- Whirlpool",
+    "jsonFile": "whirlpool.json"
+  },
+  "whirlwind": {
+    "moveId": "whirlwind",
+    "graphic": "PRAS- Twister",
+    "jsonFile": "whirlwind.json"
+  },
+  "wicked-blow": {
+    "moveId": "wicked-blow",
+    "graphic": "PRAS- Elemental Punch",
+    "jsonFile": "wicked-blow.json"
+  },
+  "wicked-torque": {
+    "moveId": "wicked-torque",
+    "graphic": "PRAS- Coil",
+    "jsonFile": "wicked-torque.json"
+  },
+  "wide-guard": {
+    "moveId": "wide-guard",
+    "graphic": "PRAS- Lucky Chant",
+    "jsonFile": "wide-guard.json"
+  },
+  "wild-charge": {
+    "moveId": "wild-charge",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "wild-charge.json"
+  },
+  "wildbolt-storm": {
+    "moveId": "wildbolt-storm",
+    "graphic": "Majesty - Wildbolt Storm",
+    "jsonFile": "wildbolt-storm.json"
+  },
+  "will-o-wisp": {
+    "moveId": "will-o-wisp",
+    "graphic": "PRAS- Will O Wisp",
+    "jsonFile": "will-o-wisp.json"
+  },
+  "wing-attack": {
+    "moveId": "wing-attack",
+    "graphic": "PRAS- Slash",
+    "jsonFile": "wing-attack.json"
+  },
+  "wish": {
+    "moveId": "wish",
+    "graphic": "PRAS- Wish",
+    "jsonFile": "wish.json"
+  },
+  "withdraw": {
+    "moveId": "withdraw",
+    "graphic": "PRAS- Withdraw",
+    "jsonFile": "withdraw.json"
+  },
+  "wonder-room": {
+    "moveId": "wonder-room",
+    "graphic": "",
+    "jsonFile": "wonder-room.json"
+  },
+  "wood-hammer": {
+    "moveId": "wood-hammer",
+    "graphic": "PRAS- Wood Hammer",
+    "jsonFile": "wood-hammer.json"
+  },
+  "work-up": {
+    "moveId": "work-up",
+    "graphic": "PRAS- Revenge",
+    "jsonFile": "work-up.json"
+  },
+  "worry-seed": {
+    "moveId": "worry-seed",
+    "graphic": "PRAS- Worry Seed",
+    "jsonFile": "worry-seed.json"
+  },
+  "wrap": {
+    "moveId": "wrap",
+    "graphic": "PRAS- Wrapping",
+    "jsonFile": "wrap.json"
+  },
+  "wring-out": {
+    "moveId": "wring-out",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "wring-out.json"
+  },
+  "x-scissor": {
+    "moveId": "x-scissor",
+    "graphic": "PRAS- X Scissor",
+    "jsonFile": "x-scissor.json"
+  },
+  "yawn": {
+    "moveId": "yawn",
+    "graphic": "PRAS- Yawn",
+    "jsonFile": "yawn.json"
+  },
+  "zap-cannon": {
+    "moveId": "zap-cannon",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "zap-cannon.json"
+  },
+  "zen-headbutt": {
+    "moveId": "zen-headbutt",
+    "graphic": "PRAS- Strike",
+    "jsonFile": "zen-headbutt.json"
+  },
+  "zing-zap": {
+    "moveId": "zing-zap",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "zing-zap.json"
+  },
+  "zippy-zap": {
+    "moveId": "zippy-zap",
+    "graphic": "PRAS- Electric",
+    "jsonFile": "zippy-zap.json"
+  }
+}

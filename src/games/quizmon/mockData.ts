@@ -142,5 +142,7 @@ export function createInitialBattleState(): BattleState {
         questionStartedAt: null,
         lastQuizResult: null,
         logs: [],
+        lastPlayerMoveId: null,  // ✅
+        lastEnemyMoveId: null,   // ✅
     };
 }

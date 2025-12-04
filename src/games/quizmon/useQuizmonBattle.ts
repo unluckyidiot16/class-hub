@@ -511,18 +511,31 @@ export function useQuizmonBattle(
         setState((prev) => {
             const hasPendingSwitch = prev.pendingPlayerSwitchIndex != null;
             const hasPendingMove = !!prev.pendingPlayerMove;
+          
             if (!hasPendingMove && !hasPendingSwitch) {
                 return {
                     ...prev,
                     lastQuizResult: quizResult,
+                    // 🔹 이 턴에는 공격/교체 둘 다 없으니 moveId도 비워줌
+                    lastPlayerMoveId: null,
+                    lastEnemyMoveId: null,
                     phase: "command",
                     currentQuestion: null,
                     questionStartedAt: null,
                 };
             }
 
-            let next: BattleState = { ...prev, lastQuizResult: quizResult };
+            // ✅ 여기서 이번 턴에 사용한 기술을 먼저 뽑아둔다
+            const playerMoveId = prev.pendingPlayerMove?.move.id ?? null;
+            const enemyMoveId = prev.pendingEnemyMove?.move.id ?? null;
 
+            let next: BattleState = {
+                ...prev,
+                lastQuizResult: quizResult,
+                lastPlayerMoveId: playerMoveId,
+                lastEnemyMoveId: enemyMoveId,
+            };
+            
             // 🔹 1) 교체 액션 우선 처리
             if (hasPendingSwitch) {
                 const switchIndex = prev.pendingPlayerSwitchIndex!;
@@ -543,6 +556,9 @@ export function useQuizmonBattle(
                         currentQuestion: null,
                         questionStartedAt: null,
                         phase: "command",
+                        // 교체 실패이므로 moveId는 남겨둘 이유 없음
+                        lastPlayerMoveId: null,
+                        lastEnemyMoveId: null,
                     };
                 }
 
@@ -573,6 +589,8 @@ export function useQuizmonBattle(
                         currentQuestion: null,
                         questionStartedAt: null,
                         phase: "command",
+                        lastPlayerMoveId: null,  // 플레이어 공격 없음
+                        lastEnemyMoveId: null,   // 적 무료 공격 없음
                     };
                 }
 
@@ -598,6 +616,8 @@ export function useQuizmonBattle(
                         enemyMove, // 공격 기술
                         enemyQuizMod,
                     );
+
+                    next = { ...next, lastEnemyMoveId: enemyMove.id };
 
                     let enemyLog = `[적] ${enemyMove.name}으로 교체한 ${defenderBefore.name}(을)를 노렸습니다! `;
                     if (rollHit(enemyHitChance)) {
@@ -638,6 +658,13 @@ export function useQuizmonBattle(
                         if (isCritical) {
                             enemyLog += " 급소에 맞았다!";
                         }
+
+                        // ✅ 이 턴의 공격은 "적 무료 공격"뿐 → moveId를 여기서 덮어쓴다
+                        next = {
+                            ...next,
+                            lastPlayerMoveId: null,
+                            lastEnemyMoveId: enemyMove.id,
+                        };
 
                         // 🔹 팝업 (타겟: player)
                         spawnDamagePopup(
@@ -804,6 +831,7 @@ export function useQuizmonBattle(
                         ...prev.enemy,
                         monsters: newEnemyMons,
                     },
+                    lastPlayerMoveId: pendingPlayerMove.move.id,
                 };
 
                 playerLog += `${dmg} 데미지! (HP ${prevEnemyMon.hp} → ${newEnemyMon.hp})`;
@@ -822,10 +850,14 @@ export function useQuizmonBattle(
                     playerLog += " 급소에 맞았다!";
                 }
 
-                // 🔹 데미지 팝업 (타겟: enemy)
                 spawnDamagePopup("enemy", dmg, isCritical, effectiveness);
             } else {
                 playerLog += "하지만 빗나갔다!";
+                // 맞든 빗나가든, 이 턴에 사용한 기술은 동일하니까
+                next = {
+                    ...next,
+                    lastPlayerMoveId: pendingPlayerMove.move.id,
+                };
             }
 
             next = pushLog(next, playerLog);
@@ -868,6 +900,8 @@ export function useQuizmonBattle(
                                 ...prev.player,
                                 monsters: newPlayerMons,
                             },
+                            // ✅ 적이 실제로 쓴 기술 id
+                            lastEnemyMoveId: pendingEnemyMove.move.id,
                         };
 
                         enemyLog += `${dmg} 데미지! (HP ${prevPlayerMon.hp} → ${newPlayerMon.hp})`;
@@ -892,10 +926,28 @@ export function useQuizmonBattle(
                         );
                     } else {
                         enemyLog += "빗나갔다!";
+                        // 빗나가도 이 턴 적이 시전한 기술은 동일
+                        next = {
+                            ...next,
+                            lastEnemyMoveId: pendingEnemyMove.move.id,
+                        };
                     }
 
                     next = pushLog(next, enemyLog);
+                } else {
+                    // 적이 공격할 스킬이 없는 경우 → lastEnemyMoveId 비우기
+                    next = {
+                        ...next,
+                        lastEnemyMoveId: null,
+                    };
                 }
+            } else {
+                // 🔴 적이 이미 쓰러져서 반격 자체가 없으면
+                //     → lastEnemyMoveId는 반드시 null로 정리
+                next = {
+                    ...next,
+                    lastEnemyMoveId: null,
+                };
             }
 
 
