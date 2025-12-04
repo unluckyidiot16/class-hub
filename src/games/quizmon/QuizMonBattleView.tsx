@@ -11,6 +11,7 @@ import type {
 import { HpBar } from "./HpBar";
 import { getElementLabelAndColor } from "./elementUtils";
 
+
 function getStatusInfo(mon: Monster): { label: string; color: string } | null {
     const anyMon = mon as any;
 
@@ -680,124 +681,104 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
 
 
             {/* ========================================================= */}
-            {/* 4. 플레이어(Player) 정보창: 화면 우측 하단 (right: 5%, bottom: 30%) */}
+            {/* 플레이어 측: 하단 좌측 포켓몬 + HP */}
             {/* **핵심**: 스프라이트 반대편에 위치하여 겹침 방지 */}
             {/* ========================================================= */}
-            {/* 플레이어 측: 하단 좌측 포켓몬 + HP */}
+            {/* 플레이어 측: 하단 좌측 HP / 상태창 */}
             <div
                 style={{
                     position: "absolute",
-                    left: 16,
-                    bottom: 128,
-                    display: "flex",
-                    alignItems: "flex-end",
-                    gap: 12,
+                    left: "6%",          // 조금 안쪽으로
+                    bottom: "24%",       // 하단 커맨드 패널 위로 올리기 (대략 20~25% 구간)
+                    minWidth: 180,
+                    padding: "0.35rem 0.5rem",
+                    borderRadius: 8,
+                    background: "rgba(15,23,42,0.92)",
+                    border: "1px solid #020617",
+                    textAlign: "left",
+                    fontSize: 12,
                 }}
             >
+                {/* 이름 + 레벨 */}
                 <div
                     style={{
-                        width: 96,
-                        height: 96,
                         display: "flex",
-                        alignItems: "flex-end",
-                        justifyContent: "flex-start",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 2,
                     }}
                 >
-                    
-                </div>
-
-                <div
-                    style={{
-                        minWidth: 180,
-                        padding: "0.35rem 0.5rem",
-                        borderRadius: 8,
-                        background: "rgba(15,23,42,0.92)",
-                        border: "1px solid #020617",
-                        textAlign: "left",
-                        fontSize: 12,
-                    }}
-                >
-                    {/* 이름 + 레벨 */}
+                    <div style={{ fontWeight: 700 }}>
+                        {playerMon.name}
+                    </div>
                     <div
                         style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: 2,
+                            fontSize: 11,
+                            color: "#fbbf24",
                         }}
                     >
-                        <div style={{ fontWeight: 700 }}>
-                            {playerMon.name}
-                        </div>
-                        <div
-                            style={{
-                                fontSize: 11,
-                                color: "#fbbf24",
-                            }}
-                        >
-                            Lv.{playerMon.level}
-                        </div>
+                        Lv.{playerMon.level}
                     </div>
+                </div>
 
-                    {/* 속성 / 상태이상 */}
+                {/* 속성 / 상태이상 */}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 2,
+                        gap: 4,
+                    }}
+                >
                     <div
                         style={{
+                            flex: 1,
                             display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: 2,
+                            justifyContent: "flex-start",
                             gap: 4,
                         }}
                     >
-                        <div
-                            style={{
-                                flex: 1,
-                                display: "flex",
-                                justifyContent: "flex-start",
-                                gap: 4,
-                            }}
-                        >
-                            {playerElement && (
-                                <span
-                                    style={{
-                                        fontSize: 10,
-                                        padding: "1px 6px",
-                                        borderRadius: 9999,
-                                        border: "1px solid rgba(148,163,184,0.6)",
-                                        color: playerElement.color,
-                                    }}
-                                >
-                                    {playerElement.label}
-                                </span>
-                            )}
-                        </div>
-                        {playerStatus && (
+                        {playerElement && (
                             <span
                                 style={{
                                     fontSize: 10,
                                     padding: "1px 6px",
                                     borderRadius: 9999,
                                     border: "1px solid rgba(148,163,184,0.6)",
-                                    background: "rgba(15,23,42,0.9)",
-                                    color: playerStatus.color,
+                                    color: playerElement.color,
                                 }}
                             >
-                                {playerStatus.label}
-                            </span>
+                    {playerElement.label}
+                </span>
                         )}
                     </div>
-
-                    {/* HP */}
-                    <div
-                        style={{
-                            fontSize: 11,
-                            marginBottom: 2,
-                        }}
-                    >
-                        HP {playerMon.hp}/{playerMon.maxHp}
-                    </div>
-                    <HpBar current={playerMon.hp} max={playerMon.maxHp} />
+                    {playerStatus && (
+                        <span
+                            style={{
+                                fontSize: 10,
+                                padding: "1px 6px",
+                                borderRadius: 9999,
+                                border: "1px solid rgba(148,163,184,0.6)",
+                                background: "rgba(15,23,42,0.9)",
+                                color: playerStatus.color,
+                            }}
+                        >
+                {playerStatus.label}
+            </span>
+                    )}
                 </div>
+
+                {/* HP */}
+                <div
+                    style={{
+                        fontSize: 11,
+                        marginBottom: 2,
+                    }}
+                >
+                    HP {playerMon.hp}/{playerMon.maxHp}
+                </div>
+                <HpBar current={playerMon.hp} max={playerMon.maxHp} />
             </div>
 
 
