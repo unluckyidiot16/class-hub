@@ -238,10 +238,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
         isClassRaid ? "raid" : "dungeon",
     );
 
-    // 🔹 현재 선택된 던전 (UI용)
-    const [selectedDungeonId, setSelectedDungeonId] = useState<string>(
-        DUNGEON_CONFIGS[0]?.id ?? "forest-easy-1",
-    );
+    // 🔹 가장 첫 번째 던전을 기본값으로 사용 (이때부터 9개든 3개든 상관 없음)
+    const [selectedDungeonId, setSelectedDungeonId] = useState<string>(() => {
+        return DUNGEON_CONFIGS[0]?.id ?? "";
+    });
 
     const canPaidGacha =
         !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
@@ -351,8 +351,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
      * profileId 기준으로 quizmon_owned_monsters(파티 1~3번)를 불러와
      * 실제 전투용 Monster 배열을 만들고, 그걸로 배틀 상태를 리셋한다.
      */
-    const resetBattleWithProfileParty = async (profileId: string) => {
+    const resetBattleWithProfileParty = async (
+        profileId: string,
+        modeOverride?: "raid" | "dungeon",
+    ) => {
         try {
+            const effectiveMode = modeOverride ?? battleMode;  // ⭐ 이번 리셋에서 사용할 모드
             // 1) 파티 슬롯 1~3인 owned 몬스터 로딩
             const { data: ownedData, error: ownedError } = await supabase
                 .from("quizmon_owned_monsters")
@@ -454,10 +458,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
             let chosenEnemySlots: EnemySlot[] = [];
 
 
-            // 🔹 레이드 모드일 경우, 보스 종 ID도 species 로딩 대상에 포함
             let raidBossSpeciesId: string | null = null;
             if (
-                battleMode === "raid" &&
+                // 기존: battleMode === "raid"
+                effectiveMode === "raid" &&
                 activeRaidSession &&
                 activeRaidSession.boss_species_id
             ) {
@@ -466,7 +470,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             
             let enemySetSpeciesIds: string[] = [];
 
-            if (battleMode === "dungeon") {
+            if (effectiveMode === "dungeon") {
                 const currentDungeon =
                     DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ?? null;
 
@@ -614,7 +618,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             // 🔹 ENEMY_SETS 기반 적 파티 생성 (던전 모드 전용)
             let enemyMonsters: Monster[] = [];
 
-            if (battleMode === "dungeon" && currentDungeon?.enemySetId) {
+            if (effectiveMode === "dungeon" && currentDungeon?.enemySetId) {
                 // 1) 이번 전투에서 사용할 기본 슬롯: 위에서 뽑아둔 랜덤 세트 우선
                 const baseSlots =
                     chosenEnemySlots.length > 0
@@ -694,7 +698,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
 // 🔹 레이드 모드: 현재 열린 레이드 보스를 단일 적 몬스터로 생성
             if (
-                battleMode === "raid" &&
+                effectiveMode === "raid" &&
                 activeRaidSession &&
                 activeRaidSession.boss_species_id
             ) {
@@ -979,7 +983,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         props.onRefreshCollection,
     ]);
 
-    const handleReset = () => {
+    const handleReset = (modeOverride?: "raid" | "dungeon") => {
         // 🔹 새 레이드마다 문제 순서도 다시 셔플
         if (questions.length > 0) {
             const indices = questions.map((_, idx) => idx);
@@ -992,7 +996,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
         if (profileId) {
             // 학생 프로필이 있으면 항상 "실제 파티" 기준으로 리셋
-            void resetBattleWithProfileParty(profileId);
+            void resetBattleWithProfileParty(profileId, modeOverride);
         } else {
             // fallback: mock 상태로 리셋
             setState(createInitialBattleState());
@@ -1237,7 +1241,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     return;
                                 }
                                 setBattleMode("raid");
-                                handleReset(); // 프로필 파티 기준으로 전투 리셋 + 배틀 진입
+                                handleReset("raid");   // ⭐ 이번 리셋은 "레이드" 모드
                             }}
 
                             onSelectGacha={() => {
@@ -1425,9 +1429,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                         type="button"
                                         onClick={() => {
                                             console.log("[QuizMonGame] Start dungeon:", selectedDungeonId);
-                                            setBattleMode("dungeon");   // ✅ 던전 모드로 고정
-                                            handleReset();              // 새 배틀 상태로 리셋
-                                            setViewState("battle");     // 배틀 화면으로 진입
+                                            setBattleMode("dungeon");
+                                            handleReset("dungeon");   // ⭐ 이번 리셋은 "던전" 모드라고 명시
+                                            setViewState("battle");
                                         }}
 
                                         style={{
@@ -1712,21 +1716,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     }}
                 >
                     메인 메뉴
-                </button>
-                <button
-                    type="button"
-                    onClick={handleReset}
-                    style={{
-                        padding: "0.35rem 0.9rem",
-                        borderRadius: 999,
-                        border: "1px solid #4b5563",
-                        background: "#020617",
-                        color: "#e5e7eb",
-                        cursor: "pointer",
-                        marginLeft: "0.5rem",
-                    }}
-                >
-                    배틀 리셋
                 </button>
                 <span
                     style={{
