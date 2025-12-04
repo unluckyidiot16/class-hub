@@ -7,6 +7,8 @@ import {
     loadStarShopEntries,
     purchaseSpeciesWithStarShards,
 } from "./starShop";
+import { getMonsterIcon } from "./assets"; // ✅ 아이콘 유틸 추가
+
 
 export type StarShopTabProps = {
     profile: QuizmonProfileRow | null;
@@ -227,27 +229,67 @@ export function StarShopTab(props: StarShopTabProps) {
                                 gap: 6,
                             }}
                         >
+                            {/* 🔹 이름/타입 + 아이콘 */}
                             <div
                                 style={{
-                                    fontSize: 13,
-                                    fontWeight: 600,
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    gap: 8,
                                 }}
                             >
-                                {species.name}
-                            </div>
-                            <div
-                                style={{
-                                    fontSize: 11,
-                                    color: "#9ca3af",
-                                }}
-                            >
-                                #{species.pokedex_no ?? "??"} ·{" "}
-                                {species.element}
-                                {species.element2
-                                    ? ` / ${species.element2}`
-                                    : ""}
+                                <div>
+                                    <div
+                                        style={{
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {species.name}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: 11,
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                                        #{species.pokedex_no ?? "??"} · {species.element}
+                                        {species.element2 ? ` / ${species.element2}` : ""}
+                                    </div>
+                                </div>
+
+                                <div
+                                    style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 10,
+                                        backgroundColor: "rgba(15,23,42,0.95)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        overflow: "hidden",
+                                    }}
+                                >
+                                    {(() => {
+                                        const iconUrl = getMonsterIcon(species.id);
+                                        return (
+                                            iconUrl && (
+                                                <img
+                                                    src={iconUrl}
+                                                    alt={species.name}
+                                                    style={{
+                                                        width: 36,
+                                                        height: 36,
+                                                        imageRendering: "pixelated",
+                                                    }}
+                                                />
+                                            )
+                                        );
+                                    })()}
+                                </div>
                             </div>
 
+                            {/* 🔹 가격 / 보유 여부 영역 (기존 그대로) */}
                             <div
                                 style={{
                                     marginTop: 4,
@@ -272,14 +314,13 @@ export function StarShopTab(props: StarShopTabProps) {
                                             fontSize: 11,
                                             padding: "2px 6px",
                                             borderRadius: 999,
-                                            backgroundColor:
-                                                "rgba(34,197,94,0.15)",
+                                            backgroundColor: "rgba(34,197,94,0.15)",
                                             color: "#bbf7d0",
                                             border: "1px solid rgba(34,197,94,0.4)",
                                         }}
                                     >
-                                        보유중
-                                    </span>
+                                    보유중
+                                 </span>
                                 )}
                             </div>
 
