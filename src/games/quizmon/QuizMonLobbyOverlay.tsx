@@ -32,6 +32,7 @@ export type QuizMonLobbyOverlayProps = {
     collectionLoading?: boolean;
     collectionError?: string | null;
     onHealAll?: () => void | Promise<void>;
+    onHealSelected?: (ownedMonsterId: string) => void | Promise<void>;
     onSaveParty?: (partyIds: (string | null)[]) => void | Promise<void>;
 
     canContinue: boolean;
@@ -57,11 +58,12 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         collectionLoading,
         collectionError,
         onHealAll,
+        onHealSelected,
         onSaveParty,
         canContinue,
         onContinue,
         onSelectDungeon,
-        onSelectRaid,     // 🔹 추가
+        onSelectRaid,
         onSelectGacha,
         lastRaidResult,
         onBuyExpDust,
@@ -420,6 +422,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             collectionError={collectionError}
                             onHealAll={onHealAll}
                             onSaveParty={onSaveParty}
+                            onHealSelected={onHealSelected}
                             // ✅ “도감에서 보기” 버튼 눌렀을 때
                             onNavigateToDex={(speciesId) => {
                                 setDexSelectedSpeciesId(speciesId);

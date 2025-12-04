@@ -17,7 +17,11 @@ import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import { getArenaSprite, getMonsterAnimJson, getMonsterSprite, getMonsterIcon, } from "./assets";
 import { SpriteAnimation } from "./SpriteAnimation";
 import { useGachaDraw } from "./useGachaDraw";
-import { QuizMonLobbyOverlay } from "./QuizMonLobbyOverlay"; // ⬅️ 새로 추가;
+import { QuizMonLobbyOverlay } from "./QuizMonLobbyOverlay";
+import {
+    healAllMonstersService,
+    healSingleMonsterService,
+    } from "./quizmonService";
 import { QuizMonBattleView } from "./QuizMonBattleView";
 import { QuizMonResultOverlay } from "./QuizMonResultOverlay";
 import { useQuizmonContext } from "./QuizmonProvider";
@@ -134,6 +138,33 @@ export function QuizMonGame(props: QuizMonGameProps) {
         useState<QuizmonRaidSessionRow | null>(null);
     const [raidSessionLoading, setRaidSessionLoading] = useState(false);
 
+    // 🩹 파티 전체 회복 – quizmonService.ts를 통해 일괄 처리
+    const handleHealAll = async () => {
+        if (!localProfile) return;
+        
+        try {
+            await healAllMonstersService(localProfile.id);
+            
+            // TODO: 필요하면 여기서 몬스터/프로필 리로드 함수 호출
+            // 예: await refreshCollection();, await reloadProfile();
+        } catch (error) {
+            console.error("[QuizMonGame] handleHealAll error", error);
+            alert("파티 전체 회복 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+        }
+    };
+    
+    // 🩹 개별 몬스터 회복 – 선택된 owned_monster_id 기준
+    const handleHealSelected = async (ownedMonsterId: string) => {
+        if (!localProfile) return;
+                   try {
+                       await healSingleMonsterService(localProfile.id, ownedMonsterId);
+            
+                       // TODO: 여기서도 마찬가지로 컬렉션/프로필 리로드 가능
+                   } catch (error) {
+                       console.error("[QuizMonGame] handleHealSelected error", error);
+                       alert("몬스터 회복 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+                   }
+           };
 
     // 🔹 가챠/재화용 프로필 로컬 상태 (부모 profile과 동기화)
     const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(
@@ -1400,7 +1431,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             monsters={props.monsters}
                             collectionLoading={props.collectionLoading}
                             collectionError={props.collectionError}
-                            onHealAll={props.onHealAll}
+                            onHealAll={handleHealAll}
+                            onHealSelected={handleHealSelected}
                             onSaveParty={handleSaveParty}
                             canContinue={canContinue}
                             onContinue={handleContinue}

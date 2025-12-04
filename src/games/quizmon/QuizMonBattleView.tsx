@@ -1,5 +1,5 @@
 // src/games/quizmon/QuizMonBattleView.tsx
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type {
     BattleState,
@@ -8,6 +8,9 @@ import type {
     Monster,
 } from "./types";
 import { HpBar } from "./HpBar";
+
+type AttackPhase = "idle" | "playerAttack" | "enemyAttack" | "comment";
+
 
 type QuizBottomPanelProps = {
     phase: BattleState["phase"];
@@ -20,6 +23,8 @@ type QuizBottomPanelProps = {
     onAnswer: (index: number) => void;
     canSwitch: boolean;
     onOpenSwitchModal: () => void;
+
+    attackPhase: AttackPhase;
 };
 
 /** 하단 명령 / 퀴즈 패널 */
@@ -35,25 +40,41 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         onAnswer,
         canSwitch,
         onOpenSwitchModal,
+        attackPhase,
     } = props;
 
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
     const isFinished = phase === "finished";
+    const isAnimating = attackPhase !== "idle";
 
     // 하단 메인 텍스트
     let mainText: string;
     if (isQuizPhase && currentQuestion) {
+        // 🔹 문제 퀴즈 단계
         mainText = currentQuestion.prompt;
-    } else if (!hasQuestions) {
-        mainText = "이 퀴즈팩에는 문제가 없습니다. (질문 0개)";
     } else if (isFinished) {
         mainText =
             "배틀이 종료되었습니다. 위의 결과를 확인한 뒤 리셋 버튼으로 다시 시작할 수 있어요.";
+    } else if (!hasQuestions) {
+        mainText = "이 퀴즈팩에는 문제가 없습니다. (질문 0개)";
+    } else if (isAnimating) {
+        // 🔹 공격/피격/코멘트 연출 단계
+        if (attackPhase === "playerAttack") {
+            mainText = `${playerName}의 공격!`;
+        } else if (attackPhase === "enemyAttack") {
+            mainText = "상대의 반격!";
+        } else {
+            // attackPhase === "comment"
+            mainText = "공격 결과를 확인해 보세요.";
+        }
     } else {
+        // 🔹 평상시 커맨드 텍스트
         mainText = `${playerName}은(는) 무엇을 할까?`;
     }
 
-    const showSkillGrid = !isQuizPhase && !isFinished;
+    // 🔹 애니메이션 중에는 스킬/교체 버튼 숨김
+    const showSkillGrid = !isQuizPhase && !isFinished && !isAnimating;
+
 
     return (
         <div
@@ -274,7 +295,12 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         enemySprite,
     } = props;
 
+
     const [showSwitchModal, setShowSwitchModal] = useState(false);
+
+    // 🔹 공격/피격/코멘트 애니메이션 단계
+    const [attackPhase, setAttackPhase] = useState<AttackPhase>("idle");
+    const lastResultKeyRef = useRef<string | null>(null);
 
     const canSwitch =
         state.phase === "command" &&
@@ -282,11 +308,55 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             (m, idx) => idx !== state.player.activeIndex && m.hp > 0,
         );
 
+    // 🔹 애니메이션 중에는 스킬 선택도 막는다
+    const effectiveCanSelectMove = canSelectMove && attackPhase === "idle";
+
+
     const hasQuestions = questions.length > 0;
     const currentQuestion =
         state.phase === "quiz"
             ? state.currentQuestion ?? null
             : null;
+
+
+    useEffect(() => {
+        const r = state.lastQuizResult;
+        if (!r) return;
+
+        // 같은 결과로 중복 실행되는 것 방지용 키
+        const key = `${r.questionId}-${r.chosenIndex}-${r.timeMs}`;
+        if (lastResultKeyRef.current === key) return;
+        lastResultKeyRef.current = key;
+
+        // 1) 플레이어 공격
+        setAttackPhase("playerAttack");
+
+        const PLAYER_MS = 600;
+        const ENEMY_MS = 600;
+        const COMMENT_MS = 500;
+
+        const t1 = window.setTimeout(() => {
+            // 2) 적 공격
+            setAttackPhase("enemyAttack");
+        }, PLAYER_MS);
+
+        const t2 = window.setTimeout(() => {
+            // 3) 코멘트 단계
+            setAttackPhase("comment");
+        }, PLAYER_MS + ENEMY_MS);
+
+        const t3 = window.setTimeout(() => {
+            // 4) 다음 턴 대기(입력 가능)
+            setAttackPhase("idle");
+        }, PLAYER_MS + ENEMY_MS + COMMENT_MS);
+
+        return () => {
+            window.clearTimeout(t1);
+            window.clearTimeout(t2);
+            window.clearTimeout(t3);
+        };
+    }, [state.lastQuizResult]);
+
 
     return (
         <>
@@ -350,16 +420,26 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     position: "absolute",
                     top: "12%",
                     right: "10%",
-                    width: "max(100px, 15vw)", // 크기도 약간 반응형
+                    width: "max(100px, 15vw)",
                     height: "max(100px, 15vw)",
                     display: "flex",
                     alignItems: "flex-end",
                     justifyContent: "flex-end",
                     zIndex: 10,
                 }}
+                className={[
+                    "qzmon-sprite",
+                    "qzmon-sprite-enemy",
+                    attackPhase === "enemyAttack"
+                        ? "qzmon-sprite-attack"
+                        : attackPhase === "playerAttack"
+                            ? "qzmon-sprite-hit"
+                            : "",
+                ].join(" ")}
             >
                 {enemySprite}
             </div>
+
 
             {/* ========================================================= */}
             {/* 3. 플레이어(Player) 스프라이트: 화면 좌측 하단 (left: 10%, bottom: 28%) */}
@@ -377,9 +457,19 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     justifyContent: "flex-start",
                     zIndex: 10,
                 }}
+                className={[
+                    "qzmon-sprite",
+                    "qzmon-sprite-player",
+                    attackPhase === "playerAttack"
+                        ? "qzmon-sprite-attack"
+                        : attackPhase === "enemyAttack"
+                            ? "qzmon-sprite-hit"
+                            : "",
+                ].join(" ")}
             >
                 {playerSprite}
             </div>
+
 
             {/* ========================================================= */}
             {/* 4. 플레이어(Player) 정보창: 화면 우측 하단 (right: 5%, bottom: 30%) */}
@@ -598,12 +688,13 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     currentQuestion={currentQuestion}
                     playerName={playerMon.name}
                     playerMoves={playerMon.moves}
-                    canSelectMove={canSelectMove}
+                    canSelectMove={effectiveCanSelectMove}
                     hasQuestions={hasQuestions}
                     onSelectMove={onSelectMove}
                     onAnswer={onAnswer}
                     canSwitch={canSwitch}
                     onOpenSwitchModal={() => setShowSwitchModal(true)}
+                    attackPhase={attackPhase}   // 🔹 추가
                 />
             </div>
         </>
