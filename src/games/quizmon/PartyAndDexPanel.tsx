@@ -134,6 +134,8 @@ function buildInitialPartyIds(
     return base;
 }
 
+// src/games/quizmon/PartyAndDexPanel.tsx
+
 export type PartyAndDexPanelProps = {
     profile: QuizmonProfileRow | null;
     monsters?: QuizmonOwnedMonsterRow[];
@@ -141,13 +143,15 @@ export type PartyAndDexPanelProps = {
     collectionError?: string | null;
     onPullFreeGacha?: () => void | Promise<void>; // 지금은 사용 안 하지만 타입 유지
     onHealAll?: () => void;
+    onHealSelected?: (monsterId: string) => void;   // ✅ 추가: 선택 몬스터만 회복
     onSaveParty?: (partyIds: (string | null)[]) => void | Promise<void>;
 
     onNavigateToDex?: (speciesId: string) => void;
 };
 
+
 export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
-    const { profile, onHealAll, onNavigateToDex } = props;
+    const { profile, onHealAll, onHealSelected, onNavigateToDex } = props;
 
     // 🔹 레벨업 등으로 즉시 반영하기 위한 로컬 override
     const [monsterOverrides, setMonsterOverrides] = useState<
@@ -1172,23 +1176,41 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                         marginTop: 8,
                                     }}
                                 >
-                                    {onHealAll && (
+                                    {/* ✅ 개별 회복 버튼: 선택된 파트너만 회복 */}
+                                    {onHealSelected && selected && (
                                         <button
                                             type="button"
-                                            onClick={onHealAll}
+                                            onClick={() => onHealSelected(selected.id)}
                                             style={{
-                                                padding:
-                                                    "0.35rem 0.7rem",
+                                                padding: "0.35rem 0.7rem",
                                                 borderRadius: 999,
                                                 border: "1px solid rgba(148,163,184,0.9)",
-                                                backgroundColor:
-                                                    "rgba(15,23,42,0.9)",
+                                                backgroundColor: "rgba(15,23,42,0.9)",
                                                 color: "#e5e7eb",
                                                 fontSize: "0.75rem",
                                                 cursor: "pointer",
                                             }}
                                         >
-                                            전체 회복
+                                            선택 몬스터 회복
+                                        </button>
+                                    )}
+
+                                    {/* ✅ 파티 전체 회복 버튼 */}
+                                    {onHealAll && (
+                                        <button
+                                            type="button"
+                                            onClick={onHealAll}
+                                            style={{
+                                                padding: "0.35rem 0.7rem",
+                                                borderRadius: 999,
+                                                border: "1px solid rgba(148,163,184,0.9)",
+                                                backgroundColor: "rgba(15,23,42,0.9)",
+                                                color: "#e5e7eb",
+                                                fontSize: "0.75rem",
+                                                cursor: "pointer",
+                                            }}
+                                        >
+                                            파티 전체 회복
                                         </button>
                                     )}
                                 </div>

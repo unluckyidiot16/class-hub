@@ -19,12 +19,26 @@ export type StarShopEntry = {
     alreadyOwned: boolean;
 };
 
+// ✅ 600족 / 전설 / 환상 여부 체크
+function isStarShardEligible(species: QuizmonSpeciesRow): boolean {
+    const sp: any = species;
+    const bst = sp.battle_stat_total as number | null | undefined;
+    const isLegendary = !!sp.is_legendary;
+    const isMythical = !!sp.is_mythical;
+
+    return (
+        isLegendary ||
+        isMythical ||
+        (bst != null && bst >= 600)
+    );
+}
+
 export async function loadStarShopEntries(options: {
     profileId: string | null;
 }): Promise<StarShopEntry[]> {
     const { profileId } = options;
 
-    // 1) 상점 row 조회
+    // 1) 상점 row 조회 (현재 코드 그대로)
     const { data: shopData, error: shopError } = await supabase
         .from("quizmon_star_shop")
         .select("species_id, star_shards_price, is_enabled, sort_order")
@@ -41,7 +55,7 @@ export async function loadStarShopEntries(options: {
 
     const speciesIds = shopRows.map((r) => r.species_id);
 
-    // 2) 종 마스터 로드
+    // 2) 종 마스터 로드 (현재 코드 그대로지만 *필요한 필드가 들어있는지*는 DDL 기준으로 확인)
     const { data: speciesData, error: speciesError } = await supabase
         .from("quizmon_species")
         .select("*")
@@ -58,7 +72,7 @@ export async function loadStarShopEntries(options: {
         speciesMap.set(sp.id, sp);
     }
 
-    // 3) 보유 종 집합 (중복 구매 막기용)
+    // 3) 보유 종 집합 (중복 구매 막기용) - 그대로
     let ownedSpeciesSet = new Set<string>();
     if (profileId) {
         const { data: ownedData, error: ownedError } = await supabase
@@ -76,11 +90,21 @@ export async function loadStarShopEntries(options: {
         );
     }
 
-    // 4) 최종 entry 구성
+    // 4) 최종 entry 구성 + ✅ 600족/전설/환상 필터
     const entries: StarShopEntry[] = shopRows
         .map((row) => {
             const sp = speciesMap.get(row.species_id);
             if (!sp) return null;
+
+            // ✅ 여기서 한 번 더 필터
+            if (!isStarShardEligible(sp)) {
+                console.warn(
+                    "[starShop] species not eligible for Star Shard shop, ignoring:",
+                    sp.id,
+                    (sp as any).name,
+                );
+                return null;
+            }
 
             return {
                 species: sp,
@@ -92,6 +116,7 @@ export async function loadStarShopEntries(options: {
 
     return entries;
 }
+
 
 export type StarPurchaseResult = {
     species: QuizmonSpeciesRow;
@@ -153,6 +178,7 @@ export async function purchaseSpeciesWithStarShards(params: {
     }
 
     // 4) 종 마스터 로드
+    // 4) 종 마스터 로드
     const { data: speciesRow, error: speciesError } = await supabase
         .from("quizmon_species")
         .select("*")
@@ -169,6 +195,12 @@ export async function purchaseSpeciesWithStarShards(params: {
 
     const species = speciesRow as QuizmonSpeciesRow;
 
+// ✅ Star Shard 상점 대상인지 최종 확인
+    if (!isStarShardEligible(species)) {
+        throw new Error("이 포켓몬은 Star Shards 상점 대상이 아닙니다.");
+    }
+
+
     // 5) 빈 파티 슬롯 (1~3) 계산
     const usedSlots = new Set(
         ownedList
@@ -184,16 +216,27 @@ export async function purchaseSpeciesWithStarShards(params: {
         }
     }
 
+    // ✅ first_encounter_level 활용 (없으면 1)
+    const spAny = species as any;
+    const encounterLevel: number =
+        (spAny.first_encounter_level && spAny.first_encounter_level >= 1)
+            ? spAny.first_encounter_level
+            : 1;
+
+    // ✅ 기본 HP 사용
+    const baseHp: number | null =
+        typeof spAny.base_hp === "number" ? spAny.base_hp : null;
+
     // 6) owned_monsters에 새 개체 insert
     const { data: insertedRow, error: insertError } = await supabase
         .from("quizmon_owned_monsters")
         .insert({
             profile_id: profileId,
             species_id: speciesId,
-            level: 1,   // 필요하면 first_encounter_level 등으로 조정
+            level: encounterLevel,
             exp: 0,
             party_slot: newPartySlot,
-            current_hp: null,
+            current_hp: baseHp,
             is_fainted: false,
             learned_moves: [],
         })

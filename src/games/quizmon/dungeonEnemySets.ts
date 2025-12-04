@@ -156,52 +156,150 @@ export const DUNGEON_CONFIGS: DungeonConfig[] = [
  * - QuizMonGame.tsx에서 currentDungeon.enemySetId 로 접근
  * - 각 세트는 EnemySlot 배열
  */
+// src/games/quizmon/dungeonEnemySets.ts
+
 export const ENEMY_SETS: Record<string, EnemySlot[]> = {
-    /** 숲 1-1: 스타터 1단계들 */
+    // --------------------
+    // 🌲 숲 1-1: 아주 약한 입문 던전 (Tier0~1)
+    //  - 스타터 대신 벌레/새/쥐 계열 약한 포켓몬들만 사용
+    // --------------------
+
+    /** 기본: 캐터피 단독 (가장 약한 축) */
     "forest-easy-1": [
-        { speciesId: "poke-0001", level: 3 }, // 이상해씨
+        { speciesId: "poke-0010", level: 3 }, // 캐터피
     ],
 
+    /** A: 뿔충이 단독 */
     "forest-easy-1-A": [
-        { speciesId: "poke-0004", level: 3 }, // 파이리
+        { speciesId: "poke-0013", level: 3 }, // 뿔충이
     ],
 
+    /** B: 구구 단독 (벌레보다 살짝 강하지만 여전히 약한 편) */
     "forest-easy-1-B": [
-        { speciesId: "poke-0007", level: 3 }, // 꼬부기
+        { speciesId: "poke-0016", level: 3 }, // 구구
     ],
 
-    /** 숲 1-2: 벌레/새 포켓몬 */
+    /** C: 꼬렛 단독 */
+    "forest-easy-1-C": [
+        { speciesId: "poke-0019", level: 3 }, // 꼬렛
+    ],
+
+    /** D: 주뱃 단독 */
+    "forest-easy-1-D": [
+        { speciesId: "poke-0041", level: 3 }, // 주뱃
+    ],
+
+    // --------------------
+    // 🌲 숲 1-2: 벌레/새 / 약한 야생구간 (Tier0~1 섞음)
+    // --------------------
+
+    /** 기본: 아주 약한 벌레/새 구성 */
     "forest-easy-2": [
-        { speciesId: "poke-0010", level: 5 }, // 캐터피
-        { speciesId: "poke-0013", level: 6 }, // 뿔충이
-        { speciesId: "poke-0016", level: 7 }, // 구구
+        { speciesId: "poke-0010", level: 5 }, // 캐터피   (아주 약함)
+        { speciesId: "poke-0013", level: 6 }, // 뿔충이   (아주 약함)
+        { speciesId: "poke-0016", level: 7 }, // 구구     (약함)
     ],
 
-    /** 숲 2-1: 조금 더 강한 구성 */
+    /** A: 벌레 + 독 계열 */
+    "forest-easy-2-A": [
+        { speciesId: "poke-0011", level: 5 }, // 단데기 (Metapod)
+        { speciesId: "poke-0014", level: 6 }, // 딱충이 (Kakuna)
+        { speciesId: "poke-0019", level: 7 }, // 꼬렛   (Rattata)
+    ],
+
+    /** B: 벌레 + 풀 계열 */
+    "forest-easy-2-B": [
+        { speciesId: "poke-0013", level: 5 }, // 뿔충이
+        { speciesId: "poke-0015", level: 6 }, // 독침붕 (Beedrill, 조금 더 강함)
+        { speciesId: "poke-0017", level: 7 }, // 피죤 (Pidgeotto)
+    ],
+
+    /** C: 비행/노말 위주 구성 */
+    "forest-easy-2-C": [
+        { speciesId: "poke-0016", level: 5 }, // 구구
+        { speciesId: "poke-0021", level: 6 }, // 깨비참 (Spearow)
+        { speciesId: "poke-0041", level: 7 }, // 주뱃 (Zubat)
+    ],
+
+    // --------------------
+    // 🌲 숲 2-1: 실전형 (Tier2~3: 스타터 1·2단계 / 밸런스형 파티)
+    // --------------------
+
+    /** 기본: 스타터 1단계 3종 파티 */
     "forest-normal-1": [
         { speciesId: "poke-0001", level: 8 }, // 이상해씨
         { speciesId: "poke-0004", level: 9 }, // 파이리
         { speciesId: "poke-0007", level: 9 }, // 꼬부기
     ],
 
-    /** 튜토리얼 레이드: HP 낮은 적 (예시, 현재는 사용 안 해도 됨) */
-    "tutorial-raid-easy": [
-        { speciesId: "poke-0010", level: 5 }, // 캐터피
-        { speciesId: "poke-0013", level: 7 }, // 뿔충이
-        { speciesId: "poke-0016", level: 8 }, // 구구
+    /** A: 스타터 2단계 위주 (BST 한 단계 상승) */
+    "forest-normal-1-A": [
+        { speciesId: "poke-0002", level: 8 }, // 이상해풀 (Ivysaur, Tier3)
+        { speciesId: "poke-0005", level: 9 }, // 리자드   (Charmeleon)
+        { speciesId: "poke-0008", level: 9 }, // 어니부기 (Wartortle)
     ],
 
-    /** 연습 타워: 스타터 최종 진화 + 강한 적 (예시) */
+    /** B: 풀·독 / 비행 / 바위의 혼합 파티 (역할 다양) */
+    "forest-normal-1-B": [
+        { speciesId: "poke-0045", level: 8 }, // 라플레시아 (Vileplume, 꽤 강함)
+        { speciesId: "poke-0017", level: 9 }, // 피죤       (Pidgeotto)
+        { speciesId: "poke-0074", level: 9 }, // 꼬마돌     (Geodude)
+    ],
+
+    /** C: 평균 능력치가 조금 높은 혼합형 */
+    "forest-normal-1-C": [
+        { speciesId: "poke-0025", level: 8 }, // 피카츄 (평균급)
+        { speciesId: "poke-0035", level: 9 }, // 삐삐   (Clefairy)
+        { speciesId: "poke-0052", level: 9 }, // 나옹   (Meowth)
+    ],
+
+    // --------------------
+    // 🎓 튜토리얼 레이드: HP 낮은 적 (Tier0~1, 일부는 살짝 높은 한 마리)
+    // --------------------
+
+    "tutorial-raid-easy": [
+        { speciesId: "poke-0010", level: 5 }, // 캐터피 (아주 약함)
+        { speciesId: "poke-0013", level: 7 }, // 뿔충이 (아주 약함)
+        { speciesId: "poke-0029", level: 8 }, // 니드런♀ (조금 더 강함)
+    ],
+
+    // --------------------
+    // 🗼 연습 타워: 스타터 최종 + 강한 적 (Tier4: 에이스/준전설 밴드)
+    // --------------------
+
+    /** 기본: 스타터 최종 3종 */
     "tower-set-1": [
+        { speciesId: "poke-0003", level: 12 }, // 이상해꽃 (Venusaur)
+        { speciesId: "poke-0006", level: 12 }, // 리자몽   (Charizard)
+        { speciesId: "poke-0009", level: 12 }, // 거북왕   (Blastoise)
+    ],
+
+    /** A: 에이스급 특수/물리 딜러 혼합 */
+    "tower-set-1-A": [
+        { speciesId: "poke-0065", level: 12 }, // 후딘     (Alakazam)
+        { speciesId: "poke-0068", level: 12 }, // 괴력몬   (Machamp)
+        { speciesId: "poke-0130", level: 12 }, // 갸라도스 (Gyarados)
+    ],
+
+    /** B: 고BST + 다양한 타입 */
+    "tower-set-1-B": [
+        { speciesId: "poke-0149", level: 12 }, // 망나뇽   (Dragonite, 매우 높음)
+        { speciesId: "poke-0103", level: 12 }, // 나시     (Exeggutor)
+        { speciesId: "poke-0094", level: 12 }, // 팬텀     (Gengar)
+    ],
+
+    /** C: 스타터 최종 + 다른 에이스 혼합 */
+    "tower-set-1-C": [
         { speciesId: "poke-0003", level: 12 }, // 이상해꽃
-        { speciesId: "poke-0006", level: 12 }, // 리자몽
-        { speciesId: "poke-0009", level: 12 }, // 거북왕
+        { speciesId: "poke-0065", level: 12 }, // 후딘
+        { speciesId: "poke-0130", level: 12 }, // 갸라도스
     ],
 
     // 필요하면 여기 계속 추가:
-    // "cave-set-1": [ ... ],
-    // "sea-set-1": [ ... ],
+    // "cave-set-1": [ ... ],   // 동굴: 이브이, 고오스, 딕다 등
+    // "sea-set-1": [ ... ],    // 바다: 잉어킹, 왕콘치, 쥬레곤 등
 };
+
 
 // ---- Helper functions for Dungeon meta & UI ----
 
