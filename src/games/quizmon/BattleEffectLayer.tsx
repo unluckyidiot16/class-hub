@@ -17,73 +17,46 @@ type Props = {
     onEffectEnd?: () => void;
 };
 
-/**
- * anchor + side를 기준으로 이펙트 기준 위치를 계산
- */
-function getAnchorStyle(
-    side: EffectSide,
-    anchor: MoveEffectAnchor | undefined,
-) {
-    // 1) 화면 전체 연출
-    if (anchor === "screen" || side === "screen") {
-        return {
-            position: "absolute" as const,
-            left: "50%",
-            top: "40%",
-            transform: "translate(-50%, -50%)",
-        };
-    }
-
-    // 2) 기본: 플레이어/적 쪽 대략적인 위치
-    if (side === "player") {
-        return {
-            position: "absolute" as const,
-            left: "30%",
-            bottom: "35%",
-            transform: "translate(-50%, 0)",
-        };
-    }
-
-    if (side === "enemy") {
-        return {
-            position: "absolute" as const,
-            right: "25%",
-            top: "25%",
-            transform: "translate(50%, 0)",
-        };
-    }
-
-    // fallback
-    return {
-        position: "absolute" as const,
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-    };
+function getDefaultAnchor(side: EffectSide): MoveEffectAnchor {
+    if (side === "screen") return "screen";
+    return "target";
 }
 
 export function BattleEffectLayer({ effect, onEffectEnd }: Props) {
-    // 🔹 설정 lookup
     const cfg = effect ? getMoveEffectConfig(effect.moveId) : null;
-    const durationMs = cfg?.durationMs ?? 700; // sheet 모드 기본 0.7초
-
-    // 🔹 sheet 모드일 때만 타이머로 종료 처리
-    useEffect(() => {
-        if (!effect || !cfg || !onEffectEnd) return;
-        if (cfg.mode === "script") return; // script는 내부 onComplete 에서 처리
-
-        const t = window.setTimeout(() => {
-            onEffectEnd();
-        }, durationMs);
-
-        return () => {
-            window.clearTimeout(t);
-        };
-    }, [effect?.id, cfg, durationMs, onEffectEnd]);
-
     if (!effect || !cfg) return null;
 
-    const anchorStyle = getAnchorStyle(effect.side, cfg.anchor);
+    const anchor: MoveEffectAnchor =
+        cfg.anchor ?? getDefaultAnchor(effect.side);
+
+    // 🔹 sheet 모드는 durationMs 기준으로 자동 종료
+    useEffect(() => {
+        if (!effect || !cfg || !onEffectEnd) return;
+        if (cfg.mode === "script") return; // script는 내부 onComplete 사용
+
+        const duration = cfg.durationMs ?? 800;
+        const timer = window.setTimeout(() => onEffectEnd(), duration);
+        return () => window.clearTimeout(timer);
+    }, [effect?.id, cfg.mode, cfg.durationMs, onEffectEnd]);
+
+    // 위치(대략 타겟 쪽)
+    let justifyContent: "flex-start" | "center" | "flex-end" = "center";
+    let alignItems: "flex-start" | "center" | "flex-end" = "center";
+
+    if (anchor === "screen" || effect.side === "screen") {
+        justifyContent = "center";
+        alignItems = "center";
+    } else if (effect.side === "player") {
+        // 플레이어 기술 → 적 쪽(오른쪽 위쯤)
+        justifyContent = "flex-end";
+        alignItems = "flex-start";
+    } else if (effect.side === "enemy") {
+        // 적 기술 → 우리 쪽(왼쪽 아래쯤)
+        justifyContent = "flex-start";
+        alignItems = "flex-end";
+    }
+
+    const scale = cfg.scale ?? 1;
 
     return (
         <div
@@ -91,37 +64,38 @@ export function BattleEffectLayer({ effect, onEffectEnd }: Props) {
                 position: "absolute",
                 inset: 0,
                 pointerEvents: "none",
-                zIndex: 20, // 스프라이트(10) 위, UI(30) 아래
+                zIndex: 20,
+                display: "flex",
+                justifyContent,
+                alignItems,
             }}
         >
-            <div style={anchorStyle}>
-                {cfg.mode === "script" ? (
-                    <BattleScriptAnimation
-                        key={effect.id}
-                        jsonUrl={cfg.jsonUrl}
-                        imageUrlOverride={cfg.imageUrl}
-                        fps={cfg.fps ?? 20}
-                        loop={false}
-                        style={{
-                            transform: `scale(${cfg.scale ?? 1})`,
-                            transformOrigin: "center",
-                        }}
-                        onComplete={onEffectEnd}
-                    />
-                ) : (
-                    <SpriteAnimation
-                        key={effect.id}
-                        jsonUrl={cfg.jsonUrl}
-                        imageUrlOverride={cfg.imageUrl}
-                        fps={cfg.fps ?? 24}
-                        loop={false}
-                        style={{
-                            transform: `scale(${cfg.scale ?? 1})`,
-                            transformOrigin: "center",
-                        }}
-                    />
-                )}
-            </div>
+            {cfg.mode === "script" ? (
+                <BattleScriptAnimation
+                    key={effect.id}
+                    jsonUrl={cfg.jsonUrl}
+                    imageUrlOverride={cfg.imageUrl}
+                    fps={cfg.fps ?? 20}
+                    loop={false}
+                    style={{
+                        transform: `scale(${scale})`,
+                        transformOrigin: "center",
+                    }}
+                    onComplete={onEffectEnd}
+                />
+            ) : (
+                <SpriteAnimation
+                    key={effect.id}
+                    jsonUrl={cfg.jsonUrl}
+                    imageUrlOverride={cfg.imageUrl}
+                    fps={cfg.fps ?? 24}
+                    loop={false}
+                    style={{
+                        transform: `scale(${scale})`,
+                        transformOrigin: "center",
+                    }}
+                />
+            )}
         </div>
     );
 }

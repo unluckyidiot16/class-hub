@@ -2,14 +2,17 @@
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { BattleScriptJson, ScriptLayer } from "./battleScriptTypes";
-import { EFFECT_SHEETS } from "./battleEffectSheets";
+import {EFFECT_SHEETS, type EffectSheetConfig} from "./battleEffectSheets";
+
+const BASE_URL = (import.meta as any).env?.BASE_URL ?? "/";
+const EFFECT_BASE = `${BASE_URL}games/quizmon/effects/`;
 
 export type BattleScriptAnimationProps = {
-    jsonUrl: string;          // battle-anims/xxx.json 또는 effects/xxx.json
-    imageUrlOverride?: string; // effectPaths.ts 에서 내려오는 png 경로
-    layerIndex?: number;      // 기본 0: 첫 레이어만 사용
+    jsonUrl: string;           // battle-anims/xxx.json or effects/xxx.json
+    imageUrlOverride?: string; // effectPaths에서 내려오는 PNG 경로
+    layerIndex?: number;       // 기본 0: 첫 레이어
     fps?: number;
-    loop?: boolean;           // 대부분 false로 쓸 듯
+    loop?: boolean;
     style?: React.CSSProperties;
     className?: string;
     onComplete?: () => void;
@@ -29,7 +32,7 @@ export function BattleScriptAnimation({
     const [error, setError] = useState<string | null>(null);
     const [frameIndex, setFrameIndex] = useState(0);
 
-    // JSON 로드
+    // 🔹 JSON 로드
     useEffect(() => {
         let cancelled = false;
 
@@ -41,12 +44,20 @@ export function BattleScriptAnimation({
 
                 const res = await fetch(jsonUrl);
                 if (!res.ok) {
-                    throw new Error(`Failed to load battle script: ${res.status}`);
+                    throw new Error(
+                        `Failed to load battle script: ${res.status}`,
+                    );
                 }
 
-                const json = (await res.json()) as BattleScriptJson;
+                const raw = await res.json();
+
+                // PokéRogue 원본은 ScriptLayer 하나짜리 object인 경우도 있어서 보정
+                const normalized: BattleScriptJson = Array.isArray(raw)
+                    ? (raw as BattleScriptJson)
+                    : ([raw as ScriptLayer] as BattleScriptJson);
+
                 if (!cancelled) {
-                    setData(json);
+                    setData(normalized);
                 }
             } catch (e: any) {
                 if (!cancelled) {
@@ -62,14 +73,19 @@ export function BattleScriptAnimation({
         };
     }, [jsonUrl]);
 
+    // 🔹 레이어 선택
     const layer: ScriptLayer | null = useMemo(() => {
-        if (!data || !Array.isArray(data) || data.length === 0) return null;
-        return data[Math.min(layerIndex, data.length - 1)];
+        if (!data || !data.length) return null;
+        const idx = Math.max(
+            0,
+            Math.min(layerIndex, (data as BattleScriptJson).length - 1),
+        );
+        return (data as BattleScriptJson)[idx];
     }, [data, layerIndex]);
 
     const frames = layer?.frames ?? [];
 
-    // 타이머
+    // 🔹 프레임 타이머
     useEffect(() => {
         if (!frames.length || fps <= 0) return;
 
@@ -101,24 +117,30 @@ export function BattleScriptAnimation({
         };
     }, [frames, fps, loop, onComplete]);
 
-    if (error || !layer || !frames.length) return null;
+    if (error || !layer || !frames.length) {
+        return null;
+    }
 
-    // 🔹 우선 EFFECT_SHEETS에서 찾고, 없으면 imageUrlOverride / 기본 경로 사용
+
+    // 🔹 시트 설정: EFFECT_SHEETS → override → fallback 순서
     const preConfig = EFFECT_SHEETS[layer.graphic];
 
-    const sheet = preConfig ?? {
-        imageUrl:
-            imageUrlOverride ??
-            `/games/quizmon/effects/${encodeURIComponent(layer.graphic)}.png`,
-        frameWidth: 64,
-        frameHeight: 64,
-    };
+    const sheet: EffectSheetConfig =
+        preConfig ??
+        {
+            imageUrl:
+                imageUrlOverride ??
+                `${EFFECT_BASE}${encodeURIComponent(layer.graphic)}.png`,
+            frameWidth: 64,
+            frameHeight: 64,
+        };
 
     if (!preConfig && !imageUrlOverride) {
-        // 개발용 경고 (경로 자동 추측 중)
         console.warn(
-            "[BattleScriptAnimation] using fallback sheet for graphic:",
+            "[BattleScriptAnimation] fallback sheet for graphic:",
             layer.graphic,
+            "→",
+            sheet.imageUrl,
         );
     }
 
@@ -136,8 +158,7 @@ export function BattleScriptAnimation({
             {sprites.map((s, idx) => {
                 if (!s.visible) return null;
 
-                const { frameWidth, frameHeight, imageUrl } = sheet;
-                const frameX = (s.graphicFrame ?? 0) * frameWidth;
+                const frameX = (s.graphicFrame ?? 0) * sheet.frameWidth;
 
                 return (
                     <div
@@ -146,13 +167,16 @@ export function BattleScriptAnimation({
                             position: "absolute",
                             left: "50%",
                             top: "50%",
-                            width: `${frameWidth}px`,
-                            height: `${frameHeight}px`,
-                            transform: `translate(${s.x}px, ${s.y}px) scale(${(s.zoomX ?? 100) / 100}, ${
+                            width: `${sheet.frameWidth}px`,
+                            height: `${sheet.frameHeight}px`,
+                            transform: `translate(${s.x}px, ${
+                                s.y
+                            }px) scale(${(s.zoomX ?? 100) / 100}, ${
                                 (s.zoomY ?? 100) / 100
                             })`,
                             transformOrigin: "center",
-                            backgroundImage: `url(${imageUrl})`,
+                            opacity: (s.opacity ?? 255) / 255,
+                            backgroundImage: `url(${sheet.imageUrl})`,
                             backgroundRepeat: "no-repeat",
                             backgroundPosition: `-${frameX}px 0px`,
                             imageRendering: "pixelated",
