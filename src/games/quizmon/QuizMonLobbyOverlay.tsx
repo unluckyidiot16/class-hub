@@ -142,15 +142,16 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         >
             <div
                 style={{
-                    width: "min(1040px, 100%)",
-                    // 🔽 추가: 카드 높이를 화면 기준으로 고정
-                    height: "min(720px, 90vh)",
-                    maxHeight: "90vh",
-                    padding: "1.1rem 1.3rem",
+                    // 🔍 전체 카드 사이즈 확대
+                    width: "min(1200px, 100%)",
+                    height: "min(800px, 95vh)",
+                    maxHeight: "95vh",
+
+                    padding: "1.4rem 1.6rem",      // 패딩도 살짝 증가
                     borderRadius: 24,
                     background: "rgba(15,23,42,0.98)",
                     border: "1px solid #1f2937",
-                    boxShadow: "0 22px 60px rgba(0,0,0,0.8)",
+                    boxShadow: "0 24px 70px rgba(0,0,0,0.85)",
                     overflowY: "hidden",
                     display: "flex",
                     flexDirection: "column",
@@ -314,19 +315,20 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                     style={{
                                         width: "100%",
                                         textAlign: "left",
-                                        borderRadius: 8,
+                                        borderRadius: 10,
                                         border: "1px solid #1d4ed8",
                                         background:
                                             "linear-gradient(90deg,#1d4ed8,#3b82f6)",
                                         color: "#e5f2ff",
-                                        padding: "0.65rem 0.9rem",
-                                        fontSize: 13,
-                                        fontWeight: 600,
+                                        padding: "0.85rem 1.05rem", // 🔍 패딩↑
+                                        fontSize: 15,               // 🔍 글자 크기↑
+                                        fontWeight: 700,
                                         cursor: "pointer",
                                     }}
                                 >
                                     🌲 던전 돌기 (스테이지 선택)
                                 </button>
+
 
                                 {/* 레이드: 바로 클래스 레이드 전투 진입 */}
                                 <button
@@ -335,19 +337,20 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                     style={{
                                         width: "100%",
                                         textAlign: "left",
-                                        borderRadius: 8,
+                                        borderRadius: 10,
                                         border: "1px solid #7f1d1d",
                                         background:
                                             "linear-gradient(90deg,#991b1b,#b91c1c)",
                                         color: "#fee2e2",
-                                        padding: "0.65rem 0.9rem",
-                                        fontSize: 13,
-                                        fontWeight: 600,
+                                        padding: "0.85rem 1.05rem",
+                                        fontSize: 15,
+                                        fontWeight: 700,
                                         cursor: "pointer",
                                     }}
                                 >
                                     ✖ 클래스 레이드 시작
                                 </button>
+
 
                                 {/* 공통: 가챠 (보상 뽑기) */}
                                 <button
@@ -356,18 +359,18 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                     style={{
                                         width: "100%",
                                         textAlign: "left",
-                                        borderRadius: 8,
+                                        borderRadius: 10,
                                         border: "1px solid #374151",
                                         backgroundColor: "#020617",
                                         color: "#e5e7eb",
-                                        padding: "0.65rem 0.9rem",
-                                        fontSize: 13,
+                                        padding: "0.85rem 1.05rem",
+                                        fontSize: 15,
                                         cursor: "pointer",
                                     }}
                                 >
                                     가챠 (보상 뽑기)
                                 </button>
-
+                                
                                 {/* 최근 레이드 결과 (있을 때만 표시) */}
                                 {lastRaidResult && (
                                     <div
