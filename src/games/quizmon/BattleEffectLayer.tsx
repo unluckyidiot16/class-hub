@@ -36,11 +36,8 @@ export function BattleEffectLayer({ effect, onEffectEnd }: Props) {
         const t = window.setTimeout(() => onEffectEnd(), duration);
         return () => window.clearTimeout(t);
     }, [effect?.id, cfg, onEffectEnd]);
-
-    // 🔹 앵커: 일단 화면 기준 “대충” 위치만 고정
-    //  - player 공격 → 적 쪽 (오른쪽 위)
-    //  - enemy 공격 → 우리 쪽 (왼쪽 아래)
-    //  - screen → 화면 중앙
+    
+    
     const anchorStyle: React.CSSProperties = (() => {
         if (effect.side === "screen") {
             return {
@@ -50,20 +47,11 @@ export function BattleEffectLayer({ effect, onEffectEnd }: Props) {
                 transform: "translate(-50%, -50%)",
             };
         }
-        if (effect.side === "player") {
-            // 우리 공격 → 적에게 맞는 위치
-            return {
-                position: "absolute",
-                left: "72%",   // 오른쪽
-                top: "30%",    // 위쪽
-                transform: "translate(-50%, -50%)",
-            };
-        }
-        // enemy
+   
         return {
             position: "absolute",
-            left: "28%",      // 왼쪽
-            top: "65%",       // 아래쪽
+            left: "50%",
+            top: "50%",
             transform: "translate(-50%, -50%)",
         };
     })();

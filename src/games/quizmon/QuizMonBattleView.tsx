@@ -482,23 +482,25 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
 
     return (
         <>
-            {/* 이펙트 전용 레이어 (전장 영역에만 overlay) */}
-            <div
-                style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    top: "6%",           // 상단 여백: 적 HP 패널 바로 아래부터
-                    bottom: "26%",       // 하단 커맨드 패널 바로 위까지
-                    pointerEvents: "none",
-                    zIndex: 25,          // 스프라이트(10) 위, 하단 패널(30) 아래
-            }}
-            >
-                <BattleEffectLayer
-                    effect={activeEffect}
-                    onEffectEnd={() => setActiveEffect(null)}
-                />
-            </div>
+            {/* 화면 전체를 쓰는 연출 (예: screen 타입) */}
+                        {activeEffect?.side === "screen" && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    left: 0,
+                                    right: 0,
+                                    top: "6%",     // 적 HP 패널 아래부터
+                                    bottom: "26%", // 하단 커맨드 패널 위까지
+                                    pointerEvents: "none",
+                                    zIndex: 25,
+                                }}
+                            >
+                                <BattleEffectLayer
+                                    effect={activeEffect}
+                                    onEffectEnd={() => setActiveEffect(null)}
+                                />
+                            </div>
+                        )}
             {/* ========================================================= */}
             {/* 1. 적(Enemy) 정보창: 화면 좌측 상단 (left: 5%, top: 5%) */}
             {/* ========================================================= */}
@@ -645,7 +647,16 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                             : "",
                 ].join(" ")}
             >
+                {/* 스프라이트 */}
                 {enemySprite}
+                
+                {/* 적 쪽(=enemy side)에서 맞는 이펙트 */}
+                {activeEffect && activeEffect.side === "enemy" && (
+                    <BattleEffectLayer
+                        effect={activeEffect}
+                        onEffectEnd={() => setActiveEffect(null)}
+                    />
+                )}
 
                 {damagePopups
                     .filter((p) => p.target === "enemy")
@@ -695,7 +706,15 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                             : "",
                 ].join(" ")}
             >
+                {/* 스프라이트 */}
                 {playerSprite}
+                {/* 우리 쪽(=player side)에서 맞는 이펙트 */}
+                {activeEffect && activeEffect.side === "player" && (
+                    <BattleEffectLayer
+                        effect={activeEffect}
+                        onEffectEnd={() => setActiveEffect(null)}
+                    />
+                )}
 
                 {damagePopups
                     .filter((p) => p.target === "player")
