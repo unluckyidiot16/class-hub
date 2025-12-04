@@ -45,27 +45,3 @@
 .qzmon-sprite {
     display: inline-flex;
 }
-
-/* 공격할 때 앞으로 툭 튀어나오는 느낌 */
-.qzmon-sprite-attack {
-    animation: qzmon-attack 0.4s ease-out;
-}
-
-@keyframes qzmon-attack {
-    0%   { transform: translateX(0); }
-    30%  { transform: translateX(16px) scale(1.05); }
-    100% { transform: translateX(0); }
-}
-
-/* 피격 시 흔들리면서 번쩍 */
-.qzmon-sprite-hit {
-    animation: qzmon-hit 0.4s ease-out;
-}
-
-@keyframes qzmon-hit {
-    0%   { transform: translateX(0); filter: brightness(1); }
-    20%  { transform: translateX(-8px); filter: brightness(1.4); }
-    40%  { transform: translateX(8px); }
-    60%  { transform: translateX(-4px); }
-    100% { transform: translateX(0); filter: brightness(1); }
-}
