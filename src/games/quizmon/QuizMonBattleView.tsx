@@ -577,7 +577,6 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                         justifyContent: "flex-end",
                     }}
                 >
-                    {enemySprite}
                 </div>
             </div>
 
@@ -704,7 +703,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                         justifyContent: "flex-start",
                     }}
                 >
-                    {playerSprite}
+                    
                 </div>
 
                 <div
