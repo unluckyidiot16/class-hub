@@ -6,6 +6,7 @@ import type {
     QuizAnswerResult,
     QuizQuestionLite,
     Monster,
+    ElementType,
 } from "./types";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import { quizPackToLiteQuestions } from "./quizSource";
@@ -30,6 +31,47 @@ function shuffleArray<T>(arr: T[]): T[] {
     }
     return copy;
 }
+// 🔹 아주 간단한 5속성 상성 테이블 (나머지는 1배 처리)
+const TYPE_EFFECTIVENESS: Partial<
+    Record<ElementType, Partial<Record<ElementType, number>>>
+> = {
+    normal: {},
+    fire: { grass: 2, water: 0.5, fire: 0.5 },
+    water: { fire: 2, water: 0.5, grass: 0.5 },
+    grass: { water: 2, fire: 0.5, grass: 0.5 },
+    electric: { water: 2, electric: 0.5, grass: 0.5 },
+};
+
+
+function getTypeMultiplier(
+    attack: ElementType,
+    defend?: ElementType | null,
+): number {
+    if (!defend) return 1;
+    const row = TYPE_EFFECTIVENESS[attack];
+    if (!row) return 1;
+    return row[defend] ?? 1;
+}
+
+/**
+ * 기술 속성 vs 상대 속성을 보고 포켓몬식 코멘트 생성
+ */
+function getEffectivenessComment(
+    moveElement: ElementType | undefined,
+    defender: Monster,
+): string | null {
+    if (!moveElement) return null;
+
+    const m1 = getTypeMultiplier(moveElement, defender.element);
+    const m2 = getTypeMultiplier(moveElement, defender.element2 ?? null);
+    const total = m1 * m2;
+
+    if (total === 0) return "그러나 아무 효과도 없는 것 같다...";
+    if (total > 1.01) return "효과가 굉장했다!";
+    if (total < 1) return "별로 효과가 없는 것 같다.";
+    return null;
+}
+
 
 export type UseQuizmonBattleOptions = {
     quizpack: QuizPackJsonV1 | null;
@@ -573,33 +615,44 @@ export function useQuizmonBattle(
                 };
 
                 playerLog += `${dmg} 데미지! (HP ${prevEnemyMon.hp} → ${newEnemyMon.hp})`;
+
+                // 🔹 상성 코멘트 추가
+                const effComment = getEffectivenessComment(
+                    pendingPlayerMove.move.element,  // ✅ 로컬 변수 사용
+                    prevEnemyMon,
+                );
+                if (effComment) {
+                    playerLog += ` ${effComment}`;
+                }
             } else {
                 playerLog += "하지만 빗나갔다!";
             }
+
 
             next = pushLog(next, playerLog);
 
             // 2) 적이 살아있으면 적도 공격 (퀴즈 보정 없이 평균값 가정)
             if (next.enemy.monsters[next.enemy.activeIndex].hp > 0) {
-                if (prev.pendingEnemyMove) {
+                const pendingEnemyMove = prev.pendingEnemyMove;
+                if (pendingEnemyMove) {
                     const enemyQuizMod = 1.0;
                     const enemyHitChance = calcHitChance(
-                        prevPlayerMon, // defender
-                        prev.pendingEnemyMove.move,
+                        prevPlayerMon,          // defender
+                        pendingEnemyMove.move,  // ✅ 로컬 변수
                         enemyQuizMod,
                     );
 
-                    let enemyLog = `[적] ${prev.pendingEnemyMove.move.name}을(를) 사용했다! `;
+                    let enemyLog = `[적] ${pendingEnemyMove.move.name}을(를) 사용했다! `;
                     if (rollHit(enemyHitChance)) {
                         const baseDmg = calcDamage(
                             prevEnemyMon,
                             prevPlayerMon,
-                            prev.pendingEnemyMove.move,
+                            pendingEnemyMove.move,
                         );
                         const dmg = applyAbilityDamageModifier(
                             prevEnemyMon,
                             prevPlayerMon,
-                            prev.pendingEnemyMove.move,
+                            pendingEnemyMove.move,
                             baseDmg,
                         );
 
@@ -619,6 +672,15 @@ export function useQuizmonBattle(
                         };
 
                         enemyLog += `${dmg} 데미지! (HP ${prevPlayerMon.hp} → ${newPlayerMon.hp})`;
+
+                        // 🔹 상성 코멘트도 로컬 변수 사용
+                        const effComment = getEffectivenessComment(
+                            pendingEnemyMove.move.element,
+                            prevPlayerMon,
+                        );
+                        if (effComment) {
+                            enemyLog += ` ${effComment}`;
+                        }
                     } else {
                         enemyLog += "빗나갔다!";
                     }
@@ -626,6 +688,7 @@ export function useQuizmonBattle(
                     next = pushLog(next, enemyLog);
                 }
             }
+
 
             // 3) 승패 체크 + 파티 교체 로직
             const playerMons = next.player.monsters;

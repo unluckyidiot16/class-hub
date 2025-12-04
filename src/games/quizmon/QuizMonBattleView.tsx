@@ -25,6 +25,9 @@ type QuizBottomPanelProps = {
     onOpenSwitchModal: () => void;
 
     attackPhase: AttackPhase;
+
+    lastPlayerLog: string | null;
+    lastEnemyLog: string | null;
 };
 
 /** 하단 명령 / 퀴즈 패널 */
@@ -41,6 +44,8 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         canSwitch,
         onOpenSwitchModal,
         attackPhase,
+        lastPlayerLog,
+        lastEnemyLog,
     } = props;
 
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
@@ -60,15 +65,19 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
     } else if (isAnimating) {
         // 🔹 공격/피격/코멘트 연출 단계
         if (attackPhase === "playerAttack") {
-            mainText = `${playerName}의 공격!`;
+            // 가장 최근 플레이어 로그가 있으면 그걸 보여주고,
+            // 없으면 기존 문구로 fallback
+            mainText = lastPlayerLog ?? `${playerName}의 공격!`;
         } else if (attackPhase === "enemyAttack") {
-            mainText = "상대의 반격!";
+            mainText = lastEnemyLog ?? "상대의 반격!";
         } else {
             // attackPhase === "comment"
-            mainText = "공격 결과를 확인해 보세요.";
+            const combined = [lastPlayerLog, lastEnemyLog]
+                .filter((t): t is string => !!t)
+                .join("\n");
+            mainText = combined || "공격 결과를 확인해 보세요.";
         }
     } else {
-        // 🔹 평상시 커맨드 텍스트
         mainText = `${playerName}은(는) 무엇을 할까?`;
     }
 
@@ -107,6 +116,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                         fontWeight: 600,
                         marginBottom: isQuizPhase ? 6 : 0,
                         lineHeight: 1.5,
+                        whiteSpace: "pre-line",
                     }}
                 >
                     {mainText}
@@ -317,6 +327,18 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         state.phase === "quiz"
             ? state.currentQuestion ?? null
             : null;
+
+    // 🔹 로그 중에서 가장 최근 플레이어/적 로그 한 줄씩 추출
+    const logs = state.logs ?? [];
+    const lastPlayerLog =
+        logs
+            .filter((entry) => entry.text.startsWith("[플레이어]"))
+            .slice(-1)[0]?.text ?? null;
+    const lastEnemyLog =
+        logs
+            .filter((entry) => entry.text.startsWith("[적]"))
+            .slice(-1)[0]?.text ?? null;
+
 
 
     useEffect(() => {
@@ -694,7 +716,9 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     onAnswer={onAnswer}
                     canSwitch={canSwitch}
                     onOpenSwitchModal={() => setShowSwitchModal(true)}
-                    attackPhase={attackPhase}   // 🔹 추가
+                    attackPhase={attackPhase}   
+                    lastPlayerLog={lastPlayerLog}  
+                    lastEnemyLog={lastEnemyLog}  
                 />
             </div>
         </>
