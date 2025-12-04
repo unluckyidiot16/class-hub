@@ -135,7 +135,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const rootRef = useRef<HTMLDivElement | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [fullscreenSupported, setFullscreenSupported] = useState(false);
-    
+
+    // 🔹 배틀 포기(도망가기) 핸들러
+    const handleRunAway = () => {
+        // 진행 중인 배틀/던전 전부 리셋 + 계속하기 비활성화
+        setState(createInitialBattleState());
+        setBattleStats({ correct: 0, total: 0 });
+        setHasReportedEnd(false);
+        setQuestionIndex(0);
+        setHasBattleInitialized(false);
+        setViewState("lobby");
+    };
+
     useEffect(() => {
         if (typeof document === "undefined") return;
         // 전체화면 지원 여부 체크
@@ -869,7 +880,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
 
         try {
-            // 1) 이 프로필의 기존 파티 슬롯 전체 비우기
+            // 1) 기존 파티 슬롯 비우기
             const { error: clearError } = await supabase
                 .from("quizmon_owned_monsters")
                 .update({ party_slot: null })
@@ -903,14 +914,24 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 }
             }
 
-            // 3) 🔁 컬렉션 재로딩
+            // 3) 컬렉션 재로딩
             if (props.onRefreshCollection) {
                 await props.onRefreshCollection();
             }
+
+            // 4) ✅ 파티가 바뀌면 진행 중이던 던전/배틀은 무효 처리
+            setState(createInitialBattleState());
+            setBattleStats({ correct: 0, total: 0 });
+            setHasReportedEnd(false);
+            setQuestionIndex(0);
+            setHasBattleInitialized(false);
+            // viewState는 원래대로 lobby 상태일 것이므로 굳이 안 바꿔도 됨
+            // setViewState("lobby");
         } catch (err) {
             console.error("[QuizMonGame] handleSaveParty exception", err);
         }
     };
+
 
     // 🔹 현재 세션에 열린 레이드가 있는지 확인
     useEffect(() => {
@@ -1751,9 +1772,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     fontSize: 12,
                 }}
             >
+                {/* 🔁 메인 메뉴 → 도망가기 */}
                 <button
                     type="button"
-                    onClick={() => setViewState("lobby")}
+                    onClick={handleRunAway}
                     style={{
                         padding: "0.35rem 0.9rem",
                         borderRadius: 999,
@@ -1763,7 +1785,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         cursor: "pointer",
                     }}
                 >
-                    메인 메뉴
+                    도망가기
                 </button>
                 <span
                     style={{

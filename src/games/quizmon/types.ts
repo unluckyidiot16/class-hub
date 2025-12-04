@@ -284,11 +284,11 @@ export type QuizmonSpeciesRow = {
     generation?: number | null; // 1~10, 없으면 null
     is_playable: boolean;       // NOT NULL DEFAULT false
 
-    // (선택) 나중에 쓰고 싶으면 이것들도 추가 가능
-    // is_legendary: boolean;
-    // is_mythical: boolean;
-    // first_encounter_level?: number | null;
-    // popularity_tier?: "low" | "mid" | "high" | "top" | null;
+    is_legendary: boolean;
+    is_mythical: boolean;
+    battle_stat_total : number;
+    first_encounter_level?: number | null;
+    popularity_tier?: "low" | "mid" | "high" | "top" | null;
 };
 
 

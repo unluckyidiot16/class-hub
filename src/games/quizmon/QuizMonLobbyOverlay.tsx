@@ -350,7 +350,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 >
                                     ✖ 클래스 레이드 시작
                                 </button>
-
+`
 
                                 {/* 공통: 가챠 (보상 뽑기) */}
                                 <button

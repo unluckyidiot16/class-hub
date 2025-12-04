@@ -29,10 +29,8 @@ export function useGachaDraw(options: UseGachaDrawOptions) {
         setError(null);
 
         try {
-            const { result, updatedProfile } = await performSingleGachaDraw({
-                profile,
-                costType: "gems",
-            });
+            const { result, updatedProfile } =
+                await performSingleGachaDraw({ profile });
 
             setLastResult(result);
             onProfileUpdated?.(updatedProfile);

@@ -9,6 +9,9 @@ import type {
 /**
  * 가챠에서 사용할 종 정보 최소셋
  */
+/**
+ * 가챠에서 사용할 종 정보 최소셋
+ */
 type GachaSpecies = Pick<
     QuizmonSpeciesRow,
     | "id"
@@ -17,20 +20,40 @@ type GachaSpecies = Pick<
     | "popularity_rank"
     | "generation"
     | "is_playable"
+    | "is_legendary"
+    | "is_mythical"
+    | "battle_stat_total"
+    | "evolves_to_id"
 >;
 
 
 /**
- * rarity + popularity 기반으로 실제 가챠 풀을 구성한다.
- * - generation = 1
- * - is_playable = true
- * - gacha_weight > 0
+ * 가챠 풀 로드
+ *
+ * 조건:
+ *  - generation = 1
+ *  - is_playable = true
+ *  - gacha_weight > 0
+ *  - 전설 / 환상 제외
+ *  - 600족(또는 그 이상) 제외
+ *  - "진화 전" 폼만 포함 (포켓몬 GO 느낌)
  */
 async function loadGachaPool(): Promise<GachaSpecies[]> {
     const { data, error } = await supabase
         .from("quizmon_species")
         .select(
-            "id, rarity, gacha_weight, popularity_rank, generation, is_playable",
+            [
+                "id",
+                "rarity",
+                "gacha_weight",
+                "popularity_rank",
+                "generation",
+                "is_playable",
+                "is_legendary",
+                "is_mythical",
+                "battle_stat_total",
+                "evolves_to_id",
+            ].join(", "),
         )
         .eq("generation", 1)
         .eq("is_playable", true)
@@ -41,14 +64,55 @@ async function loadGachaPool(): Promise<GachaSpecies[]> {
         throw new Error("가챠 풀을 불러오는 중 오류가 발생했습니다.");
     }
 
-    const list = (data ?? []) as GachaSpecies[];
+    // ⚠️ TS2352 회피: data가 GenericStringError[] | ... 로 잡히는 케이스 대응
+    const rawList = ((data ?? []) as unknown) as GachaSpecies[];
 
-    if (!list.length) {
+    if (!rawList.length) {
         console.warn("[gacha] 가챠 풀이 비어 있습니다. (quizmon_species 확인)");
+        return rawList;
     }
 
-    return list;
+    // 1) 어떤 종의 evolves_to_id 로 등장하는 id = "진화체들"
+    //    → 그 대상이 아닌 애들을 '베이스폼(진화 전)'으로 간주
+    const evolvedIds = new Set(
+        rawList
+            .map((sp) => sp.evolves_to_id)
+            .filter(
+                (id): id is string =>
+                    typeof id === "string" && id.length > 0,
+            ),
+    );
+
+    // 2) 메타 규칙에 따라 필터링
+    const filtered = rawList.filter((sp) => {
+        // 전설 / 환상 → Dust 상점 전용
+        if (sp.is_legendary || sp.is_mythical) return false;
+
+        // 600족 이상 → Dust 상점 전용
+        if (
+            sp.battle_stat_total != null &&
+            sp.battle_stat_total >= 600
+        ) {
+            return false;
+        }
+
+        // 진화 전만: 다른 종의 evolves_to_id에 잡히지 않는 애들만 포함
+        if (evolvedIds.has(sp.id)) return false;
+
+        return true;
+    });
+
+    if (!filtered.length) {
+        // 조건이 너무 빡세서 전부 날아가면 일단 rawList를 쓰고 경고만
+        console.warn(
+            "[gacha] 필터링 이후 가챠 풀이 비어 있습니다. 필터 조건 또는 seed 데이터를 확인하세요.",
+        );
+        return rawList;
+    }
+
+    return filtered;
 }
+
 
 /**
  * 가중치 기반 랜덤 추출
