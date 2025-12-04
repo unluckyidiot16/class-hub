@@ -482,11 +482,23 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
 
     return (
         <>
-            {/* 이펙트 전용 레이어 */}
-            <BattleEffectLayer
-                effect={activeEffect}
-                onEffectEnd={() => setActiveEffect(null)}
-            />
+            {/* 이펙트 전용 레이어 (전장 영역에만 overlay) */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: "6%",           // 상단 여백: 적 HP 패널 바로 아래부터
+                    bottom: "26%",       // 하단 커맨드 패널 바로 위까지
+                    pointerEvents: "none",
+                    zIndex: 25,          // 스프라이트(10) 위, 하단 패널(30) 아래
+            }}
+            >
+                <BattleEffectLayer
+                    effect={activeEffect}
+                    onEffectEnd={() => setActiveEffect(null)}
+                />
+            </div>
             {/* ========================================================= */}
             {/* 1. 적(Enemy) 정보창: 화면 좌측 상단 (left: 5%, top: 5%) */}
             {/* ========================================================= */}
