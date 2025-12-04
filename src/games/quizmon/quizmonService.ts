@@ -1109,13 +1109,12 @@ export const HEAL_ALL_COST_GOLD = 10;
 /**
  * 단일 몬스터 회복 비용 계산
  * - 현재 레벨에 따라 선형 증가
- *   예) 레벨 1~4: 1골드, 5~9: 2골드, 10~14: 3골드 ...
  */
 export function calcMonsterHealCostGold(level: number | null | undefined): number {
     if (!level || level <= 0) return 1;
 
-    // 5레벨당 +1 골드
-    const cost = Math.floor(level / 5) + 1;
+    // 레벨당 2 골드
+    const cost = Math.floor(level * 2);
     return Math.max(1, cost);
 }
 
