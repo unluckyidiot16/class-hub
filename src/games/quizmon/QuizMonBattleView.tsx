@@ -688,7 +688,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             <div
                 style={{
                     position: "absolute",
-                    left: "6%",          // 조금 안쪽으로
+                    left: "50%",          // 조금 안쪽으로
                     bottom: "24%",       // 하단 커맨드 패널 위로 올리기 (대략 20~25% 구간)
                     minWidth: 180,
                     padding: "0.35rem 0.5rem",
