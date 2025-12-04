@@ -6,6 +6,7 @@ import type {
     Move,
     QuizQuestionLite,
     Monster,
+    DamagePopup,
 } from "./types";
 import { HpBar } from "./HpBar";
 
@@ -288,6 +289,7 @@ export type QuizMonBattleViewProps = {
     onRequestSwitch: (targetIndex: number) => void;
     playerSprite: ReactNode;
     enemySprite: ReactNode;
+    damagePopups: DamagePopup[];
 };
 
 /** 전투 필드(몬스터 + HP + 하단 패널) */
@@ -303,6 +305,7 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         onRequestSwitch,
         playerSprite,
         enemySprite,
+        damagePopups,
     } = props;
 
 
@@ -340,7 +343,34 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             .slice(-1)[0]?.text ?? null;
 
 
+    const getPopupStyle = (popup: DamagePopup): React.CSSProperties => {
+        let color = "#f9fafb"; // 기본 흰색
+        if (popup.effectiveness > 1.01) {
+            color = "#f97373"; // 🔴 효과 굉장
+        } else if (popup.effectiveness < 1) {
+            color = "#60a5fa"; // 🔵 별로 효과 없음
+        }
 
+        const scale = popup.isCritical ? 1.2 : 1.0;
+
+        return {
+            position: "absolute",
+            bottom: "65%",
+            left: popup.target === "player" ? "10%" : "auto",
+            right: popup.target === "enemy" ? "10%" : "auto",
+            transform: `translateY(0) scale(${scale})`,
+            fontSize: "max(16px, 2.4vmin)",
+            fontWeight: 800,
+            color,
+            textShadow: "0 0 6px rgba(0,0,0,0.8)",
+            pointerEvents: "none",
+            animation: "qzmon-dmg-pop 0.6s ease-out forwards",
+            zIndex: 40,
+        };
+    };
+
+    
+    
     useEffect(() => {
         const r = state.lastQuizResult;
         if (!r) return;
@@ -460,7 +490,27 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                 ].join(" ")}
             >
                 {enemySprite}
+
+                {damagePopups
+                    .filter((p) => p.target === "enemy")
+                    .map((p) => (
+                        <div key={p.id} style={getPopupStyle(p)}>
+                            {p.amount}
+                            {p.isCritical && (
+                                <span
+                                    style={{
+                                        marginLeft: 6,
+                                        fontSize: "0.6em",
+                                        color: "#facc15",
+                                    }}
+                                >
+                                    CRIT!
+                                </span>
+                            )}
+                        </div>
+                    ))}
             </div>
+
 
 
             {/* ========================================================= */}
@@ -490,6 +540,25 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                 ].join(" ")}
             >
                 {playerSprite}
+
+                {damagePopups
+                    .filter((p) => p.target === "player")
+                    .map((p) => (
+                        <div key={p.id} style={getPopupStyle(p)}>
+                            {p.amount}
+                            {p.isCritical && (
+                                <span
+                                    style={{
+                                        marginLeft: 6,
+                                        fontSize: "0.6em",
+                                        color: "#facc15",
+                                    }}
+                                >
+                                    CRIT!
+                                </span>
+                            )}
+                        </div>
+                    ))}
             </div>
 
 

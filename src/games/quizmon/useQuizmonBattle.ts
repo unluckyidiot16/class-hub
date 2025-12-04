@@ -1,24 +1,24 @@
 // src/games/quizmon/useQuizmonBattle.ts
 import { useEffect, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type {
     BattleState,
     Move,
     QuizAnswerResult,
     QuizQuestionLite,
     Monster,
-    ElementType,
+    ElementType, DamagePopup,
 } from "./types";
 import type { QuizPackJsonV1 } from "../../types/quizPackJson";
 import { quizPackToLiteQuestions } from "./quizSource";
 import { logGameEvent } from "../../api/gameSessions";
 import {
     applyDamageToMonster,
-    calcDamage,
+    calcDamageWithContext,
     calcHitChance,
     calcQuizMod,
     pushLog,
     rollHit,
-    applyAbilityDamageModifier,
 } from "./logic";
 import { createInitialBattleState } from "./mockData";
 
@@ -237,22 +237,22 @@ export type UseQuizmonBattleOptions = {
 export type UseQuizmonBattleResult = {
     // 배틀 상태 + setter (외부에서 resetBattleWithProfileParty 등에서 사용)
     state: BattleState;
-    setState: React.Dispatch<React.SetStateAction<BattleState>>;
+    setState: Dispatch<SetStateAction<BattleState>>;
 
     // 퀴즈 관련
     questions: QuizQuestionLite[];
     questionIndex: number;
-    setQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
+    setQuestionIndex: Dispatch<SetStateAction<number>>;
     questionOrder: number[];
-    setQuestionOrder: React.Dispatch<React.SetStateAction<number[]>>;
+    setQuestionOrder: Dispatch<SetStateAction<number[]>>;
 
     // 통계
     battleStats: { correct: number; total: number };
-    setBattleStats: React.Dispatch<
-        React.SetStateAction<{ correct: number; total: number }>
+    setBattleStats: Dispatch<
+        SetStateAction<{ correct: number; total: number }>
     >;
     hasReportedEnd: boolean;
-    setHasReportedEnd: React.Dispatch<React.SetStateAction<boolean>>;
+    setHasReportedEnd: Dispatch<SetStateAction<boolean>>;
 
     // 파생 값들
     playerMon: Monster;
@@ -261,6 +261,8 @@ export type UseQuizmonBattleResult = {
     accuracyPercent: number | null;
     battleFinished: boolean;
 
+    damagePopups: DamagePopup[];
+    
     // 액션
     handleSelectMove: (move: Move) => void;
     handleAnswer: (optionIndex: number) => void;
@@ -287,6 +289,30 @@ export function useQuizmonBattle(
     const [questionOrder, setQuestionOrder] = useState<number[]>([]);
     const [battleStats, setBattleStats] = useState({ correct: 0, total: 0 });
     const [hasReportedEnd, setHasReportedEnd] = useState(false);
+
+    const [damagePopups, setDamagePopups] = useState<DamagePopup[]>([]);
+
+    const spawnDamagePopup = (
+        target: "player" | "enemy",
+        amount: number,
+        isCritical: boolean,
+        effectiveness: number,
+    ) => {
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const popup: DamagePopup = {
+            id,
+            target,
+            amount,
+            isCritical,
+            effectiveness,
+        };
+        setDamagePopups((prev) => [...prev, popup]);
+
+        // 0.8초 후 자동 제거
+        window.setTimeout(() => {
+            setDamagePopups((prev) => prev.filter((p) => p.id !== id));
+        }, 800);
+    };
 
     // 2) 퀴즈 소스: quizpackJson → Lite 배열
     const questions: QuizQuestionLite[] = useMemo(
@@ -568,23 +594,21 @@ export function useQuizmonBattle(
                 if (enemyActive && enemyActive.hp > 0 && enemyMove) {
                     const enemyQuizMod = 1.0;
                     const enemyHitChance = calcHitChance(
-                        defenderBefore,      // 수비: 방금 교체된 포켓몬
-                        enemyMove,           // 공격 기술
+                        defenderBefore, // 수비: 방금 교체된 포켓몬
+                        enemyMove, // 공격 기술
                         enemyQuizMod,
                     );
 
                     let enemyLog = `[적] ${enemyMove.name}으로 교체한 ${defenderBefore.name}(을)를 노렸습니다! `;
                     if (rollHit(enemyHitChance)) {
-                        const baseDmg = calcDamage(
+                        const {
+                            damage: dmg,
+                            isCritical,
+                            effectiveness,
+                        } = calcDamageWithContext(
                             enemyActive,
                             defenderBefore,
                             enemyMove,
-                        );
-                        const dmg = applyAbilityDamageModifier(
-                            enemyActive,
-                            defenderBefore,
-                            enemyMove,
-                            baseDmg,
                         );
 
                         const damaged = applyDamageToMonster(
@@ -603,18 +627,32 @@ export function useQuizmonBattle(
                         };
 
                         enemyLog += `${dmg} 데미지! (HP ${defenderBefore.hp} → ${damaged.hp})`;
+
+                        const effComment = getEffectivenessComment(
+                            enemyMove.element,
+                            defenderBefore,
+                        );
+                        if (effComment) {
+                            enemyLog += ` ${effComment}`;
+                        }
+                        if (isCritical) {
+                            enemyLog += " 급소에 맞았다!";
+                        }
+
+                        // 🔹 팝업 (타겟: player)
+                        spawnDamagePopup(
+                            "player",
+                            dmg,
+                            isCritical,
+                            effectiveness,
+                        );
                     } else {
                         enemyLog += "하지만 빗나갔다!";
                     }
 
                     next = pushLog(next, enemyLog);
-                } else {
-                    // 적이 이미 쓰러졌거나 쓸 기술이 없으면 추가 피해 없음
-                    next = pushLog(
-                        next,
-                        "[시스템] 상대 포켓몬이 공격 준비가 되어 있지 않아 추가 피해는 없었습니다.",
-                    );
                 }
+
 
                 // 🧹 교체 후에도 쓰러진 포켓몬/승패 여부는 챙겨줘야 함
                 const playerMonsAfter = next.player.monsters;
@@ -740,21 +778,23 @@ export function useQuizmonBattle(
                 pendingPlayerMove.move,
                 quizMod,
             );
-            
-            let playerLog = `[플레이어] ${pendingPlayerMove.move.name}을(를) 사용했다! (명중률 ${hitChance.toFixed(1)}%) `;
+
+            let playerLog = `[플레이어] ${pendingPlayerMove.move.name}을(를) 사용했다! (명중률 ${hitChance.toFixed(
+                1,
+            )}%) `;
             if (rollHit(hitChance)) {
-                const baseDmg = calcDamage(
+                const {
+                    damage: dmg,
+                    isCritical,
+                    effectiveness,
+                } = calcDamageWithContext(
                     prevPlayerMon,
                     prevEnemyMon,
                     pendingPlayerMove.move,
                 );
-                const dmg = applyAbilityDamageModifier(
-                    prevPlayerMon,
-                    prevEnemyMon,
-                    pendingPlayerMove.move,
-                    baseDmg,
-                );
+
                 const newEnemyMon = applyDamageToMonster(prevEnemyMon, dmg);
+
                 const newEnemyMons = [...prev.enemy.monsters];
                 newEnemyMons[prev.enemy.activeIndex] = newEnemyMon;
 
@@ -770,18 +810,26 @@ export function useQuizmonBattle(
 
                 // 🔹 상성 코멘트 추가
                 const effComment = getEffectivenessComment(
-                    pendingPlayerMove.move.element,  // ✅ 로컬 변수 사용
+                    pendingPlayerMove.move.element,
                     prevEnemyMon,
                 );
                 if (effComment) {
                     playerLog += ` ${effComment}`;
                 }
+
+                // 🔹 크리티컬 코멘트
+                if (isCritical) {
+                    playerLog += " 급소에 맞았다!";
+                }
+
+                // 🔹 데미지 팝업 (타겟: enemy)
+                spawnDamagePopup("enemy", dmg, isCritical, effectiveness);
             } else {
                 playerLog += "하지만 빗나갔다!";
             }
 
-
             next = pushLog(next, playerLog);
+
 
             // 2) 적이 살아있으면 적도 공격 (퀴즈 보정 없이 평균값 가정)
             if (next.enemy.monsters[next.enemy.activeIndex].hp > 0) {
@@ -789,29 +837,28 @@ export function useQuizmonBattle(
                 if (pendingEnemyMove) {
                     const enemyQuizMod = 1.0;
                     const enemyHitChance = calcHitChance(
-                        prevPlayerMon,          // defender
-                        pendingEnemyMove.move,  // ✅ 로컬 변수
+                        prevPlayerMon, // defender
+                        pendingEnemyMove.move,
                         enemyQuizMod,
                     );
 
                     let enemyLog = `[적] ${pendingEnemyMove.move.name}을(를) 사용했다! `;
                     if (rollHit(enemyHitChance)) {
-                        const baseDmg = calcDamage(
+                        const {
+                            damage: dmg,
+                            isCritical,
+                            effectiveness,
+                        } = calcDamageWithContext(
                             prevEnemyMon,
                             prevPlayerMon,
                             pendingEnemyMove.move,
-                        );
-                        const dmg = applyAbilityDamageModifier(
-                            prevEnemyMon,
-                            prevPlayerMon,
-                            pendingEnemyMove.move,
-                            baseDmg,
                         );
 
                         const newPlayerMon = applyDamageToMonster(
                             prevPlayerMon,
                             dmg,
                         );
+
                         const newPlayerMons = [...prev.player.monsters];
                         newPlayerMons[prev.player.activeIndex] = newPlayerMon;
 
@@ -825,7 +872,6 @@ export function useQuizmonBattle(
 
                         enemyLog += `${dmg} 데미지! (HP ${prevPlayerMon.hp} → ${newPlayerMon.hp})`;
 
-                        // 🔹 상성 코멘트도 로컬 변수 사용
                         const effComment = getEffectivenessComment(
                             pendingEnemyMove.move.element,
                             prevPlayerMon,
@@ -833,6 +879,17 @@ export function useQuizmonBattle(
                         if (effComment) {
                             enemyLog += ` ${effComment}`;
                         }
+                        if (isCritical) {
+                            enemyLog += " 급소에 맞았다!";
+                        }
+
+                        // 🔹 팝업 (타겟: player)
+                        spawnDamagePopup(
+                            "player",
+                            dmg,
+                            isCritical,
+                            effectiveness,
+                        );
                     } else {
                         enemyLog += "빗나갔다!";
                     }
@@ -988,6 +1045,7 @@ export function useQuizmonBattle(
         canSelectMove,
         accuracyPercent,
         battleFinished,
+        damagePopups,
         handleSelectMove,
         handleAnswer,
         handleSwitch,

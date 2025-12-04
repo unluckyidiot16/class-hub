@@ -313,6 +313,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         handleSelectMove,
         handleAnswer,
         handleSwitch,
+        damagePopups,
     } = useQuizmonBattle({
         quizpack,
         roomId,
@@ -1418,6 +1419,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onRequestSwitch={handleSwitch}
                             playerSprite={renderPlayerSprite()}
                             enemySprite={renderEnemySprite()}
+                            damagePopups={damagePopups}
                         />
                     )}
 

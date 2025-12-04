@@ -34,47 +34,6 @@ export function calcQuizMod(result: QuizAnswerResult | null): number {
     return 1.0;
 }
 
-// ✅ v1 특성 데미지 보정
-export function applyAbilityDamageModifier(
-    attacker: Monster,
-    defender: Monster,
-    move: Move,
-    baseDamage: number,
-): number {
-    let damage = baseDamage;
-    const moveElement = (move as any).element ?? (move as any).type;
-
-    // ----------------------------
-    // 1) 공격자 특성
-    // ----------------------------
-
-    // "HP 1/3 이하일 때 풀(Grass) 기술 1.5배" (Overgrow 느낌)
-    if (attacker.abilityId === "overgrow") {
-        const ratio =
-            attacker.maxHp > 0 ? attacker.hp / attacker.maxHp : 0;
-        if (ratio <= 1 / 3 && moveElement === "grass") {
-            damage = Math.round(damage * 1.5);
-        }
-    }
-
-    // ----------------------------
-    // 2) 방어자 특성
-    // ----------------------------
-
-    // "물(Water) 기술 받는 피해 0.8배"
-    if (defender.abilityId === "water_guard") {
-        if (moveElement === "water") {
-            damage = Math.round(damage * 0.8);
-        }
-    }
-
-    // 데미지는 최소 1 보장
-    if (!Number.isFinite(damage) || damage < 1) {
-        return 1;
-    }
-    return damage;
-}
-
 /**
  * 키/몸무게 정보를 받아서 "덩치(Bulk)" → 회피율로 바꾸기
  */
@@ -83,6 +42,19 @@ export type SizeSource = {
     weightKg?: number | null;
     pokedexNo?: number | null;
 };
+
+/** 데미지 결과 컨텍스트 */
+export type DamageContext = {
+    damage: number;
+    isCritical: boolean;
+    effectiveness: number; // 타입 상성 배율 (0, 0.5, 1, 2, 4 등)
+};
+
+/** 크리티컬 히트 판정 (단순 6.25%) */
+function rollCritical(): boolean {
+    const CRIT_RATE = 0.0625; // 1/16
+    return Math.random() < CRIT_RATE;
+}
 
 /**
  * defender(몬스터)의 덩치(키/몸무게) → 회피율로 변환
@@ -192,11 +164,17 @@ export type MonsterLike = {
  * - 실제 포켓몬 공식보다 단순하게:
  *   dmg ≒ (공격력 * 위력 / 방어력) * 랜덤(0.85~1.15)
  */
-export function calcDamage(attacker: Monster, defender: Monster, move: Move): number {
+// 🔽 기존 calcDamage를 "컨텍스트 버전" + "숫자만 반환 버전"으로 분리
+
+export function calcDamageWithContext(
+    attacker: Monster,
+    defender: Monster,
+    move: Move,
+): DamageContext {
     const basePower = move.power ?? 40;
 
     const isSpecial = move.category === "special";
-    
+
     const attackStat = isSpecial
         ? attacker.spAtk ?? attacker.atk
         : attacker.atk;
@@ -212,22 +190,37 @@ export function calcDamage(attacker: Monster, defender: Monster, move: Move): nu
             2) | 0;
 
     // STAB + 타입 상성 + 특성(meta) 보정
-    const { total: typeAndAbilityMultiplier } = computeDamageMultiplier(
-        attacker,
-        defender,
-        move,
-    );
+    const { total: typeAndAbilityMultiplier, type: typeMult } =
+        computeDamageMultiplier(attacker, defender, move);
+
+    // 크리티컬
+    const isCritical = rollCritical();
+    const critMult = isCritical ? 1.5 : 1.0;
 
     // 랜덤 요소 (±15%)
     const rand = 0.85 + Math.random() * 0.3;
 
-    const final = Math.max(
-        1,
-        Math.round(baseDamage * typeAndAbilityMultiplier * rand),
-    );
+    const raw = baseDamage * typeAndAbilityMultiplier * critMult * rand;
+    const damage = Math.max(1, Math.round(raw));
 
-    return final;
+    return {
+        damage,
+        isCritical,
+        effectiveness: typeMult,
+    };
 }
+
+/**
+ * 기존 시그니처 유지: 숫자만 필요할 때는 이 함수 그대로 사용
+ */
+export function calcDamage(
+    attacker: Monster,
+    defender: Monster,
+    move: Move,
+): number {
+    return calcDamageWithContext(attacker, defender, move).damage;
+}
+
 
 
 /**

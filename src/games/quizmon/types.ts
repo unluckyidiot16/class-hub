@@ -292,6 +292,13 @@ export type QuizmonSpeciesRow = {
 };
 
 
+export type DamagePopup = {
+    id: string;
+    target: "player" | "enemy";
+    amount: number;
+    isCritical: boolean;
+    effectiveness: number; // 0, 0.5, 1, 2, 4 ...
+};
 
 export type QuizmonPartner = {
     speciesId: string;   // "starter-001" 등
