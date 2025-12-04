@@ -9,9 +9,47 @@ import type {
     DamagePopup,
 } from "./types";
 import { HpBar } from "./HpBar";
+import { getElementLabelAndColor } from "./elementUtils";
+
+function getStatusInfo(mon: Monster): { label: string; color: string } | null {
+    const anyMon = mon as any;
+
+    // hp 기준으로 기절 처리
+    if (mon.hp <= 0) {
+        return { label: "기절", color: "#9ca3af" };
+    }
+
+    // 앞으로 전투 로직에서 statusAilment / status 중 하나를 채워주면 됨
+    const status = (anyMon.statusAilment ??
+        anyMon.status) as StatusKey | undefined;
+
+    if (!status || status === "normal") return null;
+
+    switch (status) {
+        case "poison":
+            return { label: "독", color: "#22c55e" };
+        case "burn":
+            return { label: "화상", color: "#f97316" };
+        case "paralysis":
+            return { label: "마비", color: "#eab308" };
+        case "sleep":
+            return { label: "잠듦", color: "#38bdf8" };
+        case "freeze":
+            return { label: "얼음", color: "#a5b4fc" };
+        default:
+            return { label: status, color: "#e5e7eb" };
+    }
+}
 
 type AttackPhase = "idle" | "playerAttack" | "enemyAttack" | "comment";
 
+type StatusKey =
+    | "normal"
+    | "poison"
+    | "burn"
+    | "paralysis"
+    | "sleep"
+    | "freeze";
 
 type QuizBottomPanelProps = {
     phase: BattleState["phase"];
@@ -321,6 +359,16 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             (m, idx) => idx !== state.player.activeIndex && m.hp > 0,
         );
 
+    // ✅ 속성/상태 UI용 정보
+    const enemyElement = getElementLabelAndColor(
+        (enemyMon as any).element ?? null,
+    );
+    const playerElement = getElementLabelAndColor(
+        (playerMon as any).element ?? null,
+    );
+    const enemyStatus = getStatusInfo(enemyMon);
+    const playerStatus = getStatusInfo(playerMon);
+    
     // 🔹 애니메이션 중에는 스킬 선택도 막는다
     const effectiveCanSelectMove = canSelectMove && attackPhase === "idle";
 
@@ -415,54 +463,124 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             {/* ========================================================= */}
             {/* 1. 적(Enemy) 정보창: 화면 좌측 상단 (left: 5%, top: 5%) */}
             {/* ========================================================= */}
+            {/* 적 측: 상단 우측 HP + 포켓몬 */}
             <div
                 style={{
                     position: "absolute",
-                    top: "5%",
-                    left: "5%",
-                    zIndex: 20, // 스프라이트보다 위에 오도록
+                    top: 8,
+                    right: 8,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 8,
                 }}
             >
                 <div
                     style={{
-                        minWidth: "max(180px, 25vw)",
-                        padding: "0.6rem 0.8rem",
+                        minWidth: 180,
+                        padding: "0.35rem 0.5rem",
                         borderRadius: 8,
-                        background: "rgba(15,23,42,0.85)",
-                        border: "1px solid #334155",
-                        textAlign: "left",
-                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.3)",
+                        background: "rgba(15,23,42,0.92)",
+                        border: "1px solid #020617",
+                        textAlign: "right",
+                        fontSize: 12,
                     }}
                 >
+                    {/* 이름 + 레벨 */}
                     <div
                         style={{
-                            fontWeight: 700,
-                            marginBottom: 4,
-                            fontSize: "max(14px, 2.2vmin)",
                             display: "flex",
                             justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 2,
                         }}
                     >
-                        <span>{enemyMon.name}</span>
-                        <span style={{ fontSize: "0.9em", color: "#fbbf24" }}>Lv.{enemyMon.level}</span>
+                        <div style={{ fontWeight: 700 }}>
+                            {enemyMon.name}
+                        </div>
+                        <div
+                            style={{
+                                fontSize: 11,
+                                color: "#fbbf24",
+                            }}
+                        >
+                            Lv.{enemyMon.level}
+                        </div>
                     </div>
 
-                    <HpBar
-                        current={enemyMon.hp}
-                        max={enemyMon.maxHp}
-                    />
+                    {/* 속성 / 상태이상 */}
                     <div
                         style={{
-                            fontSize: "max(11px, 1.5vmin)",
-                            marginTop: 3,
-                            textAlign: "right",
-                            color: "#cbd5e1"
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 2,
+                            gap: 4,
                         }}
                     >
-                        {enemyMon.hp}/{enemyMon.maxHp}
+                        <div
+                            style={{
+                                flex: 1,
+                                display: "flex",
+                                justifyContent: "flex-start",
+                                gap: 4,
+                            }}
+                        >
+                            {enemyElement && (
+                                <span
+                                    style={{
+                                        fontSize: 10,
+                                        padding: "1px 6px",
+                                        borderRadius: 9999,
+                                        border: "1px solid rgba(148,163,184,0.6)",
+                                        color: enemyElement.color,
+                                    }}
+                                >
+                                    {enemyElement.label}
+                                </span>
+                            )}
+                        </div>
+                        {enemyStatus && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    padding: "1px 6px",
+                                    borderRadius: 9999,
+                                    border: "1px solid rgba(148,163,184,0.6)",
+                                    background: "rgba(15,23,42,0.9)",
+                                    color: enemyStatus.color,
+                                }}
+                            >
+                                {enemyStatus.label}
+                            </span>
+                        )}
                     </div>
+
+                    {/* HP */}
+                    <div
+                        style={{
+                            fontSize: 11,
+                            marginBottom: 2,
+                        }}
+                    >
+                        HP {enemyMon.hp}/{enemyMon.maxHp}
+                    </div>
+                    <HpBar current={enemyMon.hp} max={enemyMon.maxHp} />
+                </div>
+
+                <div
+                    style={{
+                        width: 96,
+                        height: 96,
+                        display: "flex",
+                        alignItems: "flex-end",
+                        justifyContent: "flex-end",
+                    }}
+                >
+                    {enemySprite}
                 </div>
             </div>
+
 
             {/* ========================================================= */}
             {/* 2. 적(Enemy) 스프라이트: 화면 우측 상단 (right: 10%, top: 12%) */}
@@ -566,58 +684,123 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             {/* 4. 플레이어(Player) 정보창: 화면 우측 하단 (right: 5%, bottom: 30%) */}
             {/* **핵심**: 스프라이트 반대편에 위치하여 겹침 방지 */}
             {/* ========================================================= */}
+            {/* 플레이어 측: 하단 좌측 포켓몬 + HP */}
             <div
                 style={{
                     position: "absolute",
-                    right: "5%",
-                    bottom: "30%", // 패널 위 + 스프라이트 높이 고려
-                    zIndex: 20,
+                    left: 16,
+                    bottom: 128,
                     display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end", // 우측 정렬
+                    alignItems: "flex-end",
+                    gap: 12,
                 }}
             >
                 <div
                     style={{
-                        minWidth: "max(200px, 28vw)",
-                        padding: "0.6rem 0.8rem",
-                        borderRadius: 8,
-                        background: "rgba(15,23,42,0.85)",
-                        border: "1px solid #334155",
-                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.3)",
+                        width: 96,
+                        height: 96,
+                        display: "flex",
+                        alignItems: "flex-end",
+                        justifyContent: "flex-start",
                     }}
                 >
+                    {playerSprite}
+                </div>
+
+                <div
+                    style={{
+                        minWidth: 180,
+                        padding: "0.35rem 0.5rem",
+                        borderRadius: 8,
+                        background: "rgba(15,23,42,0.92)",
+                        border: "1px solid #020617",
+                        textAlign: "left",
+                        fontSize: 12,
+                    }}
+                >
+                    {/* 이름 + 레벨 */}
                     <div
                         style={{
-                            fontWeight: 700,
-                            marginBottom: 4,
-                            fontSize: "max(15px, 2.4vmin)",
                             display: "flex",
                             justifyContent: "space-between",
-                            alignItems: "center"
+                            alignItems: "center",
+                            marginBottom: 2,
                         }}
                     >
-                        <span>{playerMon.name}</span>
-                        <span style={{ fontSize: "0.85em", color: "#fbbf24" }}>Lv.{playerMon.level}</span>
+                        <div style={{ fontWeight: 700 }}>
+                            {playerMon.name}
+                        </div>
+                        <div
+                            style={{
+                                fontSize: 11,
+                                color: "#fbbf24",
+                            }}
+                        >
+                            Lv.{playerMon.level}
+                        </div>
                     </div>
 
-                    <HpBar
-                        current={playerMon.hp}
-                        max={playerMon.maxHp}
-                    />
+                    {/* 속성 / 상태이상 */}
                     <div
                         style={{
-                            fontSize: "max(12px, 1.8vmin)",
-                            marginTop: 3,
-                            textAlign: "right",
-                            fontWeight: 600,
-                            color: "#e2e8f0"
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 2,
+                            gap: 4,
                         }}
                     >
-                        {playerMon.hp} / {playerMon.maxHp}
+                        <div
+                            style={{
+                                flex: 1,
+                                display: "flex",
+                                justifyContent: "flex-start",
+                                gap: 4,
+                            }}
+                        >
+                            {playerElement && (
+                                <span
+                                    style={{
+                                        fontSize: 10,
+                                        padding: "1px 6px",
+                                        borderRadius: 9999,
+                                        border: "1px solid rgba(148,163,184,0.6)",
+                                        color: playerElement.color,
+                                    }}
+                                >
+                                    {playerElement.label}
+                                </span>
+                            )}
+                        </div>
+                        {playerStatus && (
+                            <span
+                                style={{
+                                    fontSize: 10,
+                                    padding: "1px 6px",
+                                    borderRadius: 9999,
+                                    border: "1px solid rgba(148,163,184,0.6)",
+                                    background: "rgba(15,23,42,0.9)",
+                                    color: playerStatus.color,
+                                }}
+                            >
+                                {playerStatus.label}
+                            </span>
+                        )}
                     </div>
+
+                    {/* HP */}
+                    <div
+                        style={{
+                            fontSize: 11,
+                            marginBottom: 2,
+                        }}
+                    >
+                        HP {playerMon.hp}/{playerMon.maxHp}
+                    </div>
+                    <HpBar current={playerMon.hp} max={playerMon.maxHp} />
                 </div>
             </div>
+
 
             {/* ========================================================= */}
             {/* 하단 명령 / 퀴즈 패널 (bottom: 0) */}
