@@ -97,6 +97,7 @@ export function BattleScriptAnimation({
             setFrameIndex((prev) => {
                 if (stopped) return prev;
                 const next = prev + 1;
+                console.log("[BattleScriptAnimation] frame", next, "/", frames.length);
 
                 if (next >= frames.length) {
                     if (!loop) {
