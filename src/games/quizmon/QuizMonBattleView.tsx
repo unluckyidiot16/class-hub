@@ -10,70 +10,10 @@ import type {
 } from "./types";
 import { HpBar } from "./HpBar";
 import { getElementLabelAndColor } from "./elementUtils";
-
-
-// QuizMonBattleView.tsx 상단 쪽에 추가
-
-type BattleEffect = {
-    id: string;
-    side: "player" | "enemy";
-    moveId: string;
-};
-
-type BattleEffectLayerProps = {
-    effect: BattleEffect | null;
-    onEffectEnd: () => void;
-};
-
-/**
- * 전투 이펙트 전용 레이어
- * - 필드 전체를 덮는 absolute 레이어
- * - moveId + side 에 따라 CSS / 스프라이트로 연출
- */
-function BattleEffectLayer({ effect, onEffectEnd }: BattleEffectLayerProps) {
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        if (!effect) return;
-
-        setVisible(true);
-
-        // TODO: 나중에 CSS animationend 이벤트로 바꿔도 좋음
-        const t = window.setTimeout(() => {
-            setVisible(false);
-            onEffectEnd();
-        }, 650); // 공격 연출 길이에 맞게 조정
-
-        return () => {
-            window.clearTimeout(t);
-        };
-    }, [effect, onEffectEnd]);
-
-    if (!effect || !visible) return null;
-
-    const isPlayerSide = effect.side === "player";
-
-    return (
-        <div
-            style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-                zIndex: 20, // 스프라이트 위, UI 아래 정도
-            }}
-        >
-            <div
-                className={[
-                    "qzmon-movefx",                // 공통 스타일
-                    `qzmon-movefx-${effect.moveId}`, // 기술별 스타일
-                    isPlayerSide
-                        ? "qzmon-movefx-player"
-                        : "qzmon-movefx-enemy",     // 어느 쪽에서 터지는지
-                ].join(" ")}
-            />
-        </div>
-    );
-}
+import {
+    BattleEffectLayer,
+    type BattleEffect,
+} from "./BattleEffectLayer";
 
 function getStatusInfo(mon: Monster): { label: string; color: string } | null {
     const anyMon = mon as any;

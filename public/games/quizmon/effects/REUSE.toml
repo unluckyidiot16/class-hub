@@ -3,7 +3,7 @@ version = 1
 # Battle animations from pokemon reborn
 [[annotations]]
 path = [
-    "battle-anims/double-hit.json",
+    "battle-anims/double-hit.json", 
     "battle-anims/mud-sport.json",
     "battle-anims/lava-plume.json",
     "battle-anims/spit-up.json",
