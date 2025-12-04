@@ -439,45 +439,50 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         };
     };
 
-    
-    
+
+
     useEffect(() => {
         const r = state.lastQuizResult;
-        if (!r) return;
-
+        if (!r) return;         
         // 같은 결과로 중복 실행되는 것 방지용 키
         const key = `${r.questionId}-${r.chosenIndex}-${r.timeMs}`;
         if (lastResultKeyRef.current === key) return;
         lastResultKeyRef.current = key;
-
+        
+        // 새 턴 시작 전에 혹시 남아 있을지 모르는 잔상 제거
+        setActiveEffect(null);
+        
         // 1) 플레이어 공격
         setAttackPhase("playerAttack");
-
+        
         const PLAYER_MS = 600;
         const ENEMY_MS = 600;
         const COMMENT_MS = 500;
-
+        
         const t1 = window.setTimeout(() => {
             // 2) 적 공격
             setAttackPhase("enemyAttack");
-        }, PLAYER_MS);
-
+            }, PLAYER_MS);
+        
         const t2 = window.setTimeout(() => {
             // 3) 코멘트 단계
             setAttackPhase("comment");
-        }, PLAYER_MS + ENEMY_MS);
-
+            }, PLAYER_MS + ENEMY_MS);
+        
         const t3 = window.setTimeout(() => {
-            // 4) 다음 턴 대기(입력 가능)
+            // 4) 다음 턴 대기(입력 가능) + 이펙트 완전히 제거
             setAttackPhase("idle");
-        }, PLAYER_MS + ENEMY_MS + COMMENT_MS);
-
+            setActiveEffect(null);
+            }, PLAYER_MS + ENEMY_MS + COMMENT_MS);
+        
         return () => {
             window.clearTimeout(t1);
             window.clearTimeout(t2);
             window.clearTimeout(t3);
+            // 인터럽트될 때도 잔상 제거
+            setActiveEffect(null);
         };
-    }, [state.lastQuizResult]);
+        }, [state.lastQuizResult]);
 
 
     return (

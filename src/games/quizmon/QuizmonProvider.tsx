@@ -20,7 +20,10 @@ import { healAllMonstersService } from "./quizmonService";
 type QuizmonProfile = UseQuizmonProfileResult["profile"];
 type QuizmonProfileError = UseQuizmonProfileResult["error"];
 type ApplyRaidResultFn = UseQuizmonProfileResult["applyRaidResult"];
-type ChooseStarterFn = UseQuizmonProfileResult["chooseStarter"];
+type ChooseStarterFn = (payload: {
+    speciesId: string;
+    trainerName: string;
+}) => Promise<void>;
 type BuyExpDustFn = UseQuizmonProfileResult["buyExpDust"];
 
 
@@ -63,7 +66,7 @@ export function QuizmonProvider({
         loading: profileLoading,
         error: profileError,
         applyRaidResult,
-        chooseStarter,
+        chooseStarter,   // ← 이제 payload 버전으로 들어옴
         buyExpDust,
     } = useQuizmonProfile({
         classId,

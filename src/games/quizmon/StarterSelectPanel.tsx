@@ -3,7 +3,10 @@ import { useState } from "react";
 import { getMonsterSprite } from "./assets";
 
 type StarterSelectPanelProps = {
-    onChooseStarter: (speciesId: string) => Promise<void> | void;
+    onChooseStarter: (payload: {
+        speciesId: string;
+        trainerName: string;
+    }) => Promise<void> | void;
     disabled?: boolean;
 };
 
@@ -41,13 +44,23 @@ export function StarterSelectPanel(props: StarterSelectPanelProps) {
     const [submittingId, setSubmittingId] = useState<string | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    const [trainerName, setTrainerName] = useState("");
+
     const handleChoose = async (id: string) => {
         if (disabled || submittingId) return;
+
+        if (!trainerName.trim()) {
+            setErrorMsg("트레이너 이름을 먼저 입력해 주세요.");
+            return;
+        }
 
         setErrorMsg(null);
         setSubmittingId(id);
         try {
-            await onChooseStarter(id);
+            await onChooseStarter({
+                speciesId: id,
+                trainerName: trainerName.trim(),
+            });
             // 성공하면 상위에서 프로필 갱신 → 이 패널은 자연스럽게 사라짐
         } catch (err) {
             console.error("[StarterSelectPanel] choose starter error", err);
@@ -58,9 +71,46 @@ export function StarterSelectPanel(props: StarterSelectPanelProps) {
         }
     };
 
+    const isNameInvalid = !trainerName.trim();
+
     return (
         <section className="card">
             <h2 style={{ marginTop: 0 }}>첫 파트너 선택</h2>
+
+            {/* 🔹 트레이너 이름 입력 */}
+            <div style={{ marginBottom: "1rem" }}>
+                <label
+                    style={{
+                        display: "block",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        marginBottom: 4,
+                    }}
+                >
+                    트레이너 이름
+                </label>
+                <input
+                    type="text"
+                    maxLength={20}
+                    value={trainerName}
+                    onChange={(e) => setTrainerName(e.target.value)}
+                    disabled={disabled || !!submittingId}
+                    placeholder="예: 안쌤, 퀴즈마스터 등"
+                    style={{
+                        width: "100%",
+                        padding: "0.45rem 0.6rem",
+                        borderRadius: 8,
+                        border: "1px solid #4b5563",
+                        background: "#020617",
+                        color: "#e5e7eb",
+                        fontSize: 14,
+                    }}
+                />
+                <p className="form-message help" style={{ marginTop: 4 }}>
+                    배틀 화면에서 표시될 이름이에요.
+                </p>
+            </div>
+
             <p className="form-message help" style={{ marginBottom: "1rem" }}>
                 이번 학기 동안 함께 싸울 첫 파트너를 선택해 주세요.
             </p>
@@ -81,7 +131,9 @@ export function StarterSelectPanel(props: StarterSelectPanelProps) {
                             key={opt.id}
                             type="button"
                             onClick={() => void handleChoose(opt.id)}
-                            disabled={disabled || !!submittingId}
+                            disabled={
+                                disabled || !!submittingId || isNameInvalid
+                            }
                             style={{
                                 textAlign: "left",
                                 borderRadius: 16,
@@ -89,9 +141,15 @@ export function StarterSelectPanel(props: StarterSelectPanelProps) {
                                 border: "1px solid #1f2937",
                                 background: "#020617",
                                 cursor:
-                                    disabled || submittingId ? "default" : "pointer",
+                                    disabled ||
+                                    submittingId ||
+                                    isNameInvalid
+                                        ? "default"
+                                        : "pointer",
                                 opacity:
-                                    disabled || (!!submittingId && !isSubmitting)
+                                    disabled ||
+                                    (!!submittingId && !isSubmitting) ||
+                                    isNameInvalid
                                         ? 0.5
                                         : 1,
                                 display: "flex",

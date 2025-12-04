@@ -175,8 +175,9 @@ export function QuizMonClassPanel(props: QuizMonClassPanelProps) {
             return (
                 <StarterSelectPanel
                     disabled={profileLoading}
-                    onChooseStarter={async (speciesId) => {
-                        await chooseStarter(speciesId);
+                    onChooseStarter={async ({ speciesId, trainerName }) => {
+                        // chooseStarter의 시그니처도 여기에 맞춰 바꿔줄 예정
+                        await chooseStarter({ speciesId, trainerName });
                         await refreshMonsters();
                     }}
                 />

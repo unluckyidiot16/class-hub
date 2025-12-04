@@ -19,7 +19,10 @@ export type UseQuizmonProfileResult = {
     error: string | null;
     refresh: () => Promise<void>;
     applyRaidResult: (summary: { correct: number; total: number }) => Promise<void>;
-    chooseStarter: (speciesId: string) => Promise<void>;
+    chooseStarter: (payload: {
+        speciesId: string;
+        trainerName: string;
+    }) => Promise<void>;
     buyExpDust: (quantity?: number) => Promise<{ spentGold: number; gainedExpDust: number } | void>;
 };
 
@@ -233,21 +236,27 @@ export function useQuizmonProfile(
 
 
     // 스타터 선택 + 첫 포켓몬 지급
+    // 스타터 선택 + 첫 포켓몬 지급
     const chooseStarter = useCallback(
-        async (speciesId: string) => {
+        async ({ speciesId, trainerName }: { speciesId: string; trainerName: string }) => {
             if (!hasKey || !profile) return;
 
             setLoading(true);
             setError(null);
 
+            const profileId = profile.id;
+
             try {
-                // 1) 프로필에 starter_chosen 표시
+                // 1) 프로필에 이름 + 스타터 선택 + 레벨/경험치 초기값 반영
                 const { data: updated, error: updateError } = await supabase
                     .from("quizmon_profiles")
                     .update({
+                        trainer_name: trainerName,
                         starter_chosen: true,
+                        trainer_level: 1,
+                        trainer_exp: 0,
                     })
-                    .eq("id", profile.id)
+                    .eq("id", profileId)
                     .select("*")
                     .single();
 
@@ -268,7 +277,7 @@ export function useQuizmonProfile(
                 const { data: existing, error: ownedError } = await supabase
                     .from("quizmon_owned_monsters")
                     .select("id")
-                    .eq("profile_id", profile.id)
+                    .eq("profile_id", profileId)
                     .limit(1);
 
                 if (ownedError) {
@@ -284,7 +293,7 @@ export function useQuizmonProfile(
                     const { error: insertOwnedError } = await supabase
                         .from("quizmon_owned_monsters")
                         .insert({
-                            profile_id: profile.id,
+                            profile_id: profileId,
                             species_id: speciesId,
                             level: 1,
                             exp: 0,
@@ -307,6 +316,7 @@ export function useQuizmonProfile(
         },
         [hasKey, profile],
     );
+
 
     return {
         profile,
