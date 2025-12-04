@@ -1,4 +1,4 @@
-// moveEffectConfig.ts
+// src/games/quizmon/moveEffectConfig.ts
 import { getEffectPathsForMove } from "./effectPaths";
 
 export type MoveEffectAnchor = "caster" | "target" | "screen";
@@ -8,52 +8,43 @@ export type MoveEffectConfig = {
     moveId: string;
     mode?: MoveEffectMode;  // 기본 "sheet"
     jsonUrl: string;
-    imageUrl?: string;      // sheet 모드 전용
+    imageUrl?: string;      // script / sheet 공통으로 사용
     fps?: number;
     scale?: number;
     anchor?: MoveEffectAnchor;
     durationMs?: number;
 };
 
+// 필요하면 나중에 수동 오버라이드용으로 사용 (지금은 비워두기)
 export const MOVE_EFFECT_CONFIG: Record<string, MoveEffectConfig> = {
-    ember: {
-        moveId: "ember",
-        mode: "script",
-        jsonUrl: "/games/quizmon/battle-anims/ember.json",
-        anchor: "target",
-        fps: 20,
-    },
-    tackle: {
-        moveId: "tackle",
-        mode: "script",
-        jsonUrl: "/games/quizmon/battle-anims/tackle.json",
-        anchor: "target",
-        fps: 20,
-    },
-    // 필요하면 TexturePacker sheet 기반 이펙트도 "sheet" 모드로 같이 사용 가능
+    // 예시:
+    // ember: {
+    //   moveId: "ember",
+    //   mode: "script",
+    //   jsonUrl: "/커스텀경로.json",
+    //   imageUrl: "/커스텀이미지.png",
+    //   fps: 24,
+    //   anchor: "target",
+    // },
 };
 
 export function getMoveEffectConfig(
     moveId: string,
 ): MoveEffectConfig | null {
-    // 1) 수동 설정 우선 (기존 ember, tackle 등)
+    // 1) 수동 설정 우선
     const manual = MOVE_EFFECT_CONFIG[moveId];
     if (manual) return manual;
 
     // 2) effectGraphicMap.json 기반 자동 매핑
-    //    → effectPaths.ts 가 moveId → { jsonUrl, imageUrl } 를 만들어 줌
     const paths = getEffectPathsForMove(moveId);
-    if (!paths) {
-        // effectGraphicMap.json 에 없는 기술이면 이펙트 없음
-        return null;
-    }
+    if (!paths) return null;
 
-    // PokéRogue battle script 형식이라고 가정하고 script 모드로 사용
     return {
         moveId,
-        mode: "script",      // BattleScriptAnimation 사용
-        jsonUrl: paths.jsonUrl,
-        fps: 24,
-        anchor: "target",    // 기본은 타겟 쪽에 터지도록
+        mode: "script",         // PokéRogue battle script 형식
+        jsonUrl: paths.jsonUrl, // 예: /games/quizmon/effects/tackle.json
+        imageUrl: paths.imageUrl, // 예: /games/quizmon/effects/PRAS-%20Strike.png
+        fps: 20,
+        anchor: "target",
     };
 }

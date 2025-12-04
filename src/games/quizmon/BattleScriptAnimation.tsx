@@ -1,11 +1,12 @@
-// BattleScriptAnimation.tsx
+// src/games/quizmon/BattleScriptAnimation.tsx
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { BattleScriptJson, ScriptLayer } from "./battleScriptTypes";
 import { EFFECT_SHEETS } from "./battleEffectSheets";
 
 export type BattleScriptAnimationProps = {
-    jsonUrl: string;          // battle-anims/xxx.json
+    jsonUrl: string;          // battle-anims/xxx.json 또는 effects/xxx.json
+    imageUrlOverride?: string; // effectPaths.ts 에서 내려오는 png 경로
     layerIndex?: number;      // 기본 0: 첫 레이어만 사용
     fps?: number;
     loop?: boolean;           // 대부분 false로 쓸 듯
@@ -16,6 +17,7 @@ export type BattleScriptAnimationProps = {
 
 export function BattleScriptAnimation({
                                           jsonUrl,
+                                          imageUrlOverride,
                                           layerIndex = 0,
                                           fps = 20,
                                           loop = false,
@@ -101,13 +103,23 @@ export function BattleScriptAnimation({
 
     if (error || !layer || !frames.length) return null;
 
-    const sheet = EFFECT_SHEETS[layer.graphic];
-    if (!sheet) {
+    // 🔹 우선 EFFECT_SHEETS에서 찾고, 없으면 imageUrlOverride / 기본 경로 사용
+    const preConfig = EFFECT_SHEETS[layer.graphic];
+
+    const sheet = preConfig ?? {
+        imageUrl:
+            imageUrlOverride ??
+            `/games/quizmon/effects/${encodeURIComponent(layer.graphic)}.png`,
+        frameWidth: 64,
+        frameHeight: 64,
+    };
+
+    if (!preConfig && !imageUrlOverride) {
+        // 개발용 경고 (경로 자동 추측 중)
         console.warn(
-            "[BattleScriptAnimation] missing EFFECT_SHEETS config for graphic:",
+            "[BattleScriptAnimation] using fallback sheet for graphic:",
             layer.graphic,
         );
-        return null;
     }
 
     const sprites = frames[Math.min(frameIndex, frames.length - 1)] ?? [];
@@ -132,12 +144,11 @@ export function BattleScriptAnimation({
                         key={idx}
                         style={{
                             position: "absolute",
-                            left: s.x,
-                            top: s.y,
-                            width: frameWidth,
-                            height: frameHeight,
-                            opacity: (s.opacity ?? 255) / 255,
-                            transform: `scale(${(s.zoomX ?? 100) / 100}, ${
+                            left: "50%",
+                            top: "50%",
+                            width: `${frameWidth}px`,
+                            height: `${frameHeight}px`,
+                            transform: `translate(${s.x}px, ${s.y}px) scale(${(s.zoomX ?? 100) / 100}, ${
                                 (s.zoomY ?? 100) / 100
                             })`,
                             transformOrigin: "center",
