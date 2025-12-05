@@ -1735,7 +1735,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         />
                     )}
 
-
                     {viewState === "lobby" && (
                         <QuizMonLobbyOverlay
                             menuTab={menuTab}

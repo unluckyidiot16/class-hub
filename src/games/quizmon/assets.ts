@@ -9,6 +9,9 @@ const TRAINER_BASE = `${BASE_URL}games/quizmon/trainers/`;
 const ARENA_BASE = `${BASE_URL}games/quizmon/arenas/`;
 const UI_BASE = `${BASE_URL}games/quizmon/ui/`;
 
+// ✅ 포켓볼 전용 베이스 경로 추가
+const BALL_BASE = `${BASE_URL}games/quizmon/pokeball/`;
+
 // 4자리 포켓몬 번호 정규화: "1" | "001" | "0001" | "poke-0001" 다 받아서 "0001"로 통일
 function normalizeSpeciesId(speciesId: string | number): string {
     const raw =
@@ -118,4 +121,29 @@ export function getMonsterAnimJson(
     const folder = variant === "front" ? "front" : "back";
 
     return `${MONSTER_BASE}${folder}/${id}.json`;
+}
+
+/* ⬇️ 여기부터 새로 추가 */
+
+// 포획 연출용 포켓볼 스프라이트 상태
+export type CaptureBallSpriteState = "closed" | "opening" | "open";
+
+/**
+ * 포켓볼 스프라이트 URL:
+ *  - closed   → pb.png
+ *  - opening  → pb_opening.png
+ *  - open     → pb_open.png
+ */
+export function getCaptureBallSprite(
+    state: CaptureBallSpriteState = "closed",
+): string {
+    switch (state) {
+        case "open":
+            return `${BALL_BASE}pb_open.png`;
+        case "opening":
+            return `${BALL_BASE}pb_opening.png`;
+        case "closed":
+        default:
+            return `${BALL_BASE}pb.png`;
+    }
 }

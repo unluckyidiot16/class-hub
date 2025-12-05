@@ -1,4 +1,6 @@
 // src/games/quizmon/QuizMonLobbyOverlay.tsx
+import {useMemo} from 'react'
+import { supabase } from "../../lib/supabaseClient";
 import type {
     QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
@@ -12,6 +14,10 @@ import { DexTab } from "./DexTab";
 import { StarShopTab } from "./StarShopTab";
 import { BallShopTab } from "./BallShopTab";
 import {loadBallItemCounts} from "./quizmonService";
+import {BattleTowerTab} from "./BattleTowerTab.tsx";
+import {ArenaTab} from "./ArenaTab.tsx";
+import type { ArenaOpponent } from "./ArenaTab";
+import type { TowerFloor } from "./BattleTowerTab";
 
 
 export type MainTabKey =
@@ -20,7 +26,9 @@ export type MainTabKey =
     | "dex"
     | "inventory"
     | "profile"
-    | "shop";
+    | "shop"
+    | "arena"
+    | "tower";
 
 export type QuizMonLobbyOverlayProps = {
     menuTab: MainTabKey;
@@ -55,6 +63,12 @@ export type QuizMonLobbyOverlayProps = {
     onBuyExpDust?: (quantity?: number) => Promise<void> | void;
 };
 
+type ArenaProfileLite = {
+    profile_id: string;
+    attack_slot1_owned_id: string | null;
+    attack_slot2_owned_id: string | null;
+    attack_slot3_owned_id: string | null;
+};
 
 export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
     const {
@@ -79,8 +93,12 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onSelectGhostBattle,
         onRegisterArenaParty,
     } = props;
-    
 
+    const [arenaRating, setArenaRating] = useState<number | null>(null);
+    const [opponentList, setOpponentList] = useState<ArenaOpponent[]>([]);
+
+    const [towerFloors, setTowerFloors] = useState<TowerFloor[]>([]);
+    
     // ✅ 도감 탭에서 포커스할 종
     const [dexSelectedSpeciesId, setDexSelectedSpeciesId] =
         useState<string | null>(null);
@@ -144,6 +162,421 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
             cancelled = true;
         };
     }, [effectiveProfile?.id]);
+
+    // QuizMonLobbyOverlay 컴포넌트 내부
+
+    useEffect(() => {
+        const profileId = effectiveProfile?.id;
+        if (!profileId) {
+            setArenaRating(null);
+            setOpponentList([]);
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadArenaOpponents = async () => {
+            try {
+                // 1) 내 랭크 정보 (가장 최근 시즌 1개)
+                const { data: myRankRow, error: myRankError } =
+                    await supabase
+                        .from("quizmon_ranked_stats")
+                        .select("profile_id, rating, season")
+                        .eq("profile_id", profileId)
+                        .order("season", { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+
+                if (myRankError) {
+                    console.warn(
+                        "[arena] my ranked_stats error",
+                        myRankError,
+                    );
+                }
+
+                const myRating = myRankRow?.rating ?? 1000;
+                if (cancelled) return;
+                setArenaRating(myRating);
+
+                // 2) 내 주변 레이팅 구간의 다른 플레이어들 조회
+                const WINDOW = 300;
+
+                const {
+                    data: rankedList,
+                    error: rankedListError,
+                } = await supabase
+                    .from("quizmon_ranked_stats")
+                    .select("profile_id, rating")
+                    .neq("profile_id", profileId)
+                    .gte("rating", myRating - WINDOW)
+                    .lte("rating", myRating + WINDOW)
+                    .order("rating", { ascending: true })
+                    .limit(30);
+
+                if (rankedListError) {
+                    console.error(
+                        "[arena] ranked_list error",
+                        rankedListError,
+                    );
+                    if (!cancelled) {
+                        setOpponentList([]);
+                    }
+                    return;
+                }
+
+                const ranked = rankedList ?? [];
+
+                // 내 레이팅과 가까운 순으로 정렬 후 5명 선택
+                const selectedRanked = ranked
+                    .sort(
+                        (a, b) =>
+                            Math.abs(a.rating - myRating) -
+                            Math.abs(b.rating - myRating),
+                    )
+                    .slice(0, 5);
+
+                const opponentIds = selectedRanked.map(
+                    (r) => r.profile_id,
+                );
+
+                if (opponentIds.length === 0) {
+                    if (!cancelled) setOpponentList([]);
+                    return;
+                }
+
+                const {
+                    data: arenaRows,
+                    error: arenaError,
+                } = await supabase
+                    .from("quizmon_arena_profiles")
+                    .select(
+                        "profile_id, attack_slot1_owned_id, attack_slot2_owned_id, attack_slot3_owned_id",
+                    );
+                
+                if (arenaError) {
+                    console.error(
+                        "[arena] arena_profiles error",
+                        arenaError,
+                    );
+                }
+                
+                const arenaList = (arenaRows ?? []) as ArenaProfileLite[];
+
+                // 4) 트레이너 이름 (quizmon_profiles)
+                const { data: quizmonProfiles, error: qpError } =
+                    await supabase
+                        .from("quizmon_profiles")
+                        .select("id, trainer_name")
+                        .in("id", opponentIds);
+
+                if (qpError) {
+                    console.error(
+                        "[arena] quizmon_profiles error",
+                        qpError,
+                    );
+                }
+
+                const profileMap = new Map(
+                    (quizmonProfiles ?? []).map((p) => [
+                        p.id,
+                        p,
+                    ]),
+                );
+
+                // 5) 상대 몬스터 정보 (owned_monsters)
+                const ownedIds: string[] = [];
+                for (const a of arenaList) {
+                    if (a.attack_slot1_owned_id)
+                        ownedIds.push(a.attack_slot1_owned_id);
+                    if (a.attack_slot2_owned_id)
+                        ownedIds.push(a.attack_slot2_owned_id);
+                    if (a.attack_slot3_owned_id)
+                        ownedIds.push(a.attack_slot3_owned_id);
+                }
+
+                const uniqueOwnedIds = Array.from(
+                    new Set(ownedIds),
+                );
+                let ownedMap = new Map<string, any>();
+
+                if (uniqueOwnedIds.length > 0) {
+                    const {
+                        data: ownedRows,
+                        error: ownedError,
+                    } = await supabase
+                        .from("quizmon_owned_monsters")
+                        .select(
+                            "id, species_id, level",
+                        )
+                        .in("id", uniqueOwnedIds);
+
+                    if (ownedError) {
+                        console.error(
+                            "[arena] owned_monsters error",
+                            ownedError,
+                        );
+                    }
+
+                    ownedMap = new Map(
+                        (ownedRows ?? []).map((m) => [m.id, m]),
+                    );
+                }
+
+                // 6) ArenaOpponent 배열 조립
+                const opponents: ArenaOpponent[] =
+                    selectedRanked.map((rankRow, idx) => {
+                        const arena = arenaList.find(
+                            (a) =>
+                                a.profile_id ===
+                                rankRow.profile_id,
+                        );
+                        const qp = profileMap.get(
+                            rankRow.profile_id,
+                        );
+
+                        const rating = rankRow.rating;
+                        const gap = rating - myRating;
+
+                        // ▷ 랭크 차이 클수록 뒤에서부터 한 칸씩 가리기
+                        let hideCount = 0;
+                        if (gap >= 50) hideCount = 1;
+                        if (gap >= 150) hideCount = 2;
+                        if (gap >= 250) hideCount = 3;
+
+                        const slotOwnedIds = [
+                            arena?.attack_slot1_owned_id,
+                            arena?.attack_slot2_owned_id,
+                            arena?.attack_slot3_owned_id,
+                        ];
+
+                        const monstersRaw = slotOwnedIds
+                            .map((ownedId) => {
+                                if (!ownedId) return null;
+                                const om =
+                                    ownedMap.get(ownedId);
+                                if (!om) return null;
+                                return {
+                                    speciesId:
+                                    om.species_id,
+                                    level: om.level ?? 1,
+                                };
+                            })
+                            .filter(Boolean) as {
+                            speciesId: string;
+                            level: number;
+                        }[];
+
+                        const monsters =
+                            monstersRaw.map(
+                                (m, i, arr) => ({
+                                    ...m,
+                                    hidden:
+                                        i >=
+                                        arr.length -
+                                        hideCount,
+                                }),
+                            );
+
+                        return {
+                            id: rankRow.profile_id,
+                            name:
+                                qp?.trainer_name ??
+                                `상대 트레이너 ${idx + 1}`,
+                            rating,
+                            isGhost: false,
+                            monsters,
+                        };
+                    });
+
+                if (!cancelled) {
+                    setOpponentList(opponents);
+                }
+            } catch (err) {
+                console.error("[arena] load error", err);
+                if (!cancelled) {
+                    setOpponentList([]);
+                }
+            }
+        };
+
+        void loadArenaOpponents();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [effectiveProfile?.id]);
+
+
+    // 현재 파티(1~3번 슬롯)만 추려서 공격 덱으로 사용
+    const attackParty = useMemo(
+        () =>
+            (monsters ?? [])
+                .filter(
+                    (m) =>
+                        m.party_slot != null &&
+                        m.party_slot >= 1 &&
+                        m.party_slot <= 3,
+                )
+                .sort(
+                    (a, b) =>
+                        (a.party_slot ?? 0) - (b.party_slot ?? 0),
+                ),
+        [monsters],
+    );
+    // QuizMonLobbyOverlay 컴포넌트 내부
+
+    type EnemyTeamJson = any;
+
+    // enemy_team: { monsters: [{ species_id, level }, ...] } 형식이라고 가정
+    function parseMonstersFromEnemyTeam(
+        enemyTeam: EnemyTeamJson | null,
+    ): { speciesId: string; level?: number | null }[] {
+        if (!enemyTeam) return [];
+
+        let arr: any[] = [];
+
+        if (Array.isArray(enemyTeam)) {
+            arr = enemyTeam;
+        } else if (Array.isArray(enemyTeam.monsters)) {
+            arr = enemyTeam.monsters;
+        } else if (Array.isArray(enemyTeam.party)) {
+            arr = enemyTeam.party;
+        }
+
+        return arr
+            .slice(0, 3)
+            .map((m) => ({
+                speciesId:
+                    m.species_id ?? m.speciesId ?? "",
+                level: m.level ?? null,
+            }))
+            .filter((m) => !!m.speciesId);
+    }
+
+    useEffect(() => {
+        const profileId = effectiveProfile?.id;
+        if (!profileId) {
+            setTowerFloors([]);
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadTowerFloors = async () => {
+            try {
+                // 1) 타워용 던전 메타 (id 가 'tower-%' 인 것만)
+                const {
+                    data: dungeonRows,
+                    error: dungeonError,
+                } = await supabase
+                    .from("quizmon_dungeons")
+                    .select(
+                        "id, name, description, recommended_level, enemy_team",
+                    )
+                    .ilike("id", "tower-%")
+                    .order("id", { ascending: true });
+
+                if (dungeonError) {
+                    console.error(
+                        "[tower] dungeons error",
+                        dungeonError,
+                    );
+                    if (!cancelled) setTowerFloors([]);
+                    return;
+                }
+
+                const dungeons = dungeonRows ?? [];
+                if (dungeons.length === 0) {
+                    if (!cancelled) setTowerFloors([]);
+                    return;
+                }
+
+                const dungeonIds = dungeons.map(
+                    (d) => d.id,
+                );
+
+                // 2) 내 클리어 이력
+                const {
+                    data: runRows,
+                    error: runsError,
+                } = await supabase
+                    .from("quizmon_dungeon_runs")
+                    .select("dungeon_id, result")
+                    .eq("profile_id", profileId)
+                    .in("dungeon_id", dungeonIds);
+
+                if (runsError) {
+                    console.error(
+                        "[tower] dungeon_runs error",
+                        runsError,
+                    );
+                }
+
+                const runList = runRows ?? [];
+
+                const clearedSet = new Set(
+                    runList
+                        .filter(
+                            (r) => r.result === "clear",
+                        )
+                        .map((r) => r.dungeon_id),
+                );
+
+                // 가장 높은 클리어 층 index
+                let maxClearedIndex = -1;
+                dungeons.forEach((d, idx) => {
+                    if (clearedSet.has(d.id)) {
+                        if (idx > maxClearedIndex) {
+                            maxClearedIndex = idx;
+                        }
+                    }
+                });
+
+                const floors: TowerFloor[] =
+                    dungeons.map((d, idx) => {
+                        const floorNo = idx + 1;
+                        const cleared =
+                            clearedSet.has(d.id);
+                        const locked =
+                            idx >
+                            maxClearedIndex + 1; // (클리어층+1)까지만 오픈
+
+                        const monsters =
+                            parseMonstersFromEnemyTeam(
+                                d.enemy_team,
+                            );
+
+                        return {
+                            id: d.id,
+                            floor: floorNo,
+                            name:
+                                d.name ??
+                                `타워 ${floorNo}층`,
+                            recommendedRating:
+                                d.recommended_level ??
+                                undefined,
+                            cleared,
+                            locked,
+                            monsters,
+                        };
+                    });
+
+                if (!cancelled) {
+                    setTowerFloors(floors);
+                }
+            } catch (err) {
+                console.error("[tower] load error", err);
+                if (!cancelled) setTowerFloors([]);
+            }
+        };
+
+        void loadTowerFloors();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [effectiveProfile?.id]);
+
 
 
     useEffect(() => {
@@ -604,6 +1037,35 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 onSelectSpecies={setDexSelectedSpeciesId}
                             />
                         </div>
+                    )}
+                    {menuTab === "arena" && (
+                        <ArenaTab
+                            profile={effectiveProfile}
+                            rating={arenaRating ?? undefined}
+                            attackParty={attackParty}
+                            defenseParty={attackParty /* 임시 */}
+                            opponents={opponentList}
+                            onSelectOpponent={(opponent) => {
+                                console.log("[arena] 선택 상대", opponent);
+                                // TODO: 아레나 배틀 시작 코드
+                            }}
+                        />
+                    )}
+
+                    {menuTab === "tower" && (
+                        <BattleTowerTab
+                            profile={effectiveProfile}
+                            floors={towerFloors}
+                            onSelectFloor={(floor) => {
+                                console.log(
+                                    "[tower] 선택 층",
+                                    floor.floor,
+                                    floor.id,
+                                );
+                                // TODO: 여기서 floor.id 기반으로
+                                // quizmon_dungeons / dungeon_run 시작 로직 연결
+                            }}
+                        />
                     )}
                 </div>
             </div>

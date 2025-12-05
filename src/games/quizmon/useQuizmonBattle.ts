@@ -1,5 +1,5 @@
 // src/games/quizmon/useQuizmonBattle.ts
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { saveGhostBattle, type GhostBattleRecord } from "./ghostBattle";
 import type {
@@ -22,6 +22,32 @@ import {
     rollHit,
 } from "./logic";
 import { createInitialBattleState } from "./mockData";
+import {
+    type CaptureUiState,
+    type CaptureOverlayHandlers,
+} from "./QuizMonBattleView"; // 필요 시 경로 조정
+import { getCaptureBallStocks, getCaptureBallMeta } from "./ballShop";
+import { grantMonsterOrShards } from "./duplicateRewards";
+
+
+type CaptureSession = {
+    enemy: Monster;
+    ballId: string | null;
+    ballLabel: string | null;
+    baseRate: number;      // HP/상태/볼 보정 전 기본값
+    currentRate: number;   // 퀴즈 정오 등에 따라 보정된 값
+    question: QuizQuestionLite | null;
+    success: boolean | null;
+    resultKind: "new-monster" | "duplicate" | null;
+    shardsGained: number;
+};
+
+type CaptureBallStock = {
+    id: string;
+    label: string;
+    quantity: number;
+    rateBonus?: number;
+};
 
 // 간단한 셔플 유틸 (QuizMonGame.tsx 에 있는 것과 동일한 구현)
 function shuffleArray<T>(arr: T[]): T[] {
@@ -225,6 +251,43 @@ function getEffectivenessComment(
     return null;
 }
 
+// 0~1 사이 값
+function calcBaseCaptureRate(enemy: Monster): number {
+    const hpRatio = enemy.hp / enemy.maxHp; // 0~1
+    let rate = 0.3 + (1 - hpRatio) * 0.5; // 0.3 ~ 0.8
+
+    const anyMon = enemy as any;
+    const status = (anyMon.statusAilment ?? anyMon.status) as
+        | "normal"
+        | "sleep"
+        | "paralysis"
+        | "freeze"
+        | "burn"
+        | "poison"
+        | undefined;
+
+    if (status && status !== "normal") {
+        rate += 0.1;
+    }
+
+    // 🔹 여기부터 quizmon_species 기반 보정 (enemy에 복사되어 있다고 가정)
+    const rarity = (anyMon.rarity as number | undefined) ?? 1; // 1~5
+    const isLegendary = Boolean(anyMon.is_legendary);
+    const isMythical = Boolean(anyMon.is_mythical);
+
+    // 희귀도가 높을수록 잡기 어렵게 (최대 -0.15 정도)
+    const rarityPenalty = (rarity - 1) * 0.04; // rarity 1 → 0, rarity 5 → 0.16
+    rate -= rarityPenalty;
+
+    // 전설/신화면 추가 패널티
+    if (isLegendary || isMythical) {
+        rate -= 0.1;
+    }
+
+    // 안전 범위 클램프
+    return Math.max(0.03, Math.min(0.9, rate));
+}
+
 
 export type UseQuizmonBattleOptions = {
     quizpack: QuizPackJsonV1 | null;
@@ -233,6 +296,7 @@ export type UseQuizmonBattleOptions = {
     studentId?: string | null;
     onQuizAnswer?: (result: QuizAnswerResult) => void;
     onBattleEnd?: (summary: { correct: number; total: number }) => void;
+    profileId?: string | null;
     /**
      * 배틀 모드:
      *  - "normal": 기존 수업/던전/레이드 배틀
@@ -273,6 +337,11 @@ export type UseQuizmonBattleResult = {
     battleFinished: boolean;
 
     damagePopups: DamagePopup[];
+
+    canCapture: boolean;
+    onRequestCapture: () => void;
+    captureUi: CaptureUiState;
+    captureHandlers: CaptureOverlayHandlers;
     
     // 액션
     handleSelectMove: (move: Move) => void;
@@ -292,6 +361,7 @@ export function useQuizmonBattle(
         onBattleEnd,
         mode = "normal",
         ghostOpponent = null,
+        profileId = null,
     } = options;
 
     // 1) 전투 상태
@@ -305,35 +375,23 @@ export function useQuizmonBattle(
 
     const [damagePopups, setDamagePopups] = useState<DamagePopup[]>([]);
 
-    const spawnDamagePopup = (
-        target: "player" | "enemy",
-        amount: number,
-        isCritical: boolean,
-        effectiveness: number,
-    ) => {
-        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const popup: DamagePopup = {
-            id,
-            target,
-            amount,
-            isCritical,
-            effectiveness,
-        };
-        setDamagePopups((prev) => [...prev, popup]);
+    // 2) 포획 상태
+    const [captureUi, setCaptureUi] = useState<CaptureUiState>({
+        phase: "hidden",
+    });
+    const [captureSession, setCaptureSession] =
+        useState<CaptureSession | null>(null);
+    const [captureBallStocks, setCaptureBallStocks] = useState<CaptureBallStock[]>([]);
 
-        // 0.8초 후 자동 제거
-        window.setTimeout(() => {
-            setDamagePopups((prev) => prev.filter((p) => p.id !== id));
-        }, 800);
-    };
+    const isCapturing = captureUi.phase !== "hidden";
 
-    // 2) 퀴즈 소스: quizpackJson → Lite 배열
+    // 3) 퀴즈 소스: quizpackJson → Lite 배열
     const questions: QuizQuestionLite[] = useMemo(
         () => (quizpack ? quizPackToLiteQuestions(quizpack) : []),
         [quizpack],
     );
 
-    // 🔹 quizpack이 준비되면 한 번 문제 순서를 섞어 둔다
+    // quizpack이 준비되면 한 번 문제 순서를 섞어 둔다
     useEffect(() => {
         if (!questions.length) {
             setQuestionOrder([]);
@@ -360,29 +418,28 @@ export function useQuizmonBattle(
     useEffect(() => {
         if (mode !== "ghost") return;
         if (!ghostOpponent) return;
-        
-        // 아주 단순하게: 현재 state 위에 파티만 덮어쓰기
+
         setState((prev) => ({
-                ...prev,
-                player: {
-                    ...prev.player,
-                        monsters: ghostOpponent.playerMonsters.map((m) => ({ ...m })),
-                        activeIndex: 0,
-                },
-                enemy: {
-                    ...prev.enemy,
-                        monsters: ghostOpponent.enemyMonsters.map((m) => ({ ...m })),
-                        activeIndex: 0,
-                },
+            ...prev,
+            player: {
+                ...prev.player,
+                monsters: ghostOpponent.playerMonsters.map((m) => ({ ...m })),
+                activeIndex: 0,
+            },
+            enemy: {
+                ...prev.enemy,
+                monsters: ghostOpponent.enemyMonsters.map((m) => ({ ...m })),
+                activeIndex: 0,
+            },
         }));
-        }, [mode, ghostOpponent, setState]);
-    
+    }, [mode, ghostOpponent]);
+
     /** 현재 질문 선택 (없으면 null)
      *  - questions: 원본 질문 배열
      *  - questionOrder: 랜덤으로 섞인 인덱스 배열
      *  - 보기(option)도 매번 섞어서 반환
      */
-    const getNextQuestion = (): QuizQuestionLite | null => {
+    function getNextQuestion(): QuizQuestionLite | null {
         if (!questions || questions.length === 0) return null;
         if (!questionOrder.length) return null;
 
@@ -412,10 +469,253 @@ export function useQuizmonBattle(
             options: shuffledOptions,
             answerIndex: newAnswerIndex,
         };
+    }
+
+    // 데미지 팝업
+    const spawnDamagePopup = (
+        target: "player" | "enemy",
+        amount: number,
+        isCritical: boolean,
+        effectiveness: number,
+    ) => {
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const popup: DamagePopup = {
+            id,
+            target,
+            amount,
+            isCritical,
+            effectiveness,
+        };
+        setDamagePopups((prev) => [...prev, popup]);
+
+        // 0.8초 후 자동 제거
+        window.setTimeout(() => {
+            setDamagePopups((prev) => prev.filter((p) => p.id !== id));
+        }, 800);
     };
 
+    // =====================
+    //   포획 관련 핸들러
+    // =====================
+
+    const handleRequestCapture = useCallback(() => {
+        // 커맨드 단계 + 적이 살아있을 때만
+        if (state.phase !== "command") return;
+        const enemy = state.enemy.monsters[state.enemy.activeIndex];
+        if (!enemy || enemy.hp <= 0) return;
+
+        if (!profileId) {
+            setState((prev) =>
+                pushLog(prev, "[시스템] 프로필 정보가 없어 포획을 시도할 수 없습니다."),
+            );
+            return;
+        }
+
+        void (async () => {
+            const balls = await getCaptureBallStocks(profileId);
+            // [{ id, label, quantity, rateBonus? }, ...]
+
+            if (!balls.length) {
+                setState((prev) =>
+                    pushLog(prev, 
+                        "[시스템] 사용할 수 있는 포획 볼이 없습니다.",
+                    ),
+                );
+                return;
+            }
+
+            const base = calcBaseCaptureRate(enemy);
+
+            setCaptureSession({
+                enemy,
+                ballId: null,
+                ballLabel: null,
+                baseRate: base,
+                currentRate: base,
+                question: null,
+                success: null,
+                resultKind: null,
+                shardsGained: 0,
+            });
+
+            setCaptureBallStocks(balls);
+
+            setCaptureUi({
+                phase: "encounter",
+                baseRate: base,
+                currentRate: base,
+                selectedBallLabel: undefined,
+                success: undefined,
+                resultKind: null,
+                shardsGained: 0,
+            });
+        })();
+    }, [state, profileId]);
+
+    // 볼 선택
+    const handleSelectBall = useCallback(
+        async (ballId: string) => {
+            if (!captureSession) return;
+
+            const ballMeta = await getCaptureBallMeta(ballId);
+            // { id, label, rateBonus? }
+
+            const base = captureSession.baseRate;
+            const withBall = Math.max(
+                0.01,
+                Math.min(0.99, base + (ballMeta.rateBonus ?? 0)),
+            );
+
+            // 포획용 퀴즈: 일단 기존 퀴즈 풀 재사용
+            const q = getNextQuestion();
+
+            setCaptureSession((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        ballId,
+                        ballLabel: ballMeta.label,
+                        baseRate: base,
+                        currentRate: withBall,
+                        question: q,
+                    }
+                    : prev,
+            );
+
+            setCaptureUi((prev) => ({
+                ...prev,
+                phase: q ? "quiz" : "throw",
+                baseRate: base,
+                currentRate: withBall,
+                selectedBallLabel: ballMeta.label,
+            }));
+
+            setState((prev) =>
+                pushLog(prev,  `[플레이어] ${ballMeta.label}을(를) 꺼냈다.`),
+            );
+        },
+        [captureSession],
+    );
+
+    const handleCaptureAnswer = useCallback(
+        (index: number) => {
+            if (!captureSession || !captureSession.question || !profileId) return;
+
+            const q = captureSession.question;
+            const correct = index === q.answerIndex;
+
+            const rate =
+                correct
+                    ? Math.min(0.99, captureSession.currentRate + 0.15)
+                    : Math.max(0.01, captureSession.currentRate - 0.15);
+
+            setCaptureSession((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        currentRate: rate,
+                    }
+                    : prev,
+            );
+
+            setCaptureUi((prev) => ({
+                ...prev,
+                phase: "throw",
+                currentRate: rate,
+            }));
+
+            setState((prev) =>
+                pushLog(prev, correct
+                        ? "[플레이어] 퀴즈에 정답했다! 포획 확률이 올라간다."
+                        : "[플레이어] 퀴즈를 틀렸다... 포획 확률이 떨어진다.",
+                ),
+            );
+
+            const roll = Math.random(); // 0~1
+            const success = roll <= rate;
+
+            void (async () => {
+                let resultKind: "new-monster" | "duplicate" | null = null;
+                let shards = 0;
+
+                if (success) {
+                    const r = await grantMonsterOrShards({
+                        profileId,
+                        speciesId: captureSession.enemy.speciesId,
+                        source: "capture",
+                    });
+
+                    resultKind = r.kind;
+                    shards = r.shardsAwarded ?? 0;
+
+                    setState((prev) => {
+                        const next = { ...prev };
+                        const enemy =
+                            next.enemy.monsters[next.enemy.activeIndex];
+                        if (enemy) enemy.hp = 0;
+                        return pushLog(next, 
+                                r.kind === "duplicate"
+                                    ? `[시스템] ${captureSession.enemy.name}은(는) 이미 보유 중이어서 Star Shards x${shards}로 변했다.`
+                                    : `[시스템] ${captureSession.enemy.name}을(를) 포획했다!`,
+                        );
+                    });
+                } else {
+                    setState((prev) =>
+                        pushLog(prev, `[적] ${captureSession.enemy.name}이(가) 포켓볼에서 튀어나왔다!`,
+                        ),
+                    );
+                }
+
+                setCaptureSession((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            success,
+                            resultKind,
+                            shardsGained: shards,
+                        }
+                        : prev,
+                );
+            })();
+        },
+        [captureSession, profileId],
+    );
+
+    const handleThrowAnimationFinished = useCallback(() => {
+        setCaptureUi((prev) => ({
+            ...prev,
+            phase: "result",
+            // ✅ null → undefined 로 정리해서 CaptureUiState 타입에 맞춤
+            success: captureSession?.success ?? undefined,
+            resultKind: captureSession?.resultKind ?? null,
+            shardsGained: captureSession?.shardsGained ?? 0,
+        }));
+    }, [captureSession]);
+    
+    const handleResultClose = useCallback(() => {
+        const success = captureSession?.success ?? false;
+
+        if (success) {
+            setState((prev) => {
+                if (prev.enemy.monsters.every((m) => m.hp <= 0)) {
+                    return {
+                        ...prev,
+                        phase: "finished",
+                    };
+                }
+                return prev;
+            });
+        }
+
+        setCaptureUi({ phase: "hidden" });
+        setCaptureSession(null);
+    }, [captureSession]);
+
+    // =====================
+    //   스킬 선택/교체/정답 처리
+    // =====================
+
     const handleSelectMove = (move: Move) => {
-        // 최소한의 안전 가드만 유지
         if (state.phase === "finished") return;
         if (playerMon.hp <= 0 || enemyMon.hp <= 0) return;
         if (!questions.length) {
@@ -442,12 +742,11 @@ export function useQuizmonBattle(
             currentQuestion: question,
             questionStartedAt: now,
             lastQuizResult: null,
-            // 여기서 phase를 확실히 quiz 로 전환
             phase: "quiz",
         }));
     };
+
     const handleSwitch = (targetIndex: number) => {
-        // v2: 커맨드 단계에서만, 살아있는 다른 포켓몬으로만 교체 예약
         if (state.phase === "finished") return;
         if (state.phase !== "command") return;
 
@@ -475,7 +774,6 @@ export function useQuizmonBattle(
 
         setState((prev) => ({
             ...prev,
-            // 공격은 예약하지 않고, 교체 대상 인덱스만 기억
             pendingPlayerMove: null,
             pendingEnemyMove: null,
             pendingPlayerSwitchIndex: targetIndex,
@@ -485,7 +783,6 @@ export function useQuizmonBattle(
             phase: "quiz",
         }));
     };
-
 
     const handleAnswer = (optionIndex: number) => {
         if (state.phase !== "quiz" || !state.currentQuestion) return;
@@ -503,20 +800,15 @@ export function useQuizmonBattle(
             timeMs,
         };
 
-        // 🔹 이번 정답이 레이드에서 줄 "누적 데미지" 점수
-        //    v1에서는 "정답 1개 = 10 데미지"로 단순하게 고정
         const raidDamage = correct ? 10 : 0;
 
-        // 🔹 이번 배틀 통계에 반영
         setBattleStats((prev) => ({
             correct: prev.correct + (correct ? 1 : 0),
             total: prev.total + 1,
         }));
 
-        // 밖으로도 한번 전달 (부모에서 별도 처리할 수 있도록)
         onQuizAnswer?.(quizResult);
 
-        // 🎯 Supabase game_events 로깅
         if (roomId && gameSessionId && studentId) {
             logGameEvent({
                 roomId,
@@ -529,7 +821,6 @@ export function useQuizmonBattle(
                     answerIndex: quizResult.chosenIndex,
                     correct: quizResult.correct,
                     timeMs: quizResult.timeMs ?? null,
-                    // 🔹 클래스 레이드용 누적 데미지
                     raidDamage,
                 },
             });
@@ -541,16 +832,14 @@ export function useQuizmonBattle(
             });
         }
 
-        // 한 번에 player → enemy 순으로만 처리 (샌드박스 단순화)
         setState((prev) => {
             const hasPendingSwitch = prev.pendingPlayerSwitchIndex != null;
             const hasPendingMove = !!prev.pendingPlayerMove;
-          
+
             if (!hasPendingMove && !hasPendingSwitch) {
                 return {
                     ...prev,
                     lastQuizResult: quizResult,
-                    // 🔹 이 턴에는 공격/교체 둘 다 없으니 moveId도 비워줌
                     lastPlayerMoveId: null,
                     lastEnemyMoveId: null,
                     phase: "command",
@@ -559,7 +848,6 @@ export function useQuizmonBattle(
                 };
             }
 
-            // ✅ 여기서 이번 턴에 사용한 기술을 먼저 뽑아둔다
             const playerMoveId = prev.pendingPlayerMove?.move.id ?? null;
             const enemyMoveId = prev.pendingEnemyMove?.move.id ?? null;
 
@@ -569,13 +857,12 @@ export function useQuizmonBattle(
                 lastPlayerMoveId: playerMoveId,
                 lastEnemyMoveId: enemyMoveId,
             };
-            
-            // 🔹 1) 교체 액션 우선 처리
+
+            // 1) 교체 액션 우선 처리
             if (hasPendingSwitch) {
                 const switchIndex = prev.pendingPlayerSwitchIndex!;
                 const targetMonBeforeCheck = prev.player.monsters[switchIndex];
 
-                // 타겟이 없거나 이미 쓰러져 있으면 교체 취소
                 if (!targetMonBeforeCheck || targetMonBeforeCheck.hp <= 0) {
                     next = pushLog(
                         next,
@@ -590,13 +877,11 @@ export function useQuizmonBattle(
                         currentQuestion: null,
                         questionStartedAt: null,
                         phase: "command",
-                        // 교체 실패이므로 moveId는 남겨둘 이유 없음
                         lastPlayerMoveId: null,
                         lastEnemyMoveId: null,
                     };
                 }
 
-                // 1-1) 우선 교체부터 반영
                 next = {
                     ...next,
                     player: {
@@ -608,7 +893,6 @@ export function useQuizmonBattle(
                 const switchedMon =
                     next.player.monsters[next.player.activeIndex];
 
-                // ✅ 정답인 경우: 데미지 없이 안전하게 교체만 하고 턴 종료
                 if (quizResult.correct) {
                     next = pushLog(
                         next,
@@ -623,31 +907,28 @@ export function useQuizmonBattle(
                         currentQuestion: null,
                         questionStartedAt: null,
                         phase: "command",
-                        lastPlayerMoveId: null,  // 플레이어 공격 없음
-                        lastEnemyMoveId: null,   // 적 무료 공격 없음
+                        lastPlayerMoveId: null,
+                        lastEnemyMoveId: null,
                     };
                 }
 
-                // ❌ 오답인 경우: 교체는 되지만 적의 무료 공격 1회 허용
                 next = pushLog(
                     next,
                     `[시스템] 문제를 틀려 교체 도중 공격을 받았습니다!`,
                 );
 
-// ▶ "지금" 전투에 나와 있는 적과 교체된 우리 포켓몬 기준으로 다시 계산
                 const enemyActive =
                     next.enemy.monsters[next.enemy.activeIndex];
                 const defenderBefore =
                     next.player.monsters[next.player.activeIndex];
 
-// 적이 살아 있고, 사용할 기술이 하나라도 있을 때만 무료 공격
                 const enemyMove = enemyActive?.moves?.[0];
 
                 if (enemyActive && enemyActive.hp > 0 && enemyMove) {
                     const enemyQuizMod = 1.0;
                     const enemyHitChance = calcHitChance(
-                        defenderBefore, // 수비: 방금 교체된 포켓몬
-                        enemyMove, // 공격 기술
+                        defenderBefore,
+                        enemyMove,
                         enemyQuizMod,
                     );
 
@@ -693,14 +974,6 @@ export function useQuizmonBattle(
                             enemyLog += " 급소에 맞았다!";
                         }
 
-                        // ✅ 이 턴의 공격은 "적 무료 공격"뿐 → moveId를 여기서 덮어쓴다
-                        next = {
-                            ...next,
-                            lastPlayerMoveId: null,
-                            lastEnemyMoveId: enemyMove.id,
-                        };
-
-                        // 🔹 팝업 (타겟: player)
                         spawnDamagePopup(
                             "player",
                             dmg,
@@ -714,12 +987,9 @@ export function useQuizmonBattle(
                     next = pushLog(next, enemyLog);
                 }
 
-
-                // 🧹 교체 후에도 쓰러진 포켓몬/승패 여부는 챙겨줘야 함
                 const playerMonsAfter = next.player.monsters;
                 const enemyMonsAfter = next.enemy.monsters;
 
-                // 자동 교체 (플레이어)
                 if (
                     playerMonsAfter[next.player.activeIndex] &&
                     playerMonsAfter[next.player.activeIndex].hp <= 0
@@ -745,7 +1015,6 @@ export function useQuizmonBattle(
                     }
                 }
 
-                // 자동 교체 (적)
                 if (
                     enemyMonsAfter[next.enemy.activeIndex] &&
                     enemyMonsAfter[next.enemy.activeIndex].hp <= 0
@@ -771,7 +1040,6 @@ export function useQuizmonBattle(
                     }
                 }
 
-                // 전멸 체크
                 const playerAllFainted = next.player.monsters.every(
                     (m) => m.hp <= 0,
                 );
@@ -810,16 +1078,13 @@ export function useQuizmonBattle(
                 };
             }
 
-            //  최신 몬스터 상태는 prev에서 다시 뽑자 (클로저 오염 방지)
             const prevPlayerMon =
                 prev.player.monsters[prev.player.activeIndex];
             const prevEnemyMon =
                 prev.enemy.monsters[prev.enemy.activeIndex];
-            
-            // 🔒 여기서 한 번 더 널 가드 (TS18047 방지용)
+
             const pendingPlayerMove = prev.pendingPlayerMove;
             if (!pendingPlayerMove) {
-                // 논리상 거의 안 오는 분기지만, 안전하게 커맨드로 복귀
                 return {
                     ...next,
                     pendingPlayerMove: null,
@@ -831,11 +1096,10 @@ export function useQuizmonBattle(
                 };
             }
 
-
             // 1) 플레이어 공격
             const quizMod = calcQuizMod(quizResult);
             const hitChance = calcHitChance(
-                prevEnemyMon, // defender
+                prevEnemyMon,
                 pendingPlayerMove.move,
                 quizMod,
             );
@@ -870,7 +1134,6 @@ export function useQuizmonBattle(
 
                 playerLog += `${dmg} 데미지! (HP ${prevEnemyMon.hp} → ${newEnemyMon.hp})`;
 
-                // 🔹 상성 코멘트 추가
                 const effComment = getEffectivenessComment(
                     pendingPlayerMove.move.element,
                     prevEnemyMon,
@@ -879,7 +1142,6 @@ export function useQuizmonBattle(
                     playerLog += ` ${effComment}`;
                 }
 
-                // 🔹 크리티컬 코멘트
                 if (isCritical) {
                     playerLog += " 급소에 맞았다!";
                 }
@@ -887,7 +1149,6 @@ export function useQuizmonBattle(
                 spawnDamagePopup("enemy", dmg, isCritical, effectiveness);
             } else {
                 playerLog += "하지만 빗나갔다!";
-                // 맞든 빗나가든, 이 턴에 사용한 기술은 동일하니까
                 next = {
                     ...next,
                     lastPlayerMoveId: pendingPlayerMove.move.id,
@@ -896,14 +1157,13 @@ export function useQuizmonBattle(
 
             next = pushLog(next, playerLog);
 
-
-            // 2) 적이 살아있으면 적도 공격 (퀴즈 보정 없이 평균값 가정)
+            // 2) 적이 살아있으면 적도 공격
             if (next.enemy.monsters[next.enemy.activeIndex].hp > 0) {
                 const pendingEnemyMove = prev.pendingEnemyMove;
                 if (pendingEnemyMove) {
                     const enemyQuizMod = 1.0;
                     const enemyHitChance = calcHitChance(
-                        prevPlayerMon, // defender
+                        prevPlayerMon,
                         pendingEnemyMove.move,
                         enemyQuizMod,
                     );
@@ -934,7 +1194,6 @@ export function useQuizmonBattle(
                                 ...prev.player,
                                 monsters: newPlayerMons,
                             },
-                            // ✅ 적이 실제로 쓴 기술 id
                             lastEnemyMoveId: pendingEnemyMove.move.id,
                         };
 
@@ -951,7 +1210,6 @@ export function useQuizmonBattle(
                             enemyLog += " 급소에 맞았다!";
                         }
 
-                        // 🔹 팝업 (타겟: player)
                         spawnDamagePopup(
                             "player",
                             dmg,
@@ -960,7 +1218,6 @@ export function useQuizmonBattle(
                         );
                     } else {
                         enemyLog += "빗나갔다!";
-                        // 빗나가도 이 턴 적이 시전한 기술은 동일
                         next = {
                             ...next,
                             lastEnemyMoveId: pendingEnemyMove.move.id,
@@ -969,61 +1226,54 @@ export function useQuizmonBattle(
 
                     next = pushLog(next, enemyLog);
                 } else {
-                    // 적이 공격할 스킬이 없는 경우 → lastEnemyMoveId 비우기
                     next = {
                         ...next,
                         lastEnemyMoveId: null,
                     };
                 }
             } else {
-                // 🔴 적이 이미 쓰러져서 반격 자체가 없으면
-                //     → lastEnemyMoveId는 반드시 null로 정리
                 next = {
                     ...next,
                     lastEnemyMoveId: null,
                 };
             }
 
-            // 2.5) 🔹 스페셜 게이지 갱신
+            // 2.5) 스페셜 게이지 갱신
             {
                 const prevActiveIdx = prev.player.activeIndex;
                 const prevMonForGauge =
                     prev.player.monsters[prevActiveIdx];
-                            
+
                 const specialMoveId =
                     prevMonForGauge.moves[1]?.id ?? null;
                 const usedMoveId = pendingPlayerMove.move.id;
                 const isSpecialMove =
                     !!specialMoveId && usedMoveId === specialMoveId;
-            
+
                 let newGauge = prevMonForGauge.specialGauge ?? 0;
                 const maxGauge = prevMonForGauge.maxSpecialGauge ?? 3;
-                
+
                 if (quizResult.correct) {
-                    // ✅ 정답인 경우
                     if (isSpecialMove) {
-                        // 스페셜 사용 후 게이지 전체 소모
                         newGauge = 0;
                     } else {
-                        // 기본 공격 정답 → 게이지 1칸씩 누적
                         newGauge = Math.min(maxGauge, newGauge + 1);
                     }
                 } else {
-                    // ❌ 오답인 경우: 스페셜 시도 실패 시만 리셋
                     if (isSpecialMove) {
                         newGauge = 0;
                     }
                 }
-            
+
                 const curPlayerMons = [...next.player.monsters];
                 const currentMon = curPlayerMons[prevActiveIdx];
-            
+
                 curPlayerMons[prevActiveIdx] = {
                     ...currentMon,
                     specialGauge: newGauge,
                     maxSpecialGauge: maxGauge,
                 };
-            
+
                 next = {
                     ...next,
                     player: {
@@ -1033,12 +1283,10 @@ export function useQuizmonBattle(
                 };
             }
 
-
-            // 3) 승패 체크 + 파티 교체 로직
+            // 3) 승패 체크 + 파티 교체
             const playerMons = next.player.monsters;
             const enemyMons = next.enemy.monsters;
-            
-            // 🔁 플레이어: 현재 포켓몬이 쓰러졌으면 다음 살아있는 파티원으로 자동 교체
+
             if (playerMons[next.player.activeIndex]?.hp <= 0) {
                 const nextAliveIndex = playerMons.findIndex((m) => m.hp > 0);
                 if (
@@ -1047,10 +1295,10 @@ export function useQuizmonBattle(
                 ) {
                     next = {
                         ...next,
-                            player: {
+                        player: {
                             ...next.player,
-                                    activeIndex: nextAliveIndex,
-                            },
+                            activeIndex: nextAliveIndex,
+                        },
                     };
                     next = pushLog(
                         next,
@@ -1058,8 +1306,7 @@ export function useQuizmonBattle(
                     );
                 }
             }
-            
-            // 🔁 적도 동일하게 처리 (던전에서 적 여러 마리 대비)
+
             if (enemyMons[next.enemy.activeIndex]?.hp <= 0) {
                 const nextAliveIndex = enemyMons.findIndex((m) => m.hp > 0);
                 if (
@@ -1068,10 +1315,10 @@ export function useQuizmonBattle(
                 ) {
                     next = {
                         ...next,
-                            enemy: {
+                        enemy: {
                             ...next.enemy,
-                                    activeIndex: nextAliveIndex,
-                            },
+                            activeIndex: nextAliveIndex,
+                        },
                     };
                     next = pushLog(
                         next,
@@ -1079,20 +1326,18 @@ export function useQuizmonBattle(
                     );
                 }
             }
-            
-            // 🔚 진짜로 모든 포켓몬이 쓰러졌는지 체크
+
             const playerAllFainted = next.player.monsters.every(
                 (m) => m.hp <= 0,
             );
             const enemyAllFainted = next.enemy.monsters.every(
                 (m) => m.hp <= 0,
             );
-            
+
             if (playerAllFainted || enemyAllFainted) {
-                // 배틀 종료
                 next = {
                     ...next,
-                        phase: "finished",
+                    phase: "finished",
                 };
                 const resultText = playerAllFainted
                     ? enemyAllFainted
@@ -1104,7 +1349,6 @@ export function useQuizmonBattle(
                     `[시스템] 배틀 종료: ${resultText}`,
                 );
             } else {
-                // 그 외에는 다시 커맨드 phase로
                 next = {
                     ...next,
                     phase: "command",
@@ -1119,9 +1363,6 @@ export function useQuizmonBattle(
                 currentQuestion: null,
                 questionStartedAt: null,
             };
-
-        
-            
         });
     };
 
@@ -1140,21 +1381,22 @@ export function useQuizmonBattle(
         }
     }, [state.phase, state.pendingEnemyMove, enemyMon]);
 
-    // 배틀이 끝난 시점에 한 번:
-    //  1) onBattleEnd (수업용 통계 콜백)
-    //  2) 로컬 고스트 기록 저장
+    // 배틀 종료 시 콜백 + 고스트 저장
+    const accuracyPercent =
+        battleStats.total > 0
+            ? Math.round((battleStats.correct / battleStats.total) * 100)
+            : null;
+
     useEffect(() => {
         const finished = state.phase === "finished";
         if (!finished) return;
-        if (battleStats.total <= 0) return; // 한 문제도 풀지 않았다면 스킵
-        
-        // 1) 기존 콜백 (수업용)
+        if (battleStats.total <= 0) return;
+
         if (onBattleEnd && !hasReportedEnd) {
             onBattleEnd({ ...battleStats });
             setHasReportedEnd(true);
         }
-        
-        // 2) 고스트 전투 기록 저장
+
         try {
             const record: GhostBattleRecord = {
                 id:
@@ -1162,27 +1404,28 @@ export function useQuizmonBattle(
                     typeof crypto.randomUUID === "function"
                         ? crypto.randomUUID()
                         : `${Date.now()}`,
-                    createdAt: new Date().toISOString(),
-                    source: roomId ? "class" : "solo",
-                    quizPackId: quizpack?.pack?.id ?? null,
+                createdAt: new Date().toISOString(),
+                source: roomId ? "class" : "solo",
+                quizPackId: quizpack?.pack?.id ?? null,
                 stats: {
                     correct: battleStats.correct,
-                        total: battleStats.total,
-                        accuracy: accuracyPercent ?? 0,
+                    total: battleStats.total,
+                    accuracy: accuracyPercent ?? 0,
                 },
-                    playerMonsters: state.player.monsters,
-                    enemyMonsters: state.enemy.monsters,
+                playerMonsters: state.player.monsters,
+                enemyMonsters: state.enemy.monsters,
             };
-            
+
             saveGhostBattle(record);
         } catch (err) {
             console.warn("[useQuizmonBattle] saveGhostBattle error", err);
         }
-        }, [
-            state.phase,
+    }, [
+        state.phase,
         state.player.monsters,
         state.enemy.monsters,
         battleStats,
+        accuracyPercent,
         onBattleEnd,
         hasReportedEnd,
         roomId,
@@ -1193,16 +1436,34 @@ export function useQuizmonBattle(
         state.phase !== "finished" &&
         questions.length > 0 &&
         playerMon.hp > 0 &&
-        enemyMon.hp > 0;
-
-    const accuracyPercent =
-        battleStats.total > 0
-            ? Math.round((battleStats.correct / battleStats.total) * 100)
-            : null;
+        enemyMon.hp > 0 &&
+        !isCapturing;
 
     const battleFinished =
         state.player.monsters.every((m) => m.hp <= 0) ||
         state.enemy.monsters.every((m) => m.hp <= 0);
+
+    const canCapture =
+        !isCapturing &&
+        state.phase === "command" &&
+        playerMon.hp > 0 &&
+        enemyMon.hp > 0;
+
+    const captureHandlers: CaptureOverlayHandlers = {
+        availableBalls: captureBallStocks,
+        onSelectBall: handleSelectBall,
+        onRun: () => {
+            setCaptureUi({ phase: "hidden" });
+            setCaptureSession(null);
+            setState((prev) =>
+                pushLog(prev,  "[플레이어] 도망치기로 했다." ),
+            );
+        },
+        question: captureSession?.question ?? null,
+        onAnswer: handleCaptureAnswer,
+        onThrowAnimationFinished: handleThrowAnimationFinished,
+        onResultClose: handleResultClose,
+    };
 
     return {
         state,
@@ -1225,5 +1486,10 @@ export function useQuizmonBattle(
         handleSelectMove,
         handleAnswer,
         handleSwitch,
+        // 포획 관련
+        canCapture,
+        onRequestCapture: handleRequestCapture,
+        captureUi,
+        captureHandlers,
     };
 }
