@@ -10,7 +10,8 @@ import { useEffect, useState } from "react";
 import { loadPowerItemCounts } from "./quizmonService";
 import { DexTab } from "./DexTab";
 import { StarShopTab } from "./StarShopTab";
-
+import { BallShopTab } from "./BallShopTab";
+import {loadBallItemCounts} from "./quizmonService";
 
 
 export type MainTabKey =
@@ -95,6 +96,55 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
     /** 🔹 인벤토리 수량: Exp Dust / 레어 캔디 */
     const [xpDustCount, setXpDustCount] = useState(0);
     const [rareCandyCount, setRareCandyCount] = useState(0);
+
+    // QuizMonLobbyOverlay.tsx 예시
+
+    const [pokeBallCount, setPokeBallCount] = useState(0);
+    const [greatBallCount, setGreatBallCount] = useState(0);
+    const [ultraBallCount, setUltraBallCount] = useState(0);
+
+    useEffect(() => {
+        if (!effectiveProfile?.id) {
+            setXpDustCount(0);
+            setRareCandyCount(0);
+            setPokeBallCount(0);
+            setGreatBallCount(0);
+            setUltraBallCount(0);
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadInventory = async () => {
+            try {
+                const { expDustCount, rareCandyCount } =
+                    await loadPowerItemCounts(effectiveProfile.id);
+                const {
+                    pokeBallCount,
+                    greatBallCount,
+                    ultraBallCount,
+                } = await loadBallItemCounts(effectiveProfile.id);
+
+                if (cancelled) return;
+
+                setXpDustCount(expDustCount);
+                setRareCandyCount(rareCandyCount);
+                setPokeBallCount(pokeBallCount);
+                setGreatBallCount(greatBallCount);
+                setUltraBallCount(ultraBallCount);
+            } catch (err) {
+                if (cancelled) return;
+                console.error("[QuizMonLobbyOverlay] load inventory error", err);
+                // 필요시 0으로 초기화
+            }
+        };
+
+        void loadInventory();
+        return () => {
+            cancelled = true;
+        };
+    }, [effectiveProfile?.id]);
+
 
     useEffect(() => {
         if (!effectiveProfile?.id) {
@@ -507,17 +557,35 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 xpDustCount={xpDustCount}
                                 rareCandyCount={rareCandyCount}
                                 onBuyExpDust={handleBuyExpDust}
+                                pokeBallCount={pokeBallCount}
+                                greatBallCount={greatBallCount}
+                                ultraBallCount={ultraBallCount}
                             />
                         </div>
                     )}
 
-                    {/* 상점 탭 */}
-                    {menuTab === "shop" && (
-                        <StarShopTab
-                            profile={effectiveProfile}
-                            onProfileUpdated={onProfileUpdated}
-                        />
-                    )}
+                    {/* 상점 탭: 포켓볼 상점 + Star Shards 상점 */}
+                                        {menuTab === "shop" && (
+                                            <div
+                                                style={{
+                                                    display: "grid",
+                                                    gridTemplateColumns:
+                                                        "minmax(0, 1.1fr) minmax(0, 1fr)",
+                                                    gap: 12,
+                                                    height: "100%",
+                                                    minHeight: 0,
+                                                }}
+                                            >
+                                                <BallShopTab
+                                                    profile={effectiveProfile}
+                                                    onProfileUpdated={onProfileUpdated}
+                                                />
+                                                <StarShopTab
+                                                    profile={effectiveProfile}
+                                                    onProfileUpdated={onProfileUpdated}
+                                                />
+                                            </div>
+                                        )}
                     
                     {/* 도감 탭 */}
                     {menuTab === "dex" && (

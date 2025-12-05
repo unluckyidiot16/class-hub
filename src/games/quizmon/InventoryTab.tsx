@@ -6,10 +6,21 @@ type InventoryTabProps = {
     xpDustCount: number;
     rareCandyCount: number;
     onBuyExpDust: (quantity?: number) => Promise<void>;
+    pokeBallCount?: number;
+    greatBallCount?: number;
+    ultraBallCount?: number;
 };
 
 export function InventoryTab(props: InventoryTabProps) {
-    const { profile, xpDustCount, rareCandyCount, onBuyExpDust } = props;
+    const {
+        profile,
+        xpDustCount,
+        rareCandyCount,
+        onBuyExpDust,
+        pokeBallCount = 0,
+        greatBallCount = 0,
+        ultraBallCount = 0,
+    } = props;
 
     const gold = profile?.gold ?? 0;
     const gems = profile?.gems ?? 0;
@@ -56,6 +67,24 @@ export function InventoryTab(props: InventoryTabProps) {
                     </button>
                 </div>
             </div>
+            {/* 🔹 포획 아이템 (포켓볼) 섹션 */}
+                        <div className="rounded-2xl bg-slate-900/70 border border-slate-700 px-5 py-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-semibold text-slate-100">
+                                        포획 아이템 (포켓볼)
+                                    </div>
+                                    <div className="text-xs text-slate-400 mt-1">
+                                        포켓볼을 사용해 조우한 포켓몬을 포획할 수 있습니다.
+                                    </div>
+                                </div>
+                                <div className="text-xs text-slate-300 text-right space-y-0.5">
+                                    <div>포켓볼 x {pokeBallCount}</div>
+                                    <div>슈퍼볼 x {greatBallCount}</div>
+                                    <div>하이퍼볼 x {ultraBallCount}</div>
+                                </div>
+                            </div>
+                        </div>
         </div>
     );
 }

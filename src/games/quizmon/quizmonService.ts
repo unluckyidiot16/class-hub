@@ -47,6 +47,43 @@ export type TrainerLevelUpResult = {
     gainedGems: number;
 };
 
+const ITEM_ID_POKEBALL = "poke_ball";
+const ITEM_ID_GREATBALL = "great_ball";
+const ITEM_ID_ULTRABALL = "ultra_ball";
+
+export async function loadBallItemCounts(profileId: string) {
+    const { data, error } = await supabase
+        .from("quizmon_inventory")
+        .select("item_id, quantity")
+        .eq("profile_id", profileId)
+        .in("item_id", [
+            ITEM_ID_POKEBALL,
+            ITEM_ID_GREATBALL,
+            ITEM_ID_ULTRABALL,
+        ]);
+
+    if (error) {
+        console.error("[quizmonService] loadBallItemCounts error", error);
+        return {
+            pokeBallCount: 0,
+            greatBallCount: 0,
+            ultraBallCount: 0,
+        };
+    }
+
+    const map = new Map<string, number>();
+    for (const row of data ?? []) {
+        map.set(row.item_id, row.quantity ?? 0);
+    }
+
+    return {
+        pokeBallCount: map.get(ITEM_ID_POKEBALL) ?? 0,
+        greatBallCount: map.get(ITEM_ID_GREATBALL) ?? 0,
+        ultraBallCount: map.get(ITEM_ID_ULTRABALL) ?? 0,
+    };
+}
+
+
 /**
  * 프로필에 트레이너 EXP를 더하고,
  * 필요시 레벨업 + 젬 보상을 적용한다.

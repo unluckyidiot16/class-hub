@@ -199,7 +199,6 @@ export async function purchaseSpeciesWithStarShards(params: {
     }
 
     // 4) 종 마스터 로드
-    // 4) 종 마스터 로드
     const { data: speciesRow, error: speciesError } = await supabase
         .from("quizmon_species")
         .select("*")
