@@ -18,13 +18,18 @@ export type StarShopTabProps = {
 
 export function StarShopTab(props: StarShopTabProps) {
     const { profile, onProfileUpdated, onPurchased } = props;
+    const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(profile);
 
     const [entries, setEntries] = useState<StarShopEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [buyingId, setBuyingId] = useState<string | null>(null);
 
-    const starShards = profile?.star_shards ?? 0;
+    // 🔹 프로필은 상위에서 갱신해 주는 것이 원칙이지만,
+    //    혹시 콜백이 연결되지 않은 경우에도 샤드가 즉시 차감되도록
+    //    로컬 상태를 한 번 더 둔다.
+    const effectiveProfile = localProfile ?? profile;
+    const starShards = effectiveProfile?.star_shards ?? 0;
 
     // ✅ 최초 로드 & profile 변경 시 상점 목록 불러오기
     useEffect(() => {
@@ -66,8 +71,13 @@ export function StarShopTab(props: StarShopTabProps) {
         };
     }, [profile?.id]);
 
+    useEffect(() => {
+        setLocalProfile(profile);
+        }, [profile?.id, profile?.star_shards]);
+
     const handleBuy = async (speciesId: string) => {
-        if (!profile) {
+        const baseProfile = effectiveProfile;
+        if (!baseProfile) {
             setError("프로필 정보를 찾을 수 없습니다.");
             return;
         }
@@ -78,9 +88,12 @@ export function StarShopTab(props: StarShopTabProps) {
         try {
             const { result, updatedProfile } =
                 await purchaseSpeciesWithStarShards({
-                    profile,
-                    speciesId,
+                        profile: baseProfile,
+                        speciesId,
                 });
+            
+            // 🔹 로컬 프로필 우선 갱신 (상위 콜백이 없을 때도 즉시 반영)
+            setLocalProfile(updatedProfile);
 
             // 상위에서 프로필 갱신
             onProfileUpdated?.(updatedProfile);

@@ -61,6 +61,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onMenuTabChange,
         localProfile,
         profile,
+        onProfileUpdated,
         monsters,
         collectionLoading,
         collectionError,
@@ -514,11 +515,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     {menuTab === "shop" && (
                         <StarShopTab
                             profile={effectiveProfile}
-                            // ⚠️ 상위에서 localProfile을 관리한다면,
-                            // QuizMonLobbyOverlayProps에 onProfileUpdated 같은 콜백을 하나 더 뚫고
-                            // 그걸 여기로 내려주는 식으로 연결하면 됩니다.
-                            // 예:
-                            // onProfileUpdated={onProfileUpdated}
+                            onProfileUpdated={onProfileUpdated}
                         />
                     )}
                     
