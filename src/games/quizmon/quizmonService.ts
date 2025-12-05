@@ -1106,16 +1106,13 @@ export async function buyExpDustWithGoldService(params: {
  */
 export const HEAL_ALL_COST_GOLD = 10;
 
-/**
- * 단일 몬스터 회복 비용 계산
- * - 현재 레벨에 따라 선형 증가
- */
-export function calcMonsterHealCostGold(level: number | null | undefined): number {
-    if (!level || level <= 0) return 1;
-
-    // 레벨당 2 골드
-    const cost = Math.floor(level * 2);
-    return Math.max(1, cost);
+// 개별 몬스터 회복 비용 (레벨에 따라 증가)
+export function calcMonsterHealCostGold(
+    level: number | null | undefined,
+): number {
+    const lv = level ?? 1;         // null/undefined/0 → 1로 최소 보정
+    // 예시 공식: 레벨당 2골드, 최소 5골드
+    return Math.max(5, lv * 2);
 }
 
 /**
@@ -1126,11 +1123,10 @@ export function calcMonsterHealCostGold(level: number | null | undefined): numbe
 export function calcPartyHealCostGold(
     levels: Array<number | null | undefined>,
 ): number {
-    let total = 0;
-
-    for (const lv of levels) {
-        total += calcMonsterHealCostGold(lv);
-    }
+    const total = levels.reduce<number>(
+        (sum, lv) => sum + calcMonsterHealCostGold(lv),
+        0,
+    );
 
     // 최소 비용은 HEAL_ALL_COST_GOLD
     return Math.max(HEAL_ALL_COST_GOLD, total);
@@ -1142,71 +1138,82 @@ export function calcPartyHealCostGold(
  * - quizmon_profiles.gold 에서 "파티 레벨 합" 기반 비용 차감
  * - quizmon_owned_monsters.current_hp / is_fainted 초기화
  */
-export async function healAllMonstersService(
-    profileId: string,
-): Promise<void> {
-    if (!profileId) return;
+export async function healAllMonstersService(profileId: string): Promise<void> {
+    // 1) 파티 몬스터 로딩 (party_slot 1~3)
+    const { data: monsters, error: monstersError } = await supabase
+        .from("quizmon_owned_monsters")
+        .select("id, level")
+        .eq("profile_id", profileId)
+        .in("party_slot", [1, 2, 3]);
 
-    // 1) 현재 골드 확인
+    if (monstersError) {
+        console.error("[healAllMonstersService] load monsters error", monstersError);
+        throw monstersError;
+    }
+
+    const party = (monsters ?? []) as Pick<
+        QuizmonOwnedMonsterRow,
+        "id" | "level"
+    >[];
+
+    if (!party.length) {
+        // 파티가 없으면 그냥 조용히 리턴
+        return;
+    }
+
+    const levels = party.map((m) => m.level ?? 1);
+    const healCost = calcPartyHealCostGold(levels);
+
+    // 2) 프로필 로딩 (골드 확인)
     const { data: profile, error: profileError } = await supabase
         .from("quizmon_profiles")
         .select("id, gold")
         .eq("id", profileId)
         .single();
 
-    if (profileError || !profile) {
-        throw profileError ?? new Error("프로필 정보를 불러올 수 없습니다.");
+    if (profileError) {
+        console.error("[healAllMonstersService] load profile error", profileError);
+        throw profileError;
     }
 
-    const currentGold: number = profile.gold ?? 0;
-
-    // 2) 현재 파티(1~3번 슬롯) 몬스터 레벨 조회
-    const { data: partyMons, error: partyError } = await supabase
-        .from("quizmon_owned_monsters")
-        .select("id, level, party_slot")
-        .eq("profile_id", profileId)
-        .in("party_slot", [1, 2, 3]);
-
-    if (partyError) {
-        throw partyError;
-    }
-
-    if (!partyMons || partyMons.length === 0) {
-        // 파티가 없으면 굳이 에러보다는 "할 일이 없음"으로 처리
-        return;
-    }
-
-    const partyLevels = partyMons.map((m: any) => m.level ?? 1);
-    const healCost = calcPartyHealCostGold(partyLevels);
+    const currentGold = (profile as QuizmonProfileRow).gold ?? 0;
 
     if (currentGold < healCost) {
-        throw new Error("골드가 부족해서 파티를 회복할 수 없습니다.");
+        throw new Error("골드가 부족합니다. (회복 비용: " + healCost + ")");
     }
-
-    const nextGold = currentGold - healCost;
 
     // 3) 골드 차감
     const { error: updateProfileError } = await supabase
         .from("quizmon_profiles")
-        .update({ gold: nextGold })
+        .update({
+            gold: currentGold - healCost,
+        })
         .eq("id", profileId);
 
     if (updateProfileError) {
+        console.error(
+            "[healAllMonstersService] update profile gold error",
+            updateProfileError,
+        );
         throw updateProfileError;
     }
 
-    // 4) 파티 몬스터만 회복/부활
-    const { error: updateMonstersError } = await supabase
+    // 4) 파티 몬스터 HP 회복
+    const monsterIds = party.map((m) => m.id);
+    const { error: healError } = await supabase
         .from("quizmon_owned_monsters")
         .update({
-            current_hp: null,  // null = 풀피 상태로 간주
-            is_fainted: false, // 기절 해제
+            // 구현 방식에 따라:
+            // - current_hp: null  → "풀피" 의미로 쓰고 있다면 null로 초기화
+            // - is_fainted: false
+            current_hp: null,
+            is_fainted: false,
         })
-        .eq("profile_id", profileId)
-        .in("party_slot", [1, 2, 3]);
+        .in("id", monsterIds);
 
-    if (updateMonstersError) {
-        throw updateMonstersError;
+    if (healError) {
+        console.error("[healAllMonstersService] heal monsters error", healError);
+        throw healError;
     }
 }
 

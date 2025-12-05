@@ -180,7 +180,7 @@ export function QuizmonProvider({
         setCollectionError(null);
         setCollectionLoading(true);
         try {
-            await healAllMonstersService(profile.id);
+            await healAllMonstersService(profile.id);   // ✅ 파티 전체 회복
             await refreshMonsters();
         } catch (e) {
             console.error("[QuizmonProvider] healAllMonsters error", e);
@@ -192,7 +192,9 @@ export function QuizmonProvider({
         } finally {
             setCollectionLoading(false);
         }
-    }, [profile?.id, isStudent, refreshMonsters]);
+        // 👇 여기만 수정
+    }, [profile, isStudent, refreshMonsters]);
+
 
 
 
