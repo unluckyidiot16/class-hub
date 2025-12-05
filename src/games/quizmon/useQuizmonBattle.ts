@@ -1,6 +1,7 @@
 // src/games/quizmon/useQuizmonBattle.ts
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { saveGhostBattle, type GhostBattleRecord } from "./ghostBattle";
 import type {
     BattleState,
     Move,
@@ -232,6 +233,16 @@ export type UseQuizmonBattleOptions = {
     studentId?: string | null;
     onQuizAnswer?: (result: QuizAnswerResult) => void;
     onBattleEnd?: (summary: { correct: number; total: number }) => void;
+    /**
+     * 배틀 모드:
+     *  - "normal": 기존 수업/던전/레이드 배틀
+     *  - "ghost": 저장된 고스트 기록과 다시 싸우는 배틀
+     */
+    mode?: "normal" | "ghost";
+    /**
+     * 고스트 배틀 시 사용할 기록 (playerMonsters / enemyMonsters 를 그대로 사용)
+     */
+    ghostOpponent?: GhostBattleRecord | null;
 };
 
 export type UseQuizmonBattleResult = {
@@ -279,6 +290,8 @@ export function useQuizmonBattle(
         studentId,
         onQuizAnswer,
         onBattleEnd,
+        mode = "normal",
+        ghostOpponent = null,
     } = options;
 
     // 1) 전투 상태
@@ -343,6 +356,27 @@ export function useQuizmonBattle(
         [state.enemy],
     );
 
+    // 고스트 배틀 모드: 전달받은 ghostOpponent로 양측 파티 초기화
+    useEffect(() => {
+        if (mode !== "ghost") return;
+        if (!ghostOpponent) return;
+        
+        // 아주 단순하게: 현재 state 위에 파티만 덮어쓰기
+        setState((prev) => ({
+                ...prev,
+                player: {
+                    ...prev.player,
+                        monsters: ghostOpponent.playerMonsters.map((m) => ({ ...m })),
+                        activeIndex: 0,
+                },
+                enemy: {
+                    ...prev.enemy,
+                        monsters: ghostOpponent.enemyMonsters.map((m) => ({ ...m })),
+                        activeIndex: 0,
+                },
+        }));
+        }, [mode, ghostOpponent, setState]);
+    
     /** 현재 질문 선택 (없으면 null)
      *  - questions: 원본 질문 배열
      *  - questionOrder: 랜덤으로 섞인 인덱스 배열
@@ -1054,16 +1088,54 @@ export function useQuizmonBattle(
         }
     }, [state.phase, state.pendingEnemyMove, enemyMon]);
 
-    // 배틀이 끝난 시점에 한 번만 onBattleEnd 호출
+    // 배틀이 끝난 시점에 한 번:
+    //  1) onBattleEnd (수업용 통계 콜백)
+    //  2) 로컬 고스트 기록 저장
     useEffect(() => {
-        if (!onBattleEnd) return;
-        if (state.phase !== "finished") return;
-        if (hasReportedEnd) return;
+        const finished = state.phase === "finished";
+        if (!finished) return;
         if (battleStats.total <= 0) return; // 한 문제도 풀지 않았다면 스킵
-
-        onBattleEnd({ ...battleStats });
-        setHasReportedEnd(true);
-    }, [state.phase, battleStats, onBattleEnd, hasReportedEnd]);
+        
+        // 1) 기존 콜백 (수업용)
+        if (onBattleEnd && !hasReportedEnd) {
+            onBattleEnd({ ...battleStats });
+            setHasReportedEnd(true);
+        }
+        
+        // 2) 고스트 전투 기록 저장
+        try {
+            const record: GhostBattleRecord = {
+                id:
+                    typeof crypto !== "undefined" &&
+                    typeof crypto.randomUUID === "function"
+                        ? crypto.randomUUID()
+                        : `${Date.now()}`,
+                    createdAt: new Date().toISOString(),
+                    source: roomId ? "class" : "solo",
+                    quizPackId: quizpack?.pack?.id ?? null,
+                stats: {
+                    correct: battleStats.correct,
+                        total: battleStats.total,
+                        accuracy: accuracyPercent ?? 0,
+                },
+                    playerMonsters: state.player.monsters,
+                    enemyMonsters: state.enemy.monsters,
+            };
+            
+            saveGhostBattle(record);
+        } catch (err) {
+            console.warn("[useQuizmonBattle] saveGhostBattle error", err);
+        }
+        }, [
+            state.phase,
+        state.player.monsters,
+        state.enemy.monsters,
+        battleStats,
+        onBattleEnd,
+        hasReportedEnd,
+        roomId,
+        quizpack,
+    ]);
 
     const canSelectMove =
         state.phase !== "finished" &&

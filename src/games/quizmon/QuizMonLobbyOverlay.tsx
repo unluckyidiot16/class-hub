@@ -12,6 +12,7 @@ import { DexTab } from "./DexTab";
 import { StarShopTab } from "./StarShopTab";
 
 
+
 export type MainTabKey =
     | "menu"
     | "monsters"
@@ -43,6 +44,9 @@ export type QuizMonLobbyOverlayProps = {
     onSelectRaid: () => void;
     onSelectGacha: () => void;
 
+    // 🔹 고스트 배틀 (선택사항: 상위 컴포넌트에서만 필요할 때 전달)
+    onSelectGhostBattle?: () => void;
+
     lastRaidResult?: { correct: number; total: number } | null;
     onBuyExpDust?: (quantity?: number) => Promise<void> | void;
 };
@@ -67,7 +71,9 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onSelectGacha,
         lastRaidResult,
         onBuyExpDust,
+        onSelectGhostBattle,
     } = props;
+    
 
     // ✅ 도감 탭에서 포커스할 종
     const [dexSelectedSpeciesId, setDexSelectedSpeciesId] =
@@ -379,6 +385,29 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 >
                                     가챠 (보상 뽑기)
                                 </button>
+                                {/* 고스트 배틀: 기록된 전투와 대결 (옵션) */}
+                                {onSelectGhostBattle && (
+                                    <button
+                                        type="button"
+                                        onClick={onSelectGhostBattle}
+                                        style={{
+                                            width: "100%",
+                                            textAlign: "left",
+                                            borderRadius: 10,
+                                            border: "1px solid #6b21a8",
+                                            background:
+                                                "linear-gradient(90deg,#6b21a8,#a855f7)",
+                                            color: "#f5ecff",
+                                            padding: "0.85rem 1.05rem",
+                                            fontSize: 15,
+                                            fontWeight: 700,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        👻 고스트 배틀 (기록과 대결)
+                                    </button>
+                                )}
+                               
                                 
                                 {/* 최근 레이드 결과 (있을 때만 표시) */}
                                 {lastRaidResult && (
