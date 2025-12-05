@@ -120,6 +120,9 @@ type QuizBottomPanelProps = {
     canSwitch: boolean;
     onOpenSwitchModal: () => void;
 
+    canCapture: boolean;
+    onRequestCapture: () => void;
+    
     attackPhase: AttackPhase;
 
     lastPlayerLog: string | null;
@@ -565,6 +568,8 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         hasQuestions,
         onSelectMove,
         onAnswer,
+        canCapture,
+        onRequestCapture,
         canSwitch,
         onOpenSwitchModal,
         attackPhase,
@@ -583,7 +588,10 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         maxSpecialGauge > 0 &&
         specialGauge >= maxSpecialGauge;
 
+// 포획 버튼은 애니메이션/퀴즈/배틀 종료가 아닐 때만 활성
+    const canShowCapture = !isQuizPhase && !isFinished && !isAnimating;
 
+    
     // 하단 메인 텍스트
     let mainText: string;
     if (isQuizPhase && currentQuestion) {
@@ -883,13 +891,45 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
 
                         {/* 🔹 포켓몬 교체 버튼 */}
                         <div
-                            style={{
-                                marginTop: 8,
-                                display: "flex",
-                                justifyContent: "flex-end",
-                            }}
-                        >
-                            <button
+                                                    style={{
+                                                        marginTop: 8,
+                                                        display: "flex",
+                                                        justifyContent: "space-between",
+                                                        gap: 8,
+                                                    }}
+                                                >
+                            {/* 포획 시도 버튼 */}
+                                                    <button
+                                                        type="button"
+                                                        disabled={!canShowCapture || !canCapture}
+                                                        onClick={() => {
+                                                            if (!canShowCapture || !canCapture) return;
+                                                            onRequestCapture();
+                                                        }}
+                                                        style={{
+                                                            borderRadius: 999,
+                                                            border: "1px solid #22c55e33",
+                                                            padding: "0.35rem 0.9rem",
+                                                            fontSize: "0.8rem",
+                                                            background:
+                                                                canShowCapture && canCapture
+                                                                    ? "rgba(22,163,74,0.95)"
+                                                                    : "#02061780",
+                                                            color:
+                                                                canShowCapture && canCapture
+                                                                    ? "#f9fafb"
+                                                                    : "#6b7280",
+                                                            cursor:
+                                                                canShowCapture && canCapture
+                                                                    ? "pointer"
+                                                                    : "default",
+                                                        }}
+                                                    >
+                                                        🎯 포획 시도
+                                                    </button>
+                    
+                                                {/* 포켓몬 교체 버튼 */}
+                                                <button
                                 type="button"
                                 disabled={!canSwitch}
                                 onClick={() => {
@@ -957,6 +997,8 @@ export type QuizMonBattleViewProps = {
      *
      * - 이 BattleView는 순수하게 "연출 / 모달"만 담당.
      */
+    canCapture?: boolean;
+    onRequestCapture?: () => void;
 
     captureUi?: CaptureUiState;
     captureHandlers?: CaptureOverlayHandlers;
@@ -979,6 +1021,8 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         playerSprite,
         enemySprite,
         damagePopups,
+        canCapture,
+        onRequestCapture,
         captureUi,
         captureHandlers,
     } = props;
@@ -1645,6 +1689,16 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     onAnswer={onAnswer}
                     canSwitch={canSwitch}
                     onOpenSwitchModal={() => setShowSwitchModal(true)}
+                // 🔹 포획 버튼 제어
+                    canCapture={
+                        !!onRequestCapture &&
+                        !!canCapture &&                // 상위에서 내려준 플래그
+                        attackPhase === "idle" &&     // 연출 중에는 막기
+                        state.phase === "command"     // 커맨드 단계일 때만
+                    }
+                    onRequestCapture={
+                        onRequestCapture ?? (() => {})
+                    }
                     attackPhase={attackPhase}
                     lastPlayerLog={lastPlayerLog}
                     lastEnemyLog={lastEnemyLog}
