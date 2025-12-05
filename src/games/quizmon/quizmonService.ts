@@ -1139,7 +1139,7 @@ export function calcPartyHealCostGold(
  * - quizmon_owned_monsters.current_hp / is_fainted 초기화
  */
 export async function healAllMonstersService(profileId: string): Promise<void> {
-    // 1) 파티 몬스터 로딩 (party_slot 1~3)
+    // 1) 파티 몬스터 로딩
     const { data: monsters, error: monstersError } = await supabase
         .from("quizmon_owned_monsters")
         .select("id, level")
@@ -1151,20 +1151,16 @@ export async function healAllMonstersService(profileId: string): Promise<void> {
         throw monstersError;
     }
 
-    const party = (monsters ?? []) as Pick<
-        QuizmonOwnedMonsterRow,
-        "id" | "level"
-    >[];
+    const party = (monsters ?? []) as { id: string; level: number | null }[];
 
     if (!party.length) {
-        // 파티가 없으면 그냥 조용히 리턴
         return;
     }
 
     const levels = party.map((m) => m.level ?? 1);
     const healCost = calcPartyHealCostGold(levels);
 
-    // 2) 프로필 로딩 (골드 확인)
+    // 2) 프로필 로딩
     const { data: profile, error: profileError } = await supabase
         .from("quizmon_profiles")
         .select("id, gold")
@@ -1176,41 +1172,45 @@ export async function healAllMonstersService(profileId: string): Promise<void> {
         throw profileError;
     }
 
-    const currentGold = (profile as QuizmonProfileRow).gold ?? 0;
+    const currentGold = (profile as any).gold ?? 0;
 
-    // 임시 테스트용
-    if (currentGold < healCost) {
+    // ✅ 테스트 모드: 골드 부족이면 그냥 무료 회복 (골드 업데이트 스킵)
+    const isTestFreeHeal = true; // 나중에 플래그/환경변수로 빼도 됨
+
+    if (currentGold < healCost && !isTestFreeHeal) {
+        // 실제 상용 모드용 로직 (지금은 안 씀)
+        throw new Error("골드가 부족합니다. (회복 비용: " + healCost + ")");
+    }
+
+    if (currentGold >= healCost && !isTestFreeHeal) {
+        // 🔹 정상 모드: 골드 차감
+        const newGold = currentGold - healCost; // 0 이상이어야 DB 제약 통과
+
+        const { error: updateProfileError } = await supabase
+            .from("quizmon_profiles")
+            .update({ gold: newGold })
+            .eq("id", profileId);
+
+        if (updateProfileError) {
+            console.error(
+                "[healAllMonstersService] update profile gold error",
+                updateProfileError,
+            );
+            throw updateProfileError;
+        }
+    } else if (currentGold < healCost && isTestFreeHeal) {
+        // 🔹 지금 상황: 무료 회복 모드
         console.warn(
             `[healAllMonstersService] 골드 부족이지만 테스트 모드로 무료 회복. gold=${currentGold}, cost=${healCost}`,
         );
-        // 골드 차감도 그냥 스킵
-        // return; // ← 회복도 막고 싶으면 이쪽
-    }
-    
-    // 3) 골드 차감
-    const { error: updateProfileError } = await supabase
-        .from("quizmon_profiles")
-        .update({
-            gold: currentGold - healCost,
-        })
-        .eq("id", profileId);
-
-    if (updateProfileError) {
-        console.error(
-            "[healAllMonstersService] update profile gold error",
-            updateProfileError,
-        );
-        throw updateProfileError;
+        // 여기서는 gold 업데이트 아예 안 함
     }
 
-    // 4) 파티 몬스터 HP 회복
+    // 3) 파티 몬스터 HP 회복 (골드와 상관없이 진행)
     const monsterIds = party.map((m) => m.id);
     const { error: healError } = await supabase
         .from("quizmon_owned_monsters")
         .update({
-            // 구현 방식에 따라:
-            // - current_hp: null  → "풀피" 의미로 쓰고 있다면 null로 초기화
-            // - is_fainted: false
             current_hp: null,
             is_fainted: false,
         })
@@ -1221,6 +1221,7 @@ export async function healAllMonstersService(profileId: string): Promise<void> {
         throw healError;
     }
 }
+
 
 /**
  * 단일 몬스터 선택 회복
