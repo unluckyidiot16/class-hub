@@ -1178,10 +1178,15 @@ export async function healAllMonstersService(profileId: string): Promise<void> {
 
     const currentGold = (profile as QuizmonProfileRow).gold ?? 0;
 
+    // 임시 테스트용
     if (currentGold < healCost) {
-        throw new Error("골드가 부족합니다. (회복 비용: " + healCost + ")");
+        console.warn(
+            `[healAllMonstersService] 골드 부족이지만 테스트 모드로 무료 회복. gold=${currentGold}, cost=${healCost}`,
+        );
+        // 골드 차감도 그냥 스킵
+        // return; // ← 회복도 막고 싶으면 이쪽
     }
-
+    
     // 3) 골드 차감
     const { error: updateProfileError } = await supabase
         .from("quizmon_profiles")
