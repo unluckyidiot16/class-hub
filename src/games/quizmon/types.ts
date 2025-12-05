@@ -151,7 +151,7 @@ export type Move = {
 export type Monster = {
     // 개체/종 정보
     id: string;          // 개체 ID (owned_monsters.id 대응)
-    speciesId?: string;  // 종 ID (quizmon_species.id)
+    speciesId: string;  // 종 ID (quizmon_species.id)
     name: string;
     element: ElementType;
     element2?: ElementType | null;  // 서브 타입 (없으면 null/undefined)

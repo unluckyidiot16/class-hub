@@ -1,4 +1,3 @@
-// src/games/quizmon/duplicateRewards.ts
 import type {
     QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
@@ -11,15 +10,14 @@ export type AcquisitionSource = "capture" | "gacha";
 export type GrantMonsterOrShardsResult =
     | {
     kind: "new-monster";
-    monster: QuizmonOwnedMonsterRow;
+    ownedMonster: QuizmonOwnedMonsterRow;
     profile: QuizmonProfileRow;
-    shardsGained: 0;
-}
-    | {
+    shardsAwarded: 0;
+} | {
     kind: "duplicate";
-    monster: null;
+    ownedMonster: null;
     profile: QuizmonProfileRow;
-    shardsGained: number;
+    shardsAwarded: number; 
 };
 
 // ✅ 희귀도에 따른 샤드 보상량 계산
@@ -56,12 +54,46 @@ function getNewOwnedMonsterPayload(
  *   - 이미 있으면 → star_shards 증가
  */
 export async function grantMonsterOrShards(opts: {
-    profile: QuizmonProfileRow;
-    species: QuizmonSpeciesRow;
+    profileId: string;
+    speciesId: string;
     source: AcquisitionSource;
 }): Promise<GrantMonsterOrShardsResult> {
-    const { profile, species } = opts;
+    const { profileId, speciesId } = opts;
 
+    // 0) 프로필 로드 (star_shards 포함 최신 상태)
+        const { data: profileRow, error: profileError } = await supabase
+            .from("quizmon_profiles")
+            .select("*")
+            .eq("id", profileId)
+            .maybeSingle();
+    
+        if (profileError || !profileRow) {
+            console.error(
+                "[grantMonsterOrShards] profile select error",
+                profileError,
+            );
+            throw profileError ?? new Error("profile not found");
+        }
+    
+        const profile = profileRow as QuizmonProfileRow;
+    
+        // 0-1) 종 정보 로드 (희귀도 기반 샤드 계산용)
+    const { data: speciesRow, error: speciesError } = await supabase
+        .from("quizmon_species")
+        .select("*")
+        .eq("id", speciesId)
+        .maybeSingle();
+    
+    if (speciesError || !speciesRow) {
+        console.error(
+            "[grantMonsterOrShards] species select error",
+            speciesError,
+        );
+        throw speciesError ?? new Error("species not found");
+    }
+    
+    const species = speciesRow as QuizmonSpeciesRow;
+    
     // 1) 이미 이 종을 가진 적 있는지 확인
     const { data: ownedRows, error: ownedError } = await supabase
         .from("quizmon_owned_monsters")
@@ -96,9 +128,9 @@ export async function grantMonsterOrShards(opts: {
 
         return {
             kind: "new-monster",
-            monster: inserted as QuizmonOwnedMonsterRow,
+            ownedMonster: inserted as QuizmonOwnedMonsterRow,
             profile, // 프로필은 그대로 (샤드 변화 없음)
-            shardsGained: 0,
+            shardsAwarded: 0,
         };
     }
 
@@ -124,8 +156,8 @@ export async function grantMonsterOrShards(opts: {
 
     return {
         kind: "duplicate",
-        monster: null,
+        ownedMonster: null,
         profile: updatedProfile as QuizmonProfileRow,
-        shardsGained: shardAmount,
+        shardsAwarded: shardAmount,
     };
 }

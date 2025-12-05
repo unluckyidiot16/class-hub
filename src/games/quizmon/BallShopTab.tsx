@@ -234,12 +234,10 @@ export function BallShopTab(props: BallShopTabProps) {
             >
                 {entries.map((entry) => {
                     const disabledMsg = disabledReason(entry);
-                    const isDisabled =
-                        !!disabledMsg || buyingId === entry.itemId;
-
-                    return (
-                        <div
-                            key={entry.itemId}
+                    const isDisabled = 
+                        !!disabledMsg || buyingId === entry.item.id;
+                    return (<div
+                            key={entry.item.id}
                             style={{
                                 borderRadius: 12,
                                 border: "1px solid #1f2937",
@@ -275,7 +273,7 @@ export function BallShopTab(props: BallShopTabProps) {
                                             color: "#9ca3af",
                                         }}
                                     >
-                                        {entry.name}
+                                        {entry.item.name}
                                     </div>
                                 </div>
 
@@ -294,12 +292,12 @@ export function BallShopTab(props: BallShopTabProps) {
                                             fontWeight: 600,
                                         }}
                                     >
-                                        {entry.ownedCount}
+                                      {entry.quantityOwned}
                                     </span>
                                 </div>
                             </div>
 
-                            {entry.description && (
+                            {entry.item.description && (
                                 <div
                                     style={{
                                         fontSize: 11,
@@ -307,7 +305,7 @@ export function BallShopTab(props: BallShopTabProps) {
                                         marginTop: 2,
                                     }}
                                 >
-                                    {entry.description}
+                                    {entry.item.description}
                                 </div>
                             )}
 
@@ -333,7 +331,7 @@ export function BallShopTab(props: BallShopTabProps) {
 
                             <button
                                 type="button"
-                                onClick={() => handleBuy(entry.itemId)}
+                                onClick={() => handleBuy(entry.item.id)}
                                 disabled={isDisabled}
                                 style={{
                                     marginTop: 6,
@@ -351,7 +349,7 @@ export function BallShopTab(props: BallShopTabProps) {
                                     textAlign: "center",
                                 }}
                             >
-                                {buyingId === entry.itemId
+                                {buyingId === entry.item.id
                                     ? "구매 중..."
                                     : disabledMsg ?? "1개 구매"}
                             </button>
