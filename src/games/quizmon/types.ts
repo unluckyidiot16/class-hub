@@ -156,6 +156,8 @@ export type Monster = {
     element: ElementType;
     element2?: ElementType | null;  // 서브 타입 (없으면 null/undefined)
 
+    specialGauge: number;    // 0 ~ MAX_SPECIAL_GAUGE
+    maxSpecialGauge: number; // 예: 3칸, 5칸 등
 
     // 레벨/경험치 (QuizMon에서는 항상 채워짐)
     level: number;

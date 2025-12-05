@@ -1,0 +1,590 @@
+{
+  "poke-0001": {
+    "basicMoveId": "vine-whip",
+    "specialMoveId": "solar-beam"
+  },
+  "poke-0002": {
+    "basicMoveId": "vine-whip",
+    "specialMoveId": "solar-beam"
+  },
+  "poke-0003": {
+    "basicMoveId": "vine-whip",
+    "specialMoveId": "solar-beam"
+  },
+  "poke-0004": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0005": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0006": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0007": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0008": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0009": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0010": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "tackle"
+  },
+  "poke-0012": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "psybeam"
+  },
+  "poke-0013": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "poison-sting"
+  },
+  "poke-0015": {
+    "basicMoveId": "twineedle",
+    "specialMoveId": "pin-missile"
+  },
+  "poke-0016": {
+    "basicMoveId": "quick-attack",
+    "specialMoveId": "wing-attack"
+  },
+  "poke-0017": {
+    "basicMoveId": "quick-attack",
+    "specialMoveId": "wing-attack"
+  },
+  "poke-0018": {
+    "basicMoveId": "quick-attack",
+    "specialMoveId": "wing-attack"
+  },
+  "poke-0019": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "hyper-fang"
+  },
+  "poke-0020": {
+    "basicMoveId": "quick-attack",
+    "specialMoveId": "hyper-fang"
+  },
+  "poke-0021": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "drill-peck"
+  },
+  "poke-0022": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "drill-peck"
+  },
+  "poke-0023": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "acid"
+  },
+  "poke-0024": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "acid"
+  },
+  "poke-0025": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "thunder"
+  },
+  "poke-0026": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "thunder-shock"
+  },
+  "poke-0027": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "slash"
+  },
+  "poke-0028": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "slash"
+  },
+  "poke-0029": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "bite"
+  },
+  "poke-0030": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "bite"
+  },
+  "poke-0031": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "body-slam"
+  },
+  "poke-0032": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "horn-attack"
+  },
+  "poke-0033": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "horn-attack"
+  },
+  "poke-0034": {
+    "basicMoveId": "poison-sting",
+    "specialMoveId": "thrash"
+  },
+  "poke-0035": {
+    "basicMoveId": "double-slap",
+    "specialMoveId": "pound"
+  },
+  "poke-0036": {
+    "basicMoveId": "double-slap",
+    "specialMoveId": "double-slap"
+  },
+  "poke-0037": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0038": {
+    "basicMoveId": "ember",
+    "specialMoveId": "quick-attack"
+  },
+  "poke-0039": {
+    "basicMoveId": "double-slap",
+    "specialMoveId": "double-edge"
+  },
+  "poke-0040": {
+    "basicMoveId": "double-slap",
+    "specialMoveId": "double-slap"
+  },
+  "poke-0041": {
+    "basicMoveId": "bite",
+    "specialMoveId": "leech-life"
+  },
+  "poke-0042": {
+    "basicMoveId": "bite",
+    "specialMoveId": "leech-life"
+  },
+  "poke-0043": {
+    "basicMoveId": "absorb",
+    "specialMoveId": "petal-dance"
+  },
+  "poke-0044": {
+    "basicMoveId": "absorb",
+    "specialMoveId": "petal-dance"
+  },
+  "poke-0045": {
+    "basicMoveId": "petal-dance",
+    "specialMoveId": "acid"
+  },
+  "poke-0046": {
+    "basicMoveId": "leech-life",
+    "specialMoveId": "slash"
+  },
+  "poke-0047": {
+    "basicMoveId": "leech-life",
+    "specialMoveId": "slash"
+  },
+  "poke-0048": {
+    "basicMoveId": "leech-life",
+    "specialMoveId": "psychic"
+  },
+  "poke-0049": {
+    "basicMoveId": "leech-life",
+    "specialMoveId": "psychic"
+  },
+  "poke-0050": {
+    "basicMoveId": "dig",
+    "specialMoveId": "earthquake"
+  },
+  "poke-0051": {
+    "basicMoveId": "dig",
+    "specialMoveId": "earthquake"
+  },
+  "poke-0052": {
+    "basicMoveId": "fury-swipes",
+    "specialMoveId": "slash"
+  },
+  "poke-0053": {
+    "basicMoveId": "fury-swipes",
+    "specialMoveId": "slash"
+  },
+  "poke-0054": {
+    "basicMoveId": "hydro-pump",
+    "specialMoveId": "confusion"
+  },
+  "poke-0055": {
+    "basicMoveId": "hydro-pump",
+    "specialMoveId": "confusion"
+  },
+  "poke-0056": {
+    "basicMoveId": "karate-chop",
+    "specialMoveId": "thrash"
+  },
+  "poke-0057": {
+    "basicMoveId": "karate-chop",
+    "specialMoveId": "thrash"
+  },
+  "poke-0058": {
+    "basicMoveId": "ember",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0059": {
+    "basicMoveId": "ember",
+    "specialMoveId": "take-down"
+  },
+  "poke-0060": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0061": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0062": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "body-slam"
+  },
+  "poke-0064": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "psychic"
+  },
+  "poke-0065": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "psychic"
+  },
+  "poke-0066": {
+    "basicMoveId": "karate-chop",
+    "specialMoveId": "submission"
+  },
+  "poke-0067": {
+    "basicMoveId": "karate-chop",
+    "specialMoveId": "submission"
+  },
+  "poke-0068": {
+    "basicMoveId": "karate-chop",
+    "specialMoveId": "submission"
+  },
+  "poke-0069": {
+    "basicMoveId": "vine-whip",
+    "specialMoveId": "razor-leaf"
+  },
+  "poke-0070": {
+    "basicMoveId": "vine-whip",
+    "specialMoveId": "razor-leaf"
+  },
+  "poke-0071": {
+    "basicMoveId": "razor-leaf",
+    "specialMoveId": "acid"
+  },
+  "poke-0072": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0073": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0074": {
+    "basicMoveId": "rock-throw",
+    "specialMoveId": "explosion"
+  },
+  "poke-0075": {
+    "basicMoveId": "rock-throw",
+    "specialMoveId": "explosion"
+  },
+  "poke-0076": {
+    "basicMoveId": "rock-throw",
+    "specialMoveId": "explosion"
+  },
+  "poke-0077": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "ember"
+  },
+  "poke-0078": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "ember"
+  },
+  "poke-0079": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "psychic"
+  },
+  "poke-0080": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "psychic"
+  },
+  "poke-0081": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "swift"
+  },
+  "poke-0082": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "swift"
+  },
+  "poke-0083": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "slash"
+  },
+  "poke-0084": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "tri-attack"
+  },
+  "poke-0085": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "tri-attack"
+  },
+  "poke-0086": {
+    "basicMoveId": "aurora-beam",
+    "specialMoveId": "take-down"
+  },
+  "poke-0087": {
+    "basicMoveId": "aurora-beam",
+    "specialMoveId": "take-down"
+  },
+  "poke-0088": {
+    "basicMoveId": "sludge",
+    "specialMoveId": "pound"
+  },
+  "poke-0089": {
+    "basicMoveId": "sludge",
+    "specialMoveId": "pound"
+  },
+  "poke-0090": {
+    "basicMoveId": "clamp",
+    "specialMoveId": "ice-beam"
+  },
+  "poke-0091": {
+    "basicMoveId": "clamp",
+    "specialMoveId": "aurora-beam"
+  },
+  "poke-0092": {
+    "basicMoveId": "lick",
+    "specialMoveId": "dream-eater"
+  },
+  "poke-0093": {
+    "basicMoveId": "lick",
+    "specialMoveId": "dream-eater"
+  },
+  "poke-0094": {
+    "basicMoveId": "lick",
+    "specialMoveId": "dream-eater"
+  },
+  "poke-0095": {
+    "basicMoveId": "rock-throw",
+    "specialMoveId": "slam"
+  },
+  "poke-0096": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "psychic"
+  },
+  "poke-0097": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "psychic"
+  },
+  "poke-0098": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "crabhammer"
+  },
+  "poke-0099": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "crabhammer"
+  },
+  "poke-0100": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "explosion"
+  },
+  "poke-0101": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "explosion"
+  },
+  "poke-0102": {
+    "basicMoveId": "solar-beam",
+    "specialMoveId": "barrage"
+  },
+  "poke-0103": {
+    "basicMoveId": "barrage",
+    "specialMoveId": "stomp"
+  },
+  "poke-0104": {
+    "basicMoveId": "bonemerang",
+    "specialMoveId": "bone-club"
+  },
+  "poke-0105": {
+    "basicMoveId": "bonemerang",
+    "specialMoveId": "bone-club"
+  },
+  "poke-0106": {
+    "basicMoveId": "double-kick",
+    "specialMoveId": "high-jump-kick"
+  },
+  "poke-0107": {
+    "basicMoveId": "comet-punch",
+    "specialMoveId": "mega-punch"
+  },
+  "poke-0108": {
+    "basicMoveId": "wrap",
+    "specialMoveId": "slam"
+  },
+  "poke-0109": {
+    "basicMoveId": "smog",
+    "specialMoveId": "sludge"
+  },
+  "poke-0110": {
+    "basicMoveId": "smog",
+    "specialMoveId": "sludge"
+  },
+  "poke-0111": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "take-down"
+  },
+  "poke-0112": {
+    "basicMoveId": "fury-attack",
+    "specialMoveId": "take-down"
+  },
+  "poke-0113": {
+    "basicMoveId": "double-slap",
+    "specialMoveId": "double-edge"
+  },
+  "poke-0114": {
+    "basicMoveId": "absorb",
+    "specialMoveId": "slam"
+  },
+  "poke-0115": {
+    "basicMoveId": "comet-punch",
+    "specialMoveId": "mega-punch"
+  },
+  "poke-0116": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0117": {
+    "basicMoveId": "bubble",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0118": {
+    "basicMoveId": "waterfall",
+    "specialMoveId": "horn-attack"
+  },
+  "poke-0119": {
+    "basicMoveId": "waterfall",
+    "specialMoveId": "horn-attack"
+  },
+  "poke-0120": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0121": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "tackle"
+  },
+  "poke-0122": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "double-slap"
+  },
+  "poke-0123": {
+    "basicMoveId": "quick-attack",
+    "specialMoveId": "slash"
+  },
+  "poke-0124": {
+    "basicMoveId": "ice-punch",
+    "specialMoveId": "blizzard"
+  },
+  "poke-0125": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "thunder"
+  },
+  "poke-0126": {
+    "basicMoveId": "ember",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0127": {
+    "basicMoveId": "vice-grip",
+    "specialMoveId": "slash"
+  },
+  "poke-0128": {
+    "basicMoveId": "rage",
+    "specialMoveId": "take-down"
+  },
+  "poke-0129": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "tackle"
+  },
+  "poke-0130": {
+    "basicMoveId": "hydro-pump",
+    "specialMoveId": "hyper-beam"
+  },
+  "poke-0131": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0133": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "take-down"
+  },
+  "poke-0134": {
+    "basicMoveId": "water-gun",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0135": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "thunder"
+  },
+  "poke-0136": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "flamethrower"
+  },
+  "poke-0137": {
+    "basicMoveId": "tackle",
+    "specialMoveId": "tri-attack"
+  },
+  "poke-0138": {
+    "basicMoveId": "spike-cannon",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0139": {
+    "basicMoveId": "spike-cannon",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0140": {
+    "basicMoveId": "absorb",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0141": {
+    "basicMoveId": "absorb",
+    "specialMoveId": "hydro-pump"
+  },
+  "poke-0142": {
+    "basicMoveId": "wing-attack",
+    "specialMoveId": "hyper-beam"
+  },
+  "poke-0143": {
+    "basicMoveId": "headbutt",
+    "specialMoveId": "hyper-beam"
+  },
+  "poke-0144": {
+    "basicMoveId": "ice-beam",
+    "specialMoveId": "blizzard"
+  },
+  "poke-0145": {
+    "basicMoveId": "thunder-shock",
+    "specialMoveId": "thunder"
+  },
+  "poke-0146": {
+    "basicMoveId": "fire-spin",
+    "specialMoveId": "sky-attack"
+  },
+  "poke-0147": {
+    "basicMoveId": "wrap",
+    "specialMoveId": "hyper-beam"
+  },
+  "poke-0148": {
+    "basicMoveId": "wrap",
+    "specialMoveId": "hyper-beam"
+  },
+  "poke-0149": {
+    "basicMoveId": "wrap",
+    "specialMoveId": "hyper-beam"
+  },
+  "poke-0150": {
+    "basicMoveId": "confusion",
+    "specialMoveId": "psychic"
+  },
+  "poke-0151": {
+    "basicMoveId": "psychic",
+    "specialMoveId": "mega-punch"
+  }
+}

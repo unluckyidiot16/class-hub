@@ -60,6 +60,8 @@ type QuizBottomPanelProps = {
     currentQuestion: QuizQuestionLite | null;
     playerName: string;
     playerMoves: Move[];
+    specialGauge: number;
+    maxSpecialGauge: number;
     canSelectMove: boolean;
     hasQuestions: boolean;
     onSelectMove: (move: Move) => void;
@@ -80,6 +82,8 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         currentQuestion,
         playerName,
         playerMoves,
+        specialGauge,
+        maxSpecialGauge,
         canSelectMove,
         hasQuestions,
         onSelectMove,
@@ -94,6 +98,14 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
     const isFinished = phase === "finished";
     const isAnimating = attackPhase !== "idle";
+    
+    const basicMove = playerMoves[0];
+    const specialMove = playerMoves[1];
+    const canUseSpecial =
+        !!specialMove &&
+        maxSpecialGauge > 0 &&
+        specialGauge >= maxSpecialGauge;
+
 
     // 하단 메인 텍스트
     let mainText: string;
@@ -212,64 +224,187 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                 }}
             >
                 {showSkillGrid && (
-                    <>
+                    <div>
                         <div
                             style={{
-                                fontSize: "max(11px, 1.6vmin)",
-                                color: "#9ca3af",
-                                marginBottom: 6,
-                            }}
-                        >
-                            사용할 기술을 선택하세요.
-                        </div>
-                        <div
+                                                        fontSize: "0.9rem",
+                                                        color: "#e5e7eb",
+                                                        fontWeight: 500,
+                                                        marginBottom: 8,
+                                                    }}
+                                                >
+                                                    공격 선택
+                                                </div>
+                    
+                                            {/* 🔹 스페셜 게이지 표시 */}
+                                            <div
+                                                style={{
+                                                    marginBottom: 8,
+                                                    fontSize: "0.8rem",
+                                                    color: "#9ca3af",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: 8,
+                                                    }}
+                                                >
+                                                    <span>스페셜 게이지</span>
+                                                    <div
+                                                        style={{
+                                                            flex: 1,
+                                                            height: 8,
+                                                            borderRadius: 999,
+                                                            background: "#020617",
+                                                            border: "1px solid #1f2937",
+                                                            overflow: "hidden",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                height: "100%",
+                                                                width: `${
+                                                                    maxSpecialGauge > 0
+                                                                        ? (specialGauge /
+                                                                              maxSpecialGauge) *
+                                                                          100
+                                                                        : 0
+                                                                }%`,
+                                                                transition: "width 0.2s ease-out",
+                                                                background:
+                                                                    "linear-gradient(90deg,#22c55e,#a855f7)",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <span>
+                                                        {specialGauge}/{maxSpecialGauge}
+                                                </span>
+                                        </div>
+                                </div>
+    
+                                <div
                             style={{
-                                display: "grid",
-                                gridTemplateColumns:
-                                    "repeat(2, minmax(0, 1fr))",
-                                gap: 6,
-                            }}
-                        >
-                            {playerMoves.map((move) => (
+                                        display: "grid",
+                                            gridTemplateColumns: 
+                                                "repeat(2, minmax(0, 1fr))",
+                                            gap: 8,
+                                        }}
+                            >
+                                {/* 기본 공격 */}
                                 <button
-                                    key={move.id}
-                                    type="button"
-                                    onClick={() => onSelectMove(move)}
-                                    disabled={!canSelectMove}
+                                type="button"
+                                    disabled={!canSelectMove || !basicMove}
+                                    onClick={() => {
+                                            if (!canSelectMove || !basicMove) return;
+                                            onSelectMove(basicMove);
+                                        }}
                                     style={{
-                                        borderRadius: 6,
-                                        border: "1px solid #1f2937",
-                                        padding: "0.4rem 0.5rem",
-                                        textAlign: "left",
-                                        background: canSelectMove
-                                            ? "#020617"
-                                            : "#02061780",
-                                        color: "#e5e7eb",
-                                        cursor: canSelectMove
-                                            ? "pointer"
-                                            : "default",
-                                    }}
+                                            borderRadius: 8,
+                                                border: "1px solid #1f2937",
+                                                padding: "0.55rem 0.6rem",
+                                                background: "#020617",
+                                                color: canSelectMove && basicMove
+                                                ? "#e5e7eb"
+                                                    : "#6b7280",
+                                                cursor:
+                                                canSelectMove && basicMove
+                                                    ? "pointer"
+                                                        : "default",
+                                                textAlign: "left",
+                                                fontSize: "0.85rem",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 2,
+                                            }}
                                 >
                                     <div
-                                        style={{
-                                            fontWeight: 600,
-                                            marginBottom: 2,
-                                            fontSize: "max(13px, 1.9vmin)",
-                                        }}
+                                    style={{
+                                                fontWeight: 600,
+                                                    marginBottom: 2,
+                                                }}
                                     >
-                                        {move.name}
+                                        기본 공격
                                     </div>
-                                    <div
+                                    {basicMove && (
+                                            <div
                                         style={{
-                                            fontSize: "max(11px, 1.5vmin)",
-                                            color: "#9ca3af",
-                                        }}
-                                    >
-                                        위력 {move.power} · 명중 {`${move.baseAcc ?? "-"}%`}
-                                    </div>
+                                                    fontSize: "0.75rem",
+                                                        color: "#9ca3af",
+                                                        whiteSpace: "nowrap",
+                                                        textOverflow: "ellipsis",
+                                                        overflow: "hidden",
+                                                    }}
+                                        >
+                                            {basicMove.name}
+                                        </div>
+                                    )}
                                 </button>
-                            ))}
-                        </div>
+    
+                                    {/* 스페셜 공격 */}
+                                <button
+                                type="button"
+                                    disabled={
+                                            !canSelectMove ||
+                                            !specialMove ||
+                                            !canUseSpecial
+                                        }
+                                    onClick={() => {
+                                            if (
+                                                    !canSelectMove ||
+                                                    !specialMove ||
+                                                    !canUseSpecial
+                                                )
+                                                    return;
+                                            onSelectMove(specialMove);
+                                        }}
+                                    style={{
+                                            borderRadius: 8,
+                                                border: "1px solid #1f2937",
+                                                padding: "0.55rem 0.6rem",
+                                                background: canUseSpecial
+                                                ? "linear-gradient(135deg,#1d4ed8,#a855f7)"
+                                                    : "#020617",
+                                                color: canUseSpecial
+                                                ? "#f9fafb"
+                                                    : "#6b7280",
+                                                cursor:
+                                                canUseSpecial && canSelectMove
+                                                    ? "pointer"
+                                                        : "default",
+                                                textAlign: "left",
+                                                fontSize: "0.85rem",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 2,
+                                            }}
+                                >
+                                    <div
+                                    style={{
+                                                fontWeight: 700,
+                                                    marginBottom: 2,
+                                                }}
+                                    >
+                                        스페셜
+                                    </div>
+                                    {specialMove && (
+                                            <div
+                                        style={{
+                                                    fontSize: "0.75rem",
+                                                        color: "#e5e7eb",
+                                                        whiteSpace: "nowrap",
+                                                        textOverflow: "ellipsis",
+                                                        overflow: "hidden",
+                                                    }}
+                                        >
+                                            {specialMove.name}
+                                       </div>
+                                    )}
+                                </button>
+                            </div>
+
+                        {/* 🔹 포켓몬 교체 버튼 */}
                         <div
                             style={{
                                 marginTop: 8,
@@ -279,27 +414,30 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
                         >
                             <button
                                 type="button"
-                                onClick={onOpenSwitchModal}
                                 disabled={!canSwitch}
+                                onClick={() => {
+                                    if (!canSwitch) return;
+                                    onOpenSwitchModal();
+                                }}
                                 style={{
-                                    borderRadius: 6,
-                                    border: "1px solid #1f2937",
-                                    padding: "0.3rem 0.8rem",
-                                    fontSize: "max(11px, 1.6vmin)",
+                                    borderRadius: 999,
+                                    border: "1px solid #374151",
+                                    padding: "0.35rem 0.9rem",
+                                    fontSize: "0.8rem",
                                     background: canSwitch
-                                        ? "#020617"
+                                        ? "rgba(15,23,42,0.95)"
                                         : "#02061780",
-                                    color: "#e5e7eb",
+                                    color: canSwitch ? "#e5e7eb" : "#6b7280",
                                     cursor: canSwitch
                                         ? "pointer"
                                         : "default",
                                 }}
                             >
-                                교체
+                                포켓몬 교체
                             </button>
                         </div>
-                    </>
-                )}
+                        </div>
+                    )}
 
                 {isFinished && (
                     <div
@@ -1004,15 +1142,17 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     currentQuestion={currentQuestion}
                     playerName={playerMon.name}
                     playerMoves={playerMon.moves}
+                    specialGauge={playerMon.specialGauge}
+                    maxSpecialGauge={playerMon.maxSpecialGauge}
                     canSelectMove={effectiveCanSelectMove}
                     hasQuestions={hasQuestions}
                     onSelectMove={onSelectMove}
                     onAnswer={onAnswer}
                     canSwitch={canSwitch}
                     onOpenSwitchModal={() => setShowSwitchModal(true)}
-                    attackPhase={attackPhase}   
-                    lastPlayerLog={lastPlayerLog}  
-                    lastEnemyLog={lastEnemyLog}  
+                    attackPhase={attackPhase}
+                    lastPlayerLog={lastPlayerLog}
+                    lastEnemyLog={lastEnemyLog}
                 />
             </div>
         </>

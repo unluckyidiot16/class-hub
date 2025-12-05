@@ -7,82 +7,70 @@ import type {
     QuizmonSpeciesRow,
 } from "./types";
 import { calcDerivedStats } from "./stats";
-import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
-import { ABILITY_DB } from "./abilityData";            // 추가
+import { MOVE_DB } from "./moveData";
+import { ABILITY_DB } from "./abilityData";
 import { getTypeEffectiveness } from "./elementUtils";
+import basicSpecialMovesJson from "./data/basicSpecialMoves.json";
 
 export type BattleMonsterCore = Monster;
 export type QuizmonSpeciesLike = QuizmonSpeciesRow;
 
-const MAX_EQUIPPED_MOVES = 4;
+const MAX_EQUIPPED_MOVES = 2;
 
-/**
- * Move 배열을 id 기준으로 중복 제거
- */
-function dedupMoves(moves: (Move | null | undefined)[]): Move[] {
-    const map = new Map<string, Move>();
-    for (const m of moves) {
-        if (!m) continue;
-        map.set(m.id, m);
-    }
-    return Array.from(map.values());
-}
+type BasicSpecialMovesEntry = {
+    basicMoveId: string;
+    specialMoveId: string;
+};
+
+    // poke-0001, poke-0004 ... → { basicMoveId, specialMoveId } 매핑
+const BASIC_SPECIAL_MOVES =
+    basicSpecialMovesJson as Record<string, BasicSpecialMovesEntry>;
 
 /**
  * 배틀에서 사용할 기술 목록 결정
  *
- * 우선순위:
- *  1) equipped_moves 가 있으면 → 그 id 순서대로 장착 (MOVE_DB lookup)
- *  2) 없으면: 종 + 레벨 기준 레벨업 기술 + learned_moves (TM 등)
- *  3) 아무 것도 없으면: tackle 등 기본기 1개라도 보장
+ * ✅ 새로운 규칙:
+ *  - 모든 포켓몬은 항상 2개의 스킬만 사용
+ *    1) basicSpecialMoves.json.basicMoveId  (기본 공격)
+ *    2) basicSpecialMoves.json.specialMoveId (특수 공격)
+ *
+ *  - equipped_moves / learned_moves / 레벨업 기술은 전부 무시
+ *  - 매핑이 없거나 MOVE_DB 에서 못 찾으면 tackle 등 기본기 1개라도 보장
  */
 function resolveMovesForBattle(
     species: QuizmonSpeciesRow,
-    owned?: QuizmonOwnedMonsterRow | null,
 ): Move[] {
-    const anySpecies: any = species;
-    const level = owned?.level ?? anySpecies.base_level ?? 1;
-
-    // 1) 기본: 종 + 레벨 기반 자동 기술 (코드에서 계산)
-    const baseFromLearnset = getMovesForSpeciesAndLevel(species.id, level);
-
-    // 2) (선택) 추가로 배운 기술 (TM 등)
-    const learnedIds: string[] = Array.isArray(owned?.learned_moves)
-        ? owned!.learned_moves
-        : [];
-    const learnedMoves: Move[] = learnedIds
-        .map((id) => MOVE_DB[id])
-        .filter((m): m is Move => !!m);
-
-    // 3) equipped_moves 가 지정되어 있으면, 그것만 사용 (id 배열)
-    const equippedIds: string[] = Array.isArray(owned?.equipped_moves)
-        ? owned!.equipped_moves
-        : [];
-
-    if (equippedIds.length > 0) {
-        const equippedMoves: Move[] = equippedIds
+    const config = BASIC_SPECIAL_MOVES[species.id];
+    
+    const moveIds: string[] = [];
+    
+    if (config) {
+        if (config.basicMoveId) {
+            moveIds.push(config.basicMoveId);
+        }
+        if (
+            config.specialMoveId &&
+            config.specialMoveId !== config.basicMoveId
+        ) {
+            moveIds.push(config.specialMoveId);
+        }
+    }
+    
+    // 매핑된 id → MOVE_DB 실제 Move 로 변환
+    const moves: Move[] = moveIds
             .map((id) => MOVE_DB[id])
             .filter((m): m is Move => !!m);
-
-        const deduped = dedupMoves(equippedMoves).slice(0, MAX_EQUIPPED_MOVES);
-        if (deduped.length > 0) {
-            return deduped;
-        }
-    }
-
-    // 4) 장착 정보가 없으면: 레벨업 기술 + learned_moves 합쳐서 뒤에서 4개 사용
-    const merged = dedupMoves([...baseFromLearnset, ...learnedMoves]);
-    let trimmed = merged.slice(-MAX_EQUIPPED_MOVES);
-
-    // 5) 그래도 아무것도 없으면: tackle 등 기본기 하나라도
-    if (trimmed.length === 0) {
+    
+    // 그래도 비어 있으면: tackle 등 기본기 하나라도
+    if (moves.length === 0) {
         const fallback = MOVE_DB["tackle"] ?? Object.values(MOVE_DB)[0];
         if (fallback) {
-            trimmed = [fallback];
+            moves.push(fallback);
         }
     }
-
-    return trimmed;
+    
+    // 항상 최대 2개까지만
+    return moves.slice(0, MAX_EQUIPPED_MOVES);
 }
 
 /**
@@ -109,8 +97,8 @@ export function buildBattleMonsterFromSpecies(
         typeof owned?.current_hp === "number" && owned.current_hp > 0
             ? owned.current_hp
             : derived.maxHp;
-
-    const moves = resolveMovesForBattle(species, owned);
+    
+    const moves = resolveMovesForBattle(species);
 
     // 🔹 포켓덱스 번호 + 키/몸무게 계산 (m/kg 단위)
     const pokedexNo = species.pokedex_no ?? null;
@@ -126,13 +114,16 @@ export function buildBattleMonsterFromSpecies(
         (typeof species.weight_hg === "number"
             ? species.weight_hg / 10
             : null);
-
+    
     const baseMonster: Monster = {
         // 기본 전투 상태값
         accStage: 0,
         evaStage: 0,
         exp: owned?.exp ?? 0,
 
+        specialGauge: 0,
+        maxSpecialGauge: 3, // 전 몬스터 공통으로 3칸 같은 느낌
+        
         // HP
         hp: currentHp,
         maxHp: derived.maxHp,
@@ -164,7 +155,7 @@ export function buildBattleMonsterFromSpecies(
         // 기술
         moves,
 
-        // 특성
+        // 특성 (현재는 1개만 사용)
         abilityId: (owned as any)?.ability_id ?? null,
     };
 

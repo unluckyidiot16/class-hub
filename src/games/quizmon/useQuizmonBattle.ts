@@ -815,7 +815,7 @@ export function useQuizmonBattle(
                 prev.player.monsters[prev.player.activeIndex];
             const prevEnemyMon =
                 prev.enemy.monsters[prev.enemy.activeIndex];
-
+            
             // 🔒 여기서 한 번 더 널 가드 (TS18047 방지용)
             const pendingPlayerMove = prev.pendingPlayerMove;
             if (!pendingPlayerMove) {
@@ -984,6 +984,55 @@ export function useQuizmonBattle(
                 };
             }
 
+            // 2.5) 🔹 스페셜 게이지 갱신
+            {
+                const prevActiveIdx = prev.player.activeIndex;
+                const prevMonForGauge =
+                    prev.player.monsters[prevActiveIdx];
+                            
+                const specialMoveId =
+                    prevMonForGauge.moves[1]?.id ?? null;
+                const usedMoveId = pendingPlayerMove.move.id;
+                const isSpecialMove =
+                    !!specialMoveId && usedMoveId === specialMoveId;
+            
+                let newGauge = prevMonForGauge.specialGauge ?? 0;
+                const maxGauge = prevMonForGauge.maxSpecialGauge ?? 3;
+                
+                if (quizResult.correct) {
+                    // ✅ 정답인 경우
+                    if (isSpecialMove) {
+                        // 스페셜 사용 후 게이지 전체 소모
+                        newGauge = 0;
+                    } else {
+                        // 기본 공격 정답 → 게이지 1칸씩 누적
+                        newGauge = Math.min(maxGauge, newGauge + 1);
+                    }
+                } else {
+                    // ❌ 오답인 경우: 스페셜 시도 실패 시만 리셋
+                    if (isSpecialMove) {
+                        newGauge = 0;
+                    }
+                }
+            
+                const curPlayerMons = [...next.player.monsters];
+                const currentMon = curPlayerMons[prevActiveIdx];
+            
+                curPlayerMons[prevActiveIdx] = {
+                    ...currentMon,
+                    specialGauge: newGauge,
+                    maxSpecialGauge: maxGauge,
+                };
+            
+                next = {
+                    ...next,
+                    player: {
+                        ...next.player,
+                        monsters: curPlayerMons,
+                    },
+                };
+            }
+
 
             // 3) 승패 체크 + 파티 교체 로직
             const playerMons = next.player.monsters;
@@ -1070,6 +1119,9 @@ export function useQuizmonBattle(
                 currentQuestion: null,
                 questionStartedAt: null,
             };
+
+        
+            
         });
     };
 
