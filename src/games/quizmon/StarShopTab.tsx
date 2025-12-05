@@ -18,22 +18,28 @@ export type StarShopTabProps = {
 
 export function StarShopTab(props: StarShopTabProps) {
     const { profile, onProfileUpdated, onPurchased } = props;
-    const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(profile);
+
+    // 🔹 상점 내부에서 최신 프로필(특히 star_shards)을 한 번 더 들고 있는 로컬 상태
+    const [localProfile, setLocalProfile] = useState<QuizmonProfileRow | null>(
+        profile,
+    );
 
     const [entries, setEntries] = useState<StarShopEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [buyingId, setBuyingId] = useState<string | null>(null);
 
-    // 🔹 프로필은 상위에서 갱신해 주는 것이 원칙이지만,
-    //    혹시 콜백이 연결되지 않은 경우에도 샤드가 즉시 차감되도록
-    //    로컬 상태를 한 번 더 둔다.
+    // 상위 profile 이 바뀌면 로컬 상태도 동기화
+    useEffect(() => {
+        setLocalProfile(profile);
+    }, [profile?.id, profile?.star_shards]);
+
     const effectiveProfile = localProfile ?? profile;
     const starShards = effectiveProfile?.star_shards ?? 0;
 
     // ✅ 최초 로드 & profile 변경 시 상점 목록 불러오기
     useEffect(() => {
-        if (!profile?.id) {
+        if (!effectiveProfile?.id) {
             setEntries([]);
             return;
         }
@@ -45,7 +51,7 @@ export function StarShopTab(props: StarShopTabProps) {
             setError(null);
             try {
                 const list = await loadStarShopEntries({
-                    profileId: profile.id,
+                    profileId: effectiveProfile.id,
                 });
                 if (cancelled) return;
                 setEntries(list);
@@ -69,11 +75,7 @@ export function StarShopTab(props: StarShopTabProps) {
         return () => {
             cancelled = true;
         };
-    }, [profile?.id]);
-
-    useEffect(() => {
-        setLocalProfile(profile);
-        }, [profile?.id, profile?.star_shards]);
+    }, [effectiveProfile?.id]);
 
     const handleBuy = async (speciesId: string) => {
         const baseProfile = effectiveProfile;
@@ -117,7 +119,7 @@ export function StarShopTab(props: StarShopTabProps) {
     };
 
     const disabledReason = (entry: StarShopEntry): string | null => {
-        if (!profile) return "프로필 없음";
+        if (!effectiveProfile) return "프로필 없음";
         if (entry.alreadyOwned) return "이미 보유";
         if (starShards < entry.starShardsPrice) return "파편 부족";
         return null;

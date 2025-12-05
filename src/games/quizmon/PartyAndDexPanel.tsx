@@ -15,6 +15,7 @@ import {
 } from "./quizmonService";
 import { MOVE_DB, getMovesForSpeciesAndLevel } from "./moveData";
 import { supabase } from "../../lib/supabaseClient";
+import { buildBattleMonsterFromSpecies } from "./battleFactory";
 
 // v1 특성 설명 DB (UI 표시용)
 const ABILITY_DB: Record<
@@ -519,18 +520,16 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     // 기술 장착 패널 상태
     // -------------------------------
 
-    const [equipSlots, setEquipSlots] = useState<(string | null)[]>([
+    const [, setEquipSlots] = useState<(string | null)[]>([
         null,
         null,
         null,
         null,
     ]);
-    const [activeEquipIndex, setActiveEquipIndex] = useState<
+    const [, setActiveEquipIndex] = useState<
         number | null
     >(null);
-    const [equipSaving, setEquipSaving] = useState(false);
-    const [equipError, setEquipError] = useState<string | null>(null);
-    const [equipDirty, setEquipDirty] = useState(false);
+    const [, setEquipDirty] = useState(false);
 
     // 선택 몬스터가 바뀔 때마다 장착 기술 초기화
 // 1순위: equipped_moves에서 MOVE_DB에 있는 id만 사용
@@ -541,7 +540,6 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
             setEquipSlots([null, null, null, null]);
             setActiveEquipIndex(null);
             setEquipDirty(false);
-            setEquipError(null);
             return;
         }
 
@@ -570,8 +568,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
 
             setEquipSlots(nextSlots);
             setActiveEquipIndex(null);
-            setEquipDirty(false);
-            setEquipError(null);
+            setEquipDirty(false);;
             return;
         }
 
@@ -601,114 +598,9 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
         setActiveEquipIndex(null);
         // 자동 장착된 내용은 DB에 저장되도록 dirty 플래그 on
         setEquipDirty(true);
-        setEquipError(null);
     }, [selected?.id]);
 
 
-    // equipSlots 변경이 있고 dirty일 때 DB 저장
-    // equipSlots 변경이 있고 dirty일 때 DB 저장
-    useEffect(() => {
-        if (!profile || !selected || !equipDirty) return;
-
-        let cancelled = false;
-
-        const save = async () => {
-            setEquipSaving(true);
-            setEquipError(null);
-            try {
-                const payload = equipSlots.filter(
-                    (id): id is string => Boolean(id),
-                );
-
-                const { error } = await supabase
-                    .from("quizmon_owned_monsters")
-                    .update({ equipped_moves: payload })
-                    .eq("id", selected.id)
-                    // 🔽 프로필까지 같이 걸어 주기
-                    .eq("profile_id", profile.id);
-
-                if (error) throw error;
-
-                if (!cancelled) {
-                    setEquipDirty(false);
-                }
-            } catch (e: any) {
-                console.error(
-                    "[PartyAndDexPanel] save equipped_moves error",
-                    e,
-                );
-                if (!cancelled) {
-                    setEquipError(
-                        e?.message ??
-                        "기술 장착을 저장하는 중 오류가 발생했습니다.",
-                    );
-                }
-            } finally {
-                if (!cancelled) {
-                    setEquipSaving(false);
-                }
-            }
-        };
-
-        void save();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [equipDirty, equipSlots, profile, selected]);
-
-
-    const learnedMoveIds: string[] = useMemo(() => {
-        if (!selected) return [];
-        const anyMon = selected as any;
-
-        if (Array.isArray(anyMon.learned_moves)) {
-            return anyMon.learned_moves as string[];
-        }
-
-        const list = getMovesForSpeciesAndLevel(
-            anyMon.species_id,
-            anyMon.level,
-        );
-        return list.map((m: any) => m.id);
-    }, [selected?.id, selected?.level, selected?.species_id]);
-
-    function getMoveName(moveId: string | null): string {
-        if (!moveId) return "비어 있음";
-        const move = (MOVE_DB as any)[moveId];
-        return (move?.name as string) ?? moveId;
-    }
-
-    function handleEquipSlotClick(index: number) {
-        setActiveEquipIndex((prev) => (prev === index ? null : index));
-    }
-
-    function handleToggleMove(moveId: string) {
-        setEquipSlots((prev) => {
-            const next = [...prev];
-
-            // 이미 장착되어 있으면 해제
-            const currentIndex = next.findIndex((id) => id === moveId);
-            if (currentIndex !== -1) {
-                next[currentIndex] = null;
-                return next;
-            }
-
-            // 타겟 슬롯 결정
-            let targetIndex =
-                activeEquipIndex ??
-                next.findIndex((id) => id == null);
-
-            if (targetIndex === -1) {
-                // 빈 슬롯이 없으면 1번 슬롯 덮어쓰기
-                targetIndex = 0;
-            }
-
-            next[targetIndex] = moveId;
-            return next;
-        });
-        setEquipDirty(true);
-    }
     
     const dexList = useMemo(
         () =>
@@ -722,8 +614,28 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
     const selectedSlotIndex = selected
         ? partyIds.findIndex((id) => id === selected.id)
         : -1;
-    
-    
+
+    // 선택된 몬스터가 배틀에서 사용할 기본/스페셜 기술 계산
+    const { basicMove, specialMove } = useMemo(() => {
+        if (!selected || !selectedSpecies) {
+            return { basicMove: null, specialMove: null };
+        }
+
+        // 현재 배틀 로직과 맞추기 위해 battleFactory 재사용
+        const battleMon = buildBattleMonsterFromSpecies(
+            selectedSpecies,
+            selected as QuizmonOwnedMonsterRow, // ✅ owned 개체 전달
+        );
+
+        const moves = battleMon.moves ?? [];
+        return {
+            basicMove: moves[0] ?? null,   // 기본 공격
+            specialMove: moves[1] ?? null, // 스페셜 공격
+        };
+    }, [selected, selectedSpecies]);
+
+
+
     return (
         <>
             <div
@@ -1242,7 +1154,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         )}
                     </div>
 
-                    {/* 오른쪽: 스킬 장착 패널 */}
+                    {/* 오른쪽: 배틀 스킬 요약 패널 */}
                     <div
                         style={{
                             width: 220,
@@ -1254,7 +1166,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                             color: "#e5e7eb",
                             display: "flex",
                             flexDirection: "column",
-                            gap: "0.45rem",
+                            gap: "0.6rem",
                             fontSize: "0.8rem",
                         }}
                     >
@@ -1265,12 +1177,8 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                 alignItems: "center",
                             }}
                         >
-                            <div
-                                style={{
-                                    fontSize: "0.85rem",
-                                }}
-                            >
-                                기술 장착
+                            <div style={{ fontSize: "0.85rem" }}>
+                                배틀에서 사용하는 기술
                             </div>
                             <div
                                 style={{
@@ -1278,19 +1186,19 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     color: "#cbd5f5",
                                 }}
                             >
-                                배운 기술 {learnedMoveIds.length}개
+                                기본 / 스페셜 2개
                             </div>
                         </div>
 
-                        {/* 장착 슬롯 */}
+                        {/* 기본 공격 */}
                         <div
                             style={{
                                 borderRadius: 10,
                                 background: "rgba(15,23,42,0.9)",
-                                padding: "0.45rem 0.55rem",
+                                padding: "0.55rem 0.6rem",
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "0.35rem",
+                                gap: "0.25rem",
                             }}
                         >
                             <div
@@ -1300,209 +1208,178 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     marginBottom: 2,
                                 }}
                             >
-                                장착된 기술 (최대 4개)
+                                기본 공격
                             </div>
-                            {equipSlots.map((moveId, idx) => {
-                                const isActive =
-                                    activeEquipIndex === idx;
-                                return (
-                                    <button
-                                        key={idx}
-                                        type="button"
-                                        onClick={() =>
-                                            handleEquipSlotClick(
-                                                idx,
-                                            )
-                                        }
+
+                            {basicMove ? (
+                                <div>
+                                    <div
                                         style={{
-                                            width: "100%",
-                                            borderRadius: 999,
-                                            border: isActive
-                                                ? "1px solid #38bdf8"
-                                                : "1px solid rgba(148,163,184,0.5)",
-                                            backgroundColor:
-                                                "rgba(15,23,42,0.95)",
-                                            padding:
-                                                "0.3rem 0.6rem",
                                             display: "flex",
+                                            justifyContent: "space-between",
                                             alignItems: "center",
-                                            justifyContent:
-                                                "space-between",
-                                            cursor: "pointer",
-                                            fontSize: "0.75rem",
+                                            marginBottom: 2,
                                         }}
                                     >
-                                        <span>
-                                            {idx + 1}.{" "}
-                                            {getMoveName(moveId)}
-                                        </span>
-                                        {isActive && (
-                                            <span
-                                                style={{
-                                                    fontSize:
-                                                        "0.7rem",
-                                                    color: "#38bdf8",
-                                                }}
-                                            >
-                                                선택됨
-                                            </span>
+                                        <div style={{ fontWeight: 600 }}>
+                                            {basicMove.name}
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: "0.7rem",
+                                                padding: "0.1rem 0.4rem",
+                                                borderRadius: 999,
+                                                border: "1px solid rgba(96,165,250,0.8)",
+                                            }}
+                                        >
+                                            {(basicMove.element as string) ??
+                                                ""}
+                                        </div>
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: "0.7rem",
+                                            color: "#cbd5f5",
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {basicMove.category && (
+                                            <>
+                                                분류: {basicMove.category} ·{" "}
+                                            </>
                                         )}
-                                    </button>
-                                );
-                            })}
+                                        {typeof basicMove.power ===
+                                            "number" &&
+                                            `위력 ${basicMove.power} · `}
+                                        {typeof basicMove.baseAcc ===
+                                            "number" &&
+                                            `명중 ${basicMove.baseAcc}%`}
+                                    </div>
+                                    {basicMove.description && (
+                                        <div
+                                            style={{
+                                                fontSize: "0.7rem",
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            {basicMove.description}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div
+                                    style={{
+                                        fontSize: "0.75rem",
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    아직 설정된 기본 공격이 없습니다.
+                                </div>
+                            )}
                         </div>
 
-                        {/* 배운 기술 리스트 */}
+                        {/* 스페셜 공격 */}
                         <div
                             style={{
                                 borderRadius: 10,
                                 background: "rgba(15,23,42,0.9)",
-                                padding: "0.45rem 0.55rem",
+                                padding: "0.55rem 0.6rem",
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: "0.3rem",
-                                maxHeight: 150,
-                                overflowY: "auto",
+                                gap: "0.25rem",
                             }}
                         >
                             <div
                                 style={{
                                     fontSize: "0.75rem",
                                     color: "#cbd5f5",
+                                    marginBottom: 2,
                                 }}
                             >
-                                배운 기술 목록
+                                스페셜 공격
                             </div>
-                            {learnedMoveIds.length === 0 && (
-                                <div
-                                    style={{
-                                        fontSize: "0.75rem",
-                                        color: "#9ca3af",
-                                        paddingTop: 2,
-                                    }}
-                                >
-                                    아직 배운 기술이 없습니다.
-                                </div>
-                            )}
-                            {learnedMoveIds.map((moveId) => {
-                                const move = (MOVE_DB as any)[
-                                    moveId
-                                    ];
-                                const name =
-                                    (move?.name as string) ??
-                                    moveId;
-                                const typeLabel =
-                                    (move?.element as string) ??
-                                    (move?.type as string) ??
-                                    "";
-                                const isEquipped =
-                                    equipSlots.indexOf(moveId) !==
-                                    -1;
 
-                                return (
-                                    <button
-                                        key={moveId}
-                                        type="button"
-                                        onClick={() =>
-                                            handleToggleMove(
-                                                moveId,
-                                            )
-                                        }
+                            {specialMove ? (
+                                <div>
+                                    <div
                                         style={{
-                                            width: "100%",
-                                            borderRadius: 8,
-                                            border: isEquipped
-                                                ? "1px solid #38bdf8"
-                                                : "1px solid rgba(148,163,184,0.5)",
-                                            backgroundColor:
-                                                isEquipped
-                                                    ? "rgba(8,47,73,0.95)"
-                                                    : "rgba(15,23,42,0.95)",
-                                            padding:
-                                                "0.3rem 0.5rem",
                                             display: "flex",
-                                            justifyContent:
-                                                "space-between",
+                                            justifyContent: "space-between",
                                             alignItems: "center",
-                                            fontSize: "0.75rem",
-                                            cursor: "pointer",
+                                            marginBottom: 2,
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                textAlign: "left",
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    fontWeight: 600,
-                                                }}
-                                            >
-                                                {name}
-                                            </div>
-                                            {typeLabel && (
-                                                <div
-                                                    style={{
-                                                        fontSize:
-                                                            "0.7rem",
-                                                        color:
-                                                            "#cbd5f5",
-                                                    }}
-                                                >
-                                                    {typeLabel}
-                                                </div>
-                                            )}
+                                        <div style={{ fontWeight: 600 }}>
+                                            {specialMove.name}
                                         </div>
                                         <div
                                             style={{
                                                 fontSize: "0.7rem",
-                                                color: isEquipped
-                                                    ? "#38bdf8"
-                                                    : "#9ca3af",
+                                                padding: "0.1rem 0.4rem",
+                                                borderRadius: 999,
+                                                border: "1px solid rgba(96,165,250,0.8)",
                                             }}
                                         >
-                                            {isEquipped
-                                                ? "장착됨"
-                                                : "클릭해 장착"}
+                                            {(specialMove.element as string) ??
+                                                ""}
                                         </div>
-                                    </button>
-                                );
-                            })}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: "0.7rem",
+                                            color: "#cbd5f5",
+                                            marginBottom: 2,
+                                        }}
+                                    >
+                                        {specialMove.category && (
+                                            <>
+                                                분류: {specialMove.category} ·{" "}
+                                            </>
+                                        )}
+                                        {typeof specialMove.power ===
+                                            "number" &&
+                                            `위력 ${specialMove.power} · `}
+                                        {typeof specialMove.baseAcc ===
+                                            "number" &&
+                                            `명중 ${specialMove.baseAcc}%`}
+                                    </div>
+                                    {specialMove.description && (
+                                        <div
+                                            style={{
+                                                fontSize: "0.7rem",
+                                                color: "#9ca3af",
+                                            }}
+                                        >
+                                            {specialMove.description}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div
+                                    style={{
+                                        fontSize: "0.75rem",
+                                        color: "#9ca3af",
+                                    }}
+                                >
+                                    아직 설정된 스페셜 공격이 없습니다.
+                                </div>
+                            )}
                         </div>
 
                         <div
                             style={{
                                 fontSize: "0.72rem",
                                 color: "#cbd5f5",
+                                marginTop: 2,
                             }}
                         >
-                            위 슬롯을 선택한 뒤 아래 기술을 클릭하면
-                            해당 슬롯에 장착됩니다. 다시 클릭하면
-                            장착이 해제됩니다.
+                            현재는 각 몬스터마다 정해진 기본/스페셜 기술 두 개만
+                            사용합니다. 추후 레벨업 기술 시스템이 추가되면 여기에서
+                            참고용으로만 표시할 예정입니다.
                         </div>
-
-                        {equipSaving && (
-                            <div
-                                style={{
-                                    fontSize: "0.7rem",
-                                    color: "#9ca3af",
-                                }}
-                            >
-                                기술 장착 정보를 저장하는 중...
-                            </div>
-                        )}
-                        {equipError && (
-                            <div
-                                style={{
-                                    fontSize: "0.7rem",
-                                    color: "#fecaca",
-                                }}
-                            >
-                                {equipError}
-                            </div>
-                        )}
                     </div>
                 </div>
+                {/* ↑↑↑ 상단: 파티 / 선택 파트너 / 스킬 패널 끝 */}
 
                 {/* 하단: 도감 / 보유 몬스터 */}
                 <div
@@ -1579,8 +1456,8 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                     color: "#9ca3af",
                                 }}
                             >
-                                아직 보유한 몬스터가 없습니다. 뽑기나
-                                레이드 보상으로 포켓몬을 모아 보세요.
+                                아직 보유한 몬스터가 없습니다. 뽑기나 레이드
+                                보상으로 포켓몬을 모아 보세요.
                             </div>
                         ) : (
                             <div
@@ -1600,9 +1477,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                             key={mon.id}
                                             type="button"
                                             onClick={() =>
-                                                setSelectedId(
-                                                    mon.id,
-                                                )
+                                                setSelectedId(mon.id)
                                             }
                                             style={{
                                                 textAlign: "left",
@@ -1615,8 +1490,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                 padding:
                                                     "0.45rem 0.55rem",
                                                 display: "flex",
-                                                alignItems:
-                                                    "center",
+                                                alignItems: "center",
                                                 gap: "0.45rem",
                                                 cursor: "pointer",
                                             }}
@@ -1629,9 +1503,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                 return (
                                                     iconUrl && (
                                                         <img
-                                                            src={
-                                                                iconUrl
-                                                            }
+                                                            src={iconUrl}
                                                             alt={
                                                                 mon.displayName
                                                             }
@@ -1659,8 +1531,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                                                     style={{
                                                         fontSize:
                                                             "0.75rem",
-                                                        color:
-                                                            "#cbd5f5",
+                                                        color: "#cbd5f5",
                                                     }}
                                                 >
                                                     Lv.{mon.level} ·{" "}
@@ -1689,6 +1560,7 @@ export function PartyAndDexPanel(props: PartyAndDexPanelProps) {
                         zIndex: 50,
                     }}
                 >
+
                     <div
                         style={{
                             width: 420,

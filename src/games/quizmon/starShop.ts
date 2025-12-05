@@ -150,10 +150,31 @@ export async function purchaseSpeciesWithStarShards(params: {
     const price = shopRow.star_shards_price as number;
 
     // 2) star_shards 잔액 체크
-    const currentStars = profile.star_shards ?? 0;
+    //    ⚠️ params.profile 은 오래된 스냅샷일 수 있으므로, 항상 DB에서 최신 값을 조회
+    // 2) star_shards 잔액 체크
+//    ⚠️ params.profile 은 오래된 스냅샷일 수 있으므로, 항상 DB에서 최신 값을 조회
+    const {
+        data: profileRow,
+        error: profileSelectError,
+    } = await supabase
+        .from("quizmon_profiles")
+        .select("id, star_shards")
+        .eq("id", profileId)
+        .single();
+
+    if (profileSelectError || !profileRow) {
+        console.error(
+            "[starShop] purchaseSpeciesWithStarShards profile select error",
+            profileSelectError,
+        );
+        throw new Error("프로필 정보를 불러오는 중 오류가 발생했습니다.");
+    }
+
+    const currentStars = (profileRow.star_shards as number) ?? 0;
     if (currentStars < price) {
         throw new Error("Star Shards가 부족합니다.");
     }
+
 
     // 3) 보유 여부 확인 + 파티 슬롯 계산
     const { data: ownedRows, error: ownedError } = await supabase
@@ -254,7 +275,11 @@ export async function purchaseSpeciesWithStarShards(params: {
     const ownedMonster = insertedRow as QuizmonOwnedMonsterRow;
 
     // 7) 프로필 star_shards 차감
-    const { data: updatedProfileRow, error: profileError } = await supabase
+    // 7) 프로필 star_shards 차감
+    const {
+        data: updatedProfileRow,
+        error: profileUpdateError,
+    } = await supabase
         .from("quizmon_profiles")
         .update({
             star_shards: currentStars - price,
@@ -263,10 +288,10 @@ export async function purchaseSpeciesWithStarShards(params: {
         .select("*")
         .single();
 
-    if (profileError || !updatedProfileRow) {
+    if (profileUpdateError || !updatedProfileRow) {
         console.error(
             "[starShop] purchaseSpeciesWithStarShards profile update error",
-            profileError,
+            profileUpdateError,
         );
         throw new Error("프로필 정보를 저장하는 중 오류가 발생했습니다.");
     }
