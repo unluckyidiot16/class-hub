@@ -143,7 +143,7 @@ export function DexTab(props: DexTabProps) {
     >(selectedSpeciesId);
 
     // 🔹 종별 레벨업 기술 캐시
-    const [speciesMoveMap, setSpeciesMoveMap] = useState<
+    const [, setSpeciesMoveMap] = useState<
         Record<string, DexMoveInfo[]>
     >({});
     const [movesLoading, setMovesLoading] = useState(false);
@@ -334,68 +334,90 @@ export function DexTab(props: DexTabProps) {
     }, [selectedSpecies]);
 
     // ✅ 선택된 종의 기술 목록
-    //   1) basicSpecialMoves.json 기준 배틀용 기술 2개 (배틀 기본 / 배틀 스페셜)
-    //   2) Supabase 레벨업 기술 (중복 id 는 제거)
+    //   👉 이제부터는 "기본 / 스페셜" 두 개 스킬만 사용
+    //   - 레벨업 기술 장착/습득 개념은 UI에서 완전히 제거
     const movesForSelected = useMemo(() => {
         if (!selectedSpecies) return [];
         
         const speciesId = selectedSpecies.id;
-        const battleEntries: DexMoveInfo[] = [];
-        const usedIds = new Set<string>();
-        
+        const entries: DexMoveInfo[] = [];
         const config = BASIC_SPECIAL_MOVES[speciesId];
         
-        const addBattleMove = (
-            moveId: string | undefined | null,
-            learnMethodLabel: string,
-        ) => {
-            if (!moveId) return;
-            const mv = MOVE_DB[moveId];
-            if (!mv) return;
+        const addMove = (
+                        moveId: string | undefined | null,
+                        learnMethodLabel: string,
+                    ) => {
+                        if (!moveId) return;
+                        const mv = MOVE_DB[moveId];
+                        if (!mv) return;
             
-            if (usedIds.has(mv.id)) return;
-            usedIds.add(mv.id);
+                        const {
+                            label: elementLabel,
+                                color: elementColor,
+                            } = getElementLabelAndColor(mv.element);
             
-            const {
-                label: elementLabel,
-                color: elementColor,
-            } = getElementLabelAndColor(mv.element);
+                            const categoryLabel =
+                                mv.category === "physical"
+                                    ? "물리"
+                                        : mv.category === "special"
+                                        ? "특수"
+                                            : "보조";
             
-            const categoryLabel = 
-                mv.category === "physical"
-                    ? "물리"
-                    : mv.category === "special"
-                        ? "특수"
-                        : "보조";
-            
-            battleEntries.push({
-                    id: mv.id,
-                name: mv.name,
-                description: mv.description ?? "",
-                elementLabel,
-                elementColor,
-                categoryLabel,
-                power: mv.power ?? null,
-                learnMethodLabel,
-                learnAt: null,
-            });
-        };
+                            entries.push({
+                                    id: mv.id,
+                                name: mv.name,
+                                description: mv.description ?? "",
+                                elementLabel,
+                                elementColor,
+                                categoryLabel,
+                                power: mv.power ?? null,
+                                    accuracy: mv.baseAcc ?? null,
+                                learnMethodLabel,
+                                learnAt: null,
+                            });
+                    };
         
-        if (config) {
-            // 1) 기본 공격
-            addBattleMove(config.basicMoveId, "배틀 기본");
-            // 2) 스페셜 공격 (기본과 같은 기술이면 한 번만)
-            if (config.specialMoveId && config.specialMoveId !== config.basicMoveId) {
-                addBattleMove(config.specialMoveId, "배틀 스페셜");
-            }
-        }
+                    if (config) {
+                        // 1) 기본 공격
+                            addMove(config.basicMoveId, "기본 공격");
+                        // 2) 스페셜 공격 (기본과 다른 기술일 때만 추가)
+                            if (config.specialMoveId && config.specialMoveId !== config.basicMoveId) {
+                                addMove(config.specialMoveId, "스페셜 공격");
+                            }
+                    } else {
+                        // 매핑이 아직 없는 경우: 안전하게 아무것도 안 보여주거나,
+                            // 필요하면 fallback 한 개 정도만 노출
+                                const fallback = Object.values(MOVE_DB)[0];
+                        if (fallback) {
+                                const {
+                                    label: elementLabel,
+                                        color: elementColor,
+                                    } = getElementLabelAndColor(fallback.element);
+                
+                                    const categoryLabel =
+                                        fallback.category === "physical"
+                                            ? "물리"
+                                                : fallback.category === "special"
+                                                ? "특수"
+                                                    : "보조";
+                
+                                    entries.push({
+                                            id: fallback.id,
+                                        name: fallback.name,
+                                        description: fallback.description ?? "",
+                                        elementLabel,
+                                        elementColor,
+                                        categoryLabel,
+                                        power: fallback.power ?? null,
+                                        accuracy: fallback.baseAcc ?? null,
+                                        learnMethodLabel: "기본 공격",
+                                        learnAt: null,
+                                    });
+                            }
+                    }
         
-        // 레벨업 기술 목록
-        const learnset = speciesMoveMap[speciesId] ?? [];
-        const learnsetFiltered = learnset.filter((m) => !usedIds.has(m.id));
-        // 항상 "배틀용 2개 → 나머지 레벨업" 순서로
-        return [...battleEntries, ...learnsetFiltered];
-        }, [selectedSpecies, speciesMoveMap]);
+                    return entries;
+                    }, [selectedSpecies]);
 
     // 클릭 핸들러
     const handleSelect = (id: string) => {
