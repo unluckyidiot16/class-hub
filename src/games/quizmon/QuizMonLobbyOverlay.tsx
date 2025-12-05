@@ -699,6 +699,8 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 { key: "inventory", label: "인벤토리" },
                                 { key: "profile", label: "프로필" },
                                 { key: "shop", label: "상점" },
+                                { key: "arena", label: "아레나"},
+                                { key: "tower", label: "배틀타워"},
                             ].map((tab) => (
                                 <button
                                     key={tab.key}
