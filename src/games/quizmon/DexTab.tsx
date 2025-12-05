@@ -14,6 +14,8 @@ import {
     type DexAbilityInfo,
 } from "./DexEntryDetailPanel";
 import { getElementLabelAndColor } from "./elementUtils";
+import { MOVE_DB } from "./moveData";
+import basicSpecialMovesJson from "./data/basicSpecialMoves.json";
 
 type MoveRow = {
     id: string;
@@ -33,6 +35,14 @@ type SpeciesLevelupMoveRow = {
     move: MoveRow | null;
 };
 
+type BasicSpecialMovesEntry = {
+    basicMoveId: string;
+    specialMoveId: string; 
+};
+
+    // ✅ 종별 기본/스페셜 배틀 기술 매핑 (battleFactory 와 동일 소스 사용)
+    const BASIC_SPECIAL_MOVES =
+    basicSpecialMovesJson as Record<string, BasicSpecialMovesEntry>;
 
 type DexTabProps = {
     monsters?: QuizmonOwnedMonsterRow[];
@@ -219,8 +229,11 @@ export function DexTab(props: DexTabProps) {
                 const mv = row.move;
                 if (!mv) continue;
 
-                const { label: elementLabel } = getElementLabelAndColor(mv.element);
-
+                const {
+                    label: elementLabel,
+                    color: elementColor,
+                } = getElementLabelAndColor(mv.element);
+                
                 // category 변환
                 const categoryLabel =
                     mv.category === "physical"
@@ -232,8 +245,9 @@ export function DexTab(props: DexTabProps) {
                 const entry: DexMoveInfo = {
                     id: mv.id,
                     name: mv.name,
-                    description: mv.description,
+                    description: mv.description ?? "",
                     elementLabel,
+                    elementColor,
                     categoryLabel,
                     power: mv.power ?? null,
                     accuracy: mv.accuracy ?? null,
@@ -320,10 +334,68 @@ export function DexTab(props: DexTabProps) {
     }, [selectedSpecies]);
 
     // ✅ 선택된 종의 기술 목록
+    //   1) basicSpecialMoves.json 기준 배틀용 기술 2개 (배틀 기본 / 배틀 스페셜)
+    //   2) Supabase 레벨업 기술 (중복 id 는 제거)
     const movesForSelected = useMemo(() => {
         if (!selectedSpecies) return [];
-        return speciesMoveMap[selectedSpecies.id] ?? [];
-    }, [selectedSpecies, speciesMoveMap]);
+        
+        const speciesId = selectedSpecies.id;
+        const battleEntries: DexMoveInfo[] = [];
+        const usedIds = new Set<string>();
+        
+        const config = BASIC_SPECIAL_MOVES[speciesId];
+        
+        const addBattleMove = (
+            moveId: string | undefined | null,
+            learnMethodLabel: string,
+        ) => {
+            if (!moveId) return;
+            const mv = MOVE_DB[moveId];
+            if (!mv) return;
+            
+            if (usedIds.has(mv.id)) return;
+            usedIds.add(mv.id);
+            
+            const {
+                label: elementLabel,
+                color: elementColor,
+            } = getElementLabelAndColor(mv.element);
+            
+            const categoryLabel = 
+                mv.category === "physical"
+                    ? "물리"
+                    : mv.category === "special"
+                        ? "특수"
+                        : "보조";
+            
+            battleEntries.push({
+                    id: mv.id,
+                name: mv.name,
+                description: mv.description ?? "",
+                elementLabel,
+                elementColor,
+                categoryLabel,
+                power: mv.power ?? null,
+                learnMethodLabel,
+                learnAt: null,
+            });
+        };
+        
+        if (config) {
+            // 1) 기본 공격
+            addBattleMove(config.basicMoveId, "배틀 기본");
+            // 2) 스페셜 공격 (기본과 같은 기술이면 한 번만)
+            if (config.specialMoveId && config.specialMoveId !== config.basicMoveId) {
+                addBattleMove(config.specialMoveId, "배틀 스페셜");
+            }
+        }
+        
+        // 레벨업 기술 목록
+        const learnset = speciesMoveMap[speciesId] ?? [];
+        const learnsetFiltered = learnset.filter((m) => !usedIds.has(m.id));
+        // 항상 "배틀용 2개 → 나머지 레벨업" 순서로
+        return [...battleEntries, ...learnsetFiltered];
+        }, [selectedSpecies, speciesMoveMap]);
 
     // 클릭 핸들러
     const handleSelect = (id: string) => {

@@ -341,7 +341,7 @@ export function DexEntryDetailPanel(props: DexEntryDetailProps) {
                         marginBottom: "0.35rem",
                     }}
                 >
-                    배울 수 있는 기술
+                    배틀에서 사용하는 기술 / 잠재 기술
                 </h3>
                 {moves.length === 0 ? (
                     <p className="hint" style={{ fontSize: "0.8rem" }}>
