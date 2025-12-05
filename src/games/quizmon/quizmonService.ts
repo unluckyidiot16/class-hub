@@ -1,7 +1,8 @@
-// src/services/quizmonService.ts (추가 부분)
+// src/games/quizmon/quizmonService.ts
 import { supabase } from "../../lib/supabaseClient";
 import type {
-    QuizmonOwnedMonsterRow, QuizmonProfileRow,
+    QuizmonOwnedMonsterRow,
+    QuizmonProfileRow,
     QuizmonSpeciesRow,
 } from "./types";
 import {
@@ -10,6 +11,87 @@ import {
 } from "./stats";
 import { getNewlyLearnedMoveIds } from "./moveData";
 
+/** =========================================================
+ *  🧑‍🏫 트레이너 레벨 / EXP / 젬 보상 유틸
+ *  - 몬스터를 새로 얻을 때, 던전을 돌 때마다 EXP 지급
+ *  - 특정 레벨 달성 시 젬을 보상(업적처럼 동작)
+ * ======================================================= */
+
+export const TRAINER_EXP_PER_MONSTER = 5;   // 몬스터 1마리 획득 시
+export const TRAINER_EXP_PER_DUNGEON = 10;  // 던전(레이드) 1판 클리어 시
+
+export function getTrainerExpToNextLevel(level: number): number {
+    // 필요 EXP: 1레벨은 20, 이후 레벨마다 +10
+    return 20 + (level - 1) * 10;
+}
+
+// 레벨 달성 시 한 번만 주는 젬 보상 (원하면 나중에 확장)
+const TRAINER_LEVEL_GEM_REWARD: Record<number, number> = {
+    2: 5,
+    3: 5,
+    4: 10,
+    5: 10,
+    6: 15,
+    7: 15,
+    8: 20,
+    9: 20,
+    10: 30,
+};
+
+export type TrainerLevelUpResult = {
+    profile: QuizmonProfileRow;
+    trainerLevelBefore: number;
+    trainerLevelAfter: number;
+    gainedExp: number;
+    gainedLevels: number;
+    gainedGems: number;
+};
+
+/**
+ * 프로필에 트레이너 EXP를 더하고,
+ * 필요시 레벨업 + 젬 보상을 적용한다.
+ */
+export function applyTrainerExpToProfile(
+    profile: QuizmonProfileRow,
+    gainedExp: number,
+): TrainerLevelUpResult {
+    let level = profile.trainer_level ?? 1;
+    let exp = (profile.trainer_exp ?? 0) + gainedExp;
+    let gems = profile.gems ?? 0;
+
+    const trainerLevelBefore = level;
+    let gainedLevels = 0;
+    let gainedGems = 0;
+
+    while (true) {
+        const needed = getTrainerExpToNextLevel(level);
+        if (exp < needed) break;
+
+        exp -= needed;
+        level += 1;
+        gainedLevels += 1;
+
+        const reward = TRAINER_LEVEL_GEM_REWARD[level] ?? 0;
+        if (reward > 0) {
+            gems += reward;
+            gainedGems += reward;
+        }
+    }
+
+    return {
+        profile: {
+            ...profile,
+            trainer_level: level,
+            trainer_exp: exp,
+            gems,
+        },
+        trainerLevelBefore,
+        trainerLevelAfter: level,
+        gainedExp,
+        gainedLevels,
+        gainedGems,
+    };
+}
 
 
 
@@ -972,6 +1054,13 @@ async function addPowerItemsByType(params: {
  *  - 골드 보상
  *  - Exp Dust 보상
  */
+/**
+ * 🛡 레이드 결과를 프로필/인벤토리에 반영하는 공통 서비스
+ *  - 총 레이드/정답/문항 수 집계
+ *  - 골드 보상
+ *  - Exp Dust 보상
+ *  - 트레이너 EXP / 레벨업 / 젬 보상
+ */
 export async function applyRaidResultService(params: {
     profile: QuizmonProfileRow;
     summary: { correct: number; total: number };
@@ -979,6 +1068,9 @@ export async function applyRaidResultService(params: {
     updatedProfile: QuizmonProfileRow;
     rewardedGold: number;
     rewardedExpDust: number;
+    gainedTrainerExp: number;
+    gainedTrainerLevels: number;
+    gainedTrainerGems: number;
 }> {
     const { profile, summary } = params;
     const correct = summary.correct ?? 0;
@@ -996,14 +1088,35 @@ export async function applyRaidResultService(params: {
     const nextTotalQuestions = (profile.total_questions ?? 0) + total;
     const nextGold = (profile.gold ?? 0) + rewardedGold;
 
-    // 1) 프로필 집계 + 골드 업데이트
-    const { data, error } = await supabase
-        .from("quizmon_profiles")
-        .update({
+    // 🔹 트레이너 EXP: 던전 1판 기준 + 정답 수 보너스
+    const gainedTrainerExp =
+        TRAINER_EXP_PER_DUNGEON + correct; // 필요 시 계수 조정 가능
+
+    // 레벨/젬 보상까지 반영한 프로필 계산
+    const trainerResult = applyTrainerExpToProfile(
+        {
+            ...profile,
             total_raids: nextTotalRaids,
             total_correct: nextTotalCorrect,
             total_questions: nextTotalQuestions,
             gold: nextGold,
+        },
+        gainedTrainerExp,
+    );
+
+    const leveledProfile = trainerResult.profile;
+
+    // 1) 프로필 집계 + 골드 + 트레이너 레벨/EXP + 젬 업데이트
+    const { data, error } = await supabase
+        .from("quizmon_profiles")
+        .update({
+            total_raids: leveledProfile.total_raids,
+            total_correct: leveledProfile.total_correct,
+            total_questions: leveledProfile.total_questions,
+            gold: leveledProfile.gold,
+            trainer_level: leveledProfile.trainer_level,
+            trainer_exp: leveledProfile.trainer_exp,
+            gems: leveledProfile.gems,
         })
         .eq("id", profile.id)
         .select("*")
@@ -1027,8 +1140,12 @@ export async function applyRaidResultService(params: {
         updatedProfile: data as QuizmonProfileRow,
         rewardedGold,
         rewardedExpDust,
+        gainedTrainerExp,
+        gainedTrainerLevels: trainerResult.gainedLevels,
+        gainedTrainerGems: trainerResult.gainedGems,
     };
 }
+
 
 /**
  * 🛒 상점: 골드로 Exp Dust 구매

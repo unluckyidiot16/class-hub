@@ -2,7 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { QuizmonProfileRow } from "./types";
-import { applyRaidResultService, buyExpDustWithGoldService } from "./quizmonService";
+import {
+    applyRaidResultService,
+    buyExpDustWithGoldService,
+    applyTrainerExpToProfile,
+    TRAINER_EXP_PER_MONSTER,
+} from "./quizmonService";
 
 // 실제 DB 스키마와 1:1 대응
 export type QuizmonProfile = QuizmonProfileRow;
@@ -237,6 +242,7 @@ export function useQuizmonProfile(
 
     // 스타터 선택 + 첫 포켓몬 지급
     // 스타터 선택 + 첫 포켓몬 지급
+    // 스타터 선택 + 첫 포켓몬 지급 (+ 트레이너 EXP)
     const chooseStarter = useCallback(
         async ({ speciesId, trainerName }: { speciesId: string; trainerName: string }) => {
             if (!hasKey || !profile) return;
@@ -247,14 +253,26 @@ export function useQuizmonProfile(
             const profileId = profile.id;
 
             try {
-                // 1) 프로필에 이름 + 스타터 선택 + 레벨/경험치 초기값 반영
+                // 1) 이름/스타터 선택 반영 + 포켓몬 획득 EXP 적용
+                const trainerResult = applyTrainerExpToProfile(
+                    {
+                        ...profile,
+                        trainer_name: trainerName,
+                        starter_chosen: true,
+                    },
+                    TRAINER_EXP_PER_MONSTER, // 몬스터 1마리 획득 EXP
+                );
+
+                const leveledProfile = trainerResult.profile;
+
                 const { data: updated, error: updateError } = await supabase
                     .from("quizmon_profiles")
                     .update({
-                        trainer_name: trainerName,
-                        starter_chosen: true,
-                        trainer_level: 1,
-                        trainer_exp: 0,
+                        trainer_name: leveledProfile.trainer_name,
+                        starter_chosen: leveledProfile.starter_chosen,
+                        trainer_level: leveledProfile.trainer_level,
+                        trainer_exp: leveledProfile.trainer_exp,
+                        gems: leveledProfile.gems,
                     })
                     .eq("id", profileId)
                     .select("*")
@@ -273,7 +291,7 @@ export function useQuizmonProfile(
                     setProfile(updated as QuizmonProfile);
                 }
 
-                // 2) 이미 보유몬이 있으면 건너뛰기
+                // 2) 이미 보유몬이 있으면 스타터 지급 스킵
                 const { data: existing, error: ownedError } = await supabase
                     .from("quizmon_owned_monsters")
                     .select("id")
@@ -310,12 +328,16 @@ export function useQuizmonProfile(
                         );
                     }
                 }
+
+                // TODO: trainerResult.gainedLevels / gainedGems 로
+                // "첫 파트너 획득! 트레이너 레벨/젬 보상" UI도 나중에 띄울 수 있음.
             } finally {
                 setLoading(false);
             }
         },
         [hasKey, profile],
     );
+
 
 
     return {

@@ -337,6 +337,9 @@ export type QuizmonProfileRow = {
     gold: number;        // (선택) 전투/회복/강화용
     gems: number;        // 가챠/상점용 통합 재화
     star_shards: number; // 중복 보상 재화 (미사용 시 0 고정)
+
+    trainer_level: number | null;
+    trainer_exp: number | null;
 };
 
 
