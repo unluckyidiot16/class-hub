@@ -10,6 +10,8 @@ import type {
 } from "./types";
 import { HpBar } from "./HpBar";
 import { getElementLabelAndColor } from "./elementUtils";
+// 포획 연출은 상위(useQuizmonBattle 등)에서 상태를 만들어 넘기고,
+// 여기서는 UI 오버레이만 담당하도록 분리
 import {
     BattleEffectLayer,
     type BattleEffect,
@@ -45,6 +47,55 @@ function getStatusInfo(mon: Monster): { label: string; color: string } | null {
     }
 }
 
+
+/* 🔹 포획 UI 단계
+ *
+ * - hidden: 평상시 (표시 안 함)
+ * - encounter: 야생 포켓몬 조우 + 볼 선택
+ * - quiz: 포획용 퀴즈
+ * - throw: 포켓볼 던지는 애니메이션
+ * - result: 성공/실패 + (중복 시 샤드 보상) 결과
+ */
+export type CaptureUiPhase =
+    | "hidden"
+    | "encounter"
+    | "quiz"
+    | "throw"
+    | "result";
+
+    export type CaptureUiState = { 
+        phase: CaptureUiPhase;
+        
+        // 🔹 포획 확률 정보 (0~1)
+        baseRate?: number;
+        currentRate?: number;
+    
+        // 🔹 선택한 볼 이름 (UI용 텍스트)
+        selectedBallLabel?: string;
+    
+        // 🔹 결과 정보
+        success?: boolean;
+        resultKind?: "new-monster" | "duplicate" | null;
+        shardsGained?: number;
+    };
+
+    export type CaptureOverlayHandlers = {
+        // encounter 단계: 사용 가능한 볼 정보 + 선택/도망
+        availableBalls?: { id: string; label: string; quantity: number }[];
+        onSelectBall?: (ballId: string) => void;
+        onRun?: () => void;
+    
+        // quiz 단계: 포획용 퀴즈
+        question?: QuizQuestionLite | null;
+        onAnswer?: (index: number) => void;
+    
+        // throw 단계: 애니메이션이 끝났을 때 상위에 알림
+        onThrowAnimationFinished?: () => void;
+    
+        // result 단계: 결과 확인 후 닫기
+        onResultClose?: () => void;
+    };
+
 type AttackPhase = "idle" | "playerAttack" | "enemyAttack" | "comment";
 
 type StatusKey =
@@ -74,6 +125,432 @@ type QuizBottomPanelProps = {
     lastPlayerLog: string | null;
     lastEnemyLog: string | null;
 };
+
+// ===================================================================
+// 🎯 포획 오버레이 (encounter / quiz / throw / result)
+// =====================================================================
+        
+            type CaptureOverlayProps = {
+        ui: CaptureUiState;
+    handlers?: CaptureOverlayHandlers;
+    enemyMon: Monster;
+    enemySprite: ReactNode;
+};
+
+    function CaptureEncounterModal(props: {
+            ui: CaptureUiState;
+            enemyMon: Monster;
+            handlers?: CaptureOverlayHandlers;
+        }) {
+            const { ui, enemyMon, handlers } = props;
+            const balls = handlers?.availableBalls ?? [];
+        
+                const baseRatePercent =
+                    ui.baseRate != null ? Math.round(ui.baseRate * 100) : null;
+            const currentRatePercent =
+                    ui.currentRate != null ? Math.round(ui.currentRate * 100) : null;
+        
+                return (
+                    <div className="qm-modal-overlay">
+                        <div className="qm-modal-box">
+                            <div style={{ marginBottom: 4 }}>
+                                {/* 희귀도 배지 등은 나중에 확장 */}
+                            </div>
+                                <h3 style={{ marginBottom: 8 }}>
+                                    야생의 {enemyMon.name}이(가) 나타났다!
+                                </h3>
+                
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 8,
+                                    }}
+                                >
+                                    <div style={{ width: 120, height: 120 }}>{props.enemyMon && props.enemyMon.name && (
+                                        // 단순 placeholder: 실제 스프라이트는 enemySprite로 별도 렌더링됨
+                                            <span />
+                                    )}</div>
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#e5e7eb",
+                                        }}
+                                    >
+                                        Lv.{enemyMon.level}
+                                    </div>
+                                    {(baseRatePercent != null || currentRatePercent != null) && (
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                color: "#fbbf24",
+                                                fontWeight: 600,
+                                                marginTop: 4,
+                                            }}
+                                        >
+                                            포획 확률{" "}
+                                            {currentRatePercent ?? baseRatePercent}
+                                            %
+                                        </div>
+                                    )}
+                </div>
+
+                    <div
+                    style={{
+                            marginTop: 12,
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 8,
+                                justifyContent: "center",
+                            }}
+                >
+                    {balls.map((b) => (
+                                <button
+                            key={b.id}
+                            type="button"
+                            disabled={!handlers?.onSelectBall || b.quantity <= 0}
+                            onClick={() => handlers?.onSelectBall?.(b.id)}
+                            className="ball-opt"
+                            style={{
+                                    minWidth: 80,
+                                        borderRadius: 999,
+                                        padding: "0.35rem 0.75rem",
+                                        border: "1px solid #1f2937",
+                                        background: b.quantity > 0 ? "#020617" : "#02061780",
+                                        color: b.quantity > 0 ? "#e5e7eb" : "#6b7280", 
+                                    cursor:
+                                        handlers?.onSelectBall && b.quantity > 0
+                                            ? "pointer"
+                                                : "default",
+                                        fontSize: 12,
+                                    }}
+                        >
+                            {b.label} × {b.quantity}
+                        </button>
+                    ))}
+                </div>
+
+                    <div
+                    style={{
+                            marginTop: 16,
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: 8,
+                            }}
+                >
+                    <button
+                        type="button"
+                        onClick={() => handlers?.onRun?.()}
+                        style={{
+                                borderRadius: 999,
+                                    border: "1px solid #374151",
+                                    padding: "0.35rem 0.9rem",
+                                    fontSize: 12,
+                                    background: "#020617",
+                                    color: "#e5e7eb",
+                                    cursor: handlers?.onRun ? "pointer" : "default",
+                                }}
+                    >
+                        도망간다
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+    function CaptureQuizModal(props: {
+            handlers?: CaptureOverlayHandlers;
+        }) {
+            const question = props.handlers?.question ?? null;
+            if (!question) return null;
+        
+                return (
+                    <div className="qm-modal-overlay">
+                            <div className="qm-modal-box">
+                                <h3 style={{ color: "#0ea5e9", marginBottom: 8 }}>
+                                    포획 퀴즈
+                                </h3>
+                                <p
+                                    style={{
+                                        fontSize: "0.9rem",
+                                        color: "#e5e7eb",
+                                        whiteSpace: "pre-line",
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    {question.prompt}
+                                </p>
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                                        gap: 8,
+                                    }}
+                                >
+                                    {question.options.map((opt, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => props.handlers?.onAnswer?.(idx)}
+                                            style={{
+                                                borderRadius: 6,
+                                                border: "1px solid #1f2937",
+                                                padding: "0.45rem 0.5rem",
+                                                textAlign: "left",
+                                                background: "#020617",
+                                                color: "#e5e7eb",
+                                                fontSize: "0.85rem",
+                                                cursor: props.handlers?.onAnswer
+                                                    ? "pointer"
+                                                    : "default",
+                                            }}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+    function CaptureThrowModal(props: {
+            ui: CaptureUiState;
+            enemyMon: Monster;
+            enemySprite: ReactNode; 
+            handlers?: CaptureOverlayHandlers;
+        }) {
+            const [ballPhase, setBallPhase] = useState<"up" | "drop" | "shake">("up");
+            const [pokePhase, setPokePhase] = useState<"idle" | "shrink">("idle");
+            const [hidePoke, setHidePoke] = useState(false);
+        
+                // HTML 데모 구조를 그대로 따라가는 애니메이션 단계
+                    useEffect(() => {
+                            // 1) 위로 던지기 → 포켓몬 shrink
+                                const t1 = window.setTimeout(() => {
+                                    setPokePhase("shrink");
+                                }, 300);
+                    
+                                // 2) 볼 떨어짐 + 포켓몬 숨김
+                                    const t2 = window.setTimeout(() => {
+                                    setHidePoke(true);
+                                    setBallPhase("drop");
+                                }, 300 + 300);
+                    
+                                // 3) 볼 흔들림
+                                    const t3 = window.setTimeout(() => {
+                                    setBallPhase("shake");
+                                }, 300 + 300 + 250);
+                    
+                                // 4) 전체 애니 끝 → 상위 콜백
+                                    const t4 = window.setTimeout(() => {
+                                    props.handlers?.onThrowAnimationFinished?.();
+                                }, 300 + 300 + 250 + 3 * 400 + 200);
+                    
+                                return () => {
+                                    window.clearTimeout(t1);
+                                    window.clearTimeout(t2);
+                                    window.clearTimeout(t3);
+                                    window.clearTimeout(t4);
+                                };
+                        }, [props.handlers]);
+        
+                const ballClass =
+                    ballPhase === "up"
+                        ? "ball-throw-up"
+                            : ballPhase === "drop"
+                          ? "ball-drop"
+                              : "ball-shake";
+            const pokeClass =
+                    pokePhase === "shrink" ? "poke-descend-shrink" : "";
+        
+                return (
+                    <div className="qm-modal-overlay">
+                        <div className="qm-modal-box">
+                                <h3 style={{ color: "#f97316", marginBottom: 8 }}>
+                                    포켓볼을 던졌다!
+                                </h3>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 12,
+                                    }}
+                                >
+                                    {!hidePoke && (
+                                        <div
+                                            className={pokeClass}
+                                            style={{
+                                                width: 120,
+                                                height: 120,
+                                                display: "flex",
+                                                alignItems: "flex-end",
+                                                justifyContent: "center", 
+                                            }}
+                                        >
+                                            {props.enemySprite}
+                                        </div>
+                                    )}
+                                    <div className="throw-scene-area">
+                                        <div
+                                            className={`throw-ball-img ${ballClass}`}
+                                        />
+                                    </div>
+                                    <p
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#e5e7eb",
+                                        }}
+                                    >
+                                        포켓볼이 흔들리고 있어요...
+                                    </p>
+                                </div>
+                        </div>
+                </div>
+            );
+        }
+
+function CaptureResultModal(props: {
+        ui: CaptureUiState;
+        enemyMon: Monster;
+        handlers?: CaptureOverlayHandlers;
+    }) {
+        const { ui, enemyMon, handlers } = props;
+        const success = ui.success;
+        const isDuplicate = ui.resultKind === "duplicate";
+        const shards = ui.shardsGained ?? 0;
+        
+            let title = "";
+        let desc = "";
+        let titleColor = "";
+    
+            if (success) {
+                if (isDuplicate) {
+                        title = "중복 포획!";
+                        titleColor = "#fbbf24";
+                        desc = `${enemyMon.name}은(는) 이미 보유 중이라\n스타 샤드 ✨ x${shards} 로 변했어요!`;
+                    } else {
+                        title = "잡았다!";
+                        titleColor = "#4ade80";
+                        desc = `새로운 친구 ${enemyMon.name}을(를) 포획했어요!`;
+                    }
+            } else {
+                title = "놓쳤다...";
+                titleColor = "#f87171";
+                desc = `${enemyMon.name}이(가) 도망갔어요.`;
+            }
+    
+            return (
+                <div className="qm-modal-overlay">
+                        <div className="qm-modal-box">
+                            <h2
+                                style={{
+                                    color: titleColor,
+                                    marginBottom: 8,
+                                }}
+                            >
+                                {title}
+                            </h2>
+                            <div
+                                style={{
+                                    width: 120,
+                                    height: 120,
+                                    display: "flex",
+                                    alignItems: "flex-end",
+                                    justifyContent: "center",
+                                    marginBottom: 8,
+                                }}
+                            >
+                                {/* 실제 스프라이트는 배틀 필드에 이미 그려져 있으므로,
+                        여기서는 간단한 아이콘/실루엣으로만 표현해도 됨 */}
+                                <span
+                                    style={{
+                                        fontSize: 48,
+                                    }}
+                                >
+                                    ✨
+                                </span>
+                        </div>
+                    <p
+                    style={{
+                                whiteSpace: "pre-line",
+                                    fontSize: 13,
+                                    color: "#e5e7eb",
+                                    marginBottom: 12,
+                                }}
+                    >
+                        {desc}
+                    </p>
+                    <div
+                    style={{
+                                display: "flex",
+                                    justifyContent: "center",
+                                }}
+                    >
+                        <button
+                        type="button"
+                            onClick={() => handlers?.onResultClose?.()}
+                            style={{
+                                    borderRadius: 999,
+                                        border: "1px solid #374151",
+                                        padding: "0.45rem 1.2rem",
+                                        fontSize: 13,
+                                        background: "#020617",
+                                        color: "#e5e7eb",
+                                        cursor: "pointer",
+                                    }}
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+function CaptureOverlay(props: CaptureOverlayProps) {
+        const { ui, handlers, enemyMon, enemySprite } = props;
+    
+            if (ui.phase === "hidden") return null;
+    
+            // 공통: 전체 화면 덮는 오버레이 (CSS에서 z-index 높게 처리)
+                if (ui.phase === "encounter") {
+                return (
+                        <CaptureEncounterModal
+                ui={ui}
+                        enemyMon={enemyMon}
+                        handlers={handlers}
+                        />
+                    );
+            }
+    
+            if (ui.phase === "quiz") {
+                return <CaptureQuizModal handlers={handlers} />;
+            }
+    
+            if (ui.phase === "throw") {
+                return (
+                        <CaptureThrowModal
+                ui={ui}
+                        enemyMon={enemyMon}
+                        enemySprite={enemySprite}
+                        handlers={handlers}
+                        />
+                    );
+            }
+    
+            // ui.phase === "result"
+                return (
+                <CaptureResultModal
+            ui={ui}
+                enemyMon={enemyMon}
+                handlers={handlers}
+                />
+            );
+    }
 
 /** 하단 명령 / 퀴즈 패널 */
 function QuizBottomPanel(props: QuizBottomPanelProps) {
@@ -470,7 +947,23 @@ export type QuizMonBattleViewProps = {
     playerSprite: ReactNode;
     enemySprite: ReactNode;
     damagePopups: DamagePopup[];
+
+
+    /**
+     * 🔹 포획 모드 UI
+     *
+     * - 상위(useQuizmonBattle 등)에서 captureSession / grantMonsterOrShards 등을
+     *   관리하고, 그 결과를 이 컴포넌트에 내려주면 된다.
+     *
+     * - 이 BattleView는 순수하게 "연출 / 모달"만 담당.
+     */
+
+    captureUi?: CaptureUiState;
+    captureHandlers?: CaptureOverlayHandlers;
+
+
 };
+
 
 /** 전투 필드(몬스터 + HP + 하단 패널) */
 export function QuizMonBattleView(props: QuizMonBattleViewProps) {
@@ -486,6 +979,8 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
         playerSprite,
         enemySprite,
         damagePopups,
+        captureUi,
+        captureHandlers,
     } = props;
 
     const [activeEffect, setActiveEffect] = useState<BattleEffect | null>(null);
@@ -1155,6 +1650,28 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
                     lastEnemyLog={lastEnemyLog}
                 />
             </div>
+
+            {/* ========================================================= */}
+            {/* 포획 오버레이 (야생 조우 / 포획 퀴즈 / 포켓볼 연출 / 결과) */}
+            {/* ========================================================= */}
+            {captureUi && captureUi.phase !== "hidden" && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 60, // 하단 패널, 이펙트보다 위
+                        pointerEvents: "auto",
+                    }}
+                >
+                    <CaptureOverlay
+                        ui={captureUi}
+                        handlers={captureHandlers}
+                        enemyMon={enemyMon}
+                        enemySprite={enemySprite}
+                    />
+                </div>
+            )}
+            
         </>
     );
 }
