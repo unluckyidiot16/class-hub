@@ -991,21 +991,130 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
-    /**
-     * 고스트 배틀용:
-     *  - 내 파티는 resetBattleWithProfileParty 를 재사용해서 세팅
-     *  - 적 파티는 opponentProfileId 의 파티(1~3번 슬롯)를 그대로 불러와서 구성
-     */
-    const resetBattleWithGhostOpponent = async (
+    // 🔹 현재 파티(quizmon_owned_monsters.party_slot 1~3)를
+    //    아레나 공격/방어 파티로 업로드
+    const uploadArenaPartyFromCurrentTeam = async (
+        mode: "attack" | "defense" | "both" = "both",
+    ) => {
+        const profileId = props.profileId;
+        if (!profileId) {
+            alert("로그인된 트레이너 프로필이 있어야 아레나 파티를 등록할 수 있어요.");
+            return;
+        }
+
+        try {
+            // 1) 내 파티 슬롯 1~3 불러오기
+            const { data: owned, error: ownedError } = await supabase
+                .from("quizmon_owned_monsters")
+                .select(
+                    [
+                        "id",
+                        "profile_id",
+                        "species_id",
+                        "level",
+                        "exp",
+                        "party_slot",
+                        "current_hp",
+                        "is_fainted",
+                        "learned_moves",
+                        "equipped_moves",
+                    ].join(", "),
+                )
+                .eq("profile_id", profileId)
+                .in("party_slot", [1, 2, 3])
+                .order("party_slot", { ascending: true });
+
+            if (ownedError) {
+                console.error("[Arena] load party error", ownedError);
+                alert("파티 정보를 불러오는 중 오류가 발생했습니다.");
+                return;
+            }
+
+            // ✅ Supabase 타입에 GenericStringError가 섞여 들어오는 문제를 피하기 위해
+            //    명시적으로 QuizmonOwnedMonsterRow[] 로 캐스팅해서 사용
+            const ownedRows = (owned ?? []) as unknown as QuizmonOwnedMonsterRow[];
+            const slots = [1, 2, 3].map(
+                (slot) =>
+                    ownedRows.find((m) => m.party_slot === slot) ?? null,
+            );
+            
+            if (!slots.some((m) => m !== null)) {
+                alert("파티 슬롯(1~3)에 등록된 몬스터가 없습니다.");
+                return;
+            }
+
+            // 2) 업서트 payload 구성
+            const payload: any = {
+                profile_id: profileId,
+                updated_at: new Date().toISOString(),
+            };
+
+            if (mode === "attack" || mode === "both") {
+                payload.attack_slot1_owned_id = slots[0]?.id ?? null;
+                payload.attack_slot2_owned_id = slots[1]?.id ?? null;
+                payload.attack_slot3_owned_id = slots[2]?.id ?? null;
+            }
+
+            if (mode === "defense" || mode === "both") {
+                payload.defense_slot1_owned_id = slots[0]?.id ?? null;
+                payload.defense_slot2_owned_id = slots[1]?.id ?? null;
+                payload.defense_slot3_owned_id = slots[2]?.id ?? null;
+            }
+
+            // 3) 한 명당 하나만 유지되도록 profile_id 기준 upsert
+            const { error: upsertError } = await supabase
+                .from("quizmon_arena_profiles")
+                .upsert(payload, { onConflict: "profile_id" });
+
+            if (upsertError) {
+                console.error("[Arena] upsert error", upsertError);
+                alert("아레나 파티 등록 중 오류가 발생했습니다.");
+                return;
+            }
+
+            if (mode === "both") {
+                alert("현재 파티를 아레나 공격/방어 파티로 등록했습니다!");
+            } else if (mode === "attack") {
+                alert("현재 파티를 아레나 공격 파티로 등록했습니다!");
+            } else {
+                alert("현재 파티를 아레나 방어 파티로 등록했습니다!");
+            }
+        } catch (err) {
+            console.error("[Arena] unexpected error", err);
+            alert("아레나 파티 등록 중 예기치 못한 오류가 발생했습니다.");
+        }
+    };
+     
+
+    type ArenaOpponentRow = {
+        profile_id: string;
+        defense_slot1_owned_id: string | null;
+        defense_slot2_owned_id: string | null;
+        defense_slot3_owned_id: string | null;
+    };
+
+    const resetBattleWithArenaOpponent = async (
         myProfileId: string,
-        opponentProfileId: string,
+        arenaRow: ArenaOpponentRow,
     ) => {
         try {
-            // 1) 내 파티 기준으로 기본 배틀 상태 초기화
+            // 1) 내 파티 기준으로 기본 배틀 상태 초기화 (던전 모드로)
             await resetBattleWithProfileParty(myProfileId, "dungeon");
 
-            // 2) 상대 파티(1~3번 슬롯) 로딩
-            const { data: oppOwnedData, error: oppOwnedError } = await supabase
+            // 2) 방어 파티에 등록된 owned_monster.id 목록
+            const enemyOwnedIds = [
+                arenaRow.defense_slot1_owned_id,
+                arenaRow.defense_slot2_owned_id,
+                arenaRow.defense_slot3_owned_id,
+            ].filter((id): id is string => !!id);
+
+            if (!enemyOwnedIds.length) {
+                alert("상대의 아레나 방어 파티가 비어 있습니다.");
+                return;
+            }
+
+            // 3) 해당 owned_monsters 정보 로드
+            const { data: owned, error: ownedError } = await supabase
                 .from("quizmon_owned_monsters")
                 .select(
                     [
@@ -1023,62 +1132,37 @@ export function QuizMonGame(props: QuizMonGameProps) {
                         "updated_at",
                     ].join(", "),
                 )
-                .eq("profile_id", opponentProfileId)
-                .in("party_slot", [1, 2, 3])
-                .order("party_slot", { ascending: true });
+                .in("id", enemyOwnedIds);
 
-            if (oppOwnedError) {
-                console.error(
-                    "[QuizMonGame] load ghost opponent party error",
-                    oppOwnedError,
-                );
-                window.alert(
-                    "상대 파티 데이터를 불러오는 중 오류가 발생했어요.",
-                );
+            if (ownedError) {
+                console.error("[Arena] load enemy mons error", ownedError);
+                alert("상대 아레나 파티 정보를 불러오는 중 오류가 발생했습니다.");
                 return;
             }
 
-            const oppOwnedRows =
-                (oppOwnedData ?? []) as unknown as QuizmonOwnedMonsterRow[];
-
-            if (!oppOwnedRows.length) {
-                window.alert(
-                    "상대 파티에 등록된 몬스터가 없어요.\n친구가 파티를 먼저 구성해야 합니다.",
-                );
-                return;
-            }
-
-            // 기절하지 않은 몬스터만 사용
-            const aliveOppOwnedRows = oppOwnedRows.filter(
-                (o) => !o.is_fainted,
+            // 등록된 id 순서를 유지하기 위해 order 맵 구성
+            const idOrder = new Map(
+                enemyOwnedIds.map((id, idx) => [id, idx] as const),
             );
 
-            if (!aliveOppOwnedRows.length) {
-                window.alert(
-                    "상대 파티의 모든 몬스터가 기절해 있어요.\n회복 후 다시 도전해 주세요.",
+            // ✅ Supabase 결과를 명시적으로 캐스팅
+            const ownedRows = (owned ?? []) as unknown as QuizmonOwnedMonsterRow[];
+            const aliveRows = ownedRows
+                .filter((m) => !m.is_fainted)
+                .sort(
+                    (a, b) =>
+                        (idOrder.get(a.id) ?? 99) - (idOrder.get(b.id) ?? 99),
                 );
+
+            if (!aliveRows.length) {
+                alert("상대 아레나 파티에 사용할 수 있는 몬스터가 없습니다.");
                 return;
             }
 
-            // 3) 적 파티에 필요한 종 정보 로딩
+            // 4) 종 데이터 로드
             const speciesIds = Array.from(
-                new Set(
-                    aliveOppOwnedRows
-                        .map((o) => o.species_id)
-                        .filter((id): id is string => !!id),
-                ),
+                new Set(aliveRows.map((m) => m.species_id).filter(Boolean)),
             );
-
-            if (!speciesIds.length) {
-                console.warn(
-                    "[QuizMonGame] ghost opponent has no species_id",
-                    aliveOppOwnedRows,
-                );
-                window.alert(
-                    "상대 파티 데이터를 해석할 수 없어요. 잠시 후 다시 시도해 주세요.",
-                );
-                return;
-            }
 
             const { data: speciesData, error: speciesError } = await supabase
                 .from("quizmon_species")
@@ -1088,38 +1172,30 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 .in("id", speciesIds);
 
             if (speciesError) {
-                console.error(
-                    "[QuizMonGame] load ghost opponent species error",
-                    speciesError,
-                );
-                window.alert(
-                    "상대 몬스터 정보를 불러오는 중 오류가 발생했어요.",
-                );
+                console.error("[Arena] load species error", speciesError);
+                alert("상대 몬스터 종 정보를 불러오는 중 오류가 발생했습니다.");
                 return;
             }
 
-            const speciesRows =
-                (speciesData ?? []) as QuizmonSpeciesRow[];
+            const speciesRows = (speciesData ?? []) as QuizmonSpeciesRow[];
             const speciesMap = new Map(
                 speciesRows.map((s) => [s.id, s] as const),
             );
 
-            // 4) 상대 파티 Monster 배열 구성
-            const enemyMonsters: Monster[] = aliveOppOwnedRows
+            // 5) enemy 몬스터를 배틀용 Monster로 변환
+            const enemyMonsters: Monster[] = aliveRows
                 .map((owned, index): Monster | null => {
                     const species = speciesMap.get(owned.species_id);
                     if (!species) return null;
 
-                    const base = buildBattleMonsterFromSpecies(
-                        species,
-                        owned,
-                    );
+                    const base = buildBattleMonsterFromSpecies(species, owned);
                     if (!base) return null;
 
                     const anyOwned = owned as any;
 
                     let moveList: Move[] = [];
 
+                    // equipped_moves 우선
                     if (
                         Array.isArray(anyOwned.equipped_moves) &&
                         anyOwned.equipped_moves.length > 0
@@ -1131,6 +1207,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             );
                     }
 
+                    // 없으면 레벨업 테이블 기반 기술
                     if (!moveList.length) {
                         moveList = getMovesForSpeciesAndLevel(
                             owned.species_id,
@@ -1142,7 +1219,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
                     return {
                         ...base,
-                        id: `ghost-${owned.id}-${index}`,
+                        id: `arena-${owned.id}-${index}`,
                         moves: moveList,
                         abilityId,
                     };
@@ -1151,16 +1228,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
             if (!enemyMonsters.length) {
                 console.warn(
-                    "[QuizMonGame] enemyMonsters empty for ghost opponent",
-                    aliveOppOwnedRows,
+                    "[Arena] enemyMonsters empty for arena opponent",
+                    aliveRows,
                 );
-                window.alert(
-                    "상대 파티를 배틀용으로 구성하지 못했어요.",
-                );
+                alert("상대 아레나 파티를 배틀용으로 구성하지 못했습니다.");
                 return;
             }
 
-            // 5) 기존에 세팅된 상태 위에 적 파티만 덮어쓰기
+            // 6) 기존 상태 위에 enemy 파티만 덮어쓰기
             setState((prev) => ({
                 ...prev,
                 enemy: {
@@ -1175,12 +1250,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
             }));
         } catch (err) {
             console.error(
-                "[QuizMonGame] resetBattleWithGhostOpponent unexpected error",
+                "[Arena] resetBattleWithArenaOpponent unexpected error",
                 err,
             );
-            window.alert("고스트 배틀 준비 중 오류가 발생했어요.");
+            alert("아레나 배틀 준비 중 오류가 발생했습니다.");
         }
     };
+
 
     // 파티 3슬롯 구성이 변경되었을 때 DB에 반영 + 컬렉션 refresh
     const handleSaveParty = async (partyIds: (string | null)[]) => {
@@ -1244,59 +1320,69 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
-
-    const startGhostBattleWithRandomOpponent = async () => {
-        if (!profileId) {
-            window.alert(
-                "고스트 배틀은 퀴즈몬 프로필이 있을 때만 이용할 수 있어요.",
-            );
+    const startArenaBattleWithRandomOpponent = async () => {
+        const myProfileId = props.profileId;
+        if (!myProfileId) {
+            alert("로그인된 트레이너 프로필이 있어야 아레나 배틀을 할 수 있어요.");
             return;
         }
-        
+
         try {
+            // 1) 방어 파티가 등록된 다른 유저들의 아레나 프로필 조회
             const { data, error } = await supabase
-                .from("quizmon_profiles")
-                .select("id, trainer_name, updated_at") 
-                .neq("id", profileId)
+                .from("quizmon_arena_profiles")
+                .select(
+                    [
+                        "profile_id",
+                        "defense_slot1_owned_id",
+                        "defense_slot2_owned_id",
+                        "defense_slot3_owned_id",
+                        "rating",
+                        "updated_at",
+                    ].join(", "),
+                )
+                .neq("profile_id", myProfileId)
+                .not("defense_slot1_owned_id", "is", null)
                 .order("updated_at", { ascending: false })
-                .limit(20);
-            
+                .limit(30);
+
             if (error) {
-                console.error(
-                    "[QuizMonGame] load ghost opponents error",
-                    error,
-                );
-                window.alert(
-                    "상대 리스트를 불러오는 중 오류가 발생했어요.",
-                );
+                console.error("[Arena] load opponents error", error);
+                alert("아레나 상대 정보를 불러오는 중 오류가 발생했습니다.");
                 return;
             }
+
+            // ✅ Supabase 결과를 명시적으로 ArenaOpponentRow[] 로 캐스팅
+            const rows = (data ?? []) as unknown as ArenaOpponentRow[];
             
-            const opponents = (data ?? []) as QuizmonProfileRow[];
-            
-            if (!opponents.length) {
-                window.alert(
-                    "아직 고스트 배틀에 사용할 친구 데이터가 없어요.\n다른 계정에서 파티를 만들고 한 번 전투를 진행해 보세요.",
-                );
-                return;
-            }
-            
-            // MVP: 일단 랜덤으로 한 명 선택
-            const opponent =
-                opponents[Math.floor(Math.random() * opponents.length)];
-            await resetBattleWithGhostOpponent(profileId, opponent.id);
-            
-            // UI 상에서는 던전과 같은 결과 화면을 재사용
-            setBattleMode("dungeon");
-        } catch (err) {
-            console.error(
-                "[QuizMonGame] startGhostBattleWithRandomOpponent error",
-                err,
+            const candidates = rows.filter(
+                (row) =>
+                    row.defense_slot1_owned_id ||
+                    row.defense_slot2_owned_id ||
+                    row.defense_slot3_owned_id,
             );
-            window.alert("고스트 배틀 시작 중 예상치 못한 오류가 발생했어요.");
+
+            if (candidates.length === 0) {
+                alert("등록된 아레나 방어 파티가 아직 없습니다.\n친구들이 파티를 등록하면 도전할 수 있어요!");
+                return;
+            }
+
+            // 2) 일단은 단순 랜덤 매칭 (나중에 rating 기반 매칭으로 확장 가능)
+            const opponent =
+                candidates[Math.floor(Math.random() * candidates.length)];
+
+            await resetBattleWithArenaOpponent(myProfileId, opponent);
+            setBattleMode("dungeon");
+            setViewState("battle");
+
+            // 필요하면 gameSessions 로그도 남길 수 있음 (기존 고스트 배틀 로그 참고)
+        } catch (err) {
+            console.error("[Arena] unexpected error", err);
+            alert("아레나 배틀 시작 중 예기치 못한 오류가 발생했습니다.");
         }
     };
-    
+
+
     // 🔹 현재 세션에 열린 레이드가 있는지 확인
     useEffect(() => {
         if (!props.roomId || !props.gameSessionId) {
@@ -1681,11 +1767,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                 handleReset("raid");   // ⭐ 이번 리셋은 "레이드" 모드
                             }}
 
-                            onSelectGacha={() => {
-                                setViewState("gacha");
+                            onSelectGacha={() => setViewState("gacha")}
+                            onRegisterArenaParty={() => {
+                                // 현재 파티를 공격+방어 한 번에 등록
+                                void uploadArenaPartyFromCurrentTeam("both");
                             }}
                             onSelectGhostBattle={() => {
-                                void startGhostBattleWithRandomOpponent();
+                                void startArenaBattleWithRandomOpponent();
                             }}
                             lastRaidResult={props.lastRaidResult ?? null}
                             onBuyExpDust={handleBuyExpDust}
