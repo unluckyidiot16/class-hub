@@ -2,6 +2,7 @@
 import type { Move } from "./types";
 import rawMovesJson from "./data/moves.json";
 import rawLearnsetsJson from "./data/learnsets.json";
+import rawBasicSpecialJson from "./data/basicSpecialMoves.json";
 
 /**
  * ------------------------------------------------------------------
@@ -35,6 +36,16 @@ type RawLearnsetRow = {
 const rawMoves = rawMovesJson as RawMove[];
 const rawLearnsets = rawLearnsetsJson as RawLearnsetRow[];
 
+    // basicSpecialMoves.json: { "poke-0001": { basicMoveId, specialMoveId }, ... }
+type RawBasicSpecial = {
+    basicMoveId: string;
+    specialMoveId?: string;
+};
+
+const rawBasicSpecialMap = rawBasicSpecialJson as Record<
+        string,
+        RawBasicSpecial | undefined
+>;
 /**
  * ------------------------------------------------------------------
  * 2. MOVE_DB 구성
@@ -89,12 +100,37 @@ function normalizeSpeciesIdForLearnset(raw: string): string {
     return `poke-${digits}`;
 }
 
-// JSON → 내부 맵으로 옮기기
+// 1) basicSpecialMoves.json 기반으로 우선 셋업
+for (const [rawSpeciesId, value] of Object.entries(rawBasicSpecialMap)) {
+        if (!value) continue;
+    
+        const normalized = normalizeSpeciesIdForLearnset(rawSpeciesId);
+        const entries: LearnsetEntry[] = [];
+    
+        // 기본기: 레벨 1
+        if (value.basicMoveId) {
+            entries.push({ level: 1, moveId: value.basicMoveId });
+        }
+    
+        // 특수기: 레벨 1 (원하면 5, 10 등으로 조정 가능)
+    if (
+        value.specialMoveId &&
+        value.specialMoveId !== value.basicMoveId
+    ) {
+        entries.push({ level: 1, moveId: value.specialMoveId });
+    }
+    
+    SPECIES_LEARNSETS[normalized] = entries;
+    }
+
+    // 2) basicSpecial 에 없는 종만 learnsets.json 으로 보충 (fallback)
 for (const row of rawLearnsets) {
     const normalized = normalizeSpeciesIdForLearnset(row.speciesId);
+    if (SPECIES_LEARNSETS[normalized]) continue;
+    
     const entries: LearnsetEntry[] = (row.learn ?? []).map((e) => ({
-        level: e.level,
-        moveId: e.moveId,
+            level: e.level,
+            moveId: e.moveId,
     }));
     SPECIES_LEARNSETS[normalized] = entries;
 }
