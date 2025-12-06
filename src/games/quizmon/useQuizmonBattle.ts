@@ -26,7 +26,11 @@ import type {
     CaptureUiState,
     CaptureOverlayHandlers,
 } from "./QuizMonBattleView";
-import { getCaptureBallStocks, getCaptureBallMeta } from "./ballShop";
+import {
+    getCaptureBallStocks,
+    getCaptureBallMeta,
+    consumeCaptureBall,
+} from "./ballShop";
 import { grantMonsterOrShards } from "./duplicateRewards";
 
 
@@ -270,7 +274,7 @@ function calcBaseCaptureRate(enemy: Monster): number {
     if (status && status !== "normal") {
         rate += 0.1;
     }
-
+    
     // 🔹 여기부터 quizmon_species 기반 보정 (enemy에 복사되어 있다고 가정)
     const rarity = (anyMon.rarity as number | undefined) ?? 1; // 1~5
     const isLegendary = Boolean(anyMon.is_legendary);
@@ -288,6 +292,8 @@ function calcBaseCaptureRate(enemy: Monster): number {
     // 안전 범위 클램프
     return Math.max(0.03, Math.min(0.9, rate));
 }
+
+
 
 
 export type UseQuizmonBattleOptions = {
@@ -384,7 +390,7 @@ export function useQuizmonBattle(
     const [captureSession, setCaptureSession] =
         useState<CaptureSession | null>(null);
     const [captureBallStocks, setCaptureBallStocks] = useState<CaptureBallStock[]>([]);
-
+    
     const isCapturing = captureUi.phase !== "hidden";
 
     // 3) 퀴즈 소스: quizpackJson → Lite 배열
@@ -496,10 +502,6 @@ export function useQuizmonBattle(
         }, 800);
     };
 
-    // =====================
-    //   포획 관련 핸들러
-    // =====================
-
     const handleRequestCapture = useCallback(() => {
         if (state.phase !== "command") return;
         const enemy = state.enemy.monsters[state.enemy.activeIndex];
@@ -567,50 +569,84 @@ export function useQuizmonBattle(
         })();
     }, [state, profileId, setState]);
 
+    // =====================
+    //   포획 관련 핸들러
+    // =====================
 
-    // 볼 선택
     const handleSelectBall = useCallback(
         async (ballId: string) => {
             if (!captureSession) return;
-
-            const ballMeta = await getCaptureBallMeta(ballId);
-            // { id, label, rateBonus? }
-
-            const base = captureSession.baseRate;
-            const withBall = Math.max(
-                0.01,
-                Math.min(0.99, base + (ballMeta.rateBonus ?? 0)),
-            );
-
-            // 포획용 퀴즈: 일단 기존 퀴즈 풀 재사용
-            const q = getNextQuestion();
-
-            setCaptureSession((prev) =>
-                prev
-                    ? {
+            if (!profileId) {
+                setState((prev) =>
+                        pushLog(
+                            prev,
+                            "[시스템] 프로필 정보가 없어 포획 볼을 사용할 수 없습니다.",
+                        ),
+                );
+                return;
+            }
+            
+            try {
+                // 1) 서버 인벤토리에서 1개 차감
+                const newQty = await consumeCaptureBall({
+                        profileId,
+                        itemId: ballId,
+                        quantity: 1,
+                });
+                
+                // 2) 로컬 상태도 함께 갱신 → 모달의 수량 표시와 동기화
+                setCaptureBallStocks((prev) =>
+                        prev.map((b) =>
+                                b.id === ballId ? { ...b, quantity: newQty } : b,
+                        ),
+                );
+                
+                // 3) 볼 메타 정보 + 포획률 보정
+                const ballMeta = await getCaptureBallMeta(ballId);
+                const base = captureSession.baseRate;
+                const withBall = Math.max(
+                    0.01,
+                    Math.min(0.99, base + (ballMeta.rateBonus ?? 0)),
+                );
+                
+                                    // 4) 포획용 퀴즈 1문제 뽑기
+                const q = getNextQuestion();
+                
+                setCaptureSession((prev) =>
+                    prev
+                        ? {
+                    ...prev,
+                            ballId,
+                            ballLabel: ballMeta.label,
+                            baseRate: base,
+                            currentRate: withBall,
+                            question: q,
+                        }
+                        : prev,
+                );
+                
+                setCaptureUi((prev) => ({
                         ...prev,
-                        ballId,
-                        ballLabel: ballMeta.label,
+                        phase: q ? "quiz" : "throw",
                         baseRate: base,
                         currentRate: withBall,
-                        question: q,
-                    }
-                    : prev,
-            );
-
-            setCaptureUi((prev) => ({
-                ...prev,
-                phase: q ? "quiz" : "throw",
-                baseRate: base,
-                currentRate: withBall,
-                selectedBallLabel: ballMeta.label,
-            }));
-
-            setState((prev) =>
-                pushLog(prev,  `[플레이어] ${ballMeta.label}을(를) 꺼냈다.`),
-            );
-        },
-        [captureSession],
+                        selectedBallLabel: ballMeta.label,
+                }));
+                
+                setState((prev) =>
+                        pushLog(prev, `[플레이어] ${ballMeta.label}을(를) 꺼냈다.`),
+                );
+            } catch (err) {
+                console.error("[capture] handleSelectBall error", err);
+                setState((prev) =>
+                        pushLog(
+                            prev,
+                            "[시스템] 포획 볼을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+                        ),
+                );
+            }
+            },
+        [captureSession, profileId],
     );
 
     const handleCaptureAnswer = useCallback(
@@ -675,36 +711,175 @@ export function useQuizmonBattle(
 
         const roll = Math.random();
         const success = roll <= rate;
-
+        
         // 프로필이 없으면 DB 보상 처리를 못하니, 실패처럼 처리
+        // 또는 포획 실패 시: 적의 반격 1회 수행
         if (!profileId || !success) {
             if (!profileId) {
                 setState((prev) =>
-                    pushLog(
-                        prev,
-                        "[시스템] 프로필 정보가 없어 포획 결과를 처리하지 못했습니다.",
-                    ),
+                        pushLog(
+                            prev,
+                            "[시스템] 프로필 정보가 없어 포획 결과를 처리하지 못했습니다.",
+                        ),
                 );
             } else {
+                // 포획 실패 로그
                 setState((prev) =>
-                    pushLog(
-                        prev,
-                        `[적] ${captureSession.enemy.name}이(가) 포켓볼에서 튀어나왔다!`,
-                    ),
+                        pushLog(
+                            prev,
+                            `[적] ${captureSession.enemy.name}이(가) 포켓볼에서 튀어나왔다!`,
+                        ),
                 );
-            }
-
-            setCaptureSession((prev) =>
-                prev
-                    ? {
-                        ...prev,
-                        success: false,
-                        resultKind: null,
-                        shardsGained: 0,
+                
+                // 🔹 포획 실패 시 적이 무료 공격 1회
+                setState((prev) => {
+                    let next: BattleState = { ...prev };
+                    
+                    const enemyActive =
+                        next.enemy.monsters[next.enemy.activeIndex];
+                    const playerActive =
+                        next.player.monsters[next.player.activeIndex];
+                    
+                    if (!enemyActive || enemyActive.hp <= 0 || !playerActive) {
+                        return next;
                     }
-                    : prev,
+                            
+                    const enemyMove =
+                        enemyActive.moves?.[0] ?? null;
+                    if (!enemyMove) return next;
+                            
+                    const enemyQuizMod = 1.0;
+                    const enemyHitChance = calcHitChance(
+                        playerActive,
+                        enemyMove,
+                        enemyQuizMod,
+                    );
+                            
+                    let enemyLog = `[적] 포획 실패 틈을 타 ${enemyActive.name}의 반격! ${enemyMove.name}을(를) 사용했다! `;
+                            
+                    if (rollHit(enemyHitChance)) {
+                        const {
+                            damage: dmg,
+                            isCritical,
+                            effectiveness,
+                        } = calcDamageWithContext(
+                            enemyActive,
+                            playerActive,
+                            enemyMove,
+                        );
+                                
+                        const damaged = applyDamageToMonster(
+                            playerActive,
+                            dmg,
+                        );
+                                
+                        const newPlayerMons = [...next.player.monsters];
+                        newPlayerMons[next.player.activeIndex] = damaged;
+                        
+                        next = {
+                            ...next,
+                            player: {
+                                ...next.player,
+                                monsters: newPlayerMons,
+                            }, lastEnemyMoveId: enemyMove.id,
+                        };
+                                
+                        enemyLog += `${dmg} 데미지! (HP ${playerActive.hp} → ${damaged.hp})`;
+                                
+                        const effComment = getEffectivenessComment(
+                            enemyMove.element,
+                            playerActive, 
+                        );
+                        if (effComment) {
+                            enemyLog += ` ${effComment}`;
+                        }
+                        if (isCritical) {
+                            enemyLog += " 급소에 맞았다!";
+                        }
+                                
+                        spawnDamagePopup(
+                            "player",
+                            dmg,
+                            isCritical,
+                            effectiveness,
+                        );
+                    } else {
+                        enemyLog += "하지만 빗나갔다!";
+                        next = {
+                            ...next,
+                            lastEnemyMoveId: enemyMove.id,
+                        };
+                    }
+                            
+                    next = pushLog(next, enemyLog);
+                    
+                    // 플레이어 전멸/교체 처리
+                    const playerMonsAfter = next.player.monsters;
+                    const enemyMonsAfter = next.enemy.monsters;
+                    
+                    if (
+                        playerMonsAfter[next.player.activeIndex] &&
+                        playerMonsAfter[next.player.activeIndex].hp <= 0
+                    ) {
+                        const nextAliveIndex = playerMonsAfter.findIndex(
+                            (m) => m.hp > 0,
+                        );
+                        if (
+                            nextAliveIndex >= 0 &&
+                            nextAliveIndex !== next.player.activeIndex
+                        ) {
+                            next = {
+                                ...next,
+                                player: {
+                                    ...next.player,
+                                    activeIndex: nextAliveIndex,
+                                },
+                            };
+                            next = pushLog(
+                                next,
+                                `[시스템] ${playerMonsAfter[nextAliveIndex].name}(이)가 대신 싸우러 나왔습니다!`,
+                            );
+                        }
+                    }
+                            
+                    const playerAllFainted = next.player.monsters.every(
+                        (m) => m.hp <= 0,
+                    );
+                    const enemyAllFainted = enemyMonsAfter.every(
+                        (m) => m.hp <= 0,
+                    );
+                            
+                    if (playerAllFainted || enemyAllFainted) {
+                        next = {
+                            ...next,
+                            phase: "finished",
+                        };
+                        const resultText = playerAllFainted
+                            ? enemyAllFainted
+                                ? "무승부!"
+                                : "패배…"
+                            : "승리!";
+                        next = pushLog(
+                            next,
+                            `[시스템] 배틀 종료: ${resultText}`,
+                        );
+                    }
+                            
+                    return next;
+                });
+            }
+            
+            setCaptureSession((prev) =>
+                    prev
+                        ? {
+                ...prev,
+                            success: false,
+                            resultKind: null,
+                            shardsGained: 0,
+                        }
+                        : prev,
             );
-
+            
             setCaptureUi((prev) => ({
                 ...prev,
                 phase: "result",
@@ -714,7 +889,7 @@ export function useQuizmonBattle(
             }));
             return;
         }
-
+        
         // 🔹 성공 케이스: DB에 몬스터 지급 or 샤드 지급
         void (async () => {
             try {

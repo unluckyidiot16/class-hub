@@ -442,3 +442,53 @@ export async function purchaseBallWithGold(params: {
 
     return { result, updatedProfile };
 }
+
+export async function consumeCaptureBall(params: {
+    profileId: string | null;
+    itemId: string;
+    quantity?: number;
+}): Promise<number> {
+    const { profileId, itemId, quantity = 1 } = params;
+
+    if (!profileId) {
+        throw new Error("포켓볼을 사용하려면 프로필이 필요합니다.");
+    }
+    if (quantity <= 0) return 0;
+
+    // 1) 현재 수량 조회
+    const { data: invRow, error: invError } = await supabase
+        .from("quizmon_inventory")
+        .select("quantity")
+        .eq("profile_id", profileId)
+        .eq("item_id", itemId)
+        .maybeSingle();
+
+    if (invError) {
+        console.error("[ballShop] consumeCaptureBall inv select error", invError);
+        throw new Error("인벤토리 정보를 불러오는 중 오류가 발생했습니다.");
+    }
+
+    const currentQty = (invRow?.quantity ?? 0) as number;
+    const nextQty = Math.max(0, currentQty - quantity);
+
+    // 인벤토리 row 가 없으면 실제로 소비할 게 없음
+    if (!invRow) {
+        return 0;
+    }
+
+    // 2) 수량 감소
+    const { data: updatedRow, error: updateError } = await supabase
+        .from("quizmon_inventory")
+        .update({ quantity: nextQty })
+        .eq("profile_id", profileId)
+        .eq("item_id", itemId)
+        .select("quantity")
+        .single();
+
+    if (updateError || !updatedRow) {
+        console.error("[ballShop] consumeCaptureBall update error", updateError);
+        throw new Error("포켓볼 수량을 업데이트하는 중 오류가 발생했습니다.");
+    }
+
+    return (updatedRow.quantity ?? nextQty) as number;
+}
