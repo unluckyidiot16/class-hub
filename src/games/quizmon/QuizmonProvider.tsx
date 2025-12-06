@@ -33,6 +33,7 @@ type BuyExpDustFn = UseQuizmonProfileResult["buyExpDust"];
 type ClaimAchievementRewardFn = (achievementId: string) => Promise<void>;
 
 
+
 export type QuizmonContextValue = {
     profile: QuizmonProfile;
     profileLoading: boolean;

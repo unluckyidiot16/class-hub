@@ -235,7 +235,7 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
                                     onClick={async () => {
                                         if (!claimable) return;
                                         await claimAchievementReward(
-                                            achievement.id,
+                                            achievement.code,
                                         );
                                     }}
                                     disabled={disabled}
