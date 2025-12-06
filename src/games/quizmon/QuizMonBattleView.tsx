@@ -16,7 +16,7 @@ import {
     BattleEffectLayer,
     type BattleEffect,
 } from "./BattleEffectLayer";
-import { CaptureBallSprite, type CaptureBallPhase } from "./CaptureBallSprite";
+import { CaptureBallSprite, type CaptureBallPhase, type CaptureBallVariant, } from "./CaptureBallSprite";
 
 
 function getStatusInfo(mon: Monster): { label: string; color: string } | null {
@@ -74,6 +74,9 @@ export type CaptureUiPhase =
     
         // 🔹 선택한 볼 이름 (UI용 텍스트)
         selectedBallLabel?: string;
+
+        // 🔹 선택한 볼 스킨 정보
+        ballVariant?: CaptureBallVariant | null;
     
         // 🔹 결과 정보
         success?: boolean;
@@ -420,7 +423,9 @@ type QuizBottomPanelProps = {
                                         <div className={`throw-ball-img ${ballClass}`}>
                                             <CaptureBallSprite
                                                 phase={ballSpritePhase}
+                                                variant={props.ui.ballVariant ?? "pokeball"}
                                                 size={40}              // 필요하면 32~48 사이에서 조절
+                                                className={ballClass}
                                                 onAnimationEnd={handleSpriteAnimEnd}
                                             />
                                         </div>
@@ -560,7 +565,7 @@ function CaptureOverlay(props: CaptureOverlayProps) {
             if (ui.phase === "throw") {
                 return (
                         <CaptureThrowModal
-                ui={ui}
+                        ui={ui}
                         enemyMon={enemyMon}
                         enemySprite={enemySprite}
                         handlers={handlers}

@@ -31,6 +31,7 @@ import {
     getCaptureBallMeta,
     consumeCaptureBall,
 } from "./ballShop";
+import type { CaptureBallVariant } from "./CaptureBallSprite";
 import { grantMonsterOrShards } from "./duplicateRewards";
 
 
@@ -44,6 +45,7 @@ type CaptureSession = {
     question: QuizQuestionLite | null;
     success: boolean | null;
     resultKind: "new-monster" | "duplicate" | null;
+    ballVariant?: CaptureBallVariant | null;
     shardsGained: number;
 };
 
@@ -53,6 +55,13 @@ type CaptureBallStock = {
     quantity: number;
     rateBonus?: number;
 };
+
+function getBallVariantFromId(ballId: string): CaptureBallVariant {
+    const id = ballId.toLowerCase();
+    if (id.includes("ultra")) return "ultraball";
+    if (id.includes("great")) return "greatball";
+    return "pokeball";
+}
 
 // 간단한 셔플 유틸 (QuizMonGame.tsx 에 있는 것과 동일한 구현)
 function shuffleArray<T>(arr: T[]): T[] {
@@ -538,6 +547,7 @@ export function useQuizmonBattle(
                     enemy,
                     ballId: null,
                     ballLabel: null,
+                    ballVariant: null,
                     baseRate: base,
                     currentRate: base,
                     question: null,
@@ -553,6 +563,7 @@ export function useQuizmonBattle(
                     baseRate: base,
                     currentRate: base,
                     selectedBallLabel: undefined,
+                    ballVariant: null,
                     success: undefined,
                     resultKind: null,
                     shardsGained: 0,
@@ -603,6 +614,7 @@ export function useQuizmonBattle(
                 
                 // 3) 볼 메타 정보 + 포획률 보정
                 const ballMeta = await getCaptureBallMeta(ballId);
+                const ballVariant = getBallVariantFromId(ballId);
                 const base = captureSession.baseRate;
                 const withBall = Math.max(
                     0.01,
@@ -618,6 +630,7 @@ export function useQuizmonBattle(
                     ...prev,
                             ballId,
                             ballLabel: ballMeta.label,
+                            ballVariant,
                             baseRate: base,
                             currentRate: withBall,
                             question: q,
@@ -631,6 +644,7 @@ export function useQuizmonBattle(
                         baseRate: base,
                         currentRate: withBall,
                         selectedBallLabel: ballMeta.label,
+                    ballVariant,
                 }));
                 
                 setState((prev) =>
