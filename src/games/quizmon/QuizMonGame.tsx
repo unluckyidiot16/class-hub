@@ -314,6 +314,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
         handleAnswer,
         handleSwitch,
         damagePopups,
+        canCapture,
+        onRequestCapture,
+        captureUi,
+        captureHandlers,
     } = useQuizmonBattle({
         quizpack,
         roomId,
@@ -1732,6 +1736,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             playerSprite={renderPlayerSprite()}
                             enemySprite={renderEnemySprite()}
                             damagePopups={damagePopups}
+                            canCapture={canCapture}
+                            onRequestCapture={onRequestCapture}
+                            captureUi={captureUi}
+                            captureHandlers={captureHandlers}
                         />
                     )}
 

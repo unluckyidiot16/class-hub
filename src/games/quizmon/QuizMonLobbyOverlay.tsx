@@ -234,6 +234,51 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             Math.abs(b.rating - myRating),
                     )
                     .slice(0, 5);
+                
+                // ✅ 0명이면 고스트 더미 생성으로 fallback
+                if (selectedRanked.length === 0) {
+                    if (cancelled) return;
+
+                    const speciesIds = attackParty.map((m) => m.species_id);
+                    const baseLevel = attackParty.reduce(
+                        (max, m) => Math.max(max, m.level ?? 1),
+                        1,
+                    );
+
+                    const makeGhost = (idx: number, delta: number): ArenaOpponent => {
+                        const rating = myRating + delta;
+                        let hideCount = 0;
+                        if (delta >= 50) hideCount = 1;
+                        if (delta >= 150) hideCount = 2;
+                        if (delta >= 250) hideCount = 3;
+
+                        const monsters = speciesIds.map((speciesId, i, arr) => ({
+                            speciesId,
+                            level: baseLevel + Math.max(0, Math.floor(delta / 20)),
+                            hidden: i >= arr.length - hideCount,
+                        }));
+
+                        return {
+                            id: `ghost-${idx}`,
+                            name: `고스트 팀 #${idx}`,
+                            rating,
+                            isGhost: true,
+                            monsters,
+                        };
+                    };
+
+                    const ghosts: ArenaOpponent[] = [
+                        makeGhost(1, -120),
+                        makeGhost(2, -40),
+                        makeGhost(3, +40),
+                        makeGhost(4, +120),
+                        makeGhost(5, +200),
+                    ];
+
+                    setOpponentList(ghosts);
+                    return;
+                }
+
 
                 const opponentIds = selectedRanked.map(
                     (r) => r.profile_id,
@@ -482,6 +527,48 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         dungeonError,
                     );
                     if (!cancelled) setTowerFloors([]);
+                    return;
+                }
+
+                // ✅ 실제 타워 던전이 없으면, 프론트에서 임시 5층 생성
+                if (!dungeonRows || dungeonRows.length === 0) {
+                    if (cancelled) return;
+
+                    const speciesIds =
+                        attackParty.length > 0
+                            ? attackParty.map((m) => m.species_id)
+                            : ["bulbasaur", "charmander", "squirtle"];
+
+                    const baseLevel = attackParty.reduce(
+                        (max, m) => Math.max(max, m.level ?? 1),
+                        1,
+                    );
+
+                    const maxFloor = 5;
+
+                    const dummyFloors: TowerFloor[] = Array.from(
+                        { length: maxFloor },
+                        (_, idx) => {
+                            const floorNo = idx + 1;
+                            const slotCount = floorNo <= 2 ? 1 : floorNo <= 4 ? 2 : 3;
+                            const monsters = Array.from({ length: slotCount }, (_, i) => ({
+                                speciesId: speciesIds[i % speciesIds.length],
+                                level: baseLevel + floorNo * 2,
+                            }));
+
+                            return {
+                                id: `dummy-tower-${floorNo}`,
+                                floor: floorNo,
+                                name: `배틀 타워 ${floorNo}층`,
+                                recommendedRating: 900 + floorNo * 50,
+                                cleared: false,
+                                locked: floorNo > 1, // 1층만 오픈
+                                monsters,
+                            };
+                        },
+                    );
+
+                    setTowerFloors(dummyFloors);
                     return;
                 }
 

@@ -338,6 +338,7 @@ export type UseQuizmonBattleResult = {
 
     damagePopups: DamagePopup[];
 
+    // 캡처 관련
     canCapture: boolean;
     onRequestCapture: () => void;
     captureUi: CaptureUiState;
@@ -1444,10 +1445,10 @@ export function useQuizmonBattle(
         state.enemy.monsters.every((m) => m.hp <= 0);
 
     const canCapture =
-        !isCapturing &&
         state.phase === "command" &&
         playerMon.hp > 0 &&
-        enemyMon.hp > 0;
+        enemyMon.hp > 0 &&
+        !battleFinished;
 
     const captureHandlers: CaptureOverlayHandlers = {
         availableBalls: captureBallStocks,
