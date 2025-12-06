@@ -1,5 +1,4 @@
 // src/games/quizmon/QuizMonLobbyOverlay.tsx
-import {useMemo} from 'react'
 import { supabase } from "../../lib/supabaseClient";
 import type {
     QuizmonProfileRow,
@@ -9,7 +8,7 @@ import type { TowerFloor } from "./BattleTowerTab";
 import { PartyAndDexPanel } from "./PartyAndDexPanel";
 import { ProfileTab } from "./ProfileTab";
 import {InventoryTab} from "./InventoryTab.tsx";
-import { useEffect, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { loadPowerItemCounts } from "./quizmonService";
 import { DexTab } from "./DexTab";
 import { StarShopTab } from "./StarShopTab";
@@ -119,9 +118,22 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
     const [arenaRating, setArenaRating] = useState<number | null>(null);
     const [opponentList, setOpponentList] = useState<ArenaOpponent[]>([]);
 
-    void arenaRating;
-    void opponentList;
-
+    // 현재 파티(1~3번 슬롯)만 추려서 공격 덱으로 사용
+    const attackParty = useMemo(
+        () =>
+            (monsters ?? [])
+                .filter(
+                    (m) =>
+                        m.party_slot != null &&
+                        m.party_slot >= 1 &&
+                        m.party_slot <= 3,
+                )
+                .sort(
+                    (a, b) =>
+                        (a.party_slot ?? 0) - (b.party_slot ?? 0),
+                ),
+        [monsters],
+    );
     
     // ✅ 도감 탭에서 포커스할 종
     const [dexSelectedSpeciesId, setDexSelectedSpeciesId] =
@@ -269,6 +281,19 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         1,
                     );
 
+                    if (speciesIds.length === 0) {
+                        setOpponentList([
+                            {
+                                id: "ghost-empty-1",
+                                name: "고스트 팀 #1",
+                                rating: myRating,
+                                isGhost: true,
+                                monsters: [],
+                            },
+                        ]);
+                        return;
+                    }
+
                     const makeGhost = (idx: number, delta: number): ArenaOpponent => {
                         const rating = myRating + delta;
                         let hideCount = 0;
@@ -320,7 +345,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     .from("quizmon_arena_profiles")
                     .select(
                         "profile_id, attack_slot1_owned_id, attack_slot2_owned_id, attack_slot3_owned_id",
-                    );
+                    ).in("profile_id", opponentIds);
                 
                 if (arenaError) {
                     console.error(
@@ -473,25 +498,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         return () => {
             cancelled = true;
         };
-    }, [effectiveProfile?.id]);
-
-
-    // 현재 파티(1~3번 슬롯)만 추려서 공격 덱으로 사용
-    const attackParty = useMemo(
-        () =>
-            (monsters ?? [])
-                .filter(
-                    (m) =>
-                        m.party_slot != null &&
-                        m.party_slot >= 1 &&
-                        m.party_slot <= 3,
-                )
-                .sort(
-                    (a, b) =>
-                        (a.party_slot ?? 0) - (b.party_slot ?? 0),
-                ),
-        [monsters],
-    );
+    }, [effectiveProfile?.id, attackParty]);
 
     /** 🔹 인벤토리 탭 / 프로필 탭에서 공용으로 쓸 구매 핸들러 */
     const handleBuyExpDust = async (quantity = 1) => {
