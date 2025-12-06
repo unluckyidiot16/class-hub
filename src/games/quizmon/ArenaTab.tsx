@@ -4,6 +4,7 @@ import type {
     QuizmonOwnedMonsterRow,
 } from "./types";
 import { getMonsterIcon } from "./assets";
+import { saveArenaParty } from "./quizmonService";
 
 export type ArenaOpponentMonster = {
     speciesId: string;
@@ -290,6 +291,36 @@ export function ArenaTab({
     const effectiveRating = rating ?? 1000;
     const tier = tierLabel ?? getTierFromRating(effectiveRating);
 
+    const toIdsBySlot = (rows: QuizmonOwnedMonsterRow[]) =>
+                rows
+                    .map((m) => ({
+                        id: m.id,
+                        slot: m.party_slot ?? 0,
+                    }))
+                .filter((m) => m.slot >= 1 && m.slot <= 3)
+                .sort((a, b) => a.slot - b.slot)
+                .map((m) => m.id);
+    
+            const handleClickSaveArenaParty = async () => {
+                if (!profile) {
+                        alert("트레이너 프로필이 있어야 아레나 파티를 저장할 수 있어요.");
+                        return;
+                    }
+        
+                    const attackIds = toIdsBySlot(attackParty);
+                const defenseIds = toIdsBySlot(defenseParty);
+        
+                    try {
+                        await saveArenaParty(profile.id, attackIds, defenseIds);
+                        alert("아레나 공격/방어 파티가 저장되었어요!");
+                    } catch (e) {
+                        console.error("[ArenaTab] saveArenaParty error", e);
+                        alert(
+                                "아레나 파티 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+                            );
+                    }
+            };
+    
     return (
         <div
             style={{
@@ -384,7 +415,34 @@ export function ArenaTab({
                     </div>
                 </div>
 
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        marginTop: 4,
+                        marginBottom: 4,
+                    }}
+                >
+                    <button
+                        type="button"
+                        onClick={handleClickSaveArenaParty}
+                        style={{
+                            fontSize: "0.75rem",
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            border: "1px solid rgba(59,130,246,0.8)",
+                            background:
+                                "linear-gradient(135deg, rgba(37,99,235,0.7), rgba(8,47,73,0.9))",
+                            color: "#e5e7eb",
+                            cursor: "pointer",
+                        }}
+                    >
+                        아레나 파티 저장
+                    </button>
+                </div>
+
                 <PartyRow label="공격 덱" monsters={attackParty} />
+         
                 <PartyRow label="방어 덱" monsters={defenseParty} />
             </div>
 

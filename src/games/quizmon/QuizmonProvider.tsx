@@ -15,6 +15,11 @@ import {
 } from "./useQuizmonProfile";
 import type { QuizmonOwnedMonsterRow } from "./types";
 import { healAllMonstersService } from "./quizmonService";
+import {
+    loadAchievementsForProfile,
+    claimAchievementRewardRpc,
+    type QuizmonAchievementWithProgress,
+} from "./quizmonAchievements";
 
 // useQuizmonProfile 훅의 반환값에서 프로필/함수 타입 추론
 type QuizmonProfile = UseQuizmonProfileResult["profile"];
@@ -25,7 +30,7 @@ type ChooseStarterFn = (payload: {
     trainerName: string;
 }) => Promise<void>;
 type BuyExpDustFn = UseQuizmonProfileResult["buyExpDust"];
-
+type ClaimAchievementRewardFn = (achievementId: string) => Promise<void>;
 
 
 export type QuizmonContextValue = {
@@ -40,7 +45,13 @@ export type QuizmonContextValue = {
     collectionError: string | null;
     refreshMonsters: () => Promise<void>;
     healAllMonsters: () => Promise<void>;
-    buyExpDust: BuyExpDustFn; 
+    buyExpDust: BuyExpDustFn;
+
+    achievements: QuizmonAchievementWithProgress[] | null;
+    achievementsLoading: boolean;
+    achievementsError: string | null;
+    refreshAchievements: () => Promise<void>;
+    claimAchievementReward: ClaimAchievementRewardFn;
 };
 
 
@@ -78,6 +89,13 @@ export function QuizmonProvider({
     const [collectionError, setCollectionError] = useState<string | null>(null);
     const refreshingRef = useRef(false);
 
+    // 🔹 업적 상태
+    const [achievements, setAchievements] =
+        useState<QuizmonAchievementWithProgress[] | null>(null);
+    const [achievementsLoading, setAchievementsLoading] = useState(false);
+    const [achievementsError, setAchievementsError] =
+        useState<string | null>(null);
+    
     /**
      * 보유 몬스터 컬렉션 로딩
      * - 기존 owned_monsters가 없고, profile.partner / starter_species_id 만 있는
@@ -170,6 +188,41 @@ export function QuizmonProvider({
         void refreshMonsters();
     }, [refreshMonsters]);
 
+    /*
+     * 업적 목록 로딩
+     */
+    const refreshAchievements = useCallback(async () => {
+        if (!profile?.id || !isStudent) {
+            setAchievements(null);
+            setAchievementsLoading(false);
+            setAchievementsError(null);
+            return;
+        }
+        setAchievementsLoading(true);
+        setAchievementsError(null);
+        try {
+            const list = await loadAchievementsForProfile(profile.id);
+            setAchievements(list);
+        } catch (e) {
+            console.error(
+                "[QuizmonProvider] refreshAchievements error",
+                e,
+            );
+            setAchievementsError(
+                "업적 정보를 불러오는 중 오류가 발생했습니다.",
+            );
+            setAchievements([]);
+        } finally {
+            setAchievementsLoading(false);
+        }
+        }, [profile, isStudent]);
+    
+    // 🔹 학생 프로필이 준비되면 업적도 자동 로딩
+    useEffect(() => {
+        void refreshAchievements();
+        }, [refreshAchievements]);
+    
+    
     /**
      * 모든 보유 몬스터 전체 회복
      */
@@ -192,24 +245,75 @@ export function QuizmonProvider({
         } finally {
             setCollectionLoading(false);
         }
-        // 👇 여기만 수정
+
     }, [profile, isStudent, refreshMonsters]);
 
 
-
+    /*
+          * 업적 보상 수령
+          * - achievementId(행 id)를 받아서, 코드로 변환 후 RPC 호출
+          * - 호출 성공 시 업적 목록/진행도 갱신
+          */
+    const claimAchievementReward: ClaimAchievementRewardFn = useCallback(
+        async (achievementId: string) => {
+            if (!profile?.id || !isStudent) return;
+        
+            const current = achievements ?? [];
+            const target = current.find(
+                (a) => a.achievement.id === achievementId,
+            );
+        
+            if (!target) {
+                console.warn(
+                    "[QuizmonProvider] claimAchievementReward: target not found",
+                    achievementId,
+                );
+                return;
+            }
+        
+            try {
+                setAchievementsError(null);
+                await claimAchievementRewardRpc(
+                    profile.id,
+                    target.achievement.code,
+                );
+                // 보상 수령 후 업적 목록/진행도 갱신
+                await refreshAchievements();
+                // (선택) profile.gems 를 즉시 반영하려면
+                // useQuizmonProfile 쪽에 reload 함수를 추가해서 같이 호출해도 좋음
+            } catch (e) {
+                console.error(
+                    "[QuizmonProvider] claimAchievementReward error",
+                    e,
+                );
+                let message = "업적 보상을 받는 중 오류가 발생했습니다.";
+                if (e instanceof Error && e.message) {
+                    message = e.message;
+                }
+                setAchievementsError(message);
+            }
+            },
+        [profile, isStudent, achievements, refreshAchievements],
+    );
 
     const value: QuizmonContextValue = {
-        profile,
-        profileLoading,
-        profileError,
-        applyRaidResult,
-        chooseStarter,
-        monsters,
-        collectionLoading,
-        collectionError,
-        refreshMonsters,
-        healAllMonsters,
-        buyExpDust,
+                profile, 
+                profileLoading,
+                profileError,
+                applyRaidResult,
+                chooseStarter,
+                monsters,
+                collectionLoading,
+                collectionError,
+                refreshMonsters,
+                healAllMonsters,
+                buyExpDust,
+        
+                achievements,
+                achievementsLoading,
+                achievementsError,
+                refreshAchievements,
+                claimAchievementReward,
     };
 
     return (

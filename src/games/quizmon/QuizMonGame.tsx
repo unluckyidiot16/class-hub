@@ -37,7 +37,8 @@ import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
 import type { MainTabKey } from "./QuizMonLobbyOverlay";
 import type { ArenaOpponent } from "./ArenaTab";
-import type { TowerFloor } from "./BattleTowerTab";
+import type { TowerFloor, TowerFloorMonster } from "./BattleTowerTab";
+
 
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
@@ -54,6 +55,31 @@ function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
     // 그 외는 아직 특성 없음
     return null;
 }
+
+// 🔹 배틀 타워에서 층 카드에 보여줄 "예상 적 몬스터" 미리보기
+function getTowerPreviewMonsters(dungeonId: string): TowerFloorMonster[] {
+    const dungeon = DUNGEON_CONFIGS.find((d) => d.id === dungeonId);
+    if (!dungeon?.enemySetId) {
+        return [];
+    }
+    
+    const baseKey = dungeon.enemySetId;
+    const allKeys = Object.keys(ENEMY_SETS);
+    
+    // ENEMY_SETS에서 baseKey 또는 `${baseKey}-A` 같은 변형 키가 있으면 우선 사용
+    const candidateKey =
+        allKeys.find(
+            (key) => key === baseKey || key.startsWith(`${baseKey}-`),
+        ) ?? baseKey;
+    
+    const slots = ENEMY_SETS[candidateKey] ?? [];
+    
+    return slots.map((slot) => ({
+        speciesId: slot.speciesId,
+        level: slot.level ?? null,
+    }));
+}
+
 
 // 🔢 종 스탯 + 레벨로 대략적인 "파워" 점수 계산
 // (절대값은 의미 없고, 서로 비교할 때만 사용)
@@ -187,6 +213,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
         setBattleStats({ correct: 0, total: 0 });
         setHasReportedEnd(false);
         setQuestionIndex(0);
+        setCurrentTowerFloorInfo(null);
+        setHasReportedTowerClear(false);
         setHasBattleInitialized(false);
         setViewState("lobby");
     };
@@ -341,11 +369,22 @@ export function QuizMonGame(props: QuizMonGameProps) {
         isClassRaid ? "raid" : "dungeon",
     );
 
+    // 🔹 현재 배틀이 배틀 타워에서 시작된 경우 층 정보 추적
+    const [currentTowerFloorInfo, setCurrentTowerFloorInfo] = useState<{
+        id: string;
+        floor: number;
+    } | null>(null);
+    const [hasReportedTowerClear, setHasReportedTowerClear] =
+        useState(false);
+
     // 🔹 가장 첫 번째 던전을 기본값으로 사용 (이때부터 9개든 3개든 상관 없음)
     const [selectedDungeonId, setSelectedDungeonId] = useState<string>(() => {
         return DUNGEON_CONFIGS[0]?.id ?? "";
     });
 
+    // 🔹 배틀 타워 층 목록
+    const [towerFloors, setTowerFloors] = useState<TowerFloor[]>([]);
+    
     const canPaidGacha =
         !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
 
@@ -363,6 +402,117 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
+    // 🔹 배틀 타워 층 로딩
+    const loadTowerFloors = async (profileId: string) => {
+        try {
+            // 1) 기본 층 정보 로딩
+            const { data: floorRows, error: floorError } = await supabase
+                .from("quizmon_battle_tower_floors")
+                .select(
+                    [
+                        "id",
+                        "floor",
+                        "name",
+                        "recommended_rating",
+                    ].join(", "),
+                )
+                .order("floor", { ascending: true });
+             
+            if (floorError) {
+                console.error(
+                    "[BattleTower] load floors error",
+                    floorError,
+                );
+                setTowerFloors([]);
+                return;
+            }
+            
+            type FloorRow = {
+                id: string;
+                floor: number;
+                name: string | null;
+                recommended_rating: number | null;
+            };
+            
+            const rows = (floorRows ?? []) as unknown as FloorRow[];
+            
+            // 2) 진행도 (몇 층까지 깼는지) 로딩
+            const { data: progressRow, error: progressError } = await supabase
+                .from("quizmon_battle_tower_progress")
+                .select("max_cleared_floor")
+                .eq("profile_id", profileId)
+                .maybeSingle();
+                                
+            if (progressError) {
+                // 진행도는 없을 수도 있으니 warning 정도로만
+                console.warn(
+                    "[BattleTower] load progress error (fallback to 0)",
+                    progressError,
+                );
+            }
+            
+            const maxClearedFloor =
+                (progressRow as { max_cleared_floor: number } | null)
+                    ?.max_cleared_floor ?? 0;
+
+            // 3) UI용 TowerFloor 구조로 변환
+            const floors: TowerFloor[] = rows.map((row) => {
+                const dungeonId = row.id; // DUNGEON_CONFIGS.id 와 1:1 매핑
+
+                const cleared = row.floor <= maxClearedFloor;
+                const locked = row.floor > maxClearedFloor + 1;
+                
+                return {
+                    id: dungeonId,
+                    floor: row.floor,
+                    name: row.name ?? undefined,
+                    recommendedRating: row.recommended_rating ?? undefined,
+                    cleared,
+                    locked,
+                    monsters: getTowerPreviewMonsters(dungeonId),
+                };
+            });
+            
+            setTowerFloors(floors);
+        } catch (err) {
+            console.error(
+                "[BattleTower] unexpected error in loadTowerFloors",
+                err,
+            );
+            setTowerFloors([]);
+        }
+    };
+
+    // 🔹 배틀 타워: 전투 종료 시 클리어 층 진행도 갱신
+    useEffect(() => {
+                if (!profileId) return;
+                if (!currentTowerFloorInfo) return;
+                if (!battleFinished) return;
+                if (hasReportedTowerClear) return;
+        
+                    const playerAllDead = state.player.monsters.every(
+                        (m) => m.hp <= 0,
+                    );
+                const enemyAllDead = state.enemy.monsters.every(
+                        (m) => m.hp <= 0,
+                    );
+        
+                    // 플레이어는 살아 있고, 적 몬스터는 모두 쓰러진 경우만 "클리어"
+                        if (playerAllDead || !enemyAllDead) {
+                        return;
+                    }
+        
+                    setHasReportedTowerClear(true);
+                void updateTowerProgress(profileId, currentTowerFloorInfo.floor);
+            }, [
+                battleFinished,
+                profileId,
+                currentTowerFloorInfo,
+                hasReportedTowerClear,
+                state.player.monsters,
+                state.enemy.monsters,
+            ]);
+    
     const [hpSynced, setHpSynced] = useState(false);
 
     const [, setLastDungeonScaledLevel] = useState<number | null>(null);
@@ -502,6 +652,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setHasBattleInitialized(true);
                 return;
             }
+            
+            setHasReportedTowerClear(false);
 
             const ownedRows = (ownedData ?? []) as unknown as QuizmonOwnedMonsterRow[];
 
@@ -1167,6 +1319,57 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
+    // 🔹 배틀 타워 층 클리어 후 진행도 갱신
+    const updateTowerProgress = async (
+        profileId: string,
+        clearedFloor: number,
+    ) => {
+        try {
+            // 현재 저장된 최고 층수 조회
+            const { data, error } = await supabase
+                            .from("quizmon_battle_tower_progress")
+                            .select("max_cleared_floor")
+                            .eq("profile_id", profileId)
+                            .maybeSingle();
+            
+            if (error) {
+                console.error(
+                    "[QuizMonGame] load tower progress error",
+                    error,
+                );
+                return;
+            }
+            
+            const prevMax = data?.max_cleared_floor ?? 0;
+            if (clearedFloor <= prevMax) {
+                // 더 낮은 층을 다시 깨도 갱신하지 않음
+                return;
+            }
+            
+            const { error: upsertError } = await supabase
+                .from("quizmon_battle_tower_progress")
+                .upsert(
+                    {
+                        profile_id: profileId,
+                                        max_cleared_floor: clearedFloor,
+                                        last_cleared_at: new Date().toISOString(),
+                                    },
+                                { onConflict: "profile_id" },
+                                );
+            
+                            if (upsertError) {
+                                console.error(
+                                    "[QuizMonGame] update tower progress upsert error",
+                                        upsertError,
+                                    );
+                            }
+                    } catch (err) {
+                        console.error(
+                                "[QuizMonGame] updateTowerProgress unexpected error",
+                                err,
+                            );
+                    }
+            };
 
     // 파티 3슬롯 구성이 변경되었을 때 DB에 반영 + 컬렉션 refresh
     const handleSaveParty = async (partyIds: (string | null)[]) => {
@@ -1237,6 +1440,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
             return;
         }
 
+        // 아레나 배틀은 타워 진행도와 무관하므로 타워 상태 초기화
+        setCurrentTowerFloorInfo(null);
+        setHasReportedTowerClear(false);
+
         try {
             // 1) 방어 파티가 등록된 다른 유저들의 아레나 프로필 조회
             const { data, error } = await supabase
@@ -1301,6 +1508,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
             return;
         }
 
+        setCurrentTowerFloorInfo(null);
+        setHasReportedTowerClear(false);
+
         try {
             // 1) 상대의 아레나 프로필에서 방어 파티 owned_id 들 가져오기
             const { data, error } = await supabase
@@ -1351,21 +1561,53 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const startBattleTowerFloor = async (floor: TowerFloor) => {
         const myProfileId = props.profileId;
         if (!myProfileId) {
-            alert("로그인된 트레이너 프로필이 있어야 배틀 타워에 도전할 수 있어요.");
+            alert(
+                "로그인된 트레이너 프로필이 있어야 배틀 타워에 도전할 수 있어요.",
+            );
             return;
         }
-
-        // TowerFloor.id 를 DUNGEON_CONFIGS 의 id 와 매핑해서 사용
-        // 지금은 1:1로 쓰고, 나중에 필요하면 매핑 테이블을 따로 둘 수 있어요.
+        
+        if (floor.locked) {
+            alert(
+                "아직 잠금된 층입니다.\n바로 아래 층부터 차례대로 클리어해 주세요!",
+            );
+            return;
+        }
+        
+        // TowerFloor.id 를 DUNGEON_CONFIGS 의 id 와 1:1로 사용
         const dungeonId = floor.id;
-
+        const dungeon = DUNGEON_CONFIGS.find((d) => d.id === dungeonId);
+        if (!dungeon) {
+            console.error(
+                "[BattleTower] unknown dungeon id for floor",
+                floor,
+            );
+            alert(
+                "이 배틀 타워 층의 던전 설정을 찾을 수 없어요.\n선생님께 알려 주세요.",
+            );
+            return;
+        }
+        setCurrentTowerFloorInfo({
+                id: floor.id,
+                floor: floor.floor,
+        });
+        setHasReportedTowerClear(false);
+        
         setSelectedDungeonId(dungeonId);
         setBattleMode("dungeon");
         handleReset("dungeon");
         setViewState("battle");
     };
 
-
+    // 🔹 프로필 변경 시 배틀 타워 층 정보 동기화
+    useEffect(() => {
+        if (!profileId) {
+            setTowerFloors([]);
+            return;
+        }
+        void loadTowerFloors(profileId);
+        }, [profileId]);
+    
     // 🔹 현재 세션에 열린 레이드가 있는지 확인
     useEffect(() => {
         if (!props.roomId || !props.gameSessionId) {
@@ -1735,9 +1977,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onHealSelected={handleHealSelected}
                             onSaveParty={handleSaveParty}
                             canContinue={canContinue}
+                            towerFloors={towerFloors}
                             onContinue={handleContinue}
                             // 🔹 던전: 던전 선택 오버레이 열기
                             onSelectDungeon={() => {
+                                // 일반 던전 진입 시에는 타워 층 정보 초기화
+                                setCurrentTowerFloorInfo(null);
+                                setHasReportedTowerClear(false);
                                 setBattleMode("dungeon");
                                 setViewState("dungeon");
                             }}
@@ -1750,6 +1996,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                     return;
                                 }
                                 setBattleMode("raid");
+                                // 레이드는 타워 진행도와 무관하므로 타워 상태 초기화
+                                setCurrentTowerFloorInfo(null);
+                                setHasReportedTowerClear(false);
                                 handleReset("raid");   // ⭐ 이번 리셋은 "레이드" 모드
                             }}
 
@@ -1959,7 +2208,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                         onClick={() => {
                                             console.log("[QuizMonGame] Start dungeon:", selectedDungeonId);
                                             setBattleMode("dungeon");
-                                            handleReset("dungeon");   // ⭐ 이번 리셋은 "던전" 모드라고 명시
+                                            setCurrentTowerFloorInfo(null);
+                                            setHasReportedTowerClear(false);
+                                            handleReset("dungeon");
                                             setViewState("battle");
                                         }}
 

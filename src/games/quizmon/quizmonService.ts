@@ -130,7 +130,39 @@ export function applyTrainerExpToProfile(
     };
 }
 
+/**
+ * 아레나 공격/방어 파티 구성 저장
+ *
+ * attackIds / defenseIds 는 quizmon_owned_monsters.id 배열이며
+ * 앞에서부터 1,2,3번 슬롯에 매핑됩니다.
+ */
+export async function saveArenaParty(
+    profileId: string,
+    attackIds: (string | null | undefined)[],
+    defenseIds: (string | null | undefined)[],
+) {
+    const [a1, a2, a3] = attackIds;
+    const [d1, d2, d3] = defenseIds;
 
+    const payload = {
+        profile_id: profileId,
+        attack_slot1_owned_id: a1 ?? null,
+        attack_slot2_owned_id: a2 ?? null,
+        attack_slot3_owned_id: a3 ?? null,
+        defense_slot1_owned_id: d1 ?? null,
+        defense_slot2_owned_id: d2 ?? null,
+        defense_slot3_owned_id: d3 ?? null,
+    };
+
+    const { error } = await supabase
+        .from("quizmon_arena_profiles")
+        .upsert(payload, { onConflict: "profile_id" });
+
+    if (error) {
+        console.error("[saveArenaParty] error", error);
+        throw error;
+    }
+}
 
 /** ===== 레벨업 관련 상수 / 유틸 ===== */
 

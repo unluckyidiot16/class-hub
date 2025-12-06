@@ -5,6 +5,7 @@ import type {
     QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
 } from "./types";
+import type { TowerFloor } from "./BattleTowerTab";
 import { PartyAndDexPanel } from "./PartyAndDexPanel";
 import { ProfileTab } from "./ProfileTab";
 import {InventoryTab} from "./InventoryTab.tsx";
@@ -14,11 +15,11 @@ import { DexTab } from "./DexTab";
 import { StarShopTab } from "./StarShopTab";
 import { BallShopTab } from "./BallShopTab";
 import {loadBallItemCounts} from "./quizmonService";
-import {BattleTowerTab} from "./BattleTowerTab.tsx";
 import {ArenaTab} from "./ArenaTab.tsx";
 import type { ArenaOpponent } from "./ArenaTab";
-import type { TowerFloor } from "./BattleTowerTab";
 import { AchievementsTab } from "./AchievementsTab";
+import { BattleTowerTab } from "./BattleTowerTab";
+
 
 
 
@@ -45,7 +46,7 @@ export type QuizMonLobbyOverlayProps = {
     collectionLoading?: boolean;
     collectionError?: string | null;
     onHealAll?: () => void | Promise<void>;
-    onHealSelected?: (ownedMonsterId: string) => void | Promise<void>;
+    onHealSelected?: (ownedId: string) => void | Promise<void>;
     onSaveParty?: (partyIds: (string | null)[]) => void | Promise<void>;
 
     canContinue: boolean;
@@ -884,6 +885,18 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         />
                     )}
 
+                    {/* 배틀 타워 탭 */}
+                    {menuTab === "tower" && (
+                        <BattleTowerTab
+                            profile={effectiveProfile}
+                            floors={towerFloors ?? []}
+                            onSelectFloor={(floor) => {
+                                if (!onStartBattleTower) return;
+                                onStartBattleTower(floor);
+                            }}
+                        />
+                    )}
+
                     {/* 프로필 탭 */}
                     {menuTab === "profile" && (
                         <ProfileTab
@@ -916,11 +929,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                     )}
                     {/* 업적 탭 */}
                     {menuTab === "achievements" && (
-                        <AchievementsTab
-                            profile={effectiveProfile}
-                            // 향후: claimedIds / onClaim은
-                            // quizmonAchievements 서비스랑 연결해서 주입
-                        />
+                        <AchievementsTab profile={effectiveProfile} />
                     )}
 
                     {/* 상점 탭: 포켓볼 상점 + Star Shards 상점 */}

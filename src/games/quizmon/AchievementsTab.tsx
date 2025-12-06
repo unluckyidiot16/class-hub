@@ -1,86 +1,20 @@
 // src/games/quizmon/AchievementsTab.tsx
 import type { QuizmonProfileRow } from "./types";
+import { useQuizmonContext } from "./QuizmonProvider";
+import type { QuizmonAchievementWithProgress } from "./quizmonAchievements";
 
 export type AchievementsTabProps = {
     profile: QuizmonProfileRow | null;
-
-    /** 이미 보상 수령이 끝난 업적 id 목록 (향후 DB 연동용) */
-    claimedIds?: string[];
-
-    /** "보상 받기" 눌렀을 때 호출되는 콜백 */
-    onClaim?: (achievementId: string) => void | Promise<void>;
 };
 
-type AchievementView = {
-    id: string;
-    title: string;
-    description: string;
-    current: number;
-    target: number;
-    rewardGems: number;
-    isClaimed: boolean;
-};
+export function AchievementsTab({ profile }: AchievementsTabProps) {
+    const {
+        achievements,
+        achievementsLoading,
+        achievementsError,
+        claimAchievementReward,
+    } = useQuizmonContext();
 
-function buildDefaultAchievements(
-    profile: QuizmonProfileRow | null,
-    claimedIds?: string[],
-): AchievementView[] {
-    const p: any = profile ?? {};
-    const totalBattles = p.total_battles ?? 0;
-    const totalCorrect = p.total_correct ?? 0;
-    const totalRaids = p.total_raids ?? 0;
-
-    const claimedSet = new Set(claimedIds ?? []);
-
-    const raw: Array<
-        Omit<AchievementView, "current" | "isClaimed"> & { stat: number }
-    > = [
-        {
-            id: "first_battle",
-            title: "첫 번째 전투 완료!",
-            description: "아무 던전이든 1회 클리어하기",
-            stat: totalBattles,
-            target: 1,
-            rewardGems: 5,
-        },
-        {
-            id: "correct_10",
-            title: "정답 10개 달성",
-            description: "퀴즈 정답을 10개 맞히기",
-            stat: totalCorrect,
-            target: 10,
-            rewardGems: 10,
-        },
-        {
-            id: "raid_clear_1",
-            title: "첫 레이드 클리어",
-            description: "수업용 레이드를 1회 클리어하기",
-            stat: totalRaids,
-            target: 1,
-            rewardGems: 15,
-        },
-    ];
-
-    return raw.map((a) => {
-        const current = Math.min(a.stat, a.target);
-        const isClaimed = claimedSet.has(a.id);
-        return {
-            id: a.id,
-            title: a.title,
-            description: a.description,
-            target: a.target,
-            current,
-            rewardGems: a.rewardGems,
-            isClaimed,
-        };
-    });
-}
-
-export function AchievementsTab({
-                                    profile,
-                                    claimedIds,
-                                    onClaim,
-                                }: AchievementsTabProps) {
     if (!profile) {
         return (
             <div
@@ -95,7 +29,10 @@ export function AchievementsTab({
         );
     }
 
-    const achievements = buildDefaultAchievements(profile, claimedIds);
+    const list: QuizmonAchievementWithProgress[] = achievements ?? [];
+
+    const hasNoAchievements =
+        !achievementsLoading && !achievementsError && list.length === 0;
 
     return (
         <div
@@ -115,6 +52,7 @@ export function AchievementsTab({
             >
                 업적
             </div>
+
             <div
                 style={{
                     fontSize: "0.78rem",
@@ -122,38 +60,89 @@ export function AchievementsTab({
                 }}
             >
                 퀴즈를 풀고 던전을 클리어하며 다양한 도전 과제를 달성해
-                보세요. 완료된 업적은 보상 받기 버튼을 눌러 젬을
-                획득할 수 있습니다.
+                보세요. 완료된 업적은
+                {" "}
+                <span style={{ color: "#facc15" }}>보상 받기</span>
+                {" "}
+                버튼을 눌러 젬을 획득할 수 있습니다.
             </div>
+
+            {achievementsLoading && (
+                <div
+                    style={{
+                        fontSize: "0.78rem",
+                        color: "#9ca3af",
+                    }}
+                >
+                    업적을 불러오는 중입니다...
+                </div>
+            )}
+
+            {achievementsError && (
+                <div
+                    style={{
+                        fontSize: "0.78rem",
+                        color: "#f97373",
+                        background: "rgba(127,29,29,0.2)",
+                        borderRadius: 8,
+                        padding: "4px 8px",
+                    }}
+                >
+                    {achievementsError}
+                </div>
+            )}
+
+            {hasNoAchievements && (
+                <div
+                    style={{
+                        fontSize: "0.78rem",
+                        color: "#9ca3af",
+                        paddingTop: 4,
+                    }}
+                >
+                    아직 준비된 업적이 없습니다. 앞으로 수업용 콘텐츠에 맞는
+                    업적이 추가될 예정입니다.
+                </div>
+            )}
 
             <div
                 style={{
                     display: "flex",
                     flexDirection: "column",
                     gap: 8,
+                    marginTop: 4,
                 }}
             >
-                {achievements.map((a) => {
-                    const ratio = a.target > 0 ? a.current / a.target : 0;
+                {list.map((entry) => {
+                    const { achievement, progress, completed, claimed, claimable } =
+                        entry;
+
+                    const target = achievement.condition_value ?? 0;
+                    const current = Math.min(
+                        progress ?? 0,
+                        target > 0 ? target : progress ?? 0,
+                    );
+                    const rewardGems = achievement.reward_gems ?? 0;
+
+                    const ratio =
+                        target > 0 ? current / target : 0;
                     const percent = Math.round(ratio * 100);
-                    const completed = a.current >= a.target;
-                    const claimable =
-                        !!onClaim && completed && !a.isClaimed;
 
                     let buttonLabel = "진행 중";
-                    if (a.isClaimed) buttonLabel = "받음";
+                    if (claimed) buttonLabel = "받음";
                     else if (claimable) buttonLabel = "보상 받기";
                     else if (completed) buttonLabel = "완료";
 
+                    const disabled = !claimable;
+
                     return (
                         <div
-                            key={a.id}
+                            key={achievement.id}
                             style={{
                                 padding: 12,
                                 borderRadius: 12,
                                 background: "rgba(15,23,42,0.9)",
-                                border:
-                                    "1px solid rgba(55,65,81,0.9)",
+                                border: "1px solid rgba(55,65,81,0.9)",
                                 display: "flex",
                                 gap: 12,
                                 alignItems: "center",
@@ -172,7 +161,7 @@ export function AchievementsTab({
                                         color: "#e5e7eb",
                                     }}
                                 >
-                                    {a.title}
+                                    {achievement.title}
                                 </div>
                                 <div
                                     style={{
@@ -181,8 +170,10 @@ export function AchievementsTab({
                                         marginTop: 2,
                                     }}
                                 >
-                                    {a.description}
+                                    {achievement.description}
                                 </div>
+
+                                {/* 진행도 */}
                                 <div
                                     style={{
                                         marginTop: 8,
@@ -190,8 +181,7 @@ export function AchievementsTab({
                                         color: "#9ca3af",
                                     }}
                                 >
-                                    진행도: {a.current} / {a.target} (
-                                    {percent}
+                                    진행도: {current} / {target} ({percent}
                                     %)
                                 </div>
                                 <div
@@ -207,7 +197,7 @@ export function AchievementsTab({
                                             height: "100%",
                                             borderRadius: 999,
                                             width: `${
-                                                a.target > 0
+                                                target > 0
                                                     ? Math.min(
                                                         100,
                                                         Math.max(
@@ -238,32 +228,34 @@ export function AchievementsTab({
                                         color: "#facc15",
                                     }}
                                 >
-                                    보상: 젬 {a.rewardGems}
+                                    보상: 젬 {rewardGems}
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        claimable &&
-                                        onClaim?.(a.id)
-                                    }
-                                    disabled={!claimable}
+                                    onClick={async () => {
+                                        if (!claimable) return;
+                                        await claimAchievementReward(
+                                            achievement.id,
+                                        );
+                                    }}
+                                    disabled={disabled}
                                     style={{
                                         padding: "4px 10px",
                                         fontSize: "0.75rem",
                                         borderRadius: 999,
                                         border: "none",
-                                        cursor: claimable
-                                            ? "pointer"
-                                            : "default",
-                                        background: a.isClaimed
+                                        cursor: disabled
+                                            ? "default"
+                                            : "pointer",
+                                        background: claimed
                                             ? "rgba(55,65,81,0.8)"
                                             : claimable
                                                 ? "linear-gradient(135deg,#22c55e,#16a34a)"
                                                 : "rgba(31,41,55,0.9)",
-                                        color: a.isClaimed
+                                        color: claimed
                                             ? "#9ca3af"
                                             : "#e5e7eb",
-                                        opacity: claimable ? 1 : 0.7,
+                                        opacity: disabled ? 0.7 : 1,
                                     }}
                                 >
                                     {buttonLabel}
