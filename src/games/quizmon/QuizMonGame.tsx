@@ -889,31 +889,137 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 return;
             }
 
+            // 🔹 3-1) Supabase quizmon_dungeons.enemy_team 기반 던전(배틀 타워 포함) 우선 적용
+            let enemyMonsters: Monster[] = [];
+
+            if (effectiveMode === "dungeon" && effectiveDungeonId) {
+                type DungeonEnemySlot = {
+                    slot: number;
+                    level: number;
+                    species_id: string;
+                };
+
+                const { data: dungeonRow, error: dungeonError } = await supabase
+                    .from("quizmon_dungeons")
+                    .select("id, enemy_team")
+                    .eq("id", effectiveDungeonId)
+                    .maybeSingle();
+
+                if (dungeonError) {
+                    console.error(
+                        "[QuizMonGame] load dungeon enemy_team error",
+                        dungeonError,
+                    );
+                }
+
+                const enemySlots = (dungeonRow?.enemy_team ??
+                    []) as DungeonEnemySlot[];
+
+                if (enemySlots.length > 0) {
+                    // 🔸 이 던전에서 등장하는 종 id 모으기
+                    const enemySpeciesIds = Array.from(
+                        new Set(
+                            enemySlots
+                                .map((s) => s.species_id)
+                                .filter((id): id is string => !!id),
+                        ),
+                    );
+
+                    const {
+                        data: enemySpeciesData,
+                        error: enemySpeciesError,
+                    } = await supabase
+                        .from("quizmon_species")
+                        .select(
+                            "id, name, element, rarity, base_hp, base_atk, base_def, base_spd, pokedex_no, sprite_key, description",
+                        )
+                        .in("id", enemySpeciesIds);
+
+                    if (enemySpeciesError) {
+                        console.error(
+                            "[QuizMonGame] load enemy species for dungeon error",
+                            enemySpeciesError,
+                        );
+                    } else {
+                        // Supabase에서 가져온 raw 데이터 → 우리가 쓰는 타입으로 캐스팅
+                        const enemySpeciesRows = (enemySpeciesData ?? []) as unknown as QuizmonSpeciesRow[];
+
+                        const enemySpeciesMap = new Map(
+                            enemySpeciesRows.map((s) => [s.id, s] as const),
+                        );
+
+                        enemyMonsters = enemySlots
+                            .sort((a, b) => a.slot - b.slot)
+                            .map((slot, index): Monster | null => {
+                                const species = enemySpeciesMap.get(
+                                    slot.species_id,
+                                );
+                                if (!species) return null;
+
+                                // enemy도 buildBattleMonsterFromSpecies 재사용
+                                const tempOwned: QuizmonOwnedMonsterRow = {
+                                    id: `dungeon-${effectiveDungeonId}-${index}`,
+                                    profile_id: "dungeon-enemy",
+                                    species_id: species.id,
+                                    level: slot.level,
+                                    exp: 0,
+                                    party_slot: null,
+                                    current_hp: null,
+                                    is_fainted: false,
+                                    learned_moves: [],
+                                    equipped_moves: [],
+                                    ability_id: null,
+                                    created_at: new Date().toISOString() as any,
+                                    updated_at: new Date().toISOString() as any,
+                                };
+
+                                const base = buildBattleMonsterFromSpecies(
+                                    species,
+                                    tempOwned,
+                                );
+                                if (!base) return null;
+
+                                return {
+                                    ...base,
+                                    id: tempOwned.id,
+                                    level: slot.level,
+                                };
+                            })
+                            .filter((m): m is Monster => m !== null);
+                    }
+                }
+            }
+
+
             // 4) 기존 mock 기반 상태를 가져와서
             //    player + enemy를 모두 실제 데이터 기반으로 재구성
-                
+
             // 현재 선택된 던전 정보
             const currentDungeon =
                 DUNGEON_CONFIGS.find((d) => d.id === effectiveDungeonId) ??
                 DUNGEON_CONFIGS[0];
 
             // 🔹 ENEMY_SETS 기반 적 파티 생성 (던전 모드 전용)
-            let enemyMonsters: Monster[] = [];
-
-            if (effectiveMode === "dungeon" && currentDungeon?.enemySetId) {
+            //    👉 Supabase enemy_team 이 이미 있다면 건너뛰기
+            if (
+                !enemyMonsters.length &&            // ⬅ 추가
+                effectiveMode === "dungeon" &&
+                currentDungeon?.enemySetId
+            ) {
                 const baseSlots =
                     chosenEnemySlots.length > 0
                         ? chosenEnemySlots
                         : ENEMY_SETS[currentDungeon.enemySetId] ?? [];
-                
+
                 const maxEnemyCountFromConfig =
                     typeof currentDungeon.enemyCount === "number"
                         ? currentDungeon.enemyCount
                         : baseSlots.length;
-                
+
                 const levelOffset = currentDungeon.levelOffset ?? 0;
                 const hpScale = currentDungeon.hpScale ?? 1;
-                
+
+
                 // 🔹 플레이어 파티 평균 레벨 (기절하지 않은 몬스터 기준)
                 const partyAvgLevel =
                     aliveOwnedRows.length > 0
