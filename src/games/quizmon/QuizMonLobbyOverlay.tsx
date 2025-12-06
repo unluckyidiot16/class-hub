@@ -493,39 +493,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         [monsters],
     );
 
-    useEffect(() => {
-        if (!effectiveProfile?.id) {
-            setXpDustCount(0);
-            setRareCandyCount(0);
-            return;
-        }
-
-        let cancelled = false;
-
-        const loadInventory = async () => {
-            try {
-                const { expDustCount, rareCandyCount } =
-                    await loadPowerItemCounts(effectiveProfile.id);
-                if (cancelled) return;
-                setXpDustCount(expDustCount);
-                setRareCandyCount(rareCandyCount);
-            } catch (err) {
-                if (cancelled) return;
-                console.error(
-                    "[QuizMonLobbyOverlay] loadPowerItemCounts error",
-                    err,
-                );
-                setXpDustCount(0);
-                setRareCandyCount(0);
-            }
-        };
-
-        void loadInventory();
-        return () => {
-            cancelled = true;
-        };
-    }, [effectiveProfile?.id]);
-
     /** 🔹 인벤토리 탭 / 프로필 탭에서 공용으로 쓸 구매 핸들러 */
     const handleBuyExpDust = async (quantity = 1) => {
         if (!onBuyExpDust) return;

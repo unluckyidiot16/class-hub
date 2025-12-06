@@ -37,8 +37,7 @@ import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
 import type { MainTabKey } from "./QuizMonLobbyOverlay";
 import type { ArenaOpponent } from "./ArenaTab";
-import {BattleTowerTab, type TowerFloor, type TowerFloorMonster} from "./BattleTowerTab";
-
+import type { TowerFloor, TowerFloorMonster } from "./BattleTowerTab";
 
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
@@ -412,6 +411,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
     // 🔹 배틀 타워 층 목록
     const [towerFloors, setTowerFloors] = useState<TowerFloor[]>([]);
+
+    const towerFloorsForUi =
+        towerFloors.length > 0 ? towerFloors : MOCK_TOWER_FLOORS;
     
     const canPaidGacha =
         !!localProfile && (localProfile.gems ?? 0) > 0 && !gachaDrawing;
@@ -2005,7 +2007,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             onHealSelected={handleHealSelected}
                             onSaveParty={handleSaveParty}
                             canContinue={canContinue}
-                            towerFloors={towerFloors}
+                            towerFloors={towerFloorsForUi}
                             onContinue={handleContinue}
                             // 🔹 던전: 던전 선택 오버레이 열기
                             onSelectDungeon={() => {
@@ -2503,18 +2505,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     )}
                 </div>
             </div>
-
-
-            {menuTab === "tower" && (
-                <BattleTowerTab
-                    profile={props.profile ?? null}
-                    floors={MOCK_TOWER_FLOORS}
-                    onSelectFloor={(floor) => {
-                        // 일단 전투 시작까지 연결해보고 싶으면 여기서 startBattleTowerFloor 호출
-                        startBattleTowerFloor(floor);
-                    }}
-                />
-            )}
 
             {/* 컨트롤/상태 줄 */}
             <section
