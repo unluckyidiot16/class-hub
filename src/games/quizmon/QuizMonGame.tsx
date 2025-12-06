@@ -1609,16 +1609,12 @@ export function QuizMonGame(props: QuizMonGameProps) {
             return;
         }
 
-        // ✅ dungeonId 가 있으면 그걸, 없으면 기존 id 를 던전 키로 사용
-        const dungeonId = floor.dungeonId ?? floor.id;
-        const dungeon = DUNGEON_CONFIGS.find((d) => d.id === dungeonId);
-        if (!dungeon) {
-            console.error("[BattleTower] unknown dungeon id for floor", floor);
-            alert(
-                "이 배틀 타워 층의 던전 설정을 찾을 수 없어요.\n선생님께 알려 주세요.",
-            );
-            return;
-        }
+        // 🔹 타워는 Supabase quizmon_dungeons 의 id 를 그대로 사용
+        const dungeonId = floor.dungeonId ?? floor.id; // "tower-1f" 등
+
+        // ❌ 더 이상 DUNGEON_CONFIGS 를 보지 않는다
+        // const dungeon = DUNGEON_CONFIGS.find((d) => d.id === dungeonId);
+        // if (!dungeon) { ... return; }
 
         setCurrentTowerFloorInfo({
             id: floor.id,
@@ -1626,11 +1622,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
         });
         setHasReportedTowerClear(false);
 
+        // 일반 던전과 똑같이 "dungeon" 모드 + dungeonIdOverride 로 리셋
         setSelectedDungeonId(dungeonId);
         setBattleMode("dungeon");
-        handleReset("dungeon", dungeonId); // ⬅ 이전에 만든 dungeonIdOverride 활용
+        handleReset("dungeon", dungeonId);
         setViewState("battle");
     };
+
 
 
     // 🔹 프로필 변경 시 배틀 타워 층 정보 동기화
@@ -1754,7 +1752,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
         props.onRefreshCollection,
     ]);
 
-    const handleReset = (modeOverride?: "raid" | "dungeon", dungeonIdOverride?: string,) => {
+
+    const handleReset = (
+        modeOverride?: "raid" | "dungeon",
+        dungeonIdOverride?: string,
+    ) => {
         // 🔹 새 레이드마다 문제 순서도 다시 셔플
         if (questions.length > 0) {
             const indices = questions.map((_, idx) => idx);
@@ -1767,7 +1769,11 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
         if (profileId) {
             // 학생 프로필이 있으면 항상 "실제 파티" 기준으로 리셋
-            void resetBattleWithProfileParty(profileId, modeOverride, dungeonIdOverride, );
+            void resetBattleWithProfileParty(
+                profileId,
+                modeOverride,
+                dungeonIdOverride,
+            );
         } else {
             // fallback: mock 상태로 리셋
             setState(createInitialBattleState());
@@ -1778,6 +1784,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
             setHasBattleInitialized(true);
         }
     };
+
 
     const showResultOverlay =
         viewState === "result" || (battleFinished && viewState === "battle");
