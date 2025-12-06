@@ -501,58 +501,72 @@ export function useQuizmonBattle(
     // =====================
 
     const handleRequestCapture = useCallback(() => {
-        // 커맨드 단계 + 적이 살아있을 때만
         if (state.phase !== "command") return;
         const enemy = state.enemy.monsters[state.enemy.activeIndex];
         if (!enemy || enemy.hp <= 0) return;
 
         if (!profileId) {
-            setState((prev) =>
+            setState(prev =>
                 pushLog(prev, "[시스템] 프로필 정보가 없어 포획을 시도할 수 없습니다."),
             );
             return;
         }
 
-        void (async () => {
-            const balls = await getCaptureBallStocks(profileId);
-            // [{ id, label, quantity, rateBonus? }, ...]
+        // 🔹 클릭이 실제로 들어오는지 확인용
+        console.log("[useQuizmonBattle] handleRequestCapture", {
+            phase: state.phase,
+            enemyHp: enemy.hp,
+            profileId,
+        });
 
-            if (!balls.length) {
-                setState((prev) =>
-                    pushLog(prev, 
-                        "[시스템] 사용할 수 있는 포획 볼이 없습니다.",
+        void (async () => {
+            try {
+                const balls = await getCaptureBallStocks(profileId);
+
+                if (!balls.length) {
+                    setState(prev =>
+                        pushLog(prev, "[시스템] 사용할 수 있는 포획 볼이 없습니다."),
+                    );
+                    return;
+                }
+
+                const base = calcBaseCaptureRate(enemy);
+
+                setCaptureSession({
+                    enemy,
+                    ballId: null,
+                    ballLabel: null,
+                    baseRate: base,
+                    currentRate: base,
+                    question: null,
+                    success: null,
+                    resultKind: null,
+                    shardsGained: 0,
+                });
+
+                setCaptureBallStocks(balls);
+
+                setCaptureUi({
+                    phase: "encounter",
+                    baseRate: base,
+                    currentRate: base,
+                    selectedBallLabel: undefined,
+                    success: undefined,
+                    resultKind: null,
+                    shardsGained: 0,
+                });
+            } catch (err) {
+                console.error("[useQuizmonBattle] handleRequestCapture error", err);
+                setState(prev =>
+                    pushLog(
+                        prev,
+                        "[시스템] 포획 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
                     ),
                 );
-                return;
             }
-
-            const base = calcBaseCaptureRate(enemy);
-
-            setCaptureSession({
-                enemy,
-                ballId: null,
-                ballLabel: null,
-                baseRate: base,
-                currentRate: base,
-                question: null,
-                success: null,
-                resultKind: null,
-                shardsGained: 0,
-            });
-
-            setCaptureBallStocks(balls);
-
-            setCaptureUi({
-                phase: "encounter",
-                baseRate: base,
-                currentRate: base,
-                selectedBallLabel: undefined,
-                success: undefined,
-                resultKind: null,
-                shardsGained: 0,
-            });
         })();
-    }, [state, profileId]);
+    }, [state, profileId, setState]);
+
 
     // 볼 선택
     const handleSelectBall = useCallback(
