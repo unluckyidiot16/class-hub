@@ -1709,25 +1709,40 @@ export function QuizMonBattleView(props: QuizMonBattleViewProps) {
             </div>
 
             {/* ========================================================= */}
-            {/* 포획 오버레이 (야생 조우 / 포획 퀴즈 / 포켓볼 연출 / 결과) */}
-            {/* ========================================================= */}
-            {captureUi && captureUi.phase !== "hidden" && (
-                <div
-                    style={{
-                        position: "fixed",
-                        inset: 0,
-                        zIndex: 60, // 하단 패널, 이펙트보다 위
-                        pointerEvents: "auto",
-                    }}
-                >
-                    <CaptureOverlay
-                        ui={captureUi}
-                        handlers={captureHandlers}
-                        enemyMon={enemyMon}
-                        enemySprite={enemySprite}
-                    />
-                </div>
-            )}
+            {/* 포획 오버레이 (야생 조우 / 포획 퀴즈 / 포켓볼 연출 / 결과)
+               - Battle 카드 영역 안에서만 덮도록 절대 위치로 조정
+            */}
+                        {captureUi && captureUi.phase !== "hidden" && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    left: 0,
+                                    right: 0,
+                                    top: "6%",      // 위쪽 HP 패널 아래
+                                    bottom: "26%",  // 하단 커맨드 패널 위
+                                    zIndex: 40,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    pointerEvents: "none", // 안쪽만 클릭 가능
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        pointerEvents: "auto",
+                                    }}
+                                >
+                                    <CaptureOverlay
+                                        ui={captureUi}
+                                        handlers={captureHandlers}
+                                        enemyMon={enemyMon}
+                                        enemySprite={enemySprite}
+                                    />
+                                </div>
+                            </div>
+                        )}
             
         </>
     );

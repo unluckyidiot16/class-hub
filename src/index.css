@@ -297,3 +297,12 @@ a {
         transform: translateY(-20px) scale(1);
     }
 }
+
+.qm-modal-overlay {
+  position: absolute;
+  inset: 0; /* 부모 div(배틀 영역 래퍼) 안에서만 전체 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.8); /* 배틀 영역만 어둡게 */
+}
