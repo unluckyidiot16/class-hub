@@ -15,6 +15,7 @@ export type TowerFloor = {
     cleared?: boolean;
     locked?: boolean;
     monsters: TowerFloorMonster[]; // 1~3칸
+    dungeonId?: string;
 };
 
 export type BattleTowerTabProps = {

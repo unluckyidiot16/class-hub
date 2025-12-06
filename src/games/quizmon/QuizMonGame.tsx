@@ -117,6 +117,7 @@ const MOCK_TOWER_FLOORS: TowerFloor[] = [
         recommendedRating: 800,
         cleared: false,
         locked: false,
+        dungeonId: "forest-easy-1",  // ⬅ 실제 DUNGEON_CONFIGS id
         monsters: [
             { speciesId: "bulbasaur", level: 3 },
             { speciesId: "charmander", level: 3 },
@@ -130,6 +131,7 @@ const MOCK_TOWER_FLOORS: TowerFloor[] = [
         recommendedRating: 1000,
         cleared: false,
         locked: false,
+        dungeonId: "forest-normal-1", // ⬅ 또 다른 던전 id
         monsters: [
             { speciesId: "pikachu", level: 5 },
             { speciesId: "pidgey", level: 5 },
@@ -491,9 +493,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
                 const cleared = row.floor <= maxClearedFloor;
                 const locked = row.floor > maxClearedFloor + 1;
-                
+
                 return {
-                    id: dungeonId,
+                    id: row.id,                               // 타워 층 id (그대로 유지)
+                    dungeonId,                                // ⬅ 던전 키는 따로 저장
                     floor: row.floor,
                     name: row.name ?? undefined,
                     recommendedRating: row.recommended_rating ?? undefined,
@@ -1595,43 +1598,40 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const startBattleTowerFloor = async (floor: TowerFloor) => {
         const myProfileId = props.profileId;
         if (!myProfileId) {
-            alert(
-                "로그인된 트레이너 프로필이 있어야 배틀 타워에 도전할 수 있어요.",
-            );
+            alert("로그인된 트레이너 프로필이 있어야 배틀 타워에 도전할 수 있어요.");
             return;
         }
-        
+
         if (floor.locked) {
             alert(
                 "아직 잠금된 층입니다.\n바로 아래 층부터 차례대로 클리어해 주세요!",
             );
             return;
         }
-        
-        // TowerFloor.id 를 DUNGEON_CONFIGS 의 id 와 1:1로 사용
-        const dungeonId = floor.id;
+
+        // ✅ dungeonId 가 있으면 그걸, 없으면 기존 id 를 던전 키로 사용
+        const dungeonId = floor.dungeonId ?? floor.id;
         const dungeon = DUNGEON_CONFIGS.find((d) => d.id === dungeonId);
         if (!dungeon) {
-            console.error(
-                "[BattleTower] unknown dungeon id for floor",
-                floor,
-            );
+            console.error("[BattleTower] unknown dungeon id for floor", floor);
             alert(
                 "이 배틀 타워 층의 던전 설정을 찾을 수 없어요.\n선생님께 알려 주세요.",
             );
             return;
         }
+
         setCurrentTowerFloorInfo({
-                id: floor.id,
-                floor: floor.floor,
+            id: floor.id,
+            floor: floor.floor,
         });
         setHasReportedTowerClear(false);
 
-        setSelectedDungeonId(dungeonId);        // UI용
+        setSelectedDungeonId(dungeonId);
         setBattleMode("dungeon");
-        handleReset("dungeon", dungeonId);      // ⬅ 전투 세팅용
+        handleReset("dungeon", dungeonId); // ⬅ 이전에 만든 dungeonIdOverride 활용
         setViewState("battle");
     };
+
 
     // 🔹 프로필 변경 시 배틀 타워 층 정보 동기화
     useEffect(() => {
