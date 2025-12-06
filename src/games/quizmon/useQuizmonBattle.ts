@@ -22,12 +22,13 @@ import {
     rollHit,
 } from "./logic";
 import { createInitialBattleState } from "./mockData";
-import {
-    type CaptureUiState,
-    type CaptureOverlayHandlers,
-} from "./QuizMonBattleView"; // 필요 시 경로 조정
+import type {
+    CaptureUiState,
+    CaptureOverlayHandlers,
+} from "./QuizMonBattleView";
 import { getCaptureBallStocks, getCaptureBallMeta } from "./ballShop";
 import { grantMonsterOrShards } from "./duplicateRewards";
+
 
 
 type CaptureSession = {
@@ -338,7 +339,7 @@ export type UseQuizmonBattleResult = {
 
     damagePopups: DamagePopup[];
 
-    // 캡처 관련
+    // 🔹 포획 관련 (BattleView로 내려가는 값)
     canCapture: boolean;
     onRequestCapture: () => void;
     captureUi: CaptureUiState;
@@ -600,15 +601,15 @@ export function useQuizmonBattle(
 
     const handleCaptureAnswer = useCallback(
         (index: number) => {
-            if (!captureSession || !captureSession.question || !profileId) return;
+            if (!captureSession || !captureSession.question) return;
 
             const q = captureSession.question;
             const correct = index === q.answerIndex;
 
-            const rate =
-                correct
-                    ? Math.min(0.99, captureSession.currentRate + 0.15)
-                    : Math.max(0.01, captureSession.currentRate - 0.15);
+            // 🔹 정오답에 따라 현재 포획률 조정
+            const rate = correct
+                ? Math.min(0.99, captureSession.currentRate + 0.15)
+                : Math.max(0.01, captureSession.currentRate - 0.15);
 
             setCaptureSession((prev) =>
                 prev
@@ -619,80 +620,162 @@ export function useQuizmonBattle(
                     : prev,
             );
 
+            // 🔹 UI는 throw 단계로 전환
             setCaptureUi((prev) => ({
                 ...prev,
                 phase: "throw",
                 currentRate: rate,
             }));
 
+            // 🔹 로그
             setState((prev) =>
-                pushLog(prev, correct
+                pushLog(
+                    prev,
+                    correct
                         ? "[플레이어] 퀴즈에 정답했다! 포획 확률이 올라간다."
                         : "[플레이어] 퀴즈를 틀렸다... 포획 확률이 떨어진다.",
                 ),
             );
+        },
+        [captureSession],
+    );
 
-            const roll = Math.random(); // 0~1
-            const success = roll <= rate;
+    const handleThrowAnimationFinished = useCallback(() => {
+        if (!captureSession) {
+            // 세션이 없으면 그냥 실패로 마무리
+            setCaptureUi((prev) => ({
+                ...prev,
+                phase: "result",
+                success: false,
+                resultKind: null,
+                shardsGained: 0,
+            }));
+            return;
+        }
 
-            void (async () => {
-                let resultKind: "new-monster" | "duplicate" | null = null;
-                let shards = 0;
+        // 🔹 최종 포획 확률 (퀴즈 및 볼 보정 포함)
+        const rate =
+            captureSession.currentRate ??
+            captureSession.baseRate ??
+            0.4;
 
-                if (success) {
-                    const r = await grantMonsterOrShards({
-                        profileId,
-                        speciesId: captureSession.enemy.speciesId,
-                        source: "capture",
-                    });
+        const roll = Math.random();
+        const success = roll <= rate;
 
-                    resultKind = r.kind;
-                    shards = r.shardsAwarded ?? 0;
+        // 프로필이 없으면 DB 보상 처리를 못하니, 실패처럼 처리
+        if (!profileId || !success) {
+            if (!profileId) {
+                setState((prev) =>
+                    pushLog(
+                        prev,
+                        "[시스템] 프로필 정보가 없어 포획 결과를 처리하지 못했습니다.",
+                    ),
+                );
+            } else {
+                setState((prev) =>
+                    pushLog(
+                        prev,
+                        `[적] ${captureSession.enemy.name}이(가) 포켓볼에서 튀어나왔다!`,
+                    ),
+                );
+            }
 
-                    setState((prev) => {
-                        const next = { ...prev };
-                        const enemy =
-                            next.enemy.monsters[next.enemy.activeIndex];
-                        if (enemy) enemy.hp = 0;
-                        return pushLog(next, 
-                                r.kind === "duplicate"
-                                    ? `[시스템] ${captureSession.enemy.name}은(는) 이미 보유 중이어서 Star Shards x${shards}로 변했다.`
-                                    : `[시스템] ${captureSession.enemy.name}을(를) 포획했다!`,
-                        );
-                    });
-                } else {
-                    setState((prev) =>
-                        pushLog(prev, `[적] ${captureSession.enemy.name}이(가) 포켓볼에서 튀어나왔다!`,
-                        ),
-                    );
-                }
+            setCaptureSession((prev) =>
+                prev
+                    ? {
+                        ...prev,
+                        success: false,
+                        resultKind: null,
+                        shardsGained: 0,
+                    }
+                    : prev,
+            );
+
+            setCaptureUi((prev) => ({
+                ...prev,
+                phase: "result",
+                success: false,
+                resultKind: null,
+                shardsGained: 0,
+            }));
+            return;
+        }
+
+        // 🔹 성공 케이스: DB에 몬스터 지급 or 샤드 지급
+        void (async () => {
+            try {
+                const r = await grantMonsterOrShards({
+                    profileId,
+                    speciesId: captureSession.enemy.speciesId,
+                    source: "capture",
+                });
+
+                const resultKind = r.kind;
+                const shards = r.shardsAwarded ?? 0;
+
+                // 적 HP 0 처리 + 로그
+                setState((prev) => {
+                    const next = { ...prev };
+                    const enemy = next.enemy.monsters[next.enemy.activeIndex];
+                    if (enemy) enemy.hp = 0;
+
+                    const logText =
+                        resultKind === "duplicate"
+                            ? `[시스템] ${captureSession.enemy.name}은(는) 이미 보유 중이어서 Star Shards x${shards}로 변했다.`
+                            : `[시스템] ${captureSession.enemy.name}을(를) 포획했다!`;
+
+                    return pushLog(next, logText);
+                });
 
                 setCaptureSession((prev) =>
                     prev
                         ? {
                             ...prev,
-                            success,
+                            success: true,
                             resultKind,
                             shardsGained: shards,
                         }
                         : prev,
                 );
-            })();
-        },
-        [captureSession, profileId],
-    );
 
-    const handleThrowAnimationFinished = useCallback(() => {
-        setCaptureUi((prev) => ({
-            ...prev,
-            phase: "result",
-            // ✅ null → undefined 로 정리해서 CaptureUiState 타입에 맞춤
-            success: captureSession?.success ?? undefined,
-            resultKind: captureSession?.resultKind ?? null,
-            shardsGained: captureSession?.shardsGained ?? 0,
-        }));
-    }, [captureSession]);
-    
+                setCaptureUi((prev) => ({
+                    ...prev,
+                    phase: "result",
+                    success: true,
+                    resultKind,
+                    shardsGained: shards,
+                }));
+            } catch (err) {
+                console.error("[capture] grantMonsterOrShards error", err);
+                setState((prev) =>
+                    pushLog(
+                        prev,
+                        "[시스템] 포획 결과 처리 중 오류가 발생했습니다.",
+                    ),
+                );
+
+                setCaptureSession((prev) =>
+                    prev
+                        ? {
+                            ...prev,
+                            success: false,
+                            resultKind: null,
+                            shardsGained: 0,
+                        }
+                        : prev,
+                );
+                setCaptureUi((prev) => ({
+                    ...prev,
+                    phase: "result",
+                    success: false,
+                    resultKind: null,
+                    shardsGained: 0,
+                }));
+            }
+        })();
+    }, [captureSession, profileId]);
+
+
     const handleResultClose = useCallback(() => {
         const success = captureSession?.success ?? false;
 
@@ -1448,16 +1531,21 @@ export function useQuizmonBattle(
         state.phase === "command" &&
         playerMon.hp > 0 &&
         enemyMon.hp > 0 &&
-        !battleFinished;
+        !battleFinished &&
+        !isCapturing;
 
     const captureHandlers: CaptureOverlayHandlers = {
-        availableBalls: captureBallStocks,
+        availableBalls: captureBallStocks.map(({ id, label, quantity }) => ({
+            id,
+            label,
+            quantity,
+        })),
         onSelectBall: handleSelectBall,
         onRun: () => {
             setCaptureUi({ phase: "hidden" });
             setCaptureSession(null);
             setState((prev) =>
-                pushLog(prev,  "[플레이어] 도망치기로 했다." ),
+                pushLog(prev, "[플레이어] 도망치기로 했다."),
             );
         },
         question: captureSession?.question ?? null,

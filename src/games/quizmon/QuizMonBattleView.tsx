@@ -17,6 +17,7 @@ import {
     type BattleEffect,
 } from "./BattleEffectLayer";
 
+
 function getStatusInfo(mon: Monster): { label: string; color: string } | null {
     const anyMon = mon as any;
 
@@ -77,6 +78,14 @@ export type CaptureUiPhase =
         success?: boolean;
         resultKind?: "new-monster" | "duplicate" | null;
         shardsGained?: number;
+    };
+    
+    // 포획에 사용되는 볼 정보 (hook 쪽 CaptureBallStock과 동일한 형태)
+    export type CaptureBallOption = {
+        id: string;
+        label: string;
+        quantity: number;
+        rateBonus?: number;
     };
 
     export type CaptureOverlayHandlers = {
