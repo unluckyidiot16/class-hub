@@ -16,6 +16,7 @@ import {
     BattleEffectLayer,
     type BattleEffect,
 } from "./BattleEffectLayer";
+import { CaptureBallSprite, type CaptureBallPhase } from "./CaptureBallSprite";
 
 
 function getStatusInfo(mon: Monster): { label: string; color: string } | null {
@@ -329,39 +330,56 @@ type QuizBottomPanelProps = {
             const [ballPhase, setBallPhase] = useState<"up" | "drop" | "shake">("up");
             const [pokePhase, setPokePhase] = useState<"idle" | "shrink">("idle");
             const [hidePoke, setHidePoke] = useState(false);
-        
-                // HTML 데모 구조를 그대로 따라가는 애니메이션 단계
-                    useEffect(() => {
-                            // 1) 위로 던지기 → 포켓몬 shrink
-                                const t1 = window.setTimeout(() => {
-                                    setPokePhase("shrink");
-                                }, 300);
-                    
-                                // 2) 볼 떨어짐 + 포켓몬 숨김
-                                    const t2 = window.setTimeout(() => {
-                                    setHidePoke(true);
-                                    setBallPhase("drop");
-                                }, 300 + 300);
-                    
-                                // 3) 볼 흔들림
-                                    const t3 = window.setTimeout(() => {
-                                    setBallPhase("shake");
-                                }, 300 + 300 + 250);
-                    
-                                // 4) 전체 애니 끝 → 상위 콜백
-                                    const t4 = window.setTimeout(() => {
-                                    props.handlers?.onThrowAnimationFinished?.();
-                                }, 300 + 300 + 250 + 3 * 400 + 200);
-                    
-                                return () => {
-                                    window.clearTimeout(t1);
-                                    window.clearTimeout(t2);
-                                    window.clearTimeout(t3);
-                                    window.clearTimeout(t4);
-                                };
-                        }, [props.handlers]);
-        
-                const ballClass =
+
+        const [ballSpritePhase, setBallSpritePhase] =
+            useState<CaptureBallPhase>("idle");
+
+        useEffect(() => {
+            // 시작할 때 항상 초기 상태로
+            setBallPhase("up");
+            setPokePhase("idle");
+            setHidePoke(false);
+            setBallSpritePhase("idle");
+
+            // 1) 위로 던지기 → 포켓몬 shrink + 볼 열기
+            const t1 = window.setTimeout(() => {
+                setPokePhase("shrink");
+                setBallSpritePhase("open"); // 🔹 볼 열기
+            }, 300);
+
+            // 2) 볼 떨어짐 + 포켓몬 숨김
+            const t2 = window.setTimeout(() => {
+                setHidePoke(true);
+                setBallPhase("drop");
+            }, 300 + 300);
+
+            // 3) 볼 흔들림
+            const t3 = window.setTimeout(() => {
+                setBallPhase("shake");
+            }, 300 + 300 + 250);
+
+            // 4) 전체 애니 끝 → 상위 콜백
+            const t4 = window.setTimeout(() => {
+                props.handlers?.onThrowAnimationFinished?.();
+            }, 300 + 300 + 250 + 3 * 400 + 200);
+
+            return () => {
+                window.clearTimeout(t1);
+                window.clearTimeout(t2);
+                window.clearTimeout(t3);
+                window.clearTimeout(t4);
+                setBallSpritePhase("idle");
+            };
+        }, [props.handlers]);
+
+        const handleSpriteAnimEnd = () => {
+            // open 애니메이션이 끝나면 자동으로 close 단계로
+            if (ballSpritePhase === "open") {
+                setBallSpritePhase("close");
+            }
+        };
+
+        const ballClass =
                     ballPhase === "up"
                         ? "ball-throw-up"
                             : ballPhase === "drop"
@@ -399,9 +417,13 @@ type QuizBottomPanelProps = {
                                         </div>
                                     )}
                                     <div className="throw-scene-area">
-                                        <div
-                                            className={`throw-ball-img ${ballClass}`}
-                                        />
+                                        <div className={`throw-ball-img ${ballClass}`}>
+                                            <CaptureBallSprite
+                                                phase={ballSpritePhase}
+                                                size={40}              // 필요하면 32~48 사이에서 조절
+                                                onAnimationEnd={handleSpriteAnimEnd}
+                                            />
+                                        </div>
                                     </div>
                                     <p
                                         style={{
