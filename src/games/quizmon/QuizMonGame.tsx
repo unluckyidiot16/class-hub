@@ -37,7 +37,7 @@ import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
 import type { MainTabKey } from "./QuizMonLobbyOverlay";
 import type { ArenaOpponent } from "./ArenaTab";
-import type { TowerFloor, TowerFloorMonster } from "./BattleTowerTab";
+import {BattleTowerTab, type TowerFloor, type TowerFloorMonster} from "./BattleTowerTab";
 
 
 
@@ -109,6 +109,34 @@ function shuffleArray<T>(arr: T[]): T[] {
     }
     return copy;
 }
+
+const MOCK_TOWER_FLOORS: TowerFloor[] = [
+    {
+        id: "tower-test-1",
+        floor: 1,
+        name: "입문자 코스",
+        recommendedRating: 800,
+        cleared: false,
+        locked: false,
+        monsters: [
+            { speciesId: "bulbasaur", level: 3 },
+            { speciesId: "charmander", level: 3 },
+            { speciesId: "squirtle", level: 3 },
+        ],
+    },
+    {
+        id: "tower-test-2",
+        floor: 2,
+        name: "중급 도전자",
+        recommendedRating: 1000,
+        cleared: false,
+        locked: false,
+        monsters: [
+            { speciesId: "pikachu", level: 5 },
+            { speciesId: "pidgey", level: 5 },
+        ],
+    },
+];
 
 // =========================
 // 🌆 배틀 BG / 하단 패널용 헬퍼
@@ -2475,6 +2503,18 @@ export function QuizMonGame(props: QuizMonGameProps) {
                     )}
                 </div>
             </div>
+
+
+            {menuTab === "tower" && (
+                <BattleTowerTab
+                    profile={props.profile ?? null}
+                    floors={MOCK_TOWER_FLOORS}
+                    onSelectFloor={(floor) => {
+                        // 일단 전투 시작까지 연결해보고 싶으면 여기서 startBattleTowerFloor 호출
+                        startBattleTowerFloor(floor);
+                    }}
+                />
+            )}
 
             {/* 컨트롤/상태 줄 */}
             <section
