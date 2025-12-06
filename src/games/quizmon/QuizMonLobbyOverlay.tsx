@@ -18,6 +18,8 @@ import {BattleTowerTab} from "./BattleTowerTab.tsx";
 import {ArenaTab} from "./ArenaTab.tsx";
 import type { ArenaOpponent } from "./ArenaTab";
 import type { TowerFloor } from "./BattleTowerTab";
+import { AchievementsTab } from "./AchievementsTab";
+
 
 
 export type MainTabKey =
@@ -26,6 +28,7 @@ export type MainTabKey =
     | "dex"
     | "inventory"
     | "profile"
+    | "achievements"
     | "shop"
     | "arena"
     | "tower";
@@ -67,6 +70,12 @@ export type QuizMonLobbyOverlayProps = {
     
     lastRaidResult?: { correct: number; total: number } | null;
     onBuyExpDust?: (quantity?: number) => Promise<void> | void;
+
+    /** 현재 학생이 가진 수업 코인 */
+    classCoins?: number;
+
+    /** 코인 → 젬 교환 로직 (ProfileTab으로 그대로 넘김) */
+    onExchangeCoinsToGems?: (coins: number) => Promise<void> | void;
 };
 
 type ArenaProfileLite = {
@@ -102,6 +111,8 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         lastRaidResult,
         towerFloors,
         onBuyExpDust,
+        classCoins,
+        onExchangeCoinsToGems,
     } = props;
 
     const [arenaRating, setArenaRating] = useState<number | null>(null);
@@ -600,6 +611,7 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 { key: "dex", label: "도감" },
                                 { key: "inventory", label: "인벤토리" },
                                 { key: "profile", label: "프로필" },
+                                { key: "achievements", label: "업적" },
                                 { key: "shop", label: "상점" },
                                 { key: "arena", label: "아레나"},
                                 { key: "tower", label: "배틀타워"},
@@ -878,6 +890,8 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                             profile={effectiveProfile}
                             lastRaidResult={lastRaidResult}
                             onBuyExpDust={handleBuyExpDust}
+                            classCoins={classCoins}
+                            onExchangeCoinsToGems={onExchangeCoinsToGems}
                         />
                     )}
 
@@ -899,6 +913,14 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                                 ultraBallCount={ultraBallCount}
                             />
                         </div>
+                    )}
+                    {/* 업적 탭 */}
+                    {menuTab === "achievements" && (
+                        <AchievementsTab
+                            profile={effectiveProfile}
+                            // 향후: claimedIds / onClaim은
+                            // quizmonAchievements 서비스랑 연결해서 주입
+                        />
                     )}
 
                     {/* 상점 탭: 포켓볼 상점 + Star Shards 상점 */}

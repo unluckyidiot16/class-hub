@@ -2,17 +2,27 @@
 import { useMemo } from "react";
 import type { QuizmonProfileRow } from "./types";
 
+const COINS_PER_GEM = 1; // 교환 비율: 10 코인 → 1 젬
+
 export type ProfileTabProps = {
     profile: QuizmonProfileRow | null;
     lastRaidResult?: { correct: number; total: number } | null;
-    onOpenLevelUpModal?: () => void; // ⭐ optional
+    onOpenLevelUpModal?: () => void; 
     onBuyExpDust?: () => void;
+
+    /** 수업 때 교사가 지급한 코인(플랫폼 공용 코인) */
+    classCoins?: number;
+
+    /** 코인을 젬으로 교환할 때 호출되는 콜백 */
+    onExchangeCoinsToGems?: (coins: number) => void | Promise<void>;
 };
 
 
 export function ProfileTab({
                                profile,
                                onBuyExpDust,
+                               classCoins,
+                               onExchangeCoinsToGems,
                            }: ProfileTabProps) {
     if (!profile) {
         return (
@@ -33,7 +43,6 @@ export function ProfileTab({
     const totalQuestions = profile.total_questions ?? 0;
 
     const gold = (profile as any).gold ?? 0;
-    const gems = (profile as any).gems ?? 0;
     const shards = (profile as any).star_shards ?? 0;
 
     const accuracy =
@@ -41,6 +50,11 @@ export function ProfileTab({
             ? Math.round((totalCorrect / totalQuestions) * 100)
             : null;
 
+    // 🔹 수업 코인 / 젬 (필드 없으면 기본값)
+    const currentClassCoins = classCoins ?? 0;
+    const gems =
+        (profile as any).gems != null ? (profile as any).gems : 0;
+    
     // 트레이너 레벨/경험치 (필드 없으면 기본값)
     const trainerLevel =
         (profile as any).trainer_level != null
@@ -238,6 +252,185 @@ export function ProfileTab({
                     메모 영역이나, 학생에게 보여 줄 칭찬/도전 과제
                     안내도 이곳에 배치할 수 있습니다.
                 </div>
+
+                {/* 수업 코인 → 젬 교환 카드 */}
+                <div
+                    style={{
+                        marginTop: 12,
+                        borderRadius: 10,
+                        background: "rgba(15,23,42,0.9)",
+                        padding: "0.7rem 0.8rem",
+                        fontSize: "0.8rem",
+                        border: "1px solid rgba(55,65,81,0.9)",
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: "0.85rem",
+                            marginBottom: 4,
+                            fontWeight: 600,
+                            color: "#e5e7eb",
+                        }}
+                    >
+                        수업 코인 → 젬 교환
+                    </div>
+                    <div
+                        style={{
+                            fontSize: "0.75rem",
+                            color: "#9ca3af",
+                            marginBottom: 6,
+                        }}
+                    >
+                        수업 시간에 받은 코인을 젬으로 바꿔서
+                        던전 입장이나 가챠에 사용할 수 있어요.
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 6,
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: "0.78rem",
+                                color: "#e5e7eb",
+                            }}
+                        >
+                            보유 코인:{" "}
+                            <span style={{ fontWeight: 600 }}>
+                                {currentClassCoins}
+                            </span>
+                            <span
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: "#9ca3af",
+                                }}
+                            >
+                                {" "}
+                                개
+                            </span>
+                            <br />
+                            <span
+                                style={{
+                                    fontSize: "0.75rem",
+                                    color: "#9ca3af",
+                                }}
+                            >
+                                교환 비율: {COINS_PER_GEM}코인 → 1젬
+                            </span>
+                        </div>
+                        <div
+                            style={{
+                                textAlign: "right",
+                                fontSize: "0.75rem",
+                                color: "#facc15",
+                            }}
+                        >
+                            현재 젬:{" "}
+                            <span style={{ fontWeight: 600 }}>
+                                {gems}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: 8,
+                        }}
+                    >
+                        {/* 10코인 고정 교환 */}
+                        <button
+                            type="button"
+                            onClick={() =>
+                                onExchangeCoinsToGems &&
+                                onExchangeCoinsToGems(COINS_PER_GEM)
+                            }
+                            disabled={
+                                !onExchangeCoinsToGems ||
+                                currentClassCoins < COINS_PER_GEM
+                            }
+                            style={{
+                                flex: 1,
+                                padding: "0.45rem 0.6rem",
+                                borderRadius: 999,
+                                border: "none",
+                                cursor:
+                                    onExchangeCoinsToGems &&
+                                    currentClassCoins >= COINS_PER_GEM
+                                        ? "pointer"
+                                        : "default",
+                                fontSize: "0.78rem",
+                                background:
+                                    onExchangeCoinsToGems &&
+                                    currentClassCoins >= COINS_PER_GEM
+                                        ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                                        : "rgba(31,41,55,0.9)",
+                                color: "#e5e7eb",
+                                opacity:
+                                    onExchangeCoinsToGems &&
+                                    currentClassCoins >= COINS_PER_GEM
+                                        ? 1
+                                        : 0.6,
+                            }}
+                        >
+                            10코인 → 1젬 교환
+                        </button>
+
+                        {/* 최대치 교환 */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (
+                                    !onExchangeCoinsToGems ||
+                                    currentClassCoins < COINS_PER_GEM
+                                ) {
+                                    return;
+                                }
+                                const maxCoins =
+                                    Math.floor(
+                                        currentClassCoins / COINS_PER_GEM,
+                                    ) * COINS_PER_GEM;
+                                if (maxCoins > 0) {
+                                    void onExchangeCoinsToGems(maxCoins);
+                                }
+                            }}
+                            disabled={
+                                !onExchangeCoinsToGems ||
+                                currentClassCoins < COINS_PER_GEM
+                            }
+                            style={{
+                                flex: 1,
+                                padding: "0.45rem 0.6rem",
+                                borderRadius: 999,
+                                border: "none",
+                                cursor:
+                                    onExchangeCoinsToGems &&
+                                    currentClassCoins >= COINS_PER_GEM
+                                        ? "pointer"
+                                        : "default",
+                                fontSize: "0.78rem",
+                                background:
+                                    onExchangeCoinsToGems &&
+                                    currentClassCoins >= COINS_PER_GEM
+                                        ? "linear-gradient(135deg,#3b82f6,#6366f1)"
+                                        : "rgba(31,41,55,0.9)",
+                                color: "#e5e7eb",
+                                opacity:
+                                    onExchangeCoinsToGems &&
+                                    currentClassCoins >= COINS_PER_GEM
+                                        ? 1
+                                        : 0.6,
+                            }}
+                        >
+                            최대 교환
+                        </button>
+                    </div>
+                </div>
+
 
                 {/* ⭐ 골드 → Exp Dust 상점 (MVP) */}
                 <div
