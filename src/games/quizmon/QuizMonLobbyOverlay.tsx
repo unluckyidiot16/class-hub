@@ -885,18 +885,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         />
                     )}
 
-                    {/* 배틀 타워 탭 */}
-                    {menuTab === "tower" && (
-                        <BattleTowerTab
-                            profile={effectiveProfile}
-                            floors={towerFloors ?? []}
-                            onSelectFloor={(floor) => {
-                                if (!onStartBattleTower) return;
-                                onStartBattleTower(floor);
-                            }}
-                        />
-                    )}
-
                     {/* 프로필 탭 */}
                     {menuTab === "profile" && (
                         <ProfileTab
@@ -974,36 +962,40 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         </div>
                     )}
                     {menuTab === "arena" && (
-                                            <ArenaTab
-                                                profile={profile ?? localProfile}
-                                                // 🔹 아직 프로필에 arena_rating 컬럼이 없으므로,
-                                                //    ELO는 내부 기본값(1000) 사용
-                                                rating={arenaRating ?? undefined}
-                                                tierLabel={undefined}
-                                                // 공격/방어 덱: 일단 파티 슬롯(1~3) 기준 동일하게 사용
-                                                attackParty={(monsters ?? []).filter(
-                                                    (m) =>
-                                                        (m.party_slot ?? 0) >= 1 &&
-                                                        (m.party_slot ?? 0) <= 3,
-                                                )}
-                                                defenseParty={(monsters ?? []).filter(
-                                                    (m) =>
-                                                        (m.party_slot ?? 0) >= 1 &&
-                                                        (m.party_slot ?? 0) <= 3,
-                                                )}
-                                                // 외부에서 내려주면 그걸 우선 사용, 없으면 로컬 opponentList 사용
-                                                opponents={arenaOpponents ?? opponentList}
-                                                onSelectOpponent={onStartArenaBattle}
-                                            /> 
+                        <ArenaTab
+                            profile={profile ?? localProfile}
+                            // 🔹 아직 프로필에 arena_rating 컬럼이 없으므로,
+                            //    ELO는 내부 기본값(1000) 사용
+                            rating={arenaRating ?? undefined}
+                            tierLabel={undefined}
+                            // 공격/방어 덱: 일단 파티 슬롯(1~3) 기준 동일하게 사용
+                            attackParty={(monsters ?? []).filter(
+                                (m) =>
+                                    (m.party_slot ?? 0) >= 1 &&
+                                    (m.party_slot ?? 0) <= 3,
+                            )}
+                            defenseParty={(monsters ?? []).filter(
+                                (m) =>
+                                    (m.party_slot ?? 0) >= 1 &&
+                                    (m.party_slot ?? 0) <= 3,
+                            )}
+                            // 외부에서 내려주면 그걸 우선 사용, 없으면 로컬 opponentList 사용
+                            opponents={arenaOpponents ?? opponentList}
+                            onSelectOpponent={onStartArenaBattle}
+                        /> 
                     )}
-                    
-                                    {menuTab === "tower" && (
-                                        <BattleTowerTab
-                                            profile={profile ?? localProfile}
-                                            floors={towerFloors ?? []}
-                                            onSelectFloor={onStartBattleTower}
-                                        />
-                                    )}
+
+                    {/* 배틀 타워 탭 */}
+                    {menuTab === "tower" && (
+                        <BattleTowerTab
+                            profile={effectiveProfile}
+                            floors={towerFloors ?? []}
+                            onSelectFloor={(floor) => {
+                                if (!onStartBattleTower) return;
+                                onStartBattleTower(floor);
+                            }}
+                        />
+                    )}
                 </div>
             </div>
         </div>
