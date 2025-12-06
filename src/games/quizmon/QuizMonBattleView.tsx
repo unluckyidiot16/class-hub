@@ -79,14 +79,6 @@ export type CaptureUiPhase =
         resultKind?: "new-monster" | "duplicate" | null;
         shardsGained?: number;
     };
-    
-    // 포획에 사용되는 볼 정보 (hook 쪽 CaptureBallStock과 동일한 형태)
-    export type CaptureBallOption = {
-        id: string;
-        label: string;
-        quantity: number;
-        rateBonus?: number;
-    };
 
     export type CaptureOverlayHandlers = {
         // encounter 단계: 사용 가능한 볼 정보 + 선택/도망
@@ -588,6 +580,8 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
 
     const isQuizPhase = phase === "quiz" && !!currentQuestion;
     const isFinished = phase === "finished";
+    
+    
     const isAnimating = attackPhase !== "idle";
     
     const basicMove = playerMoves[0];
@@ -597,7 +591,7 @@ function QuizBottomPanel(props: QuizBottomPanelProps) {
         maxSpecialGauge > 0 &&
         specialGauge >= maxSpecialGauge;
 
-// 포획 버튼은 애니메이션/퀴즈/배틀 종료가 아닐 때만 활성
+    // 포획 버튼은 애니메이션/퀴즈/배틀 종료가 아닐 때만 활성
     const canShowCapture = !isQuizPhase && !isFinished && !isAnimating;
 
     

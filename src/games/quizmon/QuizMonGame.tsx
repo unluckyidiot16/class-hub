@@ -323,6 +323,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         roomId,
         gameSessionId,
         studentId,
+        profileId,
         onQuizAnswer,
         onBattleEnd,
     });
