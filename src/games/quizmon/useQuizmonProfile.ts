@@ -1,7 +1,7 @@
 // src/games/quizmon/useQuizmonProfile.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import type { QuizmonProfileRow } from "./types";
+import type { QuizmonProfileRow, QuizmonOwnedMonsterRow } from "./types";
 import {
     applyRaidResultService,
     buyExpDustWithGoldService,
@@ -181,22 +181,74 @@ export function useQuizmonProfile(
     }, [refresh]);
 
     // 레이드 결과 반영 (프로필 쪽 누적 통계 + 골드 지급)
-    // 레이드 결과 반영 (프로필 쪽 누적 통계 + 골드 지급)
     const applyRaidResult = useCallback(
         async (summary: { correct: number; total: number }) => {
             if (!hasKey || !profile) return;
 
             try {
-                // 서비스 레이어에서 DB 업데이트
+                // 1) 서비스 레이어에서 프로필 통계 + 골드 등 업데이트
                 const { updatedProfile } = await applyRaidResultService({
                     profile,
                     summary,
                 });
 
-                // 서버가 돌려준 최신 프로필로 로컬 상태 동기화
-                if (updatedProfile) {
-                    setProfile(updatedProfile as QuizmonProfile);
+                // 프로필 id는 여기서 확정
+                const nextProfile = (updatedProfile as QuizmonProfile) ?? profile;
+
+                // 2) 파티 슬롯 1~3 몬스터 EXP 분배
+                try {
+                    const { data: owned, error: ownedError } = await supabase
+                        .from("quizmon_owned_monsters")
+                        .select("id, level, exp, party_slot")
+                        .eq("profile_id", nextProfile.id)
+                        .in("party_slot", [1, 2, 3])
+                        .order("party_slot", { ascending: true });
+
+                    if (ownedError) {
+                        console.error(
+                            "[useQuizmonProfile] applyRaidResult party load error",
+                            ownedError,
+                        );
+                    } else {
+                        const rows = (owned ?? []) as QuizmonOwnedMonsterRow[];
+
+                        if (rows.length > 0) {
+                            // ✅ EXP 간단 공식: 정답 수에 비례
+                            const baseExp = Math.max(1, 5 + summary.correct * 2);
+
+                            for (const row of rows) {
+                                const isLeader = row.party_slot === 1; // 1번 슬롯 = 전투중 몬 취급
+                                const gain = isLeader
+                                    ? baseExp              // 메인 몬스터
+                                    : Math.floor(baseExp / 2); // 나머지 파티
+
+                                const newExp = (row.exp ?? 0) + gain;
+
+                                const { error: upError } = await supabase
+                                    .from("quizmon_owned_monsters")
+                                    .update({ exp: newExp })
+                                    .eq("id", row.id);
+
+                                if (upError) {
+                                    console.error(
+                                        "[useQuizmonProfile] applyRaidResult update exp error",
+                                        upError,
+                                        row.id,
+                                    );
+                                }
+                            }
+                        }
+                    }
+                } catch (expErr) {
+                    console.error(
+                        "[useQuizmonProfile] applyRaidResult grant EXP error",
+                        expErr,
+                    );
+                    // EXP 실패해도 프로필 저장까지 같이 실패할 필요는 없으니 여기선 에러만 로그
                 }
+
+                // 3) 프로필 로컬 상태 반영
+                setProfile(nextProfile);
                 setError(null);
             } catch (e) {
                 console.error(
@@ -208,6 +260,7 @@ export function useQuizmonProfile(
         },
         [hasKey, profile],
     );
+
 
 
     const buyExpDust = useCallback(

@@ -414,6 +414,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
     // 🔹 배틀 타워 층 목록
     const [towerFloors, setTowerFloors] = useState<TowerFloor[]>([]);
 
+    // 🔹 타워 클리어 시마다 +1 해서 층 정보를 다시 로딩하기 위한 키
+    const [towerRefreshKey, setTowerRefreshKey] = useState(0);
+
     const towerFloorsForUi =
         towerFloors.length > 0 ? towerFloors : MOCK_TOWER_FLOORS;
     
@@ -1463,7 +1466,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     };
 
     // 🔹 배틀 타워 층 클리어 후 진행도 갱신
-    const updateTowerProgress = async (
+        const updateTowerProgress = async (
         profileId: string,
         clearedFloor: number,
     ) => {
@@ -1506,7 +1509,8 @@ export function QuizMonGame(props: QuizMonGameProps) {
                                         upsertError,
                                     );
                             }
-                    } catch (err) {
+            setTowerRefreshKey((prev) => prev + 1);
+        } catch (err) {
                         console.error(
                                 "[QuizMonGame] updateTowerProgress unexpected error",
                                 err,
@@ -1737,14 +1741,14 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
 
 
-    // 🔹 프로필 변경 시 배틀 타워 층 정보 동기화
+    // 🔹 프로필 변경 시 + 타워 진행도 갱신 시 배틀 타워 층 정보 동기화
     useEffect(() => {
         if (!profileId) {
             setTowerFloors([]);
             return;
         }
         void loadTowerFloors(profileId);
-        }, [profileId]);
+    }, [profileId, towerRefreshKey]);
     
     // 🔹 현재 세션에 열린 레이드가 있는지 확인
     useEffect(() => {
