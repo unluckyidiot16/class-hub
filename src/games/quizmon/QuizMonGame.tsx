@@ -640,6 +640,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
     const resetBattleWithProfileParty = async (
         profileId: string,
         modeOverride?: "raid" | "dungeon",
+        dungeonIdOverride?: string,
     ) => {
         try {
             // 이전 던전 스케일 정보는 초기화
@@ -682,6 +683,9 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 setHasBattleInitialized(true);
                 return;
             }
+
+            const effectiveDungeonId =
+                dungeonIdOverride ?? selectedDungeonId;
             
             setHasReportedTowerClear(false);
 
@@ -747,7 +751,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
             if (effectiveMode === "dungeon") {
                 const currentDungeon =
-                    DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ?? null;
+                    DUNGEON_CONFIGS.find((d) => d.id === effectiveDungeonId) ?? null;
 
                 if (currentDungeon?.enemySetId) {
                     const baseKey = currentDungeon.enemySetId;
@@ -887,7 +891,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 
             // 현재 선택된 던전 정보
             const currentDungeon =
-                DUNGEON_CONFIGS.find((d) => d.id === selectedDungeonId) ??
+                DUNGEON_CONFIGS.find((d) => d.id === effectiveDungeonId) ??
                 DUNGEON_CONFIGS[0];
 
             // 🔹 ENEMY_SETS 기반 적 파티 생성 (던전 모드 전용)
@@ -1622,10 +1626,10 @@ export function QuizMonGame(props: QuizMonGameProps) {
                 floor: floor.floor,
         });
         setHasReportedTowerClear(false);
-        
-        setSelectedDungeonId(dungeonId);
+
+        setSelectedDungeonId(dungeonId);        // UI용
         setBattleMode("dungeon");
-        handleReset("dungeon");
+        handleReset("dungeon", dungeonId);      // ⬅ 전투 세팅용
         setViewState("battle");
     };
 
@@ -1750,7 +1754,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
         props.onRefreshCollection,
     ]);
 
-    const handleReset = (modeOverride?: "raid" | "dungeon") => {
+    const handleReset = (modeOverride?: "raid" | "dungeon", dungeonIdOverride?: string,) => {
         // 🔹 새 레이드마다 문제 순서도 다시 셔플
         if (questions.length > 0) {
             const indices = questions.map((_, idx) => idx);
@@ -1763,7 +1767,7 @@ export function QuizMonGame(props: QuizMonGameProps) {
 
         if (profileId) {
             // 학생 프로필이 있으면 항상 "실제 파티" 기준으로 리셋
-            void resetBattleWithProfileParty(profileId, modeOverride);
+            void resetBattleWithProfileParty(profileId, modeOverride, dungeonIdOverride, );
         } else {
             // fallback: mock 상태로 리셋
             setState(createInitialBattleState());

@@ -153,6 +153,7 @@ export function BattleTowerTab({
                                    floors,
                                    onSelectFloor,
                                }: BattleTowerTabProps) {
+    const sortedFloors = [...floors].sort((a, b) => b.floor - a.floor);
     return (
         <div
             style={{
@@ -198,12 +199,12 @@ export function BattleTowerTab({
                     minHeight: 0,
                     overflowY: "auto",
                     display: "flex",
-                    flexDirection: "column-reverse", // 아래에서 위로 쌓인 느낌
+                    flexDirection: "column",
                     gap: 8,
-                    paddingBottom: 4,
+                    paddingBottom: 40,
                 }}
             >
-                {floors.map((floor) => (
+                {sortedFloors.map((floor) => (
                     <FloorCard
                         key={floor.id}
                         floor={floor}
