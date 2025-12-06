@@ -1,10 +1,6 @@
 // src/games/quizmon/quizmonAchievements.ts
 import { supabase } from "../../lib/supabaseClient";
 
-/**
- * quizmon_achievements 테이블 타입
- * (필드명/타입은 실제 스키마에 맞게 필요하면 조정해 주세요)
- */
 export type QuizmonAchievementRow = {
     id: string;
     code: string;
@@ -18,9 +14,6 @@ export type QuizmonAchievementRow = {
     created_at: string;
 };
 
-/**
- * quizmon_profile_achievements 테이블 타입
- */
 export type QuizmonProfileAchievementRow = {
     profile_id: string;
     achievement_id: string;
@@ -29,9 +22,6 @@ export type QuizmonProfileAchievementRow = {
     reward_claimed_at: string | null;
 };
 
-/**
- * 프론트에서 쓰기 좋은 합쳐진 형태
- */
 export type QuizmonAchievementWithProgress = {
     achievement: QuizmonAchievementRow;
     progress: number;
@@ -40,13 +30,6 @@ export type QuizmonAchievementWithProgress = {
     claimable: boolean;
 };
 
-/**
- * 특정 프로필의 업적 목록 + 진행도 로딩
- *
- * 1) 활성화된 업적(quizmon_achievements where is_active = true)
- * 2) 해당 프로필의 진행도(quizmon_profile_achievements where profile_id = ...)
- * 를 두 번에 나눠서 읽고 merge 합니다.
- */
 export async function loadAchievementsForProfile(
     profileId: string,
 ): Promise<QuizmonAchievementWithProgress[]> {
@@ -60,11 +43,14 @@ export async function loadAchievementsForProfile(
         .order("created_at", { ascending: true });
 
     if (achError) {
-        console.error("[quizmonAchievements] loadAchievements master error", achError);
+        console.error(
+            "[quizmonAchievements] loadAchievements master error",
+            achError,
+        );
         throw new Error("업적 정보를 불러오는 중 오류가 발생했습니다.");
     }
 
-    // 2) 프로필별 진행도
+    // 2) 프로필별 진행/보상 상태
     const { data: progressRows, error: progressError } = await supabase
         .from("quizmon_profile_achievements")
         .select("*")
@@ -82,17 +68,84 @@ export async function loadAchievementsForProfile(
         string,
         QuizmonProfileAchievementRow
     >();
-
     for (const row of progressRows ?? []) {
         progressByAchievementId.set(row.achievement_id, row);
     }
 
+    // 3) 프로필 요약 스탯 (퀴즈 정답 수, 배틀 클리어 수, 레이드 참여 수 등)
+    const { data: profileRow, error: profileError } = await supabase
+        .from("quizmon_profiles")
+        .select("id, total_battles, total_correct, total_raids")
+        .eq("id", profileId)
+        .maybeSingle();
+
+    if (profileError) {
+        console.warn(
+            "[quizmonAchievements] loadAchievements profile stats error",
+            profileError,
+        );
+    }
+
+    const anyProfile = (profileRow ?? {}) as any;
+    const totalBattles: number = anyProfile.total_battles ?? 0;
+    const totalCorrect: number = anyProfile.total_correct ?? 0;
+    const totalRaids: number = anyProfile.total_raids ?? 0;
+
+    // 4) 보유 몬스터/도감 정보
+    const { data: ownedRows, error: ownedError } = await supabase
+        .from("quizmon_owned_monsters")
+        .select("species_id")
+        .eq("profile_id", profileId);
+
+    if (ownedError) {
+        console.warn(
+            "[quizmonAchievements] loadAchievements owned error",
+            ownedError,
+        );
+    }
+
+    const ownedList = ownedRows ?? [];
+    const monsterOwnedCount = ownedList.length;
+    const dexRegisterCount = new Set(
+        ownedList.map((r: any) => r.species_id as string),
+    ).size;
+
+    // 5) merge
     const result: QuizmonAchievementWithProgress[] = [];
 
     for (const a of (achRows ?? []) as QuizmonAchievementRow[]) {
         const pa = progressByAchievementId.get(a.id);
-        const progress = pa?.progress ?? 0;
-        const completed = !!pa?.completed_at;
+
+        // condition_type 별로 진행도 계산
+        let derivedProgress: number | null = null;
+        switch (a.condition_type) {
+            case "quiz_correct":
+                derivedProgress = totalCorrect;
+                break;
+            case "battle_clear":
+                derivedProgress = totalBattles;
+                break;
+            case "raid_participation":
+                derivedProgress = totalRaids;
+                break;
+            case "monster_owned":
+                derivedProgress = monsterOwnedCount;
+                break;
+            case "dex_register":
+                derivedProgress = dexRegisterCount;
+                break;
+            default:
+                // 나중에 이벤트형 업적 추가 시, DB에 저장된 progress 사용
+                derivedProgress = null;
+                break;
+        }
+
+        const storedProgress = pa?.progress ?? 0;
+        const progress =
+            derivedProgress != null ? derivedProgress : storedProgress;
+
+        const target = a.condition_value ?? 0;
+        const completed = progress >= target && target > 0;
         const claimed = !!pa?.reward_claimed_at;
         const claimable = completed && !claimed && a.reward_gems > 0;
 
@@ -109,15 +162,7 @@ export async function loadAchievementsForProfile(
 }
 
 /**
- * 업적 보상 수령 RPC
- *
- * ─ DB 쪽에서 만들어 둔 함수 이름/파라미터에 맞춰 호출합니다.
- *   여기서는 예시로:
- *
- *   create or replace function public.claim_quizmon_achievement_reward(
- *     _profile_id uuid,
- *     _achievement_code text
- *   ) ...
+ * 업적 보상 수령 RPC (기존 그대로)
  */
 export async function claimAchievementRewardRpc(
     profileId: string,
