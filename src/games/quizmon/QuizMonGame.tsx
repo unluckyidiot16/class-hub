@@ -36,6 +36,9 @@ import {
 import type { QuizmonRaidSessionRow } from "./quizmonRaidSessions";
 import { getActiveRaidSession } from "./quizmonRaidSessions";
 import type { MainTabKey } from "./QuizMonLobbyOverlay";
+import type { ArenaOpponent } from "./ArenaTab";
+import type { TowerFloor } from "./BattleTowerTab";
+
 
 function getDefaultAbilityForSpecies(species: QuizmonSpeciesRow) {
     // HP 1/3 이하일 때 풀 기술 1.5배
@@ -144,9 +147,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         
         try {
             await healAllMonstersService(localProfile.id);
-            
-            // TODO: 필요하면 여기서 몬스터/프로필 리로드 함수 호출
-            // 예: await refreshCollection();, await reloadProfile();
         } catch (error) {
             console.error("[QuizMonGame] handleHealAll error", error);
             alert("파티 전체 회복 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
@@ -996,101 +996,6 @@ export function QuizMonGame(props: QuizMonGameProps) {
         }
     };
 
-    // 🔹 현재 파티(quizmon_owned_monsters.party_slot 1~3)를
-    //    아레나 공격/방어 파티로 업로드
-    const uploadArenaPartyFromCurrentTeam = async (
-        mode: "attack" | "defense" | "both" = "both",
-    ) => {
-        const profileId = props.profileId;
-        if (!profileId) {
-            alert("로그인된 트레이너 프로필이 있어야 아레나 파티를 등록할 수 있어요.");
-            return;
-        }
-
-        try {
-            // 1) 내 파티 슬롯 1~3 불러오기
-            const { data: owned, error: ownedError } = await supabase
-                .from("quizmon_owned_monsters")
-                .select(
-                    [
-                        "id",
-                        "profile_id",
-                        "species_id",
-                        "level",
-                        "exp",
-                        "party_slot",
-                        "current_hp",
-                        "is_fainted",
-                        "learned_moves",
-                        "equipped_moves",
-                    ].join(", "),
-                )
-                .eq("profile_id", profileId)
-                .in("party_slot", [1, 2, 3])
-                .order("party_slot", { ascending: true });
-
-            if (ownedError) {
-                console.error("[Arena] load party error", ownedError);
-                alert("파티 정보를 불러오는 중 오류가 발생했습니다.");
-                return;
-            }
-
-            // ✅ Supabase 타입에 GenericStringError가 섞여 들어오는 문제를 피하기 위해
-            //    명시적으로 QuizmonOwnedMonsterRow[] 로 캐스팅해서 사용
-            const ownedRows = (owned ?? []) as unknown as QuizmonOwnedMonsterRow[];
-            const slots = [1, 2, 3].map(
-                (slot) =>
-                    ownedRows.find((m) => m.party_slot === slot) ?? null,
-            );
-            
-            if (!slots.some((m) => m !== null)) {
-                alert("파티 슬롯(1~3)에 등록된 몬스터가 없습니다.");
-                return;
-            }
-
-            // 2) 업서트 payload 구성
-            const payload: any = {
-                profile_id: profileId,
-                updated_at: new Date().toISOString(),
-            };
-
-            if (mode === "attack" || mode === "both") {
-                payload.attack_slot1_owned_id = slots[0]?.id ?? null;
-                payload.attack_slot2_owned_id = slots[1]?.id ?? null;
-                payload.attack_slot3_owned_id = slots[2]?.id ?? null;
-            }
-
-            if (mode === "defense" || mode === "both") {
-                payload.defense_slot1_owned_id = slots[0]?.id ?? null;
-                payload.defense_slot2_owned_id = slots[1]?.id ?? null;
-                payload.defense_slot3_owned_id = slots[2]?.id ?? null;
-            }
-
-            // 3) 한 명당 하나만 유지되도록 profile_id 기준 upsert
-            const { error: upsertError } = await supabase
-                .from("quizmon_arena_profiles")
-                .upsert(payload, { onConflict: "profile_id" });
-
-            if (upsertError) {
-                console.error("[Arena] upsert error", upsertError);
-                alert("아레나 파티 등록 중 오류가 발생했습니다.");
-                return;
-            }
-
-            if (mode === "both") {
-                alert("현재 파티를 아레나 공격/방어 파티로 등록했습니다!");
-            } else if (mode === "attack") {
-                alert("현재 파티를 아레나 공격 파티로 등록했습니다!");
-            } else {
-                alert("현재 파티를 아레나 방어 파티로 등록했습니다!");
-            }
-        } catch (err) {
-            console.error("[Arena] unexpected error", err);
-            alert("아레나 파티 등록 중 예기치 못한 오류가 발생했습니다.");
-        }
-    };
-     
-
     type ArenaOpponentRow = {
         profile_id: string;
         defense_slot1_owned_id: string | null;
@@ -1385,6 +1290,79 @@ export function QuizMonGame(props: QuizMonGameProps) {
             console.error("[Arena] unexpected error", err);
             alert("아레나 배틀 시작 중 예기치 못한 오류가 발생했습니다.");
         }
+    };
+
+    // ✅ 특정 아레나 상대와 전투 시작 (추천 상대 카드 클릭용)
+    // ✅ 아레나 탭에서 선택한 상대와 전투 시작
+    const startArenaBattleWithOpponent = async (opponent: ArenaOpponent) => {
+        const myProfileId = props.profileId;
+        if (!myProfileId) {
+            alert("로그인된 트레이너 프로필이 있어야 아레나 배틀을 할 수 있어요.");
+            return;
+        }
+
+        try {
+            // 1) 상대의 아레나 프로필에서 방어 파티 owned_id 들 가져오기
+            const { data, error } = await supabase
+                .from("quizmon_arena_profiles")
+                .select(
+                    [
+                        "profile_id",
+                        "defense_slot1_owned_id",
+                        "defense_slot2_owned_id",
+                        "defense_slot3_owned_id",
+                    ].join(", "),
+                )
+                .eq("profile_id", opponent.id)
+                .maybeSingle();
+            
+                type ArenaOpponentRowLite = {
+                    profile_id: string;
+                    defense_slot1_owned_id: string | null;
+                    defense_slot2_owned_id: string | null;
+                    defense_slot3_owned_id: string | null;
+                };
+                const row = (data ?? null) as ArenaOpponentRowLite | null;
+                
+                if (error || !row) {
+                    console.error("[Arena] load single opponent error", error, row);            
+                    alert("상대의 아레나 파티 정보를 불러오지 못했어요.");
+                return;
+                }
+                
+
+                await resetBattleWithArenaOpponent(myProfileId, {
+                    profile_id: row.profile_id,
+                    defense_slot1_owned_id: row.defense_slot1_owned_id,
+                    defense_slot2_owned_id: row.defense_slot2_owned_id,
+                    defense_slot3_owned_id: row.defense_slot3_owned_id,
+                });
+
+                setBattleMode("dungeon"); // UI는 던전 스타일 재사용
+                setViewState("battle");
+
+            } catch (err) {
+                console.error("[Arena] startArenaBattleWithOpponent error", err);
+                alert("아레나 배틀 준비 중 오류가 발생했습니다.");
+            }
+        };
+
+    // ✅ 배틀 타워 층 전투 시작
+    const startBattleTowerFloor = async (floor: TowerFloor) => {
+        const myProfileId = props.profileId;
+        if (!myProfileId) {
+            alert("로그인된 트레이너 프로필이 있어야 배틀 타워에 도전할 수 있어요.");
+            return;
+        }
+
+        // TowerFloor.id 를 DUNGEON_CONFIGS 의 id 와 매핑해서 사용
+        // 지금은 1:1로 쓰고, 나중에 필요하면 매핑 테이블을 따로 둘 수 있어요.
+        const dungeonId = floor.id;
+
+        setSelectedDungeonId(dungeonId);
+        setBattleMode("dungeon");
+        handleReset("dungeon");
+        setViewState("battle");
     };
 
 
@@ -1776,9 +1754,13 @@ export function QuizMonGame(props: QuizMonGameProps) {
                             }}
 
                             onSelectGacha={() => setViewState("gacha")}
-                            onRegisterArenaParty={() => {
-                                // 현재 파티를 공격+방어 한 번에 등록
-                                void uploadArenaPartyFromCurrentTeam("both");
+
+                            // 🔹 추가: 아레나 / 타워 전투 시작 콜백
+                            onStartArenaBattle={(opponent) => {
+                                void startArenaBattleWithOpponent(opponent);
+                            }}
+                            onStartBattleTower={(floor) => {
+                                void startBattleTowerFloor(floor);
                             }}
                             onSelectGhostBattle={() => {
                                 void startArenaBattleWithRandomOpponent();

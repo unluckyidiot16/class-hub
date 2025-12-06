@@ -53,11 +53,17 @@ export type QuizMonLobbyOverlayProps = {
     onSelectRaid: () => void;
     onSelectGacha: () => void;
 
-    // 🔹 아레나: 현재 파티를 아레나 공격/방어 파티로 등록
+
     onRegisterArenaParty?: () => void;
-    
-    // 🔹 고스트 배틀 (선택사항: 상위 컴포넌트에서만 필요할 때 전달)
     onSelectGhostBattle?: () => void;
+
+    // 아레나
+    arenaOpponents?: ArenaOpponent[];
+    onStartArenaBattle?: (opponent: ArenaOpponent) => void;
+
+    // 배틀 타워
+    towerFloors?: TowerFloor[];
+    onStartBattleTower?: (floor: TowerFloor) => void;
     
     lastRaidResult?: { correct: number; total: number } | null;
     onBuyExpDust?: (quantity?: number) => Promise<void> | void;
@@ -88,16 +94,22 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
         onSelectDungeon,
         onSelectRaid,
         onSelectGacha,
-        lastRaidResult,
-        onBuyExpDust,
-        onSelectGhostBattle,
         onRegisterArenaParty,
+        arenaOpponents,
+        onSelectGhostBattle,
+        onStartArenaBattle,
+        onStartBattleTower,
+        lastRaidResult,
+        towerFloors,
+        onBuyExpDust,
     } = props;
 
     const [arenaRating, setArenaRating] = useState<number | null>(null);
     const [opponentList, setOpponentList] = useState<ArenaOpponent[]>([]);
 
-    const [towerFloors, setTowerFloors] = useState<TowerFloor[]>([]);
+    void arenaRating;
+    void opponentList;
+
     
     // ✅ 도감 탭에서 포커스할 종
     const [dexSelectedSpeciesId, setDexSelectedSpeciesId] =
@@ -468,203 +480,6 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                 ),
         [monsters],
     );
-    // QuizMonLobbyOverlay 컴포넌트 내부
-
-    type EnemyTeamJson = any;
-
-    // enemy_team: { monsters: [{ species_id, level }, ...] } 형식이라고 가정
-    function parseMonstersFromEnemyTeam(
-        enemyTeam: EnemyTeamJson | null,
-    ): { speciesId: string; level?: number | null }[] {
-        if (!enemyTeam) return [];
-
-        let arr: any[] = [];
-
-        if (Array.isArray(enemyTeam)) {
-            arr = enemyTeam;
-        } else if (Array.isArray(enemyTeam.monsters)) {
-            arr = enemyTeam.monsters;
-        } else if (Array.isArray(enemyTeam.party)) {
-            arr = enemyTeam.party;
-        }
-
-        return arr
-            .slice(0, 3)
-            .map((m) => ({
-                speciesId:
-                    m.species_id ?? m.speciesId ?? "",
-                level: m.level ?? null,
-            }))
-            .filter((m) => !!m.speciesId);
-    }
-
-    useEffect(() => {
-        const profileId = effectiveProfile?.id;
-        if (!profileId) {
-            setTowerFloors([]);
-            return;
-        }
-
-        let cancelled = false;
-
-        const loadTowerFloors = async () => {
-            try {
-                // 1) 타워용 던전 메타 (id 가 'tower-%' 인 것만)
-                const {
-                    data: dungeonRows,
-                    error: dungeonError,
-                } = await supabase
-                    .from("quizmon_dungeons")
-                    .select(
-                        "id, name, description, recommended_level, enemy_team",
-                    )
-                    .ilike("id", "tower-%")
-                    .order("id", { ascending: true });
-
-                if (dungeonError) {
-                    console.error(
-                        "[tower] dungeons error",
-                        dungeonError,
-                    );
-                    if (!cancelled) setTowerFloors([]);
-                    return;
-                }
-
-                // ✅ 실제 타워 던전이 없으면, 프론트에서 임시 5층 생성
-                if (!dungeonRows || dungeonRows.length === 0) {
-                    if (cancelled) return;
-
-                    const speciesIds =
-                        attackParty.length > 0
-                            ? attackParty.map((m) => m.species_id)
-                            : ["bulbasaur", "charmander", "squirtle"];
-
-                    const baseLevel = attackParty.reduce(
-                        (max, m) => Math.max(max, m.level ?? 1),
-                        1,
-                    );
-
-                    const maxFloor = 5;
-
-                    const dummyFloors: TowerFloor[] = Array.from(
-                        { length: maxFloor },
-                        (_, idx) => {
-                            const floorNo = idx + 1;
-                            const slotCount = floorNo <= 2 ? 1 : floorNo <= 4 ? 2 : 3;
-                            const monsters = Array.from({ length: slotCount }, (_, i) => ({
-                                speciesId: speciesIds[i % speciesIds.length],
-                                level: baseLevel + floorNo * 2,
-                            }));
-
-                            return {
-                                id: `dummy-tower-${floorNo}`,
-                                floor: floorNo,
-                                name: `배틀 타워 ${floorNo}층`,
-                                recommendedRating: 900 + floorNo * 50,
-                                cleared: false,
-                                locked: floorNo > 1, // 1층만 오픈
-                                monsters,
-                            };
-                        },
-                    );
-
-                    setTowerFloors(dummyFloors);
-                    return;
-                }
-
-                const dungeons = dungeonRows ?? [];
-                if (dungeons.length === 0) {
-                    if (!cancelled) setTowerFloors([]);
-                    return;
-                }
-
-                const dungeonIds = dungeons.map(
-                    (d) => d.id,
-                );
-
-                // 2) 내 클리어 이력
-                const {
-                    data: runRows,
-                    error: runsError,
-                } = await supabase
-                    .from("quizmon_dungeon_runs")
-                    .select("dungeon_id, result")
-                    .eq("profile_id", profileId)
-                    .in("dungeon_id", dungeonIds);
-
-                if (runsError) {
-                    console.error(
-                        "[tower] dungeon_runs error",
-                        runsError,
-                    );
-                }
-
-                const runList = runRows ?? [];
-
-                const clearedSet = new Set(
-                    runList
-                        .filter(
-                            (r) => r.result === "clear",
-                        )
-                        .map((r) => r.dungeon_id),
-                );
-
-                // 가장 높은 클리어 층 index
-                let maxClearedIndex = -1;
-                dungeons.forEach((d, idx) => {
-                    if (clearedSet.has(d.id)) {
-                        if (idx > maxClearedIndex) {
-                            maxClearedIndex = idx;
-                        }
-                    }
-                });
-
-                const floors: TowerFloor[] =
-                    dungeons.map((d, idx) => {
-                        const floorNo = idx + 1;
-                        const cleared =
-                            clearedSet.has(d.id);
-                        const locked =
-                            idx >
-                            maxClearedIndex + 1; // (클리어층+1)까지만 오픈
-
-                        const monsters =
-                            parseMonstersFromEnemyTeam(
-                                d.enemy_team,
-                            );
-
-                        return {
-                            id: d.id,
-                            floor: floorNo,
-                            name:
-                                d.name ??
-                                `타워 ${floorNo}층`,
-                            recommendedRating:
-                                d.recommended_level ??
-                                undefined,
-                            cleared,
-                            locked,
-                            monsters,
-                        };
-                    });
-
-                if (!cancelled) {
-                    setTowerFloors(floors);
-                }
-            } catch (err) {
-                console.error("[tower] load error", err);
-                if (!cancelled) setTowerFloors([]);
-            }
-        };
-
-        void loadTowerFloors();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [effectiveProfile?.id]);
-
-
 
     useEffect(() => {
         if (!effectiveProfile?.id) {
@@ -1128,34 +943,36 @@ export function QuizMonLobbyOverlay(props: QuizMonLobbyOverlayProps) {
                         </div>
                     )}
                     {menuTab === "arena" && (
-                        <ArenaTab
-                            profile={effectiveProfile}
-                            rating={arenaRating ?? undefined}
-                            attackParty={attackParty}
-                            defenseParty={attackParty /* 임시 */}
-                            opponents={opponentList}
-                            onSelectOpponent={(opponent) => {
-                                console.log("[arena] 선택 상대", opponent);
-                                // TODO: 아레나 배틀 시작 코드
-                            }}
-                        />
+                                            <ArenaTab
+                                                profile={profile ?? localProfile}
+                                                // 🔹 아직 프로필에 arena_rating 컬럼이 없으므로,
+                                                //    ELO는 내부 기본값(1000) 사용
+                                                rating={arenaRating ?? undefined}
+                                                tierLabel={undefined}
+                                                // 공격/방어 덱: 일단 파티 슬롯(1~3) 기준 동일하게 사용
+                                                attackParty={(monsters ?? []).filter(
+                                                    (m) =>
+                                                        (m.party_slot ?? 0) >= 1 &&
+                                                        (m.party_slot ?? 0) <= 3,
+                                                )}
+                                                defenseParty={(monsters ?? []).filter(
+                                                    (m) =>
+                                                        (m.party_slot ?? 0) >= 1 &&
+                                                        (m.party_slot ?? 0) <= 3,
+                                                )}
+                                                // 외부에서 내려주면 그걸 우선 사용, 없으면 로컬 opponentList 사용
+                                                opponents={arenaOpponents ?? opponentList}
+                                                onSelectOpponent={onStartArenaBattle}
+                                            /> 
                     )}
-
-                    {menuTab === "tower" && (
-                        <BattleTowerTab
-                            profile={effectiveProfile}
-                            floors={towerFloors}
-                            onSelectFloor={(floor) => {
-                                console.log(
-                                    "[tower] 선택 층",
-                                    floor.floor,
-                                    floor.id,
-                                );
-                                // TODO: 여기서 floor.id 기반으로
-                                // quizmon_dungeons / dungeon_run 시작 로직 연결
-                            }}
-                        />
-                    )}
+                    
+                                    {menuTab === "tower" && (
+                                        <BattleTowerTab
+                                            profile={profile ?? localProfile}
+                                            floors={towerFloors ?? []}
+                                            onSelectFloor={onStartBattleTower}
+                                        />
+                                    )}
                 </div>
             </div>
         </div>
