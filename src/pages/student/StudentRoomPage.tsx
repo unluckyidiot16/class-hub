@@ -317,6 +317,8 @@ export function StudentRoomPage() {
             (state.gameKey as GameKey) ??
             "quiz-only");
 
+    const isAutoPptRoom = room?.game_key === "autoppt";
+
     const gameSpec = GAME_REGISTRY[effectiveGameKey];
     const isIframeGame = gameSpec?.mode === "iframe";
     const isReactGame = gameSpec?.mode === "react-component";
@@ -691,7 +693,7 @@ export function StudentRoomPage() {
     const roomTitle = state.roomTitle ?? room.title;
     const roomCode = state.roomCode ?? room.code;
 
-    const isGameRoom = isIframeGame || isReactGame;
+    const isGameRoom = isIframeGame || isReactGame || isAutoPptRoom;
 
     // iframe 게임일 때 기본 URL 생성 (QDD, Pixel 등)
     const currentGameSpec = gameSpec;
@@ -874,33 +876,38 @@ export function StudentRoomPage() {
                 </div>
             )}
             <AutoPptStudentPanel roomId={roomId ?? null} />;
-            
-            {/* 현재 문제 / 게임 영역: StudentGamePanel로 위임 */}
-            <StudentGamePanel
-                gameKey={effectiveGameKey}
-                roomId={room.id}
-                pack={pack}
-                session={session as any}
-                currentQuestion={currentQuestion as any}
-                totalQuestions={questionCount ?? 0}
-                currentIndex={session?.current_index ?? 0}
-                selectedIndex={selectedIndex}
-                isCorrect={null}
-                submitting={submitting}
-                // 라이브 세션용 builtin-quiz 브랜치
-                hasAnswered={hasAnswered}
-                submitMessage={submitMessage}
-                onAnswerClick={handleSubmitAnswer}
-                // React 기반 게임(QuizMon)용 메타
-                classId={room.class_id}
-                gameSessionId={gameSessionId}
-                studentId={studentId}
-                // iframe 게임(QDD / Pixel)용 설정
-                iframeSrc={gameUrl ?? null}
-                iframeRef={iframeRef}
-                isGameFullscreen={isGameFullscreen}
-                onToggleFullscreen={setIsGameFullscreen}
-            />
+
+            {/* AutoPPT는 autoppt 방에서만 */}
+            {isAutoPptRoom && (
+                <AutoPptStudentPanel roomId={roomId ?? null} />
+            )}
+
+            {/* 기존 퀴즈/게임 영역 */}
+            {!isAutoPptRoom && (
+                <StudentGamePanel
+                    gameKey={effectiveGameKey}
+                    roomId={room.id}
+                    pack={pack}
+                    session={session as any}
+                    currentQuestion={currentQuestion as any}
+                    totalQuestions={questionCount ?? 0}
+                    currentIndex={session?.current_index ?? 0}
+                    selectedIndex={selectedIndex}
+                    isCorrect={null}
+                    submitting={submitting}
+                    hasAnswered={hasAnswered}
+                    submitMessage={submitMessage}
+                    onAnswerClick={handleSubmitAnswer}
+                    classId={room.class_id}
+                    gameSessionId={gameSessionId}
+                    studentId={studentId}
+                    iframeSrc={gameUrl ?? null}
+                    iframeRef={iframeRef}
+                    isGameFullscreen={isGameFullscreen}
+                    onToggleFullscreen={setIsGameFullscreen}
+                />
+            )}
+
 
             {/* 선생님 알림 카드 */}
             {messages.length > 0 && (

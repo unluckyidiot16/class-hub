@@ -525,6 +525,8 @@ export function TeacherRoomLivePage() {
     >({});
     const [selectedDungeonId, setSelectedDungeonId] = useState<string | null>(null);
 
+    const isAutoPptRoom = room?.game_key === "autoppt";
+    
     const dungeonSummaries: DungeonEnemySummary[] =
         useMemo(() => getAllDungeonEnemySummaries(), []);
 
@@ -3259,8 +3261,12 @@ export function TeacherRoomLivePage() {
                 </div>
             </div>
 
-            <AutoPptTeacherPanel roomId={roomId ?? null} />;
-            
+
+            {isAutoPptRoom && (
+                <AutoPptTeacherPanel roomId={roomId ?? null} />
+            )}
+
+
             {/* 🔹 QuizMon 전용 클래스 패널 (교사용 미리보기) */}
             {room?.game_key === "quizmon" && pack && (
                 <div className="card">
