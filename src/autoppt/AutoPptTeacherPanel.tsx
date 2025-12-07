@@ -8,6 +8,9 @@ import {
     type AutopptDocRow,
 } from "../api/autopptDocs";
 import { PdfSinglePageViewer } from "./PdfSinglePageViewer";
+import { AutoPptQuestionPanel, type LiveQuestionPayload } from "./AutoPptQuestionPanel";
+
+
 
 export type AutoPptTeacherPanelProps = {
     roomId: string | null;
@@ -105,6 +108,39 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
             payload: { pageIndex },
         });
     }, []);
+
+    const broadcastQuestion = useCallback(
+        (question: LiveQuestionPayload) => {
+            if (!channelRef.current) return;
+
+            channelRef.current.send({
+                type: "broadcast",
+                event: "PRESENT_QUESTION",
+                payload: {
+                    question,
+                },
+            });
+        },
+        [],
+    );
+
+    const handlePresentQuestion = useCallback(
+        (question: LiveQuestionPayload) => {
+            try {
+                broadcastQuestion(question);
+            } catch (err) {
+                console.error(
+                    "[AutoPPT Teacher] broadcast question error",
+                    err,
+                );
+                alert(
+                    "질문을 학생들에게 전송하는 중 오류가 발생했습니다.",
+                );
+            }
+        },
+        [broadcastQuestion],
+    );
+
 
     // ✅ 현재 방의 학생 화면을 새 창으로 열기
     const handleOpenStudentWindow = useCallback(() => {
@@ -450,6 +486,31 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                             </div>
                         )}
                     </div>
+
+                    {doc && (
+                        <>
+                            {/* ...기존 상단 정보 + 뷰어 부분... */}
+
+                            {/* 이 페이지용 문제 리스트 + 출제 패널 */}
+                            <div
+                                style={{
+                                    marginTop: 8,
+                                    borderRadius: 8,
+                                    border: "1px solid rgba(31,41,55,0.9)",
+                                    padding: 8,
+                                    background:
+                                        "radial-gradient(circle at top, rgba(15,23,42,1), rgba(15,23,42,0.98))",
+                                }}
+                            >
+                                <AutoPptQuestionPanel
+                                    doc={doc}
+                                    currentPage={currentPage}
+                                    onPresentQuestion={handlePresentQuestion}
+                                />
+                            </div>
+                        </>
+                    )}
+
                 </>
             )}
         </div>

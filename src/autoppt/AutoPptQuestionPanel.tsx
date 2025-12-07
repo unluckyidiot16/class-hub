@@ -1,153 +1,157 @@
 // src/autoppt/AutoPptQuestionPanel.tsx
 import { useEffect, useState } from "react";
 import type { AutopptDocRow } from "../api/autopptDocs";
+import type { AutopptQuestionRow } from "../api/autopptQuestions";
 import {
-    type AutopptQuestionRow,
-    listAutopptQuestions,
+    listAutopptQuestionsByDocAndPage,
     createAutopptQuestion,
     deleteAutopptQuestion,
-} from "./autopptQuestions";
+} from "../api/autopptQuestions";
+
+export type LiveQuestionPayload = {
+    id: string;
+    prompt: string;
+    options?: string[] | null;
+    answerIndex?: number | null;
+    timeLimitSec?: number | null;
+};
 
 export type AutoPptQuestionPanelProps = {
-    roomId: string | null;
     doc: AutopptDocRow | null;
-    /** 0-based page index from AutoPptTeacherPanel */
+    /** 0 기반 페이지 인덱스 */
     currentPage: number;
+    /** "출제" 버튼 눌렀을 때 Realtime으로 브로드캐스트하는 콜백 */
+    onPresentQuestion?: (q: LiveQuestionPayload) => void;
 };
 
 export function AutoPptQuestionPanel({
-                                         roomId,
                                          doc,
                                          currentPage,
+                                         onPresentQuestion,
                                      }: AutoPptQuestionPanelProps) {
     const [questions, setQuestions] = useState<AutopptQuestionRow[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // 새 문제 폼 상태
-    const [prompt, setPrompt] = useState("");
-    const [options, setOptions] = useState<string[]>(["", "", "", ""]);
-    const [answerIndex, setAnswerIndex] = useState(0);
-    const [timeLimit, setTimeLimit] = useState(30);
-    const [saving, setSaving] = useState(false);
+    const [promptInput, setPromptInput] = useState("");
+    const [optionsInput, setOptionsInput] = useState("");
+    const [answerIndexInput, setAnswerIndexInput] = useState<string>("");
 
-    const humanPage = currentPage + 1;
-
-    // 슬라이드 변경 시 문제 목록 로딩
+    // 현재 문서 + 페이지 기준 문제 목록 로딩
     useEffect(() => {
-        if (!roomId || !doc) {
+        if (!doc) {
             setQuestions([]);
             return;
         }
 
         let cancelled = false;
-        setLoading(true);
-        setError(null);
 
-        listAutopptQuestions({
-            docId: doc.id,
-            pageNumber: humanPage,
-            roomId,
-        })
-            .then((rows) => {
-                if (cancelled) return;
-                setQuestions(rows);
-            })
-            .catch((err) => {
-                console.error("[AutoPptQuestionPanel] list error", err);
-                if (cancelled) return;
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "문제를 불러오는 중 오류가 발생했습니다.",
+        const run = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const list = await listAutopptQuestionsByDocAndPage(
+                    doc.id,
+                    currentPage,
                 );
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
-            });
+                if (!cancelled) {
+                    setQuestions(list);
+                }
+            } catch (err: any) {
+                console.error("[AutoPPT] load questions error", err);
+                if (!cancelled) {
+                    setError(
+                        err?.message ?? "문제 목록을 불러오지 못했습니다.",
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void run();
 
         return () => {
             cancelled = true;
         };
-    }, [roomId, doc?.id, humanPage]);
+    }, [doc, currentPage]);
 
-    const handleOptionChange = (index: number, value: string) => {
-        setOptions((prev) => {
-            const next = [...prev];
-            next[index] = value;
-            return next;
-        });
-    };
+    const handleCreateQuestion = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!doc) return;
+        if (!promptInput.trim()) return;
 
-    const handleCreate = async () => {
-        if (!roomId || !doc) return;
-        if (!prompt.trim()) {
-            setError("문제 내용을 입력해 주세요.");
-            return;
-        }
+        const rawOptions = optionsInput
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean);
+        const answerIdx = answerIndexInput.trim()
+            ? Number(answerIndexInput.trim())
+            : null;
 
-        setSaving(true);
-        setError(null);
         try {
-            const row = await createAutopptQuestion({
+            const created = await createAutopptQuestion({
                 docId: doc.id,
-                roomId,
-                pageNumber: humanPage,
-                prompt: prompt.trim(),
-                options,
-                answerIndex,
-                timeLimitSeconds: timeLimit,
+                pageIndex: currentPage,
+                prompt: promptInput.trim(),
+                options: rawOptions.length > 0 ? rawOptions : undefined,
+                answerIndex:
+                    typeof answerIdx === "number" &&
+                    !Number.isNaN(answerIdx)
+                        ? answerIdx
+                        : null,
             });
 
-            setQuestions((prev) => [...prev, row]);
-            setPrompt("");
-            setOptions(["", "", "", ""]);
-            setAnswerIndex(0);
-            setTimeLimit(30);
+            setQuestions((prev) => [...prev, created]);
+            setPromptInput("");
+            setOptionsInput("");
+            setAnswerIndexInput("");
         } catch (err) {
-            console.error("[AutoPptQuestionPanel] create error", err);
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "문제를 저장하는 중 오류가 발생했습니다.",
-            );
-        } finally {
-            setSaving(false);
+            // 에러는 이미 console에 찍음
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm("이 문제 카드를 삭제할까요?")) return;
-
+    const handleDelete = async (q: AutopptQuestionRow) => {
+        if (!window.confirm("이 문제를 삭제할까요?")) return;
         try {
-            await deleteAutopptQuestion(id);
-            setQuestions((prev) => prev.filter((q) => q.id !== id));
-        } catch (err) {
-            console.error("[AutoPptQuestionPanel] delete error", err);
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "문제를 삭제하는 중 오류가 발생했습니다.",
-            );
+            await deleteAutopptQuestion(q.id);
+            setQuestions((prev) => prev.filter((x) => x.id !== q.id));
+        } catch {
+            // noop
         }
     };
 
-    // 방 / 문서가 없을 때 안내
-    if (!roomId || !doc) {
+    const handlePresentClick = (q: AutopptQuestionRow) => {
+        if (!onPresentQuestion) return;
+        const payload: LiveQuestionPayload = {
+            id: q.id,
+            prompt: q.prompt,
+            options: q.options ?? undefined,
+            answerIndex:
+                typeof q.answer_index === "number"
+                    ? q.answer_index
+                    : undefined,
+            timeLimitSec:
+                typeof q.time_limit_sec === "number"
+                    ? q.time_limit_sec
+                    : undefined,
+        };
+        onPresentQuestion(payload);
+    };
+
+    const humanPage = currentPage + 1;
+
+    if (!doc) {
         return (
             <div
                 style={{
-                    padding: 12,
-                    borderRadius: 12,
-                    background: "rgba(15,23,42,0.9)",
-                    border: "1px solid rgba(31,41,55,0.9)",
-                    color: "#9ca3af",
                     fontSize: "0.8rem",
+                    color: "#9ca3af",
                 }}
             >
-                AutoPPT 문서가 없거나 방 정보가 없습니다.
-                <br />
-                먼저 PDF를 업로드한 뒤 문제를 등록해 주세요.
+                먼저 PDF를 업로드한 뒤, 페이지를 이동해서 문제를 등록해 주세요.
             </div>
         );
     }
@@ -157,339 +161,289 @@ export function AutoPptQuestionPanel({
             style={{
                 display: "flex",
                 flexDirection: "column",
-                height: "100%",
-                padding: 12,
-                borderRadius: 12,
-                background: "rgba(15,23,42,0.9)",
-                border: "1px solid rgba(31,41,55,0.9)",
-                color: "#e5e7eb",
-                gap: 8,
-                fontSize: "0.8rem",
+                gap: "0.5rem",
             }}
         >
-            {/* 헤더 */}
             <div
                 style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: 4,
+                    fontSize: "0.8rem",
                 }}
             >
-                <div>
+                <div
+                    style={{
+                        fontWeight: 600,
+                        color: "#e5e7eb",
+                    }}
+                >
+                    {humanPage}페이지 문제
+                </div>
+                {loading && (
                     <div
                         style={{
-                            fontSize: "0.85rem",
-                            fontWeight: 600,
-                        }}
-                    >
-                        이 페이지 문제 카드
-                    </div>
-                    <div
-                        style={{
-                            fontSize: "0.7rem",
+                            fontSize: "0.75rem",
                             color: "#9ca3af",
                         }}
                     >
-                        현재 슬라이드: {humanPage} 페이지
+                        불러오는 중...
                     </div>
-                </div>
-                <div
-                    style={{
-                        fontSize: "0.7rem",
-                        color: "#9ca3af",
-                    }}
-                >
-                    {questions.length}개 등록됨
-                </div>
+                )}
             </div>
-
-            {loading && (
-                <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>
-                    문제를 불러오는 중입니다...
-                </div>
-            )}
 
             {error && (
                 <div
                     style={{
                         fontSize: "0.75rem",
-                        color: "#fecaca",
-                        background: "rgba(127,29,29,0.3)",
-                        borderRadius: 8,
-                        padding: "4px 8px",
+                        color: "#f97373",
                     }}
                 >
                     {error}
                 </div>
             )}
 
-            {/* 문제 리스트 */}
-            <div
-                style={{
-                    flex: 1,
-                    overflowY: "auto",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 6,
-                    paddingRight: 4,
-                }}
-            >
-                {questions.length === 0 && !loading && (
-                    <div
-                        style={{
-                            fontSize: "0.75rem",
-                            color: "#9ca3af",
-                        }}
-                    >
-                        아직 이 페이지에 등록된 문제가 없습니다.
-                        <br />
-                        아래 폼에서 새 문제를 추가해 주세요.
-                    </div>
-                )}
-
-                {questions.map((q, index) => (
-                    <div
-                        key={q.id}
-                        style={{
-                            borderRadius: 8,
-                            border: "1px solid rgba(55,65,81,0.9)",
-                            padding: "6px 8px",
-                            background: "rgba(15,23,42,0.9)",
-                        }}
-                    >
+            {/* 기존 문제 목록 */}
+            {questions.length > 0 ? (
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.35rem",
+                        maxHeight: 180,
+                        overflowY: "auto",
+                    }}
+                >
+                    {questions.map((q, idx) => (
                         <div
+                            key={q.id}
                             style={{
+                                borderRadius: 8,
+                                border: "1px solid rgba(55,65,81,0.9)",
+                                background:
+                                    "linear-gradient(135deg, rgba(15,23,42,0.98), rgba(31,41,55,0.98))",
+                                padding: "0.4rem 0.5rem",
                                 display: "flex",
-                                justifyContent: "space-between",
-                                gap: 4,
-                                marginBottom: 4,
+                                gap: "0.5rem",
+                                alignItems: "flex-start",
                             }}
                         >
                             <div
                                 style={{
                                     fontSize: "0.75rem",
-                                    fontWeight: 600,
+                                    color: "#9ca3af",
+                                    minWidth: 18,
                                 }}
                             >
-                                Q{index + 1}.{" "}
-                                <span
+                                {idx + 1}.
+                            </div>
+                            <div
+                                style={{
+                                    flex: 1,
+                                    fontSize: "0.8rem",
+                                }}
+                            >
+                                <div
                                     style={{
-                                        fontWeight: 400,
+                                        whiteSpace: "pre-wrap",
+                                        marginBottom: "0.25rem",
                                     }}
                                 >
                                     {q.prompt}
-                                </span>
+                                </div>
+                                {q.options && q.options.length > 0 && (
+                                    <div
+                                        style={{
+                                            fontSize: "0.75rem",
+                                            color: "#9ca3af",
+                                        }}
+                                    >
+                                        보기 {q.options.length}개
+                                        {typeof q.answer_index === "number" &&
+                                            q.answer_index >= 0 &&
+                                            q.answer_index <
+                                            q.options.length && (
+                                                <>
+                                                    {" · 정답: "}
+                                                    {String.fromCharCode(
+                                                        65 +
+                                                        q.answer_index,
+                                                    )}
+                                                </>
+                                            )}
+                                    </div>
+                                )}
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => handleDelete(q.id)}
+                            <div
                                 style={{
-                                    fontSize: "0.7rem",
-                                    padding: "1px 6px",
-                                    borderRadius: 999,
-                                    border: "none",
-                                    background: "rgba(127,29,29,0.8)",
-                                    color: "#fee2e2",
-                                    cursor: "pointer",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.25rem",
                                 }}
                             >
-                                삭제
-                            </button>
-                        </div>
-                        <div
-                            style={{
-                                fontSize: "0.7rem",
-                                color: "#9ca3af",
-                                marginBottom: 2,
-                            }}
-                        >
-                            보기 {q.options.length}개 · 제한 시간{" "}
-                            {q.time_limit_seconds}초
-                        </div>
-                        <div
-                            style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 4,
-                                marginTop: 2,
-                            }}
-                        >
-                            {q.options.map((opt, oi) => (
-                                <span
-                                    key={oi}
+                                <button
+                                    type="button"
+                                    onClick={() => handlePresentClick(q)}
                                     style={{
-                                        fontSize: "0.7rem",
-                                        padding: "2px 6px",
+                                        fontSize: "0.75rem",
+                                        padding:
+                                            "0.2rem 0.5rem",
                                         borderRadius: 999,
-                                        border:
-                                            oi === q.answer_index
-                                                ? "1px solid rgba(52,211,153,0.9)"
-                                                : "1px solid rgba(55,65,81,0.9)",
+                                        border: "1px solid rgba(56,189,248,0.9)",
                                         background:
-                                            oi === q.answer_index
-                                                ? "rgba(5,46,22,0.9)"
-                                                : "transparent",
-                                        color:
-                                            oi === q.answer_index
-                                                ? "#bbf7d0"
-                                                : "#e5e7eb",
+                                            "linear-gradient(135deg, rgba(8,47,73,0.95), rgba(21,94,117,0.95))",
+                                        color: "#e0f2fe",
+                                        cursor: "pointer",
                                     }}
                                 >
-                                    {oi + 1}. {opt}
-                                </span>
-                            ))}
+                                    출제
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(q)}
+                                    style={{
+                                        fontSize: "0.7rem",
+                                        padding:
+                                            "0.15rem 0.5rem",
+                                        borderRadius: 999,
+                                        border: "1px solid rgba(148,163,184,0.8)",
+                                        background: "transparent",
+                                        color: "#e5e7eb",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    삭제
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <div
+                    style={{
+                        fontSize: "0.75rem",
+                        color: "#9ca3af",
+                    }}
+                >
+                    아직 이 페이지에 등록된 문제가 없습니다.
+                </div>
+            )}
 
-            {/* 새 문제 만들기 */}
-            <div
+            {/* 새 문제 등록 폼 */}
+            <form
+                onSubmit={handleCreateQuestion}
                 style={{
+                    marginTop: "0.35rem",
                     borderTop: "1px solid rgba(31,41,55,0.9)",
-                    paddingTop: 6,
-                    marginTop: 4,
+                    paddingTop: "0.4rem",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 4,
+                    gap: "0.35rem",
                 }}
             >
                 <div
                     style={{
-                        fontSize: "0.78rem",
-                        fontWeight: 600,
-                        marginBottom: 2,
+                        fontSize: "0.75rem",
+                        color: "#9ca3af",
                     }}
                 >
-                    + 새 문제 만들기
+                    이 페이지에 연결할 문제 추가
                 </div>
-
                 <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
+                    value={promptInput}
+                    onChange={(e) => setPromptInput(e.target.value)}
                     placeholder="문제 내용을 입력하세요."
-                    rows={2}
                     style={{
                         width: "100%",
+                        minHeight: 40,
                         resize: "vertical",
-                        fontSize: "0.75rem",
-                        padding: "4px 6px",
-                        borderRadius: 6,
+                        fontSize: "0.8rem",
+                        borderRadius: 8,
                         border: "1px solid rgba(55,65,81,0.9)",
-                        background: "#020617",
+                        padding: "0.35rem 0.5rem",
+                        background: "rgba(15,23,42,0.9)",
                         color: "#e5e7eb",
                     }}
                 />
-
-                <div
+                <textarea
+                    value={optionsInput}
+                    onChange={(e) => setOptionsInput(e.target.value)}
+                    placeholder={"보기(선택사항)를 줄바꿈으로 입력하세요.\n예)\nwatching TV\nreading a book\ncooking\ncleaning the room"}
                     style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 2,
+                        width: "100%",
+                        minHeight: 40,
+                        resize: "vertical",
+                        fontSize: "0.75rem",
+                        borderRadius: 8,
+                        border: "1px solid rgba(55,65,81,0.9)",
+                        padding: "0.35rem 0.5rem",
+                        background: "rgba(15,23,42,0.9)",
+                        color: "#e5e7eb",
                     }}
-                >
-                    {options.map((opt, idx) => (
-                        <div
-                            key={idx}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                            }}
-                        >
-                            <input
-                                type="radio"
-                                name="autoppt-answer"
-                                checked={answerIndex === idx}
-                                onChange={() => setAnswerIndex(idx)}
-                                style={{ marginRight: 4 }}
-                            />
-                            <input
-                                type="text"
-                                value={opt}
-                                onChange={(e) =>
-                                    handleOptionChange(idx, e.target.value)
-                                }
-                                placeholder={`보기 ${idx + 1}`}
-                                style={{
-                                    flex: 1,
-                                    fontSize: "0.75rem",
-                                    padding: "2px 6px",
-                                    borderRadius: 6,
-                                    border: "1px solid rgba(55,65,81,0.9)",
-                                    background: "#020617",
-                                    color: "#e5e7eb",
-                                }}
-                            />
-                        </div>
-                    ))}
-                </div>
-
+                />
                 <div
                     style={{
                         display: "flex",
-                        justifyContent: "space-between",
+                        gap: "0.5rem",
                         alignItems: "center",
-                        marginTop: 4,
-                        gap: 8,
+                        fontSize: "0.75rem",
                     }}
                 >
                     <label
                         style={{
-                            fontSize: "0.7rem",
-                            color: "#9ca3af",
                             display: "flex",
                             alignItems: "center",
-                            gap: 4,
+                            gap: "0.25rem",
                         }}
                     >
-                        제한 시간(초)
+                        <span
+                            style={{
+                                color: "#9ca3af",
+                            }}
+                        >
+                            정답 인덱스(선택):
+                        </span>
                         <input
                             type="number"
-                            min={5}
-                            max={300}
-                            value={timeLimit}
+                            min={0}
+                            value={answerIndexInput}
                             onChange={(e) =>
-                                setTimeLimit(
-                                    Math.max(
-                                        5,
-                                        Math.min(300, Number(e.target.value) || 30),
-                                    ),
-                                )
+                                setAnswerIndexInput(e.target.value)
                             }
                             style={{
                                 width: 60,
                                 fontSize: "0.75rem",
-                                padding: "2px 4px",
-                                borderRadius: 4,
-                                border: "1px solid rgba(55,65,81,0.9)",
-                                background: "#020617",
+                                borderRadius: 999,
+                                border: "1px solid rgba(75,85,99,0.9)",
+                                padding: "0.1rem 0.4rem",
+                                background:
+                                    "rgba(15,23,42,0.9)",
                                 color: "#e5e7eb",
                             }}
                         />
                     </label>
-
                     <button
-                        type="button"
-                        onClick={handleCreate}
-                        disabled={saving}
+                        type="submit"
+                        disabled={!promptInput.trim()}
                         style={{
-                            padding: "4px 10px",
+                            marginLeft: "auto",
                             fontSize: "0.75rem",
+                            padding: "0.25rem 0.8rem",
                             borderRadius: 999,
-                            border: "none",
-                            background: saving
-                                ? "rgba(55,65,81,0.8)"
-                                : "rgba(59,130,246,0.9)",
-                            color: "#e5e7eb",
-                            cursor: saving ? "default" : "pointer",
+                            border: "1px solid rgba(59,130,246,0.9)",
+                            background:
+                                "linear-gradient(135deg, rgba(30,64,175,0.95), rgba(37,99,235,0.95))",
+                            color: "#eff6ff",
+                            cursor: promptInput.trim()
+                                ? "pointer"
+                                : "not-allowed",
+                            opacity: promptInput.trim() ? 1 : 0.6,
                         }}
                     >
-                        {saving ? "저장 중..." : "문제 추가"}
+                        이 페이지에 문제 추가
                     </button>
                 </div>
-            </div>
+            </form>
         </div>
     );
 }
