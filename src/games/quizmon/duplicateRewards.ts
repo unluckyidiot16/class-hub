@@ -1,3 +1,5 @@
+// src/games/quizmon/grantMonsterOrShards.ts (가칭)
+
 import type {
     QuizmonProfileRow,
     QuizmonOwnedMonsterRow,
@@ -14,11 +16,12 @@ export type GrantMonsterOrShardsResult =
     ownedMonster: QuizmonOwnedMonsterRow;
     profile: QuizmonProfileRow;
     shardsAwarded: 0;
-} | {
+}
+    | {
     kind: "duplicate";
     ownedMonster: null;
     profile: QuizmonProfileRow;
-    shardsAwarded: number; 
+    shardsAwarded: number;
 };
 
 // ✅ 희귀도에 따른 샤드 보상량 계산
@@ -31,7 +34,21 @@ export function calcShardRewardForDuplicate(
     return BASE + (rarity - 1) * PER_RARITY;
 }
 
-// 몬스터 생성 시 기본값 (기존 QuizmonProvider starter insert 참고)
+// 🔹 프로필 스탯 갱신 RPC 호출 헬퍼
+async function refreshQuizmonProfileStats(profileId: string) {
+    const { error } = await supabase.rpc("refresh_quizmon_profile_stats", {
+        _profile_id: profileId,
+    });
+
+    if (error) {
+        console.error(
+            "[grantMonsterOrShards] refresh_quizmon_profile_stats error",
+            error,
+        );
+    }
+}
+
+// 몬스터 생성 시 기본값
 function getNewOwnedMonsterPayload(
     profileId: string,
     speciesId: string,
@@ -41,17 +58,16 @@ function getNewOwnedMonsterPayload(
         species_id: speciesId,
         level: 1,
         exp: 0,
-        party_slot: null,      // 자동 파티 편성 안 함 (UI에서 관리)
-        current_hp: null,      // 배틀 입장 시 계산
+        party_slot: null,
+        current_hp: null,
         is_fainted: false,
         learned_moves: [] as string[],
-        // 필요하면 나중에 obtain_method 같은 필드도 추가
     } as any;
 }
 
 /**
  * ✅ 핵심: 주어진 프로필 + 종에 대해
- *   - 처음이면 → owned_monsters insert
+ *   - 처음이면 → owned_monsters insert + monster_owned 업적 이벤트 + 프로필 스탯 갱신
  *   - 이미 있으면 → star_shards 증가
  */
 export async function grantMonsterOrShards(opts: {
@@ -61,30 +77,30 @@ export async function grantMonsterOrShards(opts: {
 }): Promise<GrantMonsterOrShardsResult> {
     const { profileId, speciesId } = opts;
 
-    // 0) 프로필 로드 (star_shards 포함 최신 상태)
-        const { data: profileRow, error: profileError } = await supabase
-            .from("quizmon_profiles")
-            .select("*")
-            .eq("id", profileId)
-            .maybeSingle();
-    
-        if (profileError || !profileRow) {
-            console.error(
-                "[grantMonsterOrShards] profile select error",
-                profileError,
-            );
-            throw profileError ?? new Error("profile not found");
-        }
-    
-        const profile = profileRow as QuizmonProfileRow;
-    
-        // 0-1) 종 정보 로드 (희귀도 기반 샤드 계산용)
+    // 0) 프로필 로드
+    const { data: profileRow, error: profileError } = await supabase
+        .from("quizmon_profiles")
+        .select("*")
+        .eq("id", profileId)
+        .maybeSingle();
+
+    if (profileError || !profileRow) {
+        console.error(
+            "[grantMonsterOrShards] profile select error",
+            profileError,
+        );
+        throw profileError ?? new Error("profile not found");
+    }
+
+    const profile = profileRow as QuizmonProfileRow;
+
+    // 0-1) 종 정보 로드
     const { data: speciesRow, error: speciesError } = await supabase
         .from("quizmon_species")
         .select("*")
         .eq("id", speciesId)
         .maybeSingle();
-    
+
     if (speciesError || !speciesRow) {
         console.error(
             "[grantMonsterOrShards] species select error",
@@ -92,9 +108,9 @@ export async function grantMonsterOrShards(opts: {
         );
         throw speciesError ?? new Error("species not found");
     }
-    
+
     const species = speciesRow as QuizmonSpeciesRow;
-    
+
     // 1) 이미 이 종을 가진 적 있는지 확인
     const { data: ownedRows, error: ownedError } = await supabase
         .from("quizmon_owned_monsters")
@@ -127,12 +143,16 @@ export async function grantMonsterOrShards(opts: {
             throw insertError ?? new Error("insert failed");
         }
 
+        // ✅ 업적 이벤트: 처음 소유한 퀴즈몬 수
         void pushAchievementEvent(profileId, "monster_owned", 1);
-        
+
+        // ✅ 프로필 스탯 갱신 (total_owned_monsters, dex_species_count 등)
+        void refreshQuizmonProfileStats(profileId);
+
         return {
             kind: "new-monster",
             ownedMonster: inserted as QuizmonOwnedMonsterRow,
-            profile, // 프로필은 그대로 (샤드 변화 없음)
+            profile, // 샤드는 안 변했으니 이전 프로필 그대로
             shardsAwarded: 0,
         };
     }
