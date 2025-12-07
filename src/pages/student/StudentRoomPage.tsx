@@ -8,6 +8,7 @@ import type { QuizPackRow } from "./StudentPlayPackPage";
 import { GAME_REGISTRY, type GameKey } from "../../games/gameRegistry";
 import { ensurePlayStudentKey } from "../../utils/playStudentKey";
 import { StudentGamePanel } from "./components/StudentGamePanel";
+import { AutoPptStudentPanel } from "../../autoppt/AutoPptStudentPanel";
 
 type RoomRow = {
     class_id: string | null;
@@ -872,7 +873,8 @@ export function StudentRoomPage() {
                     </p>
                 </div>
             )}
-
+            <AutoPptStudentPanel roomId={roomId ?? null} />;
+            
             {/* 현재 문제 / 게임 영역: StudentGamePanel로 위임 */}
             <StudentGamePanel
                 gameKey={effectiveGameKey}

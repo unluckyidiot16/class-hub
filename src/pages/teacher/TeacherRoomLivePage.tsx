@@ -27,6 +27,7 @@ import type {
     DungeonOverride,
 } from "../../games/quizmon/TeacherDungeonPanel";
 
+import { AutoPptTeacherPanel } from "../../autoppt/AutoPptTeacherPanel";
 
 
 
@@ -3258,6 +3259,8 @@ export function TeacherRoomLivePage() {
                 </div>
             </div>
 
+            <AutoPptTeacherPanel roomId={roomId ?? null} />;
+            
             {/* 🔹 QuizMon 전용 클래스 패널 (교사용 미리보기) */}
             {room?.game_key === "quizmon" && pack && (
                 <div className="card">

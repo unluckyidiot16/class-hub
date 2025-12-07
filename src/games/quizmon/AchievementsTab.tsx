@@ -22,6 +22,12 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
         rewardGems: number;
     } | null>(null);
 
+    // ✅ 이 탭이 열려있는 동안 “내가 방금 수령 완료한 업적들”
+    const [locallyClaimedIds, setLocallyClaimedIds] = useState<string[]>([]);
+
+    // ✅ 중복 클릭 방지용
+    const [claimingId, setClaimingId] = useState<string | null>(null);
+
     if (!profile) {
         return (
             <div
@@ -120,7 +126,7 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
                     }}
                 >
                     {list.map((entry) => {
-                        const {
+                        let {
                             achievement,
                             progress,
                             completed,
@@ -135,6 +141,13 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
                         );
                         const rewardGems = achievement.reward_gems ?? 0;
 
+                        // ✅ 이번 세션에서 이미 받았다고 표시된 업적이면 강제로 claimed 처리
+                        const isLocallyClaimed = locallyClaimedIds.includes(achievement.id);
+                        if (isLocallyClaimed) {
+                            claimed = true;
+                            claimable = false;
+                        }
+
                         const ratio = target > 0 ? current / target : 0;
                         const percent = Math.round(ratio * 100);
 
@@ -143,7 +156,7 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
                         else if (claimable) buttonLabel = "보상 받기";
                         else if (completed) buttonLabel = "완료";
 
-                        const disabled = !claimable;
+                        const disabled = !claimable || claimingId === achievement.id;
 
                         return (
                             <div
@@ -243,14 +256,25 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
                                     <button
                                         type="button"
                                         onClick={async () => {
-                                            if (!claimable) return;
-                                            await claimAchievementReward(
-                                                achievement.id,
-                                            );
-                                            setRewardModal({
-                                                title: achievement.title,
-                                                rewardGems,
-                                            });
+                                            // 이미 받을 수 없는 상태거나, 다른 업적을 처리 중이면 무시
+                                            if (!claimable || claimingId) return;
+
+                                            try {
+                                                setClaimingId(achievement.id);
+                                                await claimAchievementReward(achievement.id);
+
+                                                // ✅ UI 쪽에서 바로 "받음"으로 바꾸기
+                                                setLocallyClaimedIds((prev) =>
+                                                    prev.includes(achievement.id) ? prev : [...prev, achievement.id],
+                                                );
+
+                                                setRewardModal({
+                                                    title: achievement.title,
+                                                    rewardGems,
+                                                });
+                                            } finally {
+                                                setClaimingId(null);
+                                            }
                                         }}
                                         disabled={disabled}
                                         style={{
@@ -258,22 +282,19 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
                                             fontSize: "0.75rem",
                                             borderRadius: 999,
                                             border: "none",
-                                            cursor: disabled
-                                                ? "default"
-                                                : "pointer",
+                                            cursor: disabled ? "default" : "pointer",
                                             background: claimed
                                                 ? "rgba(55,65,81,0.8)"
                                                 : claimable
                                                     ? "linear-gradient(135deg,#22c55e,#16a34a)"
                                                     : "rgba(31,41,55,0.9)",
-                                            color: claimed
-                                                ? "#9ca3af"
-                                                : "#e5e7eb",
+                                            color: claimed ? "#9ca3af" : "#e5e7eb",
                                             opacity: disabled ? 0.7 : 1,
                                         }}
                                     >
                                         {buttonLabel}
                                     </button>
+
                                 </div>
                             </div>
                         );
