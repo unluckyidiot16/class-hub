@@ -33,7 +33,7 @@ import {
 } from "./ballShop";
 import type { CaptureBallVariant } from "./CaptureBallSprite";
 import { grantMonsterOrShards } from "./duplicateRewards";
-
+import { pushAchievementEvent } from "./quizmonAchievements";
 
 
 type CaptureSession = {
@@ -1094,6 +1094,11 @@ export function useQuizmonBattle(
             total: prev.total + 1,
         }));
 
+        // ✅ 업적: 퀴즈 정답 수 (QUIZ_CORRECT_10 / 50 / 200 ...)
+        if (correct && profileId) {
+            void pushAchievementEvent(profileId, "quiz_correct", 1);
+        }
+        
         onQuizAnswer?.(quizResult);
 
         if (roomId && gameSessionId && studentId) {
@@ -1679,8 +1684,25 @@ export function useQuizmonBattle(
         if (!finished) return;
         if (battleStats.total <= 0) return;
 
-        if (onBattleEnd && !hasReportedEnd) {
-            onBattleEnd({ ...battleStats });
+        if (!hasReportedEnd) {
+            // ✅ 승패 판단
+            const playerAllFainted = state.player.monsters.every(
+                (m) => m.hp <= 0,
+            );
+            const enemyAllFainted = state.enemy.monsters.every(
+                (m) => m.hp <= 0,
+            );
+            const isWin = !playerAllFainted && enemyAllFainted;
+            
+            // ✅ 업적: 전투 클리어 수 (FIRST_BATTLE_CLEAR, BATTLE_CLEAR_5, 20 ...)
+            if (isWin && profileId) {
+                void pushAchievementEvent(profileId, "battle_clear", 1);
+            }
+            
+            if (onBattleEnd) {
+                onBattleEnd({ ...battleStats });
+            }
+            
             setHasReportedEnd(true);
         }
 
@@ -1713,6 +1735,7 @@ export function useQuizmonBattle(
         state.enemy.monsters,
         battleStats,
         accuracyPercent,
+        profileId,
         onBattleEnd,
         hasReportedEnd,
         roomId,

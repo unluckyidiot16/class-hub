@@ -72,79 +72,13 @@ export async function loadAchievementsForProfile(
         progressByAchievementId.set(row.achievement_id, row);
     }
 
-    // 3) 프로필 요약 스탯 (퀴즈 정답 수, 배틀 클리어 수, 레이드 참여 수 등)
-    const { data: profileRow, error: profileError } = await supabase
-        .from("quizmon_profiles")
-        .select("id, total_battles, total_correct, total_raids")
-        .eq("id", profileId)
-        .maybeSingle();
-
-    if (profileError) {
-        console.warn(
-            "[quizmonAchievements] loadAchievements profile stats error",
-            profileError,
-        );
-    }
-
-    const anyProfile = (profileRow ?? {}) as any;
-    const totalBattles: number = anyProfile.total_battles ?? 0;
-    const totalCorrect: number = anyProfile.total_correct ?? 0;
-    const totalRaids: number = anyProfile.total_raids ?? 0;
-
-    // 4) 보유 몬스터/도감 정보
-    const { data: ownedRows, error: ownedError } = await supabase
-        .from("quizmon_owned_monsters")
-        .select("species_id")
-        .eq("profile_id", profileId);
-
-    if (ownedError) {
-        console.warn(
-            "[quizmonAchievements] loadAchievements owned error",
-            ownedError,
-        );
-    }
-
-    const ownedList = ownedRows ?? [];
-    const monsterOwnedCount = ownedList.length;
-    const dexRegisterCount = new Set(
-        ownedList.map((r: any) => r.species_id as string),
-    ).size;
-
-    // 5) merge
     const result: QuizmonAchievementWithProgress[] = [];
 
     for (const a of (achRows ?? []) as QuizmonAchievementRow[]) {
         const pa = progressByAchievementId.get(a.id);
-
-        // condition_type 별로 진행도 계산
-        let derivedProgress: number | null = null;
-        switch (a.condition_type) {
-            case "quiz_correct":
-                derivedProgress = totalCorrect;
-                break;
-            case "battle_clear":
-                derivedProgress = totalBattles;
-                break;
-            case "raid_participation":
-                derivedProgress = totalRaids;
-                break;
-            case "monster_owned":
-                derivedProgress = monsterOwnedCount;
-                break;
-            case "dex_register":
-                derivedProgress = dexRegisterCount;
-                break;
-            default:
-                // 나중에 이벤트형 업적 추가 시, DB에 저장된 progress 사용
-                derivedProgress = null;
-                break;
-        }
-
-        const storedProgress = pa?.progress ?? 0;
-        const progress =
-            derivedProgress != null ? derivedProgress : storedProgress;
-
+        const progress = pa?.progress ?? 0;
         const target = a.condition_value ?? 0;
+
         const completed = progress >= target && target > 0;
         const claimed = !!pa?.reward_claimed_at;
         const claimable = completed && !claimed && a.reward_gems > 0;
@@ -188,5 +122,39 @@ export async function claimAchievementRewardRpc(
         throw new Error(
             error.message || "업적 보상을 받는 중 오류가 발생했습니다.",
         );
+    }
+}
+
+/*
+ * 전투/퀴즈/레이드 등 이벤트 발생 시 업적 진행도를 증가시키는 헬퍼
+ *
+ * - _event_type 값은 quizmon_achievements.condition_type 과 일치해야 함
+ *   예: 'battle_clear', 'quiz_correct', 'raid_participation', 'raid_clear',
+ *       'dex_register', 'monster_owned' 등
+ */
+export async function pushAchievementEvent(
+    profileId: string | null | undefined,
+    eventType: string,
+    delta: number = 1,
+): Promise<void> {
+    if (!profileId) return;
+    if (!eventType) return;
+    if (!Number.isFinite(delta) || delta <= 0) return;
+
+    const { error } = await supabase.rpc(
+        "update_quizmon_achievement_progress",
+        {
+            _profile_id: profileId,
+            _event_type: eventType,
+            _delta: delta,
+        },
+    );
+
+    if (error) {
+        console.error(
+            "[quizmonAchievements] pushAchievementEvent error",
+            error,
+        );
+        // 업적만 안 오르게 두고 게임 흐름은 그대로
     }
 }
