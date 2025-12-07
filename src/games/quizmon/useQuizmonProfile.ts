@@ -18,18 +18,31 @@ type UseQuizmonProfileParams = {
     studentKey: string | null;
 };
 
+// src/games/quizmon/useQuizmonProfile.ts
+
 export type UseQuizmonProfileResult = {
     profile: QuizmonProfile | null;
     loading: boolean;
     error: string | null;
+
+    /** 프로필을 다시 DB에서 읽어오는 함수 */
     refresh: () => Promise<void>;
-    applyRaidResult: (summary: { correct: number; total: number }) => Promise<void>;
+    /** 같은 기능, 이름만 다른 alias (QuizmonProvider 등에서 사용 예정) */
+    reload: () => Promise<void>;
+
+    applyRaidResult: (summary: {
+        correct: number;
+        total: number;
+    }) => Promise<void>;
     chooseStarter: (payload: {
         speciesId: string;
         trainerName: string;
     }) => Promise<void>;
-    buyExpDust: (quantity?: number) => Promise<{ spentGold: number; gainedExpDust: number } | void>;
+    buyExpDust: (
+        quantity?: number,
+    ) => Promise<{ spentGold: number; gainedExpDust: number } | void>;
 };
+
 
 /**
  * ⚠️ 중요한 포인트
@@ -397,7 +410,8 @@ export function useQuizmonProfile(
         profile,
         loading,
         error,
-        refresh,
+        refresh,        // 기존 이름
+        reload: refresh, // 새 alias
         applyRaidResult,
         chooseStarter,
         buyExpDust,

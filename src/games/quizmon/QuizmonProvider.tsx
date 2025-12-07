@@ -80,6 +80,7 @@ export function QuizmonProvider({
         applyRaidResult,
         chooseStarter,
         buyExpDust,
+        reload,
     } = useQuizmonProfile({
         classId,
         studentKey: studentId,
@@ -287,6 +288,11 @@ export function QuizmonProvider({
                 // 1) DB RPC 호출
                 await claimAchievementRewardRpc(profile.id, code);
 
+                await Promise.all([
+                    refreshAchievements(),
+                    reload(), // 프로필(gold/gems) 즉시 갱신
+                ]);
+                
                 // 2) 프로필 젬 수치를 바로 올려서 헤더 UI 즉시 반영
                 if (rewardGems > 0) {
                     setProfile((prev) =>
