@@ -30,7 +30,6 @@ import type {
 import { AutoPptTeacherPanel } from "../../autoppt/AutoPptTeacherPanel";
 
 
-
 // 🔹 PEM 한 판 클리어 기록 (pem_runs 테이블)
 type PemRunRow = {
     id: string;
@@ -2596,26 +2595,35 @@ export function TeacherRoomLivePage() {
                                     minHeight: 260,
                                     background:
                                         "radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(15,23,42,1))",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
+                                    display: "grid",
+                                    gridTemplateColumns: "minmax(0, 2.2fr) minmax(260px, 1fr)",
+                                    gap: "0.75rem",
+                                    padding: "0.75rem",
                                 }}
                             >
-                                <AutoPptTeacherPanel roomId={room.id} />
-                                <p
+                                {/* 왼쪽: PDF / 슬라이드 미리보기 (교사용) */}
+                                <div
                                     style={{
-                                        fontSize: "0.8rem",
-                                        color: "var(--muted-fg, #9ca3af)",
-                                        textAlign: "center",
-                                        padding: "0.75rem",
+                                        minWidth: 0,
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        alignItems: "stretch",
                                     }}
                                 >
-                                    이 영역에 AutoPPT 슬라이드(PDF 미리보기)가
-                                    표시됩니다.
-                                    <br />
-                                    (기존 &quot;AutoPPT (교사용)&quot; 카드의
-                                    내용을 이곳으로 옮겨주세요.)
-                                </p>
+                                    <AutoPptTeacherPanel roomId={room.id} />
+                                </div>
+
+                                {/* 오른쪽: 현재 페이지 기준 AutoPPT 문제 카드 */}
+                                <div
+                                    style={{
+                                        minWidth: 0,
+                                        borderLeft: "1px solid rgba(15,23,42,0.85)",
+                                        paddingLeft: "0.75rem",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                    }}
+                                >
+                                </div>
                             </div>
                         )}
 
