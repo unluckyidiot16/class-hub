@@ -30,10 +30,43 @@ export type QuizmonAchievementWithProgress = {
     claimable: boolean;
 };
 
+// 🔹 프로필에서 가져올 카운터들만 따로 타입 정의
+type ProfileCounters = {
+    total_raids: number | null;
+    total_correct: number | null;
+    total_questions: number | null;
+    total_owned_monsters: number | null;
+    dex_species_count: number | null;
+};
+
 export async function loadAchievementsForProfile(
     profileId: string,
 ): Promise<QuizmonAchievementWithProgress[]> {
     if (!profileId) return [];
+
+    // 0) 프로필 카운터 로드 (도감/보유 수, 총 레이드 수 등)
+    const { data: profileRow, error: profileError } = await supabase
+        .from("quizmon_profiles")
+        .select(
+            [
+                "total_raids",
+                "total_correct",
+                "total_questions",
+                "total_owned_monsters",
+                "dex_species_count",
+            ].join(", "),
+        )
+        .eq("id", profileId)
+        .maybeSingle();
+
+    if (profileError) {
+        console.error(
+            "[quizmonAchievements] loadAchievements profile error",
+            profileError,
+        );
+    }
+
+    const profile = (profileRow ?? null) as ProfileCounters | null;
 
     // 1) 업적 마스터
     const { data: achRows, error: achError } = await supabase
@@ -50,7 +83,7 @@ export async function loadAchievementsForProfile(
         throw new Error("업적 정보를 불러오는 중 오류가 발생했습니다.");
     }
 
-    // 2) 프로필별 진행/보상 상태
+    // 2) 프로필별 진행/보상 상태 (이벤트 기반 progress)
     const { data: progressRows, error: progressError } = await supabase
         .from("quizmon_profile_achievements")
         .select("*")
@@ -76,9 +109,50 @@ export async function loadAchievementsForProfile(
 
     for (const a of (achRows ?? []) as QuizmonAchievementRow[]) {
         const pa = progressByAchievementId.get(a.id);
-        const progress = pa?.progress ?? 0;
-        const target = a.condition_value ?? 0;
 
+        // 기본: 이벤트 누적 progress
+        let progress = pa?.progress ?? 0;
+
+        // 🔸 프로필 카운터 기반 업적은 프로필 값을 우선 사용
+        if (profile) {
+            switch (a.condition_type) {
+                case "monster_owned":
+                    // "첫 파트너 포획" 같은 업적
+                    progress = Math.max(
+                        progress,
+                        profile.total_owned_monsters ?? 0,
+                    );
+                    break;
+
+                case "dex_species_count":
+                    // "도감 10종 등록", "도감 30종 등록"
+                    progress = Math.max(
+                        progress,
+                        profile.dex_species_count ?? 0,
+                    );
+                    break;
+
+                case "total_raids":
+                    progress = Math.max(
+                        progress,
+                        profile.total_raids ?? 0,
+                    );
+                    break;
+
+                case "total_correct":
+                    progress = Math.max(
+                        progress,
+                        profile.total_correct ?? 0,
+                    );
+                    break;
+
+                default:
+                    // 그 외(던전 클리어, 레이드 참여 등)는 이벤트 progress 그대로 사용
+                    break;
+            }
+        }
+
+        const target = a.condition_value ?? 0;
         const completed = progress >= target && target > 0;
         const claimed = !!pa?.reward_claimed_at;
         const claimable = completed && !claimed && a.reward_gems > 0;
