@@ -4,6 +4,7 @@ import type {
     QuizmonSpeciesRow,
 } from "./types";
 import { supabase } from "../../lib/supabaseClient";
+import { pushAchievementEvent } from "./quizmonAchievements";
 
 export type AcquisitionSource = "capture" | "gacha";
 
@@ -126,6 +127,8 @@ export async function grantMonsterOrShards(opts: {
             throw insertError ?? new Error("insert failed");
         }
 
+        void pushAchievementEvent(profileId, "monster_owned", 1);
+        
         return {
             kind: "new-monster",
             ownedMonster: inserted as QuizmonOwnedMonsterRow,
