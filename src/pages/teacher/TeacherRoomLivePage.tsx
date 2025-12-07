@@ -1935,6 +1935,17 @@ export function TeacherRoomLivePage() {
         );
     }
 
+    const handleDungeonOverrideChange = (id: string, patch: DungeonOverride) => {
+        setDungeonOverrides((prev) => ({
+            ...prev,
+            [id]: {
+                ...(prev[id] ?? {}),
+                ...patch,
+            },
+        }));
+    };
+
+
     return (
         <section className="page teacher-home">
             {room && (
@@ -3269,7 +3280,7 @@ export function TeacherRoomLivePage() {
 
             {/* 🔹 QuizMon 전용 클래스 패널 (교사용 미리보기) */}
             {room?.game_key === "quizmon" && pack && (
-                <div className="card">
+                <div className="card" style={{ marginTop: "1rem" }}>
                     <h2>QuizMon 클래스 패널 (베타)</h2>
                     <p className="hint">
                         현재 세션의 퀴즈를 사용해 퀴즈몬 배틀을 시뮬레이션합니다.
@@ -3284,38 +3295,47 @@ export function TeacherRoomLivePage() {
                     >
                         <QuizmonProvider
                             classId={room.class_id ?? null}
-                            studentId={null} // 교사 화면이라 학생 프로필 없음
+                            studentId={null}
                         >
                             <QuizMonClassPanel
                                 roomId={room.id}
                                 pack={pack}
                                 session={quizMonSession}
                                 classId={room.class_id}
-                                // onQuizAnswer는 나중에 game_events 연동할 때 여기서 넘겨줄 예정
                             />
                         </QuizmonProvider>
                     </div>
                 </div>
             )}
-            <TeacherDungeonPanel
-                dungeons={dungeonSummaries}
-                selectedDungeonId={selectedDungeonId}
-                overridesByDungeonId={dungeonOverrides}
-                onSelectDungeon={setSelectedDungeonId}
-                onChangeOverride={(id: string, patch: DungeonOverride) => {
-                    setDungeonOverrides((prev) => ({
-                        ...prev,
-                        [id]: {
-                            ...(prev[id] ?? {}),
-                            ...patch,
-                        },
-                    }));
-                }}
-            />
+            {/* 🔹 QuizMon 전용 던전 / 난이도 설정 섹션 */}
+            {room?.game_key === "quizmon" && (
+                <div className="card" style={{ marginTop: "1rem" }}>
+                    <h2>QuizMon 던전 난이도 설정</h2>
+                    <p className="hint">
+                        퀴즈몬 클래스/레이드에서 사용할 던전 구성을 미리 조정합니다.
+                        (적 수, 레벨 범위 등을 수업 난이도에 맞게 맞춰 주세요.)
+                    </p>
 
+                    <div
+                        style={{
+                            borderTop: "1px solid var(--border-subtle, #eee)",
+                            marginTop: "0.75rem",
+                            paddingTop: "0.75rem",
+                        }}
+                    >
+                        <TeacherDungeonPanel
+                            dungeons={dungeonSummaries}
+                            selectedDungeonId={selectedDungeonId}
+                            overridesByDungeonId={dungeonOverrides}
+                            onSelectDungeon={setSelectedDungeonId}
+                            onChangeOverride={handleDungeonOverrideChange}
+                        />
+                    </div>
+                </div>
+            )}
 
-            {/* 🔹 PEM 토너먼트 관전 섹션 */}
-            {room && (
+            {/* 🔹 PEM 토너먼트 관전 섹션 (PEM 방에서만 표시) */}
+            {room?.game_key === "pem" && (
                 <div className="card" style={{ marginTop: "1rem" }}>
                     <h2>PEM 토너먼트 관전</h2>
                     <p className="hint">
