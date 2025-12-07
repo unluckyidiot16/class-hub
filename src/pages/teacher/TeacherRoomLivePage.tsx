@@ -2576,8 +2576,50 @@ export function TeacherRoomLivePage() {
                     }}
                 >
                     <div className="card">
-                        <h2>현재 문제 (학생 화면 미리보기)</h2>
+                        <h2>
+                            {isAutoPptRoom
+                                ? "수업 화면 미리보기 (PPT / 현재 문제)"
+                                : "현재 문제 (학생 화면 미리보기)"}
+                        </h2>
 
+                        {/* 🔹 AutoPPT 방인 경우: 상단에 PPT/PDF 미리보기 영역 배치
+                            - 기존 AutoPPT (교사용) 카드 내용을 이 div 안으로 옮겨오면 됩니다.
+                            - 예: 파일 업로드 버튼, 페이지 이동 버튼, 현재 페이지 썸네일/iframe 등 */}
+                        {isAutoPptRoom && (
+                            <div
+                                style={{
+                                    marginTop: "0.5rem",
+                                    marginBottom: "0.75rem",
+                                    borderRadius: "0.75rem",
+                                    border: "1px solid var(--border-subtle)",
+                                    overflow: "hidden",
+                                    minHeight: 260,
+                                    background:
+                                        "radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(15,23,42,1))",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <AutoPptTeacherPanel roomId={room.id} />
+                                <p
+                                    style={{
+                                        fontSize: "0.8rem",
+                                        color: "var(--muted-fg, #9ca3af)",
+                                        textAlign: "center",
+                                        padding: "0.75rem",
+                                    }}
+                                >
+                                    이 영역에 AutoPPT 슬라이드(PDF 미리보기)가
+                                    표시됩니다.
+                                    <br />
+                                    (기존 &quot;AutoPPT (교사용)&quot; 카드의
+                                    내용을 이곳으로 옮겨주세요.)
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 🔹 아래에는 기존처럼 현재 문제 텍스트/선택지를 간단히 표기 */}
                         {!session || session.status !== "running" ? (
                             <p>
                                 진행 중인 세션이 없습니다. 왼쪽에서 세션을
@@ -2631,8 +2673,8 @@ export function TeacherRoomLivePage() {
                                                                 color: "var(--accent)",
                                                             }}
                                                         >
-                                                        (정답)
-                                                    </span>
+                                                            (정답)
+                                                        </span>
                                                     )}
                                             </li>
                                         ),
@@ -2653,6 +2695,7 @@ export function TeacherRoomLivePage() {
                             </>
                         )}
                     </div>
+
 
                     {/* ✅ 일반 퀴즈 방에서만 quiz_answers 기반 통계 표시 */}
                     {room.game_key !== "qdd" &&
@@ -3271,12 +3314,6 @@ export function TeacherRoomLivePage() {
                     )}
                 </div>
             </div>
-
-
-            {isAutoPptRoom && (
-                <AutoPptTeacherPanel roomId={roomId ?? null} />
-            )}
-
 
             {/* 🔹 QuizMon 전용 클래스 패널 (교사용 미리보기) */}
             {room?.game_key === "quizmon" && pack && (

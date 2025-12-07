@@ -875,8 +875,6 @@ export function StudentRoomPage() {
                     </p>
                 </div>
             )}
-            <AutoPptStudentPanel roomId={roomId ?? null} />;
-
             {/* AutoPPT는 autoppt 방에서만 */}
             {isAutoPptRoom && (
                 <AutoPptStudentPanel roomId={roomId ?? null} />
