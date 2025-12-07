@@ -19,8 +19,12 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
 
-    const channelRef = useRef<RealtimeChannel | null>(null);
+    // ✅ 전체화면 상태 + 루트 DOM ref
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const rootRef = useRef<HTMLDivElement | null>(null);
 
+    const channelRef = useRef<RealtimeChannel | null>(null);
+    
     const loadDoc = useCallback(async () => {
         if (!roomId) {
             setDoc(null);
@@ -66,6 +70,35 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
         };
     }, [roomId]);
 
+    // ✅ 전체화면 진입 / 종료 감지
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const handleChange = () => {
+            setIsFullscreen(document.fullscreenElement === rootRef.current);
+        };
+
+        document.addEventListener("fullscreenchange", handleChange);
+        return () => {
+            document.removeEventListener("fullscreenchange", handleChange);
+        };
+    }, []);
+
+    const toggleFullscreen = useCallback(() => {
+        if (typeof document === "undefined" || !rootRef.current) return;
+
+        try {
+            if (document.fullscreenElement === rootRef.current) {
+                void document.exitFullscreen();
+            } else {
+                void rootRef.current.requestFullscreen();
+            }
+        } catch (e) {
+            console.error("[AutoPptStudentPanel] toggleFullscreen error", e);
+        }
+    }, []);
+
+
     const pdfUrl =
         doc &&
         supabase.storage.from("autoppt").getPublicUrl(doc.pdf_path).data.publicUrl;
@@ -75,7 +108,8 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
 
     return (
                 <div
-            style={{
+                    ref={rootRef}
+                    style={{
                 display: "flex",
                 flexDirection: "column",
                 height: "min(70vh, 620px)",
@@ -88,15 +122,33 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
                 border: "1px solid rgba(31,41,55,0.9)",
             }}
                 >
-            <div
-                style={{
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    marginBottom: 4,
-                }}
-            >
-                AutoPPT (학생용)
-            </div>
+                    {/* 제목 + 전체화면 버튼 */}
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontSize: "0.9rem",
+                            marginBottom: 4,
+                        }}
+                    >
+                        <div style={{ fontWeight: 600 }}>AutoPPT (학생용)</div>
+                        <button
+                            type="button" 
+                            onClick={toggleFullscreen}
+                            style={{
+                                fontSize: "0.75rem",
+                                padding: "2px 8px",
+                                borderRadius: 999,
+                                border: "1px solid rgba(148,163,184,0.8)",
+                                background: "transparent",
+                                color: "#e5e7eb",
+                                cursor: "pointer",
+                            }}
+                        >
+                            {isFullscreen ? "전체화면 종료" : "전체화면"}
+                        </button>
+                    </div>
 
             {loading && (
                 <div style={{ fontSize: "0.8rem", color: "#9ca3af" }}>

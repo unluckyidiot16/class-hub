@@ -22,6 +22,8 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
     const [currentPage, setCurrentPage] = useState(0); // 0-based index
     const [totalPagesInput, setTotalPagesInput] = useState("1");
 
+    const [appBaseUrl, setAppBaseUrl] = useState<string>("");
+    
     const channelRef = useRef<RealtimeChannel | null>(null);
 
     const hasRoom = !!roomId;
@@ -83,6 +85,18 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
         };
     }, [roomId, currentPage]);
 
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const origin = window.location.origin;
+        const base = import.meta.env.BASE_URL || "/"; // "/class-hub/" 또는 "/"
+        const normalizedBase = base.startsWith("/") ? base : `/${base}`;
+        const trimmedBase = normalizedBase.replace(/\/$/, ""); // "/class-hub" 또는 ""
+
+        setAppBaseUrl(`${origin}${trimmedBase}`);
+    }, []);
+
+
     const broadcastPage = useCallback((pageIndex: number) => {
         if (!channelRef.current) return;
         channelRef.current.send({
@@ -92,6 +106,13 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
         });
     }, []);
 
+    // ✅ 현재 방의 학생 화면을 새 창으로 열기
+    const handleOpenStudentWindow = useCallback(() => {
+        if (!roomId || !appBaseUrl) return;
+        const url = `${appBaseUrl}/#/student/room/${roomId}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+        }, [appBaseUrl, roomId]);
+    
     const goPage = useCallback(
         (delta: number) => {
             if (!doc) return;
@@ -173,13 +194,14 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
     const totalPages = doc?.total_pages ?? 1;
 
     return (
-        <div 
+        <div
             style={{
                 display: "flex",
                 flexDirection: "column",
                 // 탭 높이에 종속되지 않고 화면 기준으로 넉넉하게 사용
                 height: "min(70vh, 620px)",
                 minHeight: 320,
+                width: "100%",
                 padding: 8,
                 gap: 8,
                 background: "#020617",
@@ -188,14 +210,35 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                 border: "1px solid rgba(31,41,55,0.9)",
             }}
         >
+            {/* 상단 제목 + 학생 화면 새 창 버튼 */}
             <div
                 style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     fontSize: "0.9rem",
-                    fontWeight: 600,
                     marginBottom: 4,
                 }}
             >
-                AutoPPT (교사용)
+                <div style={{ fontWeight: 600 }}>AutoPPT (교사용)</div>
+                <button
+                    type="button"
+                    onClick={handleOpenStudentWindow}
+                    disabled={!appBaseUrl || !roomId}
+                    style={{
+                        padding: "2px 8px",
+                        fontSize: "0.75rem",
+                        borderRadius: 999,
+                        border: "1px solid rgba(148,163,184,0.8)",
+                        background: "transparent",
+                        color: "#e5e7eb",
+                        cursor:
+                            !appBaseUrl || !roomId ? "default" : "pointer",
+                        opacity: !appBaseUrl || !roomId ? 0.5 : 1,
+                    }}
+                >
+                    학생 화면 새 창
+                </button>
             </div>
 
             {/* 업로드 영역 */}
@@ -287,14 +330,15 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                         color: "#9ca3af",
                     }}
                 >
-                    아직 업로드된 PDF가 없습니다. 상단에서 수업용 PDF 파일을 선택해
-                    주세요.
+                    아직 업로드된 PDF가 없습니다. 상단에서 수업용 PDF 파일을
+                    선택해 주세요.
                 </div>
             )}
 
             {/* 슬라이드 뷰 + 네비게이션 */}
             {doc && (
                 <>
+                    {/* 제목 + 페이지 네비 */}
                     <div
                         style={{
                             display: "flex",
@@ -313,7 +357,14 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                         >
                             {doc.title}
                         </div>
-                        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: 4,
+                                alignItems: "center",
+                            }}
+                        >
                             <button
                                 type="button"
                                 onClick={() => goPage(-1)}
@@ -323,7 +374,8 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                                     fontSize: "0.75rem",
                                     borderRadius: 999,
                                     border: "none",
-                                    cursor: currentPage <= 0 ? "default" : "pointer",
+                                    cursor:
+                                        currentPage <= 0 ? "default" : "pointer",
                                     background:
                                         currentPage <= 0
                                             ? "rgba(31,41,55,0.7)"
@@ -333,9 +385,14 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                             >
                                 ◀
                             </button>
-                            <span style={{ fontSize: "0.78rem", color: "#e5e7eb" }}>
-                {humanPage} / {totalPages}
-              </span>
+                            <span
+                                style={{
+                                    fontSize: "0.78rem",
+                                    color: "#e5e7eb",
+                                }}
+                            >
+                                {humanPage} / {totalPages}
+                            </span>
                             <button
                                 type="button"
                                 onClick={() => goPage(1)}
@@ -346,7 +403,9 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                                     borderRadius: 999,
                                     border: "none",
                                     cursor:
-                                        currentPage >= totalPages - 1 ? "default" : "pointer",
+                                        currentPage >= totalPages - 1
+                                            ? "default"
+                                            : "pointer",
                                     background:
                                         currentPage >= totalPages - 1
                                             ? "rgba(31,41,55,0.7)"
@@ -359,6 +418,7 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                         </div>
                     </div>
 
+                    {/* 실제 PDF 뷰어 */}
                     <div
                         style={{
                             flex: 1,
@@ -370,7 +430,10 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                         }}
                     >
                         {pdfUrl ? (
-                            <PdfSinglePageViewer url={pdfUrl} pageNumber={humanPage} />
+                            <PdfSinglePageViewer
+                                url={pdfUrl}
+                                pageNumber={humanPage}
+                            />
                         ) : (
                             <div
                                 style={{
