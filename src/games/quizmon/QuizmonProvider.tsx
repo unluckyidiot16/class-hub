@@ -74,11 +74,11 @@ export function QuizmonProvider({
     const isStudent = !!studentId;
 
     const {
-        profile,
+        profile: innerProfile,
         loading: profileLoading,
         error: profileError,
         applyRaidResult,
-        chooseStarter,   // ← 이제 payload 버전으로 들어옴
+        chooseStarter,
         buyExpDust,
     } = useQuizmonProfile({
         classId,
@@ -90,6 +90,12 @@ export function QuizmonProvider({
     const [collectionError, setCollectionError] = useState<string | null>(null);
     const refreshingRef = useRef(false);
 
+    const [profile, setProfile] = useState<QuizmonProfile>(innerProfile);
+
+    useEffect(() => {
+        setProfile(innerProfile);
+    }, [innerProfile]);
+    
     // 🔹 업적 상태
     const [achievements, setAchievements] =
         useState<QuizmonAchievementWithProgress[] | null>(null);
@@ -258,12 +264,12 @@ export function QuizmonProvider({
     const claimAchievementReward: ClaimAchievementRewardFn = useCallback(
         async (achievementId: string) => {
             if (!profile?.id || !isStudent) return;
-        
+
             const current = achievements ?? [];
             const target = current.find(
                 (a) => a.achievement.id === achievementId,
             );
-        
+
             if (!target) {
                 console.warn(
                     "[QuizmonProvider] claimAchievementReward: target not found",
@@ -271,17 +277,30 @@ export function QuizmonProvider({
                 );
                 return;
             }
-        
+
+            const code = target.achievement.code;
+            const rewardGems = target.achievement.reward_gems ?? 0;
+
             try {
                 setAchievementsError(null);
-                await claimAchievementRewardRpc(
-                    profile.id,
-                    target.achievement.code,
-                );
-                // 보상 수령 후 업적 목록/진행도 갱신
+
+                // 1) DB RPC 호출
+                await claimAchievementRewardRpc(profile.id, code);
+
+                // 2) 프로필 젬 수치를 바로 올려서 헤더 UI 즉시 반영
+                if (rewardGems > 0) {
+                    setProfile((prev) =>
+                        prev
+                            ? {
+                                ...prev,
+                                gems: (prev.gems ?? 0) + rewardGems,
+                            }
+                            : prev,
+                    );
+                }
+
+                // 3) 업적 목록/진행도 갱신 (버튼 '받음' 으로 변경)
                 await refreshAchievements();
-                // (선택) profile.gems 를 즉시 반영하려면
-                // useQuizmonProfile 쪽에 reload 함수를 추가해서 같이 호출해도 좋음
             } catch (e) {
                 console.error(
                     "[QuizmonProvider] claimAchievementReward error",
@@ -293,9 +312,10 @@ export function QuizmonProvider({
                 }
                 setAchievementsError(message);
             }
-            },
+        },
         [profile, isStudent, achievements, refreshAchievements],
     );
+
 
     const value: QuizmonContextValue = {
                 profile, 
