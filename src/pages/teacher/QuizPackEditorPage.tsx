@@ -486,7 +486,7 @@ export function QuizPackEditorPage() {
                         ) : (
                             <ul
                                 className="feature-list"
-                                style={{ maxHeight: "260px", overflowY: "auto", marginTop: "0.75rem" }}
+                                style={{ maxHeight: "320px", overflowY: "auto", marginTop: "0.75rem" }}
                             >
                                 {questions.map((q, idx) => (
                                     <li

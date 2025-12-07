@@ -72,11 +72,12 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
     const totalPages = doc?.total_pages ?? 1;
 
     return (
-        <div
+                <div
             style={{
                 display: "flex",
                 flexDirection: "column",
-                height: "100%",
+                height: "min(70vh, 620px)",
+                minHeight: 320,
                 padding: 8,
                 gap: 8,
                 background: "#020617",
@@ -84,7 +85,7 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
                 borderRadius: 8,
                 border: "1px solid rgba(31,41,55,0.9)",
             }}
-        >
+                >
             <div
                 style={{
                     fontSize: "0.9rem",
@@ -148,6 +149,7 @@ export function AutoPptStudentPanel({ roomId }: AutoPptStudentPanelProps) {
                     <div
                         style={{
                             flex: 1,
+                            minHeight: 260,
                             borderRadius: 8,
                             overflow: "hidden",
                             border: "1px solid rgba(31,41,55,0.9)",

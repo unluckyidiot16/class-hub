@@ -2432,7 +2432,7 @@ export function TeacherRoomLivePage() {
                                             listStyle: "none",
                                             padding: 0,
                                             margin: 0,
-                                            maxHeight: "180px",
+                                            maxHeight: "320px",
                                             overflow: "auto",
                                             borderRadius: "0.5rem",
                                             border: "1px solid var(--border-subtle)",
