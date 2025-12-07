@@ -7,6 +7,7 @@ import {
     fetchLatestAutopptDoc,
     type AutopptDocRow,
 } from "../api/autopptDocs";
+import { PdfSinglePageViewer } from "./PdfSinglePageViewer";
 
 export type AutoPptTeacherPanelProps = {
     roomId: string | null;
@@ -361,24 +362,15 @@ export function AutoPptTeacherPanel({ roomId }: AutoPptTeacherPanelProps) {
                     <div
                         style={{
                             flex: 1,
-                            minHeight: 260,
                             borderRadius: 8,
                             overflow: "hidden",
                             border: "1px solid rgba(31,41,55,0.9)",
+                            minHeight: 260,
                             background: "#020617",
                         }}
                     >
                         {pdfUrl ? (
-                            <iframe
-                                key={`${pdfUrl}#${humanPage}`}
-                                src={`${pdfUrl}#page=${humanPage}`}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    border: "none",
-                                }}
-                                title="AutoPPT Slide"
-                            />
+                            <PdfSinglePageViewer url={pdfUrl} pageNumber={humanPage} />
                         ) : (
                             <div
                                 style={{
