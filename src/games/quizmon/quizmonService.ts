@@ -320,55 +320,87 @@ export async function loadPowerItemCounts(profileId: string): Promise<{
 /** 인벤토리에서 특정 타입 아이템 소비 (exp_dust / rare_candy) */
 async function consumePowerItems(
     profileId: string,
-    itemType: "xp_dust" | "rare_candy",
-    amount: number,
-): Promise<void> {
+        itemType: "xp_dust" | "rare_candy",
+        amount: number,
+    ): Promise<void> {
     if (amount <= 0) return;
 
-    const { data, error } = await supabase
+        const { data, error } = await supabase
         .from("quizmon_inventory")
         .select("id, quantity, quizmon_items(item_type)")
         .eq("profile_id", profileId)
         .eq("quizmon_items.item_type", itemType);
 
-    if (error) {
-        console.error(
-            "[quizmonService] consumePowerItems select error",
-            error,
+        if (error) {
+            console.error(
+                    "[quizmonService] consumePowerItems select error",
+                    error,
+                );
+            throw new Error("인벤토리를 불러오는 중 오류가 발생했습니다.");
+        }
+
+        // 1) 0개 이하인 행은 버리고, 전체 보유 수량 합산
+            const rows = (data ?? []).filter(
+            (row: any) => (row.quantity ?? 0) > 0,
         );
-        throw new Error("인벤토리를 불러오는 중 오류가 발생했습니다.");
-    }
 
-    const rows = data ?? [];
-    if (rows.length === 0) {
-        throw new Error("해당 종류의 아이템이 인벤토리에 없습니다.");
-    }
-    if (rows.length > 1) {
-        console.warn(
-            "[quizmonService] consumePowerItems: 같은 타입 인벤토리 행이 여러 개입니다. 첫 번째 행만 사용합니다.",
+        if (rows.length === 0) {
+            throw new Error("해당 종류의 아이템이 인벤토리에 없습니다.");
+        }
+
+        const totalQty = rows.reduce(
+            (sum, row: any) => sum + (row.quantity ?? 0),
+            0,
         );
-    }
 
-    const row = rows[0] as any;
-    const currentQty: number = row.quantity ?? 0;
-    if (currentQty < amount) {
-        throw new Error("아이템 수가 부족합니다.");
-    }
+        if (totalQty < amount) {
+            // 여러 줄 합쳐도 모자랄 때만 진짜 부족
+                throw new Error("아이템 수가 부족합니다.");
+        }
 
-    const newQty = currentQty - amount;
+        if (rows.length > 1) {
+            console.warn(
+                    "[quizmonService] consumePowerItems: 같은 타입 인벤토리 행이 여러 개입니다. 여러 행에서 나눠서 차감합니다.",
+                );
+        }
 
-    const { error: updateError } = await supabase
-        .from("quizmon_inventory")
-        .update({ quantity: newQty })
-        .eq("id", row.id);
-
-    if (updateError) {
-        console.error(
-            "[quizmonService] consumePowerItems update error",
-            updateError,
-        );
-        throw new Error("인벤토리 업데이트 중 오류가 발생했습니다.");
-    }
+        // 2) 여러 행에서 나눠서 차감
+            let remaining = amount;
+    for (const row of rows as any[]) {
+            if (remaining <= 0) break;
+    
+                const currentQty: number = row.quantity ?? 0;
+           if (currentQty <= 0) continue;
+    
+                const use = Math.min(currentQty, remaining);
+            const newQty = currentQty - use;
+    
+                const { error: updateError } = await supabase
+                .from("quizmon_inventory")
+                .update({ quantity: newQty })
+                .eq("id", row.id);
+    
+                if (updateError) {
+                    console.error(
+                            "[quizmonService] consumePowerItems update error",
+                            updateError,
+                        );
+                    throw new Error(
+                            "인벤토리 업데이트 중 오류가 발생했습니다.",
+                        );
+                }
+    
+                remaining -= use;
+        }
+    
+        if (remaining > 0) {
+            // 이 지점까지 오면 원래는 남을 수가 없음 (보유량 체크를 이미 했으므로)
+                console.error(
+                        "[quizmonService] consumePowerItems: remaining > 0 after updates",
+                        { profileId, itemType, remaining },
+                    );
+            throw new Error("인벤토리 업데이트 중 오류가 발생했습니다.");
+        }
 }
 
 /** 한 마리 몬스터 + 종 정보 + Everstone 여부 읽기 */
