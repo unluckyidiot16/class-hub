@@ -41,8 +41,8 @@ const GAME_OPTIONS: { value: string; label: string }[] = [
     { value: "linebattle", label: "라인 배틀 (계획)" },
     { value: "qdd", label: "퀴즈 다이스 디펜스" },
     { value: "pixel", label: "픽셀" },
-    { value: "quizmon", label: "퀴즈몬 (계획)" },
-    { value: "pem", label: "포켓몬 맞춤법 탐험대 (PEM)" },
+    { value: "quizmon", label: "퀴즈몬" },
+    { value: "cardbattle", label: "카드배틀" },
 ];
 
 // 간단한 방 코드 생성기 (A-Z, 2-9, 6자리)
