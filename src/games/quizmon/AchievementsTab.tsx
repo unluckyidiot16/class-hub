@@ -1,5 +1,5 @@
 // src/games/quizmon/AchievementsTab.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { QuizmonProfileRow } from "./types";
 import { useQuizmonContext } from "./QuizmonProvider";
 import type { QuizmonAchievementWithProgress } from "./quizmonAchievements";
@@ -27,6 +27,53 @@ export function AchievementsTab({ profile }: AchievementsTabProps) {
 
     // ✅ 중복 클릭 방지용
     const [claimingId, setClaimingId] = useState<string | null>(null);
+
+    // ✅ 프로필별로, 이미 받은 업적 id를 localStorage에서 복원
+    useEffect(() => {
+        if (!profile) return;
+        if (typeof window === "undefined") return;
+
+        const key = `quizmon_claimed_achievements:${profile.id}`;
+
+        try {
+            const raw = window.localStorage.getItem(key);
+            if (!raw) {
+                setLocallyClaimedIds([]);
+                return;
+            }
+
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                // 문자열만 필터링해서 사용
+                const safeIds = parsed.filter(
+                    (x): x is string => typeof x === "string",
+                );
+                setLocallyClaimedIds(safeIds);
+            } else {
+                setLocallyClaimedIds([]);
+            }
+        } catch (err) {
+            console.error("[AchievementsTab] load claimed ids error", err);
+            setLocallyClaimedIds([]);
+        }
+    }, [profile?.id]);
+
+    // ✅ 현재 프로필 기준으로 받은 업적 id를 localStorage에 저장
+    useEffect(() => {
+        if (!profile) return;
+        if (typeof window === "undefined") return;
+
+        const key = `quizmon_claimed_achievements:${profile.id}`;
+
+        try {
+            window.localStorage.setItem(
+                key,
+                JSON.stringify(locallyClaimedIds),
+            );
+        } catch (err) {
+            console.error("[AchievementsTab] save claimed ids error", err);
+        }
+    }, [profile?.id, locallyClaimedIds]);
 
     if (!profile) {
         return (
