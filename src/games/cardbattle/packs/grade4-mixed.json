@@ -1,0 +1,221 @@
+{
+  "type": "quizpack",
+  "version": "v1",
+  "meta": {
+    "id": "cardbattle-grade4-mixed",
+    "title": "4학년 카드배틀 통합 문제팩 (국/영/수/사/과)",
+    "grade": 4,
+    "locale": "ko-KR"
+  },
+  "questions": [
+    {
+      "id": "kor-1",
+      "index": 1,
+      "subject": "kor",
+      "prompt": "다음 중 맞는 맞춤법을 고르세요.",
+      "options": [
+        "어제는 비가 왔읍니다.",
+        "어제는 비가 왔습니다.",
+        "어제는 비가 왓습니다.",
+        "어제는 비가 왔슴니다."
+      ],
+      "answerIndex": 1
+    },
+    {
+      "id": "kor-2",
+      "index": 2,
+      "subject": "kor",
+      "prompt": "빈칸에 알맞은 말을 고르세요.\n\"나는 친구___ 함께 놀았다.\"",
+      "options": ["와", "과", "이랑", "만"],
+      "answerIndex": 0
+    },
+    {
+      "id": "kor-3",
+      "index": 3,
+      "subject": "kor",
+      "prompt": "다음 중 띄어쓰기가 모두 맞는 것은?",
+      "options": [
+        "학교에갈 때",
+        "학교에 갈때",
+        "학교에 갈 때",
+        "학교 에 갈 때"
+      ],
+      "answerIndex": 2
+    },
+    {
+      "id": "kor-4",
+      "index": 4,
+      "subject": "kor",
+      "prompt": "속담 \"가는 말이 고와야 오는 말이 곱다\"의 뜻과 가장 가까운 것은?",
+      "options": [
+        "먼저 말한 사람이 이긴다.",
+        "말을 많이 해야 친구가 생긴다.",
+        "말을 부드럽게 하면 듣는 사람도 좋게 대한다.",
+        "크게 말해야 잘 들린다."
+      ],
+      "answerIndex": 2
+    },
+
+    {
+      "id": "eng-1",
+      "index": 5,
+      "subject": "eng",
+      "prompt": "상대가 \"What are you doing?\"이라고 물었습니다. TV를 보고 있다고 말하고 싶을 때 알맞은 대답은?",
+      "options": [
+        "I'm watch TV.",
+        "I'm watching TV.",
+        "I watching TV.",
+        "I watch TV now."
+      ],
+      "answerIndex": 1
+    },
+    {
+      "id": "eng-2",
+      "index": 6,
+      "subject": "eng",
+      "prompt": "빈칸에 알맞은 말을 고르세요.\n\"I'm ______ a picture.\"",
+      "options": ["draw", "drawing", "draws", "to draw"],
+      "answerIndex": 1
+    },
+    {
+      "id": "eng-3",
+      "index": 7,
+      "subject": "eng",
+      "prompt": "도움을 부탁하고 싶을 때 알맞은 표현은?",
+      "options": [
+        "Help me, please.",
+        "Thank you, please.",
+        "I am help you.",
+        "You help I, please."
+      ],
+      "answerIndex": 0
+    },
+    {
+      "id": "eng-4",
+      "index": 8,
+      "subject": "eng",
+      "prompt": "친구가 \"I'm making a robot.\"이라고 말했습니다. 지금 무엇을 하고 있는지 가장 알맞게 해석한 것은?",
+      "options": [
+        "로봇을 만들고 있다.",
+        "로봇을 가지고 논다.",
+        "로봇을 팔고 있다.",
+        "로봇을 고장 냈다."
+      ],
+      "answerIndex": 0
+    },
+
+    {
+      "id": "math-1",
+      "index": 9,
+      "subject": "math",
+      "prompt": "7 × 8의 값은 얼마인가요?",
+      "options": ["48", "54", "56", "64"],
+      "answerIndex": 2
+    },
+    {
+      "id": "math-2",
+      "index": 10,
+      "subject": "math",
+      "prompt": "사각형의 한 변의 길이가 6cm, 다른 한 변의 길이가 4cm일 때 넓이는 얼마인가요?",
+      "options": ["10㎠", "20㎠", "24㎠", "28㎠"],
+      "answerIndex": 2
+    },
+    {
+      "id": "math-3",
+      "index": 11,
+      "subject": "math",
+      "prompt": "다음 중 짝수만 모두 모아 놓은 것은?",
+      "options": ["1, 2, 3", "2, 4, 6", "3, 5, 7", "5, 6, 7"],
+      "answerIndex": 1
+    },
+    {
+      "id": "math-4",
+      "index": 12,
+      "subject": "math",
+      "prompt": "□ 안에 알맞은 수를 고르세요.\n\"35 + □ = 100\"",
+      "options": ["45", "55", "60", "65"],
+      "answerIndex": 1
+    },
+
+    {
+      "id": "social-1",
+      "index": 13,
+      "subject": "social",
+      "prompt": "우리 동네에서 지켜야 할 규칙으로 알맞은 것은?",
+      "options": [
+        "밤늦게 큰 소리로 떠든다.",
+        "쓰레기를 아무 데나 버린다.",
+        "횡단보도에서 신호를 지킨다.",
+        "길 가운데에 물건을 놓는다."
+      ],
+      "answerIndex": 2
+    },
+    {
+      "id": "social-2",
+      "index": 14,
+      "subject": "social",
+      "prompt": "학교에서 학생들을 가르치는 직업은?",
+      "options": ["의사", "소방관", "교사", "경찰관"],
+      "answerIndex": 2
+    },
+    {
+      "id": "social-3",
+      "index": 15,
+      "subject": "social",
+      "prompt": "지도를 볼 때 '북쪽'을 올바르게 이해한 것은?",
+      "options": [
+        "지도에서 항상 아래쪽이다.",
+        "지도에서 항상 위쪽이다.",
+        "지도에서 항상 오른쪽이다.",
+        "지도에서 항상 왼쪽이다."
+      ],
+      "answerIndex": 1
+    },
+    {
+      "id": "social-4",
+      "index": 16,
+      "subject": "social",
+      "prompt": "다음 중 '마을 회관'의 역할로 알맞은 것은?",
+      "options": [
+        "마을 사람들이 모여 회의나 행사를 하는 곳",
+        "동물들이 사는 숲",
+        "자동차만 다니는 길",
+        "물건을 사는 큰 시장"
+      ],
+      "answerIndex": 0
+    },
+
+    {
+      "id": "science-1",
+      "index": 17,
+      "subject": "science",
+      "prompt": "다음 중 물질의 상태가 다른 하나는?",
+      "options": ["얼음", "수증기", "눈", "빙산"],
+      "answerIndex": 1
+    },
+    {
+      "id": "science-2",
+      "index": 18,
+      "subject": "science",
+      "prompt": "물이 끓어 수증기로 바뀌는 현상을 무엇이라고 하나요?",
+      "options": ["응축", "증발", "융해", "승화"],
+      "answerIndex": 1
+    },
+    {
+      "id": "science-3",
+      "index": 19,
+      "subject": "science",
+      "prompt": "식물이 스스로 먹이를 만드는 데 가장 중요한 빛은?",
+      "options": ["해빛(햇빛)", "달빛", "촛불", "손전등"],
+      "answerIndex": 0
+    },
+    {
+      "id": "science-4",
+      "index": 20,
+      "subject": "science",
+      "prompt": "다음 중 자석에 잘 붙는 것은?",
+      "options": ["유리컵", "나무젓가락", "철 못", "고무공"],
+      "answerIndex": 2
+    }
+  ]
+}
