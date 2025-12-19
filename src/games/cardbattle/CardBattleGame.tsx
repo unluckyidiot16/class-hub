@@ -11,7 +11,7 @@ import {
 import { supabase } from "../../lib/supabaseClient";
 import quizPack from "./packs/grade4-mixed.json";
 
-// ----- 로컬 퀴즈팩 타입 -----
+// ----- 퀴즈팩 타입 -----
 type CardBattleQuestion = {
     id: string;
     index: number;
@@ -31,13 +31,13 @@ type CardBattlePack = {
 
 const PACK = quizPack as CardBattlePack;
 
-// ----- 공통 유틸 -----
+// ----- 유틸 -----
 function pickRandomQuestionId(subject: Subject): string | null {
     const candidates = PACK.questions.filter((q) => q.subject === subject);
     if (candidates.length === 0) return null;
     const idx = Math.floor(Math.random() * candidates.length);
-    const choice = candidates[idx];
-    return choice ? choice.id : null;
+    const chosen = candidates[idx];
+    return chosen ? chosen.id : null;
 }
 
 function subjectLabel(subject: Subject | string): string {
@@ -57,11 +57,13 @@ function subjectLabel(subject: Subject | string): string {
     }
 }
 
-// ===== 최상위 컴포넌트 =====
+// ======================
+// 최상위: CardBattleGame
+// ======================
 type CardBattleGameProps = any;
 
 export function CardBattleGame(rawProps: CardBattleGameProps) {
-    // StudentRoomPage / TeacherRoomLivePage 쪽에서 넘겨주는 다양한 패턴을 최대한 포괄
+    // room 정보 (StudentRoomPage / TeacherRoomLivePage 에서 내려주는 값)
     const roomObj =
         (rawProps && (rawProps.room || rawProps.currentRoom)) || undefined;
 
@@ -72,47 +74,113 @@ export function CardBattleGame(rawProps: CardBattleGameProps) {
         rawProps?.roomID ??
         undefined;
 
+    // auth 기반 내 프로필 (fallback)
+    const [authProfile, setAuthProfile] = useState<{
+        id: string;
+        name: string;
+    } | null>(null);
+    const [authLoaded, setAuthLoaded] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadAuth() {
+            try {
+                const { data, error } = await supabase.auth.getUser();
+                if (error) {
+                    console.warn("[CardBattleGame] auth.getUser error", error);
+                }
+                if (!cancelled && data?.user) {
+                    const user = data.user;
+                    const meta: any = user.user_metadata ?? {};
+                    const name: string =
+                        meta.display_name ||
+                        meta.full_name ||
+                        meta.name ||
+                        meta.nickname ||
+                        "Player";
+                    setAuthProfile({ id: user.id, name });
+                } else if (!cancelled) {
+                    setAuthProfile(null);
+                }
+            } catch (e) {
+                console.warn("[CardBattleGame] auth.getUser exception", e);
+            } finally {
+                if (!cancelled) {
+                    setAuthLoaded(true);
+                }
+            }
+        }
+
+        loadAuth();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    // props에서 넘어오는 내 정보 (있으면 우선 사용)
     const meObj =
         rawProps?.me ??
         rawProps?.profile ??
-        rawProps?.meProfile ??
         rawProps?.studentProfile ??
         rawProps?.currentProfile ??
-        undefined;
+        null;
 
-    const myProfileId: string | undefined =
-        meObj?.id ??
-        meObj?.profile_id ??
-        rawProps?.profile_id ??
-        undefined;
+    const myProfileIdFromProps: string | undefined =
+        meObj?.id ?? meObj?.profile_id ?? rawProps?.profile_id;
 
-    const myName: string =
+    const myNameFromProps: string | undefined =
         meObj?.display_name ||
         meObj?.nickname ||
         meObj?.name ||
-        rawProps?.displayName ||
-        "Player";
+        rawProps?.displayName;
+
+    const myProfileId: string | undefined =
+        myProfileIdFromProps ?? authProfile?.id;
+
+    const myName: string = myNameFromProps ?? authProfile?.name ?? "Player";
 
     const useNetwork = !!roomId && !!myProfileId;
 
-    // 디버그용 로깅 + 모드 표시
+    // 디버그용
     // eslint-disable-next-line no-console
-    console.log("[CardBattleGame] props", { rawProps, roomId, myProfileId, useNetwork });
+    console.log("[CardBattleGame] props", {
+        rawProps,
+        roomId,
+        myProfileId,
+        useNetwork,
+    });
 
-    if (useNetwork) {
-        return (
-            <NetworkCardBattleInner
-                roomId={roomId as string}
-                myProfileId={myProfileId as string}
-                myName={myName}
-            />
-        );
+    // room 이 없으면 그냥 로컬 2P 디버그
+    if (!roomId) {
+        return <LocalCardBattleGame />;
     }
 
-    return <LocalCardBattleGame />;
+    // room 은 있는데 아직 내 id 를 못 구했으면 잠깐 로딩
+    if (!myProfileId) {
+        if (!authLoaded) {
+            return (
+                <div style={{ padding: "1rem", fontSize: "0.9rem" }}>
+                    내 정보를 불러오는 중입니다…
+                </div>
+            );
+        }
+        // authLoaded인데도 id 가 없으면 네트워크 연동이 안 되니 로컬 모드로 폴백
+        return <LocalCardBattleGame />;
+    }
+
+    return (
+        <NetworkCardBattleInner
+            roomId={roomId}
+            myProfileId={myProfileId}
+            myName={myName}
+        />
+    );
 }
 
-// ===== 1) 로컬 2P 디버그 모드 =====
+// ======================
+// 1) 로컬 전용 2P 디버그 모드
+// ======================
 function LocalCardBattleGame() {
     const [game, setGame] = useState<GameState>(() =>
         createInitialGameState("Player 1", "Player 2"),
@@ -140,7 +208,9 @@ function LocalCardBattleGame() {
     const activeQuestion = game.activeQuestion;
     const currentQuestion = useMemo(() => {
         if (!activeQuestion) return null;
-        return PACK.questions.find((q) => q.id === activeQuestion.questionId) ?? null;
+        return (
+            PACK.questions.find((q) => q.id === activeQuestion.questionId) ?? null
+        );
     }, [activeQuestion]);
 
     const remainingSeconds = useMemo(() => {
@@ -243,15 +313,15 @@ function LocalCardBattleGame() {
                     defenderDefenseCount={defenderDefenseCount}
                     onAnswer={handleAnswer}
                     onUseDefense={handleUseDefense}
-                    isMyTurn={true}
-                    isDefender={true}
                 />
             )}
         </div>
     );
 }
 
-// ===== 2) Realtime 1:1 모드 =====
+// ======================
+// 2) Realtime 1:1 모드
+// ======================
 type NetworkInnerProps = {
     roomId: string;
     myProfileId: string;
@@ -303,7 +373,7 @@ function NetworkCardBattleInner({
         return () => clearInterval(timer);
     }, []);
 
-    // 채널 초기화
+    // 채널 연결
     useEffect(() => {
         const ch = supabase.channel(`cardbattle:${roomId}`);
         channelRef.current = ch;
@@ -352,7 +422,7 @@ function NetworkCardBattleInner({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [roomId, myProfileId, myName]);
 
-    // host: 액션 처리 후 브로드캐스트
+    // host: 액션 처리 후 state 브로드캐스트
     function applyActionAsHost(action: CardBattleAction) {
         setSnapshot((prev) => {
             if (!prev) return prev;
@@ -368,7 +438,7 @@ function NetworkCardBattleInner({
         });
     }
 
-    // host: 두 명 다 입장하면 게임 초기화 & state 전송
+    // host: 두 명이 다 들어오면 초기 state 생성
     useEffect(() => {
         if (!iAmHost) return;
         if (snapshot) return;
@@ -394,7 +464,7 @@ function NetworkCardBattleInner({
         }
     }, [iAmHost, snapshot, sortedIds, joinedPlayers]);
 
-    // host: TIMEOUT 자동 처리
+    // host: 시간 초과 자동 처리
     useEffect(() => {
         if (!iAmHost) return;
         if (!snapshot?.game.activeQuestion) return;
@@ -417,7 +487,9 @@ function NetworkCardBattleInner({
     const activeQuestion = game?.activeQuestion;
     const currentQuestion = useMemo(() => {
         if (!activeQuestion) return null;
-        return PACK.questions.find((q) => q.id === activeQuestion.questionId) ?? null;
+        return (
+            PACK.questions.find((q) => q.id === activeQuestion.questionId) ?? null
+        );
     }, [activeQuestion]);
 
     const remainingSeconds = useMemo(() => {
@@ -493,9 +565,9 @@ function NetworkCardBattleInner({
     const defenderDefenseCount =
         defender?.hand.filter((c) => c.type === "defense").length ?? 0;
 
-    const modeLabel = `NETWORK 1v1 (${
-        myPlayerId === "P1" ? "P1" : "P2"
-    } / host: ${iAmHost ? "me" : "other"})`;
+    const modeLabel = `NETWORK 1v1 (${myPlayerId} / host: ${
+        iAmHost ? "me" : "other"
+    })`;
 
     return (
         <div
@@ -545,7 +617,6 @@ function NetworkCardBattleInner({
                 />
             </div>
 
-            {/* 문제 모달: 방어자 화면에만 뜸 */}
             {activeQuestion && currentQuestion && myPlayerId && (
                 <>
                     {activeQuestion.defenderId === myPlayerId ? (
@@ -557,8 +628,6 @@ function NetworkCardBattleInner({
                             defenderDefenseCount={defenderDefenseCount}
                             onAnswer={handleAnswer}
                             onUseDefense={handleUseDefense}
-                            isMyTurn={game.currentTurn === myPlayerId}
-                            isDefender={true}
                         />
                     ) : (
                         <WaitingOverlay
@@ -571,7 +640,7 @@ function NetworkCardBattleInner({
     );
 }
 
-// ===== 스냅샷 리듀서 (host 전용) =====
+// ----- host 전용 리듀서 -----
 function reduceSnapshot(
     prev: CardBattleSnapshot,
     action: CardBattleAction,
@@ -618,7 +687,9 @@ function reduceSnapshot(
     }
 }
 
-// ===== 공통 UI 컴포넌트 =====
+// ======================
+// 공통 UI 컴포넌트들
+// ======================
 type HeaderBarProps = {
     game: GameState;
     modeLabel: string;
@@ -671,7 +742,8 @@ function HeaderBar({ game, modeLabel, onReset, hostName }: HeaderBarProps) {
                     </div>
                 ) : (
                     <div>
-                        <strong>현재 턴:</strong> {game.players[game.currentTurn].name}
+                        <strong>현재 턴:</strong>{" "}
+                        {game.players[game.currentTurn].name}
                     </div>
                 )}
                 {onReset && (
@@ -756,7 +828,7 @@ function PlayerHandView({
     const visibleCards = hideCards
         ? player.hand.map((c) =>
             c.type === "attack"
-                ? { ...c, subject: "?" as Subject }
+                ? ({ ...c, subject: "?" as Subject })
                 : c,
         )
         : player.hand;
@@ -848,8 +920,6 @@ type QuestionModalProps = {
     defenderDefenseCount: number;
     onAnswer: (optionIndex: number) => void;
     onUseDefense: () => void;
-    isMyTurn: boolean;
-    isDefender: boolean;
 };
 
 function QuestionModal({
